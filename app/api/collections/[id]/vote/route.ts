@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse }            from 'next/server'
-import { getToken }                              from 'next-auth/jwt'
+import { getServerSession }                     from 'next-auth'
+import { authOptions }                          from '@/lib/auth'
 import { castVote, removeVote }                  from '@/services/collection-votes'
 import { notifyCollectionUpvote }                from '@/services/notifications'
 import { prisma }                                from '@/lib/db'
@@ -7,12 +8,11 @@ import type { VoteType }                         from '@/types'
 
 type Ctx = { params: Promise<{ id: string }> }
 
-// POST /api/collections/:id/vote  — cast or change a vote
-// Body: { voteType: "upvote" | "downvote" }
 export async function POST(req: NextRequest, { params }: Ctx) {
-  const token = await getToken({ req })
-  const myId  = (token?.id ?? token?.sub) as string | undefined
+  const session = await getServerSession(authOptions)
+  const myId    = session?.user?.id as string | undefined
   if (!myId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { id: collectionId } = await params
 
   let body: { voteType?: unknown }
@@ -27,7 +27,6 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   try {
     const result = await castVote(myId, collectionId, voteType as VoteType)
 
-    // Notify collection owner when they receive an upvote (non-blocking)
     if (voteType === 'upvote') {
       void prisma.collection.findUnique({
         where:  { id: collectionId },
@@ -47,10 +46,9 @@ export async function POST(req: NextRequest, { params }: Ctx) {
   }
 }
 
-// DELETE /api/collections/:id/vote  — remove the user's vote
 export async function DELETE(req: NextRequest, { params }: Ctx) {
-  const token = await getToken({ req })
-  const uid   = (token?.id ?? token?.sub) as string | undefined
+  const session = await getServerSession(authOptions)
+  const uid     = session?.user?.id as string | undefined
   if (!uid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id: collectionId } = await params

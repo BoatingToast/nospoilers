@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken }                  from 'next-auth/jwt'
+import { getServerSession }          from 'next-auth'
+import { authOptions }               from '@/lib/auth'
 import { getPublicCollections, getUserCollections, createCollection } from '@/services/collections'
 import {
   getPopularCollections,
@@ -14,14 +15,12 @@ import {
 //   ?tab=popular|newest|most_upvoted|most_movies|following
 //   (default)           → public collections (legacy)
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req })
+  const session = await getServerSession(authOptions)
+  const uid     = session?.user?.id as string | undefined
   const { searchParams } = new URL(req.url)
   const mine  = searchParams.get('mine') === 'true'
   const tab   = searchParams.get('tab')
   const limit = Math.min(parseInt(searchParams.get('limit') ?? '24', 10), 48)
-
-  // ── My collections ────────────────────────────────────────────────────────
-  const uid = ((token?.id ?? token?.sub) as string | undefined)
 
   if (mine) {
     if (!uid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -29,7 +28,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(cols)
   }
 
-  // ── Tabbed community views ────────────────────────────────────────────────
   try {
     switch (tab) {
       case 'popular':      return NextResponse.json(await getPopularCollections(uid, limit))
@@ -41,7 +39,6 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(await getFollowingCollections(uid, limit))
       }
       default: {
-        // Legacy: plain public collections list (used by CollectionPickerModal)
         const cols = await getPublicCollections()
         return NextResponse.json(cols)
       }
@@ -53,8 +50,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req })
-  const uid   = (token?.id ?? token?.sub) as string | undefined
+  const session = await getServerSession(authOptions)
+  const uid     = session?.user?.id as string | undefined
   if (!uid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { title, description, isPublic } = await req.json()

@@ -1,27 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
-import { prisma } from '@/lib/db'
+import { NextResponse }    from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions }      from '@/lib/auth'
+import { prisma }           from '@/lib/db'
 
-// TEMPORARY DEBUG ENDPOINT — delete after fixing the Forbidden issue
-export async function GET(req: NextRequest) {
-  const token = await getToken({ req })
+export async function GET() {
+  const session = await getServerSession(authOptions)
 
   const sampleCollection = await prisma.collection.findFirst({
     select: { id: true, userId: true, title: true },
   })
 
   return NextResponse.json({
-    token: token
-      ? {
-          id:    (token as Record<string,unknown>).id,
-          sub:   token.sub,
-          email: token.email,
-        }
+    session: session
+      ? { userId: session.user?.id, email: session.user?.email }
       : null,
-    env: {
-      NEXTAUTH_SECRET_set: !!process.env.NEXTAUTH_SECRET,
-      NODE_ENV: process.env.NODE_ENV,
-    },
     sampleCollection,
   })
 }

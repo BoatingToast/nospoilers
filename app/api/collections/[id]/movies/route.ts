@@ -7,7 +7,8 @@
  */
 
 import { NextRequest, NextResponse }                              from 'next/server'
-import { getToken }                                              from 'next-auth/jwt'
+import { getServerSession }                                      from 'next-auth'
+import { authOptions }                                           from '@/lib/auth'
 import { addMovieToCollection, removeMovieFromCollection }        from '@/services/collections'
 import { prisma }                                                from '@/lib/db'
 type Ctx = { params: Promise<{ id: string }> }
@@ -15,9 +16,8 @@ type Ctx = { params: Promise<{ id: string }> }
 // ── Shared ownership guard ────────────────────────────────────────────────────
 
 async function assertOwner(req: NextRequest, collectionId: string): Promise<string | null> {
-  const token  = await getToken({ req })
-  // token.sub is the standard JWT subject = user ID. token.id is our custom field.
-  const userId = ((token?.id ?? token?.sub) as string | undefined) ?? null
+  const session = await getServerSession(authOptions)
+  const userId  = session?.user?.id
   if (!userId) return null
 
   const col = await prisma.collection.findUnique({

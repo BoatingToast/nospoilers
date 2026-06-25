@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse }                         from 'next/server'
-import { getToken }                                          from 'next-auth/jwt'
+import { getServerSession }                                  from 'next-auth'
+import { authOptions }                                       from '@/lib/auth'
 import { getCollection, updateCollection, deleteCollection } from '@/services/collections'
 
 type Ctx = { params: Promise<{ id: string }> }
@@ -12,8 +13,8 @@ export async function GET(_: NextRequest, { params }: Ctx) {
 }
 
 export async function PATCH(req: NextRequest, { params }: Ctx) {
-  const token = await getToken({ req })
-  const uid   = (token?.id ?? token?.sub) as string | undefined
+  const session = await getServerSession(authOptions)
+  const uid     = session?.user?.id as string | undefined
   if (!uid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
@@ -27,8 +28,8 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
 }
 
 export async function DELETE(req: NextRequest, { params }: Ctx) {
-  const token = await getToken({ req })
-  const uid   = (token?.id ?? token?.sub) as string | undefined
+  const session = await getServerSession(authOptions)
+  const uid     = session?.user?.id as string | undefined
   if (!uid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
