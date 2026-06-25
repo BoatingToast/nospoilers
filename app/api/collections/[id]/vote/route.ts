@@ -4,14 +4,13 @@ import { castVote, removeVote }                  from '@/services/collection-vot
 import { notifyCollectionUpvote }                from '@/services/notifications'
 import { prisma }                                from '@/lib/db'
 import type { VoteType }                         from '@/types'
-import { AUTH_SECRET }                           from '@/lib/auth-secret'
 
 type Ctx = { params: Promise<{ id: string }> }
 
 // POST /api/collections/:id/vote  — cast or change a vote
 // Body: { voteType: "upvote" | "downvote" }
 export async function POST(req: NextRequest, { params }: Ctx) {
-  const token = await getToken({ req, secret: AUTH_SECRET })
+  const token = await getToken({ req })
   const myId  = (token?.id ?? token?.sub) as string | undefined
   if (!myId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id: collectionId } = await params
@@ -50,7 +49,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
 
 // DELETE /api/collections/:id/vote  — remove the user's vote
 export async function DELETE(req: NextRequest, { params }: Ctx) {
-  const token = await getToken({ req, secret: AUTH_SECRET })
+  const token = await getToken({ req })
   const uid   = (token?.id ?? token?.sub) as string | undefined
   if (!uid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

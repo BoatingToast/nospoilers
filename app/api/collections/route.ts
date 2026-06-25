@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken }                  from 'next-auth/jwt'
 import { getPublicCollections, getUserCollections, createCollection } from '@/services/collections'
-import { AUTH_SECRET } from '@/lib/auth-secret'
 import {
   getPopularCollections,
   getNewestCollections,
@@ -15,14 +14,14 @@ import {
 //   ?tab=popular|newest|most_upvoted|most_movies|following
 //   (default)           → public collections (legacy)
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: AUTH_SECRET })
+  const token = await getToken({ req })
   const { searchParams } = new URL(req.url)
   const mine  = searchParams.get('mine') === 'true'
   const tab   = searchParams.get('tab')
   const limit = Math.min(parseInt(searchParams.get('limit') ?? '24', 10), 48)
 
   // ── My collections ────────────────────────────────────────────────────────
-  const uid = (token?.id ?? token?.sub) as string | undefined
+  const uid = ((token?.id ?? token?.sub) as string | undefined)
 
   if (mine) {
     if (!uid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -54,7 +53,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: AUTH_SECRET })
+  const token = await getToken({ req })
   const uid   = (token?.id ?? token?.sub) as string | undefined
   if (!uid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

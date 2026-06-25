@@ -10,23 +10,14 @@ import { NextRequest, NextResponse }                              from 'next/ser
 import { getToken }                                              from 'next-auth/jwt'
 import { addMovieToCollection, removeMovieFromCollection }        from '@/services/collections'
 import { prisma }                                                from '@/lib/db'
-import { AUTH_SECRET } from '@/lib/auth-secret'
 type Ctx = { params: Promise<{ id: string }> }
 
 // ── Shared ownership guard ────────────────────────────────────────────────────
 
-// Resolve the user ID from the JWT — token.id is a custom field set in the
-// JWT callback (only present for sessions created after that callback was added).
-// token.sub is the standard JWT subject claim that NextAuth always sets to
-// the user's database ID, so it's a reliable fallback for older sessions.
-function tokenUserId(token: Record<string, unknown> | null): string | null {
-  if (!token) return null
-  return (token['id'] ?? token['sub'] ?? null) as string | null
-}
-
 async function assertOwner(req: NextRequest, collectionId: string): Promise<string | null> {
-  const token  = await getToken({ req, secret: AUTH_SECRET })
-  const userId = tokenUserId(token)
+  const token  = await getToken({ req })
+  // token.sub is the standard JWT subject = user ID. token.id is our custom field.
+  const userId = ((token?.id ?? token?.sub) as string | undefined) ?? null
   if (!userId) return null
 
   const col = await prisma.collection.findUnique({

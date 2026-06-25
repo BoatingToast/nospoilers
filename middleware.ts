@@ -1,19 +1,9 @@
 import { getToken } from 'next-auth/jwt'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { AUTH_SECRET } from '@/lib/auth-secret'
 
 export async function middleware(req: NextRequest) {
-  // Pass the same secret that authOptions uses so Edge-Runtime JWT
-  // verification and Node-Runtime JWT signing always agree.
-  //
-  // Without an explicit secret, getToken() falls back to
-  // process.env.NEXTAUTH_SECRET.  When that env-var is absent (e.g.
-  // `npm run dev` without Vercel env injection), getToken() returns null
-  // even though a valid session cookie is present, causing middleware to
-  // redirect every /dashboard visit back to /login while the client-side
-  // navbar still shows the user as logged in.
-  const token = await getToken({ req, secret: AUTH_SECRET })
+  const token = await getToken({ req })
   const { pathname } = req.nextUrl
 
   const isDashboard  = pathname.startsWith('/dashboard')
