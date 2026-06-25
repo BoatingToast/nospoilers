@@ -34,7 +34,7 @@ export default function LoginPage() {
     // re-render in authenticated state. Avoids the race between router.push() and
     // router.refresh() in Next.js App Router (refresh acts on the current URL and
     // can cancel an in-flight push).
-    window.location.href = '/dashboard'
+    window.location.href = '/discover'
   }
 
   return (

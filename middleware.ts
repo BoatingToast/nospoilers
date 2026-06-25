@@ -23,8 +23,8 @@ export default withAuth(
     return NextResponse.next()
   },
   {
+    secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
-      // Return true = allow through (withAuth handles the login redirect when false)
       authorized: ({ token }) => !!token,
     },
     pages: {
