@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { generateDNA } from '@/services/dna'
+import { ensureTopFiveFromOnboarding } from '@/services/top-five'
 import type { PreferencesInput } from '@/types'
 
 export async function POST(req: Request) {
@@ -43,6 +44,7 @@ export async function POST(req: Request) {
       data:  { onboardingCompleted: true },
     }),
   ])
+  await ensureTopFiveFromOnboarding(session.user.id)
 
   return NextResponse.json({ ok: true, dna })
 }
