@@ -8,7 +8,7 @@
 
 import { prisma } from '@/lib/db'
 import { recalcTasteProfile } from './ratings'
-import type { DNAScores } from '@/types'
+import type { DNAScores, OnboardingMovieInput } from '@/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,7 +43,45 @@ export async function getTopFive(userId: string): Promise<TopFiveEntry[]> {
     where:   { userId },
     orderBy: { position: 'asc' },
   })
-  return rows.map(toEntry)
+  if (rows.length > 0) return rows.map(toEntry)
+
+  return getOnboardingTopFive(userId)
+}
+
+export function toTopFiveEntries(
+  movies: OnboardingMovieInput[],
+): TopFiveEntry[] {
+  return movies.slice(0, 5).map((m, index) => ({
+    tmdbId:      m.tmdbId,
+    title:       m.title,
+    posterPath:  m.posterPath,
+    releaseDate: m.releaseDate,
+    genreIds:    m.genreIds,
+    position:    index + 1,
+  }))
+}
+
+export async function syncTopFiveFromOnboarding(
+  userId: string,
+  movies: OnboardingMovieInput[],
+): Promise<TopFiveEntry[]> {
+  const topFive = toTopFiveEntries(movies)
+  await replaceTopFiveRows(userId, topFive)
+  return topFive
+}
+
+export async function ensureTopFiveFromOnboarding(userId: string): Promise<TopFiveEntry[]> {
+  const existing = await prisma.topFiveMovie.findMany({
+    where:   { userId },
+    orderBy: { position: 'asc' },
+  })
+  if (existing.length > 0) return existing.map(toEntry)
+
+  const topFive = await getOnboardingTopFive(userId)
+  if (topFive.length === 0) return []
+
+  await replaceTopFiveRows(userId, topFive)
+  return topFive
 }
 
 /**
@@ -83,21 +121,7 @@ export async function saveTopFive(
     }
   }
 
-  // Replace all positions atomically
-  await prisma.$transaction([
-    prisma.topFiveMovie.deleteMany({ where: { userId } }),
-    prisma.topFiveMovie.createMany({
-      data: movies.map(m => ({
-        userId,
-        tmdbId:      m.tmdbId,
-        title:       m.title,
-        posterPath:  m.posterPath,
-        releaseDate: m.releaseDate,
-        genreIds:    m.genreIds,
-        position:    m.position,
-      })),
-    }),
-  ])
+  await replaceTopFiveRows(userId, movies)
 
   // Trigger DNA recalc asynchronously
   void recalcTasteProfile(userId).catch(() => {})
@@ -233,4 +257,44 @@ function toEntry(row: {
     genreIds:    row.genreIds,
     position:    row.position,
   }
+}
+
+async function replaceTopFiveRows(
+  userId: string,
+  movies: TopFiveEntry[],
+): Promise<void> {
+  await prisma.$transaction(async tx => {
+    await tx.topFiveMovie.deleteMany({ where: { userId } })
+
+    if (movies.length === 0) return
+
+    await tx.topFiveMovie.createMany({
+      data: movies.map(m => ({
+        userId,
+        tmdbId:      m.tmdbId,
+        title:       m.title,
+        posterPath:  m.posterPath,
+        releaseDate: m.releaseDate,
+        genreIds:    m.genreIds,
+        position:    m.position,
+      })),
+    })
+  })
+}
+
+async function getOnboardingTopFive(userId: string): Promise<TopFiveEntry[]> {
+  const rows = await prisma.onboardingMovie.findMany({
+    where:   { userId },
+    orderBy: [{ addedAt: 'asc' }, { id: 'asc' }],
+    take:    5,
+    select: {
+      tmdbId:      true,
+      title:       true,
+      posterPath:  true,
+      releaseDate: true,
+      genreIds:    true,
+    },
+  })
+
+  return toTopFiveEntries(rows)
 }
