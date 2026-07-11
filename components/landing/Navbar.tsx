@@ -15,6 +15,7 @@ import {
   RatingsIcon,
   FriendsIcon,
   AchievementsIcon,
+  ClapperboardIcon,
   LockIcon,
   CloseIcon,
   ArrowRightIcon,
@@ -34,7 +35,7 @@ const NAV_LINKS: NavLink[] = [
   { href: '/discover',           label: 'Discover',    authRequired: false },
   { href: '/collections',        label: 'Collections', authRequired: false },
   { href: '/my-recommendations', label: 'Recs',        authRequired: true, highlight: true },
-  { href: '/dashboard',          label: 'Dashboard',   authRequired: true  },
+  { href: '/movie-night',        label: 'Movie Night', authRequired: true  },
 ]
 
 // ─── Profile dropdown items ───────────────────────────────────────────────────
@@ -47,6 +48,7 @@ interface DropdownItem {
 
 const DROPDOWN_ITEMS: DropdownItem[] = [
   { href: '/dashboard',         label: 'Dashboard',        Icon: DashboardIcon    },
+  { href: '/movie-night',       label: 'Movie Night',      Icon: ClapperboardIcon },
   { href: '/watchlist',         label: 'Watchlist',        Icon: WatchlistIcon    },
   { href: '/ratings',           label: 'Ratings',          Icon: RatingsIcon      },
   { href: '/friends',           label: 'Friends',          Icon: FriendsIcon      },

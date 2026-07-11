@@ -487,6 +487,53 @@ export interface FriendRec {
   explanation:  string
 }
 
+// ─── Movie Night ─────────────────────────────────────────────────────────────
+
+export type MovieNightSupportType = 'watchlist' | 'recommendation' | 'high_rating' | 'top_five'
+
+export interface MovieNightParticipant {
+  id:        string
+  username:  string
+  avatarUrl: string | null
+  isViewer:  boolean
+  topGenres: string[]
+  dnaSummary: string | null
+}
+
+export interface MovieNightSupport {
+  userId:   string
+  username: string
+  type:     MovieNightSupportType
+  score:    number
+  note:     string
+}
+
+export interface MovieNightSeenBy {
+  userId:   string
+  username: string
+}
+
+export interface MovieNightCandidate {
+  tmdbId:      number
+  title:       string
+  posterPath:  string | null
+  releaseDate: string | null
+  genreIds:    number[]
+  runtime:     number | null
+  voteAverage: number | null
+  baseScore:   number
+  explanation: string
+  supporters:  MovieNightSupport[]
+  seenBy:      MovieNightSeenBy[]
+}
+
+export interface MovieNightSeed {
+  viewerId:     string
+  participants: MovieNightParticipant[]
+  candidates:   MovieNightCandidate[]
+  generatedAt:  string
+}
+
 // ─── DNA Evolution + Rating-Based Recs ───────────────────────────────────────
 
 export interface DnaEvolution {
