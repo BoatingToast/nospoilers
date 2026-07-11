@@ -1,4 +1,16 @@
-import type { DNAScores, OnboardingMovieInput, PreferencesInput } from '@/types'
+import { prisma } from '@/lib/db'
+import { getUserPersonality } from './personality'
+import type { DNAScores, OnboardingMovieInput, PreferencesInput, MovieDnaProfile } from '@/types'
+
+// ─── Genre ID → display name ──────────────────────────────────────────────────
+// Shared with services/wrapped.ts so both "top genres" computations agree.
+export const GENRE_NAMES: Record<number, string> = {
+  28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy',
+  80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family',
+  14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music',
+  9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi', 10770: 'TV Movie',
+  53: 'Thriller', 10752: 'War', 37: 'Western',
+}
 
 // ─── Film signature database ──────────────────────────────────────────────────
 // Curated adjustments for well-known films (delta from neutral 5.0 baseline)
@@ -250,4 +262,106 @@ export function estimateMovieDNA(tmdbId: number, genreIds: number[]): DNAScores 
   }
 
   return scores
+}
+
+// ─── Full Movie DNA profile — the single source the reusable card renders ────
+// Assembles everything from real, already-persisted data: the TasteProfile
+// scores, the user's classified personality, and genre/decade/rewatch signal
+// derived live from their watchlist + Top 5. Nothing here is fabricated —
+// fields with no real signal come back null/omitted rather than guessed.
+
+function decadeOf(releaseDate: string | null): string | null {
+  if (!releaseDate) return null
+  const year = parseInt(releaseDate.slice(0, 4), 10)
+  if (!year || isNaN(year)) return null
+  return `${Math.floor(year / 10) * 10}s`
+}
+
+export async function getMovieDnaProfile(userId: string): Promise<MovieDnaProfile | null> {
+  const [profile, watchlistItems, top5Movies, personality] = await Promise.all([
+    prisma.tasteProfile.findUnique({ where: { userId } }),
+    prisma.watchlistItem.findMany({
+      where:  { userId },
+      select: { genreIds: true, releaseDate: true, status: true, rewatchCount: true },
+    }),
+    prisma.topFiveMovie.findMany({
+      where:  { userId },
+      select: { genreIds: true, releaseDate: true },
+    }),
+    getUserPersonality(userId),
+  ])
+
+  if (!profile) return null
+
+  const scores: DNAScores = {
+    suspenseScore:        profile.suspenseScore,
+    emotionalImpactScore: profile.emotionalImpactScore,
+    complexityScore:      profile.complexityScore,
+    humorScore:           profile.humorScore,
+    realismScore:         profile.realismScore,
+    actionScore:          profile.actionScore,
+    darknessScore:        profile.darknessScore,
+  }
+
+  // ── Top genres — frequency across watchlist + Top 5 ─────────────────────
+  const genreFreq: Record<number, number> = {}
+  for (const item of watchlistItems) {
+    for (const g of (item.genreIds ?? [])) genreFreq[g] = (genreFreq[g] ?? 0) + 1
+  }
+  for (const m of top5Movies) {
+    for (const g of (m.genreIds ?? [])) genreFreq[g] = (genreFreq[g] ?? 0) + 2 // curated picks count more
+  }
+  const topGenres = Object.entries(genreFreq)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3)
+    .map(([id]) => GENRE_NAMES[parseInt(id, 10)] ?? 'Other')
+
+  // ── Favorite decades ──────────────────────────────────────────────────────
+  const decadeFreq: Record<string, number> = {}
+  for (const item of watchlistItems) {
+    const d = decadeOf(item.releaseDate)
+    if (d) decadeFreq[d] = (decadeFreq[d] ?? 0) + 1
+  }
+  for (const m of top5Movies) {
+    const d = decadeOf(m.releaseDate)
+    if (d) decadeFreq[d] = (decadeFreq[d] ?? 0) + 2
+  }
+  const favoriteDecades = Object.entries(decadeFreq)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 2)
+    .map(([decade]) => decade)
+
+  // ── Pacing / tone — descriptive labels derived from the real DNA scores ──
+  const pacing: MovieDnaProfile['pacing'] =
+    scores.complexityScore - scores.actionScore >= 1.5 ? 'Slow Burn' :
+    scores.actionScore - scores.complexityScore >= 1.5 ? 'Fast-Paced' :
+    'Balanced'
+
+  const tone: MovieDnaProfile['tone'] =
+    scores.darknessScore - scores.humorScore >= 1.5 ? 'Dark' :
+    scores.humorScore - scores.darknessScore >= 1.5 ? 'Lighthearted' :
+    'Balanced'
+
+  // ── Rewatch tendency — from watched items only ────────────────────────────
+  const watched = watchlistItems.filter(w => w.status === 'watched')
+  const rewatchTendency: MovieDnaProfile['rewatchTendency'] = watched.length === 0
+    ? null
+    : (() => {
+        const ratio = watched.reduce((sum, w) => sum + w.rewatchCount, 0) / watched.length
+        if (ratio >= 0.5)  return 'High'
+        if (ratio >= 0.15) return 'Moderate'
+        return 'Low'
+      })()
+
+  return {
+    scores,
+    summary:     generateTasteSummary(scores),
+    ratingCount: profile.ratingCount,
+    identity:    personality?.primaryType ?? null,
+    topGenres,
+    favoriteDecades,
+    pacing,
+    tone,
+    rewatchTendency,
+  }
 }
