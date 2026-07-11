@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, Suspense, lazy, type ReactNode } from 'react'
-import type { DNAScores } from '@/types'
+import type { MovieDnaProfile } from '@/types'
 import {
   DashboardIcon,
   WatchlistIcon,
@@ -57,13 +57,13 @@ function TabSkeleton() {
 
 interface Props {
   overview:  ReactNode
-  dnaScores: DNAScores | null
+  dnaProfile: MovieDnaProfile | null
   username:  string
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function DashboardTabs({ overview, dnaScores, username }: Props) {
+export default function DashboardTabs({ overview, dnaProfile, username }: Props) {
   const [active, setActive] = useState<TabKey>('overview')
 
   return (
@@ -98,7 +98,7 @@ export default function DashboardTabs({ overview, dnaScores, username }: Props) 
           {active === 'ratings'      && <RatingsTab />}
           {active === 'achievements' && <AchievementsTab />}
           {active === 'friends'      && <FriendsFeedTab />}
-          {active === 'dna'          && <MovieDNATab dnaScores={dnaScores} username={username} />}
+          {active === 'dna'          && <MovieDNATab dnaProfile={dnaProfile} username={username} />}
           {active === 'wrapped'      && <WrappedTab />}
         </Suspense>
       )}

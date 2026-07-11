@@ -218,9 +218,14 @@ export async function recalcTasteProfile(userId: string): Promise<void> {
     }),
   ])
 
-  if (!user?.tasteProfile) return
+  if (!user) return
   // Need at least ratings OR top 5 to do anything meaningful
   if (ratings.length === 0 && top5Movies.length === 0) return
+  // A TasteProfile row may not exist yet (e.g. the user rated/curated a Top 5
+  // without ever finishing onboarding) — we still derive full DNA from real
+  // ratings/Top-5 data below and upsert it, we just have no prior DNA to
+  // blend against in that case (handled via `hasExisting` below).
+  const hasExisting = !!user.tasteProfile
 
   // Build a quick lookup: tmdbId → watchlist metadata
   const watchlistMap = new Map(watchlistItems.map(w => [w.tmdbId, w]))
@@ -330,25 +335,43 @@ export async function recalcTasteProfile(userId: string): Promise<void> {
   // ── Three-way blend: Top 5 anchor + ratings refinement + existing inertia ──
   // Top 5 always gets 35% when ≥3 movies present (scales linearly below that).
   // Remaining 65% splits between ratings-derived and existing DNA per rating count.
-  const t5Share       = hasTop5
+  let t5Share       = hasTop5
     ? (top5Movies.length >= 3 ? 0.35 : (top5Movies.length / 3) * 0.35)
     : 0
   const remaining     = 1 - t5Share
   const rw            = ratingBlendRatio(ratings.length)  // 0.30–0.70
-  const ratingShare   = rw   * remaining
-  const existingShare = (1 - rw) * remaining
+  let ratingShare   = ratings.length > 0 ? rw * remaining : 0
+  let existingShare = 1 - t5Share - ratingShare
 
-  const existing: DNAScores = {
-    suspenseScore:        user.tasteProfile.suspenseScore,
-    emotionalImpactScore: user.tasteProfile.emotionalImpactScore,
-    complexityScore:      user.tasteProfile.complexityScore,
-    humorScore:           user.tasteProfile.humorScore,
-    realismScore:         user.tasteProfile.realismScore,
-    actionScore:          user.tasteProfile.actionScore,
-    darknessScore:        user.tasteProfile.darknessScore,
+  // First-ever computation for this user (no TasteProfile row yet) — there's
+  // no prior DNA to blend toward, so redistribute its share across whichever
+  // real signals (Top 5 / ratings) are actually present instead of diluting
+  // toward a fake neutral placeholder.
+  if (!hasExisting) {
+    const total = t5Share + ratingShare
+    if (total > 0) {
+      t5Share     /= total
+      ratingShare /= total
+    }
+    existingShare = 0
   }
 
-  const updated: Partial<Record<keyof DNAScores, number>> = {}
+  const existing: DNAScores = hasExisting
+    ? {
+        suspenseScore:        user.tasteProfile!.suspenseScore,
+        emotionalImpactScore: user.tasteProfile!.emotionalImpactScore,
+        complexityScore:      user.tasteProfile!.complexityScore,
+        humorScore:           user.tasteProfile!.humorScore,
+        realismScore:         user.tasteProfile!.realismScore,
+        actionScore:          user.tasteProfile!.actionScore,
+        darknessScore:        user.tasteProfile!.darknessScore,
+      }
+    : {
+        suspenseScore: 5, emotionalImpactScore: 5, complexityScore: 5,
+        humorScore: 5, realismScore: 5, actionScore: 5, darknessScore: 5,
+      }
+
+  const updated = {} as DNAScores
   for (const dim of dims) {
     const ratingDerived = weights[dim] > 0 ? sums[dim] / weights[dim] : existing[dim]
     const t5Derived     = t5Weights[dim] > 0 ? t5Sums[dim] / t5Weights[dim] : existing[dim]
@@ -362,14 +385,15 @@ export async function recalcTasteProfile(userId: string): Promise<void> {
   }
 
   // ── Save snapshot of old DNA before overwriting ───────────────────────────
-  // Only snapshot if the profile has never been snapshotted, or if > 7 days old,
-  // or if the rating count crossed a meaningful threshold (every 5 ratings).
-  const profile         = user.tasteProfile
-  const prevCount       = profile.ratingCount ?? 0
-  const shouldSnapshot  =
-    !profile.dnaSnapshotAt ||
-    Date.now() - profile.dnaSnapshotAt.getTime() > 7 * 24 * 60 * 60 * 1000 ||
+  // Only meaningful when a prior profile exists. Snapshot if it's never been
+  // snapshotted, or if > 7 days old, or if the rating count crossed a
+  // meaningful threshold (every 5 ratings).
+  const prevCount       = hasExisting ? (user.tasteProfile!.ratingCount ?? 0) : 0
+  const shouldSnapshot  = hasExisting && (
+    !user.tasteProfile!.dnaSnapshotAt ||
+    Date.now() - user.tasteProfile!.dnaSnapshotAt.getTime() > 7 * 24 * 60 * 60 * 1000 ||
     Math.floor(ratings.length / 5) > Math.floor(prevCount / 5)
+  )
 
   const snapshotData = shouldSnapshot
     ? {
@@ -378,15 +402,21 @@ export async function recalcTasteProfile(userId: string): Promise<void> {
       }
     : {}
 
-  await prisma.tasteProfile.update({
-    where: { userId },
-    data:  {
+  await prisma.tasteProfile.upsert({
+    where:  { userId },
+    create: { userId, ...updated, ratingCount: ratings.length },
+    update: {
       ...updated,
       ratingCount: ratings.length,
       ...snapshotData,
       updatedAt: new Date(),
     },
   })
+
+  // Keep the personality/identity classification in lockstep with the DNA
+  // scores that just changed, so it never goes stale relative to them.
+  const { assignPersonality } = await import('./personality')
+  await assignPersonality(userId).catch(() => {})
 }
 
 // ─── Recommendation boost helpers ─────────────────────────────────────────────

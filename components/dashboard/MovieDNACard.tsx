@@ -8,10 +8,18 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts'
-import type { DNAScores } from '@/types'
+import Badge from '@/components/ui/Badge'
+import { MovieDnaIcon } from '@/components/icons'
+import type { DNAScores, MovieDnaProfile } from '@/types'
 
 interface MovieDNACardProps {
-  scores: DNAScores
+  /** Full bundle for a user, or null if they genuinely have no DNA yet. */
+  profile?:  MovieDnaProfile | null
+  /** True while the profile is being fetched (client-fetch contexts only). */
+  loading?:  boolean
+  /** Condensed layout for tighter spaces (e.g. a dashboard overview teaser). */
+  compact?:  boolean
+  username?: string
 }
 
 const LABELS: { key: keyof DNAScores; label: string }[] = [
@@ -39,28 +47,90 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
   )
 }
 
-export default function MovieDNACard({ scores }: MovieDNACardProps) {
+function CardShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-6">
+        <h2 className="font-display text-2xl tracking-wider text-ns-text">MOVIE DNA</h2>
+        <Badge variant="secondary" className="uppercase tracking-wider">Generated</Badge>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function Skeleton() {
+  return (
+    <CardShell>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-pulse">
+        <div className="bg-ns-surface border border-ns-border rounded-2xl h-64" />
+        <div className="bg-ns-surface border border-ns-border rounded-2xl h-64" />
+      </div>
+    </CardShell>
+  )
+}
+
+function EmptyState({ username }: { username?: string }) {
+  return (
+    <div className="py-16 text-center">
+      <MovieDnaIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
+      <p className="text-ns-muted font-body text-sm">
+        {username
+          ? `@${username} hasn't rated any films yet.`
+          : 'Rate a few films or set your Top 5 to generate your Movie DNA.'}
+      </p>
+    </div>
+  )
+}
+
+export default function MovieDNACard({ profile, loading = false, compact = false, username }: MovieDNACardProps) {
+  if (loading) return <Skeleton />
+  if (!profile) return <EmptyState username={username} />
+
+  const { scores, summary, identity, topGenres, favoriteDecades, pacing, tone, rewatchTendency } = profile
+
   const radarData = LABELS.map(({ key, label }) => ({
     dimension: label,
     value:     scores[key],
   }))
 
+  const traitPills: { label: string; value: string }[] = [
+    ...(favoriteDecades.length > 0 ? [{ label: 'Decades', value: favoriteDecades.join(', ') }] : []),
+    { label: 'Pacing', value: pacing },
+    { label: 'Tone',   value: tone   },
+    ...(rewatchTendency ? [{ label: 'Rewatches', value: rewatchTendency }] : []),
+  ]
+
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
-        <h2 className="font-display text-2xl tracking-wider text-ns-text">MOVIE DNA</h2>
-        <span className="px-2 py-0.5 rounded-full bg-ns-secondary/10 border border-ns-secondary/20
-                         text-ns-secondary text-xs font-body tracking-wider uppercase">
-          Generated
-        </span>
+    <CardShell>
+      {/* Identity + summary */}
+      <div className="mb-6">
+        {identity && (
+          <p className="font-display text-xl tracking-wider mb-1" style={{ color: identity.accentHex }}>
+            {identity.name}
+          </p>
+        )}
+        <p className="text-ns-muted text-sm font-body leading-relaxed">{summary}</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      {/* Genres + trait pills */}
+      {(topGenres.length > 0 || traitPills.length > 0) && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          {topGenres.map(g => (
+            <Badge key={g} variant="outline">{g}</Badge>
+          ))}
+          {traitPills.map(t => (
+            <Badge key={t.label} variant="muted">{t.label}: {t.value}</Badge>
+          ))}
+        </div>
+      )}
+
+      <div className={`grid grid-cols-1 ${compact ? '' : 'sm:grid-cols-2'} gap-6`}>
 
         {/* Radar chart */}
         <div className="bg-ns-surface border border-ns-border rounded-2xl p-6 flex flex-col items-center">
           <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-4">Profile</p>
-          <ResponsiveContainer width="100%" height={240}>
+          <ResponsiveContainer width="100%" height={compact ? 200 : 240}>
             <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
               <PolarGrid stroke="rgb(var(--ns-border))" />
               <PolarAngleAxis
@@ -91,15 +161,17 @@ export default function MovieDNACard({ scores }: MovieDNACardProps) {
         </div>
 
         {/* Score bars */}
-        <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
-          <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-5">Breakdown</p>
-          <div className="flex flex-col gap-4">
-            {LABELS.map(({ key, label }) => (
-              <ScoreBar key={key} label={label} value={scores[key]} />
-            ))}
+        {!compact && (
+          <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
+            <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-5">Breakdown</p>
+            <div className="flex flex-col gap-4">
+              {LABELS.map(({ key, label }) => (
+                <ScoreBar key={key} label={label} value={scores[key]} />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
-    </div>
+    </CardShell>
   )
 }

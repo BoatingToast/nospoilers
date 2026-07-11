@@ -127,6 +127,25 @@ export interface DNAScores {
   darknessScore: number
 }
 
+/**
+ * Full "Movie DNA" bundle for a user — everything the reusable MovieDNACard
+ * needs to render, assembled from real ratings/Top-5/watchlist data only
+ * (no field here is ever fabricated; anything without real signal is left
+ * out or reported as null).
+ */
+export interface MovieDnaProfile {
+  scores:          DNAScores
+  summary:         string
+  ratingCount:     number
+  identity:        PersonalityType | null
+  topGenres:       string[]
+  favoriteDecades: string[]
+  pacing:          'Slow Burn' | 'Fast-Paced' | 'Balanced'
+  tone:            'Dark' | 'Lighthearted' | 'Balanced'
+  /** null when the user hasn't marked anything "watched" yet — not enough signal to judge. */
+  rewatchTendency: 'High' | 'Moderate' | 'Low' | null
+}
+
 export interface RecommendationItem {
   id: string
   tmdbId: number
