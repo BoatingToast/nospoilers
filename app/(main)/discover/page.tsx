@@ -40,7 +40,7 @@ export default async function DiscoverPage() {
       {/* Header */}
       <div className="mb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <p className="text-ns-gold text-xs tracking-[0.2em] uppercase font-body mb-2">Browse</p>
+          <p className="text-ns-secondary text-xs tracking-[0.2em] uppercase font-body mb-2">Browse</p>
           <h1 className="font-display text-6xl sm:text-7xl tracking-wider text-ns-text">DISCOVER</h1>
           <p className="text-ns-muted font-body text-sm mt-2">
             Explore films without spoilers. Click any movie to learn more.

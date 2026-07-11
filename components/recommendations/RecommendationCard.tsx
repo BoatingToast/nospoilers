@@ -8,7 +8,7 @@ import type { RecommendationItem } from '@/types'
 export default function RecommendationCard({ rec }: { rec: RecommendationItem }) {
   const scoreColor =
     rec.matchScore >= 85 ? 'text-emerald-400' :
-    rec.matchScore >= 70 ? 'text-ns-gold' :
+    rec.matchScore >= 70 ? 'text-ns-secondary' :
                            'text-ns-muted'
 
   const isDismissed    = rec.feedback === 'dismissed' || rec.feedback === 'not_interested'
@@ -17,8 +17,8 @@ export default function RecommendationCard({ rec }: { rec: RecommendationItem })
 
   return (
     <div className={`group flex flex-col gap-0 rounded-2xl bg-ns-surface border border-ns-border
-                     transition-all duration-200 hover:border-ns-gold/30
-                     hover:shadow-[0_0_20px_rgba(200,150,62,0.08)] overflow-hidden`}>
+                     transition-all duration-200 hover:border-ns-secondary/30
+                     hover:shadow-[0_0_20px_rgb(var(--ns-secondary)/0.08)] overflow-hidden`}>
       <Link href={`/movie/${rec.tmdbId}`} className="flex gap-4 p-4">
         {/* Poster */}
         <div className="relative w-[80px] h-[120px] rounded-lg overflow-hidden flex-shrink-0 bg-ns-border">
@@ -36,13 +36,13 @@ export default function RecommendationCard({ rec }: { rec: RecommendationItem })
           <div className={`flex items-center gap-1.5 text-xs font-body font-semibold ${scoreColor}`}>
             <div className={`w-1.5 h-1.5 rounded-full ${
               rec.matchScore >= 85 ? 'bg-emerald-400' :
-              rec.matchScore >= 70 ? 'bg-ns-gold' : 'bg-ns-muted'
+              rec.matchScore >= 70 ? 'bg-ns-secondary' : 'bg-ns-muted'
             }`} />
             {rec.matchScore}% Match
           </div>
 
           <h3 className="text-ns-text font-body font-semibold text-sm leading-tight line-clamp-2
-                         group-hover:text-ns-gold transition-colors">
+                         group-hover:text-ns-secondary transition-colors">
             {rec.title}
           </h3>
 

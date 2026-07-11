@@ -149,7 +149,7 @@ function ActivityRow({ item }: { item: FeedItem }) {
       <div className="flex-1 min-w-0">
         <p className="text-xs font-body text-ns-text leading-snug">
           <Link href={`/profile/${item.authorUsername}`}
-                className="font-semibold hover:text-ns-gold transition-colors">
+                className="font-semibold hover:text-ns-secondary transition-colors">
             @{item.authorUsername}
           </Link>{' '}
           <Link href={href} className="text-ns-muted/80 hover:text-ns-text transition-colors">
@@ -188,7 +188,7 @@ export default function FriendsActivityWidget() {
         </div>
         <Link
           href="/feed"
-          className="text-xs font-body text-ns-gold hover:text-amber-400 transition-colors"
+          className="text-xs font-body text-ns-secondary hover:text-amber-400 transition-colors"
         >
           View All →
         </Link>
@@ -215,8 +215,8 @@ export default function FriendsActivityWidget() {
             <Link
               href="/friends/find"
               className="mt-3 inline-block px-4 py-2 rounded-xl text-xs font-body
-                         bg-ns-gold/10 text-ns-gold border border-ns-gold/30
-                         hover:bg-ns-gold hover:text-black transition-all"
+                         bg-ns-secondary/10 text-ns-secondary border border-ns-secondary/30
+                         hover:bg-ns-secondary hover:text-black transition-all"
             >
               Find People
             </Link>

@@ -1,6 +1,7 @@
 'use client'
 
 import { CloseIcon, type IconProps } from '@/components/icons'
+import { ratingColor, ratingTextColor } from '@/lib/theme'
 
 interface Props {
   label:    string
@@ -9,11 +10,12 @@ interface Props {
   onChange: (v: number | null) => void
 }
 
-const COLORS = ['#9B6DC8','#C87B6D','#7B9CC8','#6DBF91','#6DBF91','#C8963E']
-
 function barColor(v: number) {
-  const idx = Math.round(((v - 1) / 9) * 5)
-  return COLORS[Math.min(5, Math.max(0, idx))]
+  return ratingColor((v - 1) / 9)
+}
+
+function chipTextColor(v: number) {
+  return ratingTextColor((v - 1) / 9)
 }
 
 export default function SubRatingSlider({ label, Icon, value, onChange }: Props) {
@@ -37,7 +39,7 @@ export default function SubRatingSlider({ label, Icon, value, onChange }: Props)
             </button>
           )}
           <span className="text-ns-text text-xs font-body w-5 text-right"
-                style={{ color: value !== null ? barColor(display) : '#52506A' }}>
+                style={{ color: value !== null ? barColor(display) : 'rgb(var(--ns-muted))' }}>
             {value !== null ? value : '—'}
           </span>
         </div>
@@ -80,9 +82,9 @@ export default function SubRatingSlider({ label, Icon, value, onChange }: Props)
               onClick={() => onChange(isActive ? null : v)}
               className="flex-1 h-5 rounded text-[9px] font-body transition-all duration-100"
               style={{
-                background: isActive ? barColor(v) : '#0C0C18',
-                color:      isActive ? '#07070F'   : '#52506A',
-                border:     `1px solid ${isActive ? barColor(v) : '#1E1D2F'}`,
+                background: isActive ? barColor(v) : 'rgb(var(--ns-surface))',
+                color:      isActive ? chipTextColor(v) : 'rgb(var(--ns-muted))',
+                border:     `1px solid ${isActive ? barColor(v) : 'rgb(var(--ns-border))'}`,
               }}
             >
               {v}

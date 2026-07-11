@@ -38,7 +38,7 @@ export default async function WatchlistPage({ searchParams }: Props) {
             {[
               { label: 'Total',         value: stats.total,       color: 'text-ns-text' },
               { label: 'Want to Watch', value: stats.wantToWatch, color: 'text-ns-muted' },
-              { label: 'Watching',      value: stats.watching,    color: 'text-ns-gold' },
+              { label: 'Watching',      value: stats.watching,    color: 'text-ns-secondary' },
               { label: 'Watched',       value: stats.watched,     color: 'text-emerald-400' },
             ].map(s => (
               <div key={s.label}>

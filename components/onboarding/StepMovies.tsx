@@ -109,7 +109,7 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
       {/* Search input */}
       <div className="relative mb-8">
         <div className="flex items-center gap-3 bg-ns-surface border border-ns-border rounded-xl px-4 py-3
-                        focus-within:border-ns-gold/40 transition-colors">
+                        focus-within:border-ns-secondary/40 transition-colors">
           {searching ? (
             <svg className="animate-spin w-4 h-4 text-ns-muted flex-shrink-0" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
@@ -130,7 +130,7 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
             disabled={selected.length >= MAX}
             className="flex-1 bg-transparent text-ns-text placeholder:text-ns-muted/40 text-sm font-body focus:outline-none"
           />
-          <span className={`text-xs font-body flex-shrink-0 ${selected.length >= MIN ? 'text-ns-gold' : 'text-ns-muted/50'}`}>
+          <span className={`text-xs font-body flex-shrink-0 ${selected.length >= MIN ? 'text-ns-secondary' : 'text-ns-muted/50'}`}>
             {selected.length}/{MAX}
           </span>
         </div>
@@ -163,7 +163,7 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
                   disabled={isDisabled}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors
                               ${isDisabled ? 'opacity-40 cursor-not-allowed' :
-                                isSelected ? 'bg-ns-gold/10' :
+                                isSelected ? 'bg-ns-secondary/10' :
                                              'hover:bg-ns-surface-2'}`}
                 >
                   <div className="w-8 h-12 rounded flex-shrink-0 overflow-hidden bg-ns-border">
@@ -179,7 +179,7 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
                     <p className="text-ns-muted text-xs font-body">{formatYear(movie.release_date)}</p>
                   </div>
                   {isSelected && (
-                    <svg className="w-4 h-4 text-ns-gold flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-ns-secondary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
                     </svg>
                   )}

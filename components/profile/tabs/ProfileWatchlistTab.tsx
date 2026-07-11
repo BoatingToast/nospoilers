@@ -55,7 +55,7 @@ export default function ProfileWatchlistTab({ username }: { username: string }) 
   if (items.length === 0) {
     return (
       <div className="py-20 text-center">
-        <WatchlistIcon size={40} className="text-ns-gold/40 mx-auto mb-3" />
+        <WatchlistIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
         <p className="text-ns-muted font-body text-sm">Watchlist is empty.</p>
       </div>
     )
@@ -82,12 +82,12 @@ export default function ProfileWatchlistTab({ username }: { username: string }) 
                 </div>
               )}
               {item.status === 'watching' && (
-                <div className="absolute bottom-2 left-2 bg-ns-gold/90 rounded px-1.5 py-0.5">
+                <div className="absolute bottom-2 left-2 bg-ns-secondary/90 rounded px-1.5 py-0.5">
                   <span className="text-[9px] font-body font-bold text-ns-bg">WATCHING</span>
                 </div>
               )}
             </div>
-            <p className="text-xs font-body text-white line-clamp-2 group-hover:text-ns-gold transition-colors">{item.title}</p>
+            <p className="text-xs font-body text-white line-clamp-2 group-hover:text-ns-secondary transition-colors">{item.title}</p>
           </Link>
         ))}
       </div>

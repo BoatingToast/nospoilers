@@ -199,13 +199,13 @@ export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess
               onClick={() => fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all
                 ${dragOver
-                  ? 'border-ns-gold bg-ns-gold/5'
-                  : 'border-ns-border hover:border-ns-gold/50 hover:bg-ns-surface/40'
+                  ? 'border-ns-secondary bg-ns-secondary/5'
+                  : 'border-ns-border hover:border-ns-secondary/50 hover:bg-ns-surface/40'
                 }`}
             >
               {/* Upload icon */}
               <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                strokeWidth="1.5" className="text-ns-gold/40 mx-auto mb-4">
+                strokeWidth="1.5" className="text-ns-secondary/40 mx-auto mb-4">
                 <path strokeLinecap="round" strokeLinejoin="round"
                   d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
               </svg>
@@ -213,7 +213,7 @@ export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess
                 Drop a photo here
               </p>
               <p className="text-ns-muted font-body text-xs">
-                or <span className="text-ns-gold underline-offset-2 hover:underline">browse files</span>
+                or <span className="text-ns-secondary underline-offset-2 hover:underline">browse files</span>
               </p>
               <p className="text-ns-muted/50 font-body text-[10px] mt-3">
                 JPG, PNG, WEBP · Max 5 MB
@@ -248,8 +248,8 @@ export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
                 style={{
-                  containerStyle: { background: '#07070F' },
-                  cropAreaStyle:  { border: '2px solid #C8963E', boxShadow: '0 0 0 9999px rgba(7,7,15,0.75)' },
+                  containerStyle: { background: 'rgb(var(--ns-bg))' },
+                  cropAreaStyle:  { border: '2px solid rgb(var(--ns-secondary))', boxShadow: '0 0 0 9999px rgb(var(--ns-bg) / 0.75)' },
                 }}
               />
             </div>
@@ -268,7 +268,7 @@ export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess
                 step={0.05}
                 value={zoom}
                 onChange={e => setZoom(Number(e.target.value))}
-                className="flex-1 accent-ns-gold"
+                className="flex-1 accent-ns-secondary"
                 aria-label="Zoom"
               />
               <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"
@@ -288,7 +288,7 @@ export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess
               </button>
               <button
                 onClick={handleUpload}
-                className="flex-1 py-2.5 rounded-xl bg-ns-gold text-ns-bg text-sm font-body font-medium hover:bg-ns-gold/90 transition-colors"
+                className="flex-1 py-2.5 rounded-xl bg-ns-secondary text-ns-bg text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
               >
                 Save Photo
               </button>
@@ -299,11 +299,11 @@ export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess
         {/* ── Stage: uploading ──────────────────────────────────────────── */}
         {stage === 'uploading' && (
           <div className="p-8 text-center">
-            <div className="w-12 h-12 border-2 border-ns-gold/20 border-t-ns-gold rounded-full animate-spin mx-auto mb-4" />
+            <div className="w-12 h-12 border-2 border-ns-secondary/20 border-t-ns-secondary rounded-full animate-spin mx-auto mb-4" />
             <p className="text-ns-text font-body text-sm mb-4">Saving your photo…</p>
             <div className="w-full bg-ns-border rounded-full h-1.5 overflow-hidden">
               <div
-                className="h-full bg-ns-gold rounded-full transition-all duration-200"
+                className="h-full bg-ns-secondary rounded-full transition-all duration-200"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
@@ -323,7 +323,7 @@ export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess
             <p className="text-ns-muted font-body text-xs mb-5">{errorMsg}</p>
             <button
               onClick={() => { setStage('pick'); setImageSrc(null); setErrorMsg('') }}
-              className="px-6 py-2.5 bg-ns-gold text-ns-bg rounded-xl text-sm font-body font-medium hover:bg-ns-gold/90 transition-colors"
+              className="px-6 py-2.5 bg-ns-secondary text-ns-bg rounded-xl text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
             >
               Try Again
             </button>

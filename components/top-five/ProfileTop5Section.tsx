@@ -51,7 +51,7 @@ export default function ProfileTop5Section({ userId, isOwn }: Props) {
 
       {loading && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="w-8 h-8 border-2 border-ns-gold/30 border-t-ns-gold rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-ns-secondary/30 border-t-ns-secondary rounded-full animate-spin" />
         </div>
       )}
 

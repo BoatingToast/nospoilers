@@ -41,7 +41,7 @@ export default function CreateCollectionForm() {
           placeholder="e.g. Mind-Bending Thrillers"
           maxLength={60}
           className="w-full bg-ns-surface border border-ns-border rounded-xl px-4 py-3 text-ns-text font-body text-sm
-                     placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-gold/40 transition-colors"
+                     placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-secondary/40 transition-colors"
         />
       </div>
 
@@ -54,7 +54,7 @@ export default function CreateCollectionForm() {
           rows={3}
           maxLength={300}
           className="w-full bg-ns-surface border border-ns-border rounded-xl px-4 py-3 text-ns-text font-body text-sm
-                     placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-gold/40 transition-colors resize-none"
+                     placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-secondary/40 transition-colors resize-none"
         />
       </div>
 
@@ -66,7 +66,7 @@ export default function CreateCollectionForm() {
         <button
           type="button"
           onClick={() => setIsPublic(!isPublic)}
-          className={`w-11 h-6 rounded-full relative transition-colors ${isPublic ? 'bg-ns-gold' : 'bg-ns-border'}`}
+          className={`w-11 h-6 rounded-full relative transition-colors ${isPublic ? 'bg-ns-secondary' : 'bg-ns-border'}`}
         >
           <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${isPublic ? 'translate-x-5' : 'translate-x-0.5'}`} />
         </button>
@@ -77,7 +77,7 @@ export default function CreateCollectionForm() {
       <button
         type="submit"
         disabled={loading || !title.trim()}
-        className="w-full py-3 bg-ns-gold text-ns-bg rounded-xl font-body font-medium text-sm hover:bg-ns-gold/90 transition-colors disabled:opacity-50"
+        className="w-full py-3 bg-ns-secondary text-ns-bg rounded-xl font-body font-medium text-sm hover:bg-ns-secondary/90 transition-colors disabled:opacity-50"
       >
         {loading ? 'Creating...' : 'Create Collection'}
       </button>

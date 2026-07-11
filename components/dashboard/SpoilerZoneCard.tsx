@@ -237,16 +237,16 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
         className={`relative overflow-hidden rounded-2xl border transition-all duration-300
           hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30
           ${m.pinned
-            ? 'border-ns-gold/30 bg-ns-gold/3'
+            ? 'border-ns-secondary/30 bg-ns-secondary/3'
             : hasUnread
-            ? 'border-ns-border/80 bg-ns-surface/60 hover:border-ns-gold/20'
+            ? 'border-ns-border/80 bg-ns-surface/60 hover:border-ns-secondary/20'
             : 'border-ns-border/50 bg-ns-surface/40 hover:border-ns-border'
           }`}
       >
         {/* Pin indicator */}
         {m.pinned && (
           <div className="absolute top-3 left-3 z-10">
-            <PinIcon size={10} className="text-ns-gold/70" strokeWidth={2} />
+            <PinIcon size={10} className="text-ns-secondary/70" strokeWidth={2} />
           </div>
         )}
 
@@ -262,8 +262,8 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
         {hasUnread && (
           <div className="absolute top-2.5 left-3 z-10">
             <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
-                             rounded-full bg-ns-gold text-black text-[9px] font-bold tabular-nums
-                             animate-pulse shadow-sm shadow-ns-gold/30">
+                             rounded-full bg-ns-secondary text-black text-[9px] font-bold tabular-nums
+                             animate-pulse shadow-sm shadow-ns-secondary/30">
               {m.unreadCount > 99 ? '99+' : m.unreadCount}
             </span>
           </div>
@@ -292,10 +292,10 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
           {m.isActive && (
             <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ns-gold opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-ns-gold" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ns-secondary opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-ns-secondary" />
               </span>
-              <span className="text-[10px] font-body text-ns-gold font-medium tracking-wide">
+              <span className="text-[10px] font-body text-ns-secondary font-medium tracking-wide">
                 Active
               </span>
             </div>
@@ -325,8 +325,8 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
             href={`/movie/${m.tmdbId}`}
             onClick={e => e.stopPropagation()}
             className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-body font-semibold
-                       bg-ns-gold/10 text-ns-gold border border-ns-gold/30
-                       hover:bg-ns-gold hover:text-black hover:border-ns-gold
+                       bg-ns-secondary/10 text-ns-secondary border border-ns-secondary/30
+                       hover:bg-ns-secondary hover:text-black hover:border-ns-secondary
                        active:scale-[0.98] transition-all duration-200"
           >
             <SpoilerZoneIcon size={12} strokeWidth={2} />

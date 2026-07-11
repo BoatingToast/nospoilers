@@ -76,7 +76,7 @@ export default function LiveSocialStats({
     href:  string
   }) => (
     <Link href={href} className="group">
-      <p className="font-display text-3xl tracking-wider text-ns-gold group-hover:text-amber-400 transition-colors">
+      <p className="font-display text-3xl tracking-wider text-ns-secondary group-hover:text-amber-400 transition-colors">
         {value.toLocaleString()}
       </p>
       <p className="text-ns-muted text-xs font-body mt-0.5">{label}</p>

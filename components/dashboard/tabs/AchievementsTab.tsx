@@ -29,7 +29,7 @@ export default function AchievementsTab() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <p className="text-ns-muted text-xs font-body">{earned.length} unlocked</p>
-        <Link href="/achievements" className="text-xs font-body text-ns-muted hover:text-ns-gold transition-colors">
+        <Link href="/achievements" className="text-xs font-body text-ns-muted hover:text-ns-secondary transition-colors">
           Full page →
         </Link>
       </div>

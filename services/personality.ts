@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { CHART_COLORS } from '@/lib/theme'
 import type { DNAScores, PersonalityType, PersonalitySlug, UserPersonalityData } from '@/types'
 
 // ─── Personality type definitions ─────────────────────────────────────────────
@@ -9,8 +10,8 @@ export const PERSONALITY_TYPES: PersonalityType[] = [
     name:        'The Thinker',
     description: 'You seek films that challenge your mind and leave you questioning reality long after the credits roll.',
     icon:        '🧠',
-    color:       'bg-violet-900/40',
-    accentHex:   '#7C3AED',
+    color:       'bg-ns-chart-1/15',
+    accentHex:   CHART_COLORS.violet,
     traits:      ['Intellectual', 'Philosophical', 'Nuanced', 'Patient'],
   },
   {
@@ -18,8 +19,8 @@ export const PERSONALITY_TYPES: PersonalityType[] = [
     name:        'The Thriller Seeker',
     description: 'You live for tension, twists, and the adrenaline rush of not knowing what comes next.',
     icon:        '⚡',
-    color:       'bg-red-900/40',
-    accentHex:   '#DC2626',
+    color:       'bg-ns-chart-2/15',
+    accentHex:   CHART_COLORS.red,
     traits:      ['Intense', 'Edge-of-seat', 'Dark', 'Unpredictable'],
   },
   {
@@ -27,8 +28,8 @@ export const PERSONALITY_TYPES: PersonalityType[] = [
     name:        'The Explorer',
     description: 'You roam across genres, languages, and eras — always hunting for something fresh and unexpected.',
     icon:        '🌍',
-    color:       'bg-emerald-900/40',
-    accentHex:   '#059669',
+    color:       'bg-ns-chart-3/15',
+    accentHex:   CHART_COLORS.emerald,
     traits:      ['Curious', 'Eclectic', 'Adventurous', 'Open-minded'],
   },
   {
@@ -36,8 +37,8 @@ export const PERSONALITY_TYPES: PersonalityType[] = [
     name:        'The Story Analyst',
     description: 'Character arcs and emotional depth matter more to you than anything else. You feel films deeply.',
     icon:        '📖',
-    color:       'bg-amber-900/40',
-    accentHex:   '#D97706',
+    color:       'bg-ns-chart-4/15',
+    accentHex:   CHART_COLORS.amber,
     traits:      ['Empathetic', 'Character-driven', 'Reflective', 'Emotional'],
   },
   {
@@ -45,8 +46,8 @@ export const PERSONALITY_TYPES: PersonalityType[] = [
     name:        'The Entertainer',
     description: 'Pure fun is the goal. You want big action, sharp humor, and films that leave you buzzing.',
     icon:        '🎬',
-    color:       'bg-orange-900/40',
-    accentHex:   '#EA580C',
+    color:       'bg-ns-chart-5/15',
+    accentHex:   CHART_COLORS.orange,
     traits:      ['Fun-loving', 'High-energy', 'Crowd-pleaser', 'Optimistic'],
   },
   {
@@ -54,8 +55,8 @@ export const PERSONALITY_TYPES: PersonalityType[] = [
     name:        'The Auteur',
     description: 'You appreciate cinema as art. Visual style, directorial vision, and subtext excite you.',
     icon:        '🎞️',
-    color:       'bg-slate-800/60',
-    accentHex:   '#475569',
+    color:       'bg-ns-chart-6/20',
+    accentHex:   CHART_COLORS.slate,
     traits:      ['Artistic', 'Cinephile', 'Detail-oriented', 'Dark-leaning'],
   },
   {
@@ -63,8 +64,8 @@ export const PERSONALITY_TYPES: PersonalityType[] = [
     name:        'The Escapist',
     description: 'Movies are your portal to other worlds. You love fantasy, wonder, and grand adventures.',
     icon:        '✨',
-    color:       'bg-sky-900/40',
-    accentHex:   '#0284C7',
+    color:       'bg-ns-chart-7/15',
+    accentHex:   CHART_COLORS.sky,
     traits:      ['Imaginative', 'Wonder-seeking', 'Optimistic', 'Adventurous'],
   },
 ]

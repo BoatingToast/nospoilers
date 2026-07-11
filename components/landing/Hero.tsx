@@ -20,7 +20,7 @@ export default function Hero() {
 
       {/* Subtle radial glow behind hero text */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px]
-                      bg-gradient-radial from-ns-gold/5 via-transparent to-transparent pointer-events-none" />
+                      bg-gradient-radial from-ns-secondary/5 via-transparent to-transparent pointer-events-none" />
 
       {/* Film grain overlay */}
       <div
@@ -36,12 +36,12 @@ export default function Hero() {
 
         {/* Eyebrow badge */}
         <div
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-ns-gold/25
-                     text-ns-gold text-xs tracking-[0.2em] uppercase mb-10 font-body
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-ns-secondary/25
+                     text-ns-secondary text-xs tracking-[0.2em] uppercase mb-10 font-body
                      opacity-0 animate-fade-up"
           style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-ns-gold animate-pulse-slow" />
+          <span className="w-1.5 h-1.5 rounded-full bg-ns-secondary animate-pulse-slow" />
           Now in Beta
         </div>
 
@@ -61,13 +61,13 @@ export default function Hero() {
           style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}
         >
           <h2 className="font-display text-[9vw] sm:text-[7vw] md:text-[6vw] leading-none
-                         tracking-wider text-ns-gold select-none">
+                         tracking-wider text-ns-secondary select-none">
             WITHOUT SPOILERS
           </h2>
 
           {/* Redaction bar — wipes away to reveal the text */}
           <div
-            className="absolute inset-0 bg-ns-gold origin-left transition-transform duration-[900ms] ease-[cubic-bezier(0.77,0,0.175,1)]"
+            className="absolute inset-0 bg-ns-secondary origin-left transition-transform duration-[900ms] ease-[cubic-bezier(0.77,0,0.175,1)]"
             style={{ transform: revealed ? 'scaleX(0)' : 'scaleX(1)' }}
           />
         </div>

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { tmdbImageUrl } from '@/lib/utils'
+import { ratingColor } from '@/lib/theme'
 import ScoreDial from '@/components/ratings/ScoreDial'
 import type { MovieRatingData, RatingStats } from '@/types'
 import {
@@ -34,13 +35,6 @@ function matchFilter(score: number, filter: FilterKey): boolean {
   if (filter === 'mixed')    return score >= 40 && score < 60
   if (filter === 'disliked') return score < 40
   return true
-}
-
-function scoreColor(v: number): string {
-  if (v >= 80) return '#C8963E'
-  if (v >= 60) return '#6DBF91'
-  if (v >= 40) return '#7B9CC8'
-  return '#C87B6D'
 }
 
 function scoreLabel(v: number): string {
@@ -77,7 +71,7 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
 
       {/* Page header */}
       <div className="mb-8">
-        <p className="text-ns-gold text-[10px] tracking-widest uppercase font-body mb-1">Film Journal</p>
+        <p className="text-ns-secondary text-[10px] tracking-widest uppercase font-body mb-1">Film Journal</p>
         <h1 className="font-display text-5xl tracking-wider text-ns-text">MY RATINGS</h1>
         <p className="text-ns-muted text-sm font-body mt-1">
           {total} {total === 1 ? 'film' : 'films'} rated
@@ -101,11 +95,11 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
           <div className="flex items-end gap-2 h-20">
             {Object.entries(stats.distribution).map(([bucket, count]) => {
               const pct    = (count / maxDist) * 100
-              const color  = bucket === '81-100' ? '#C8963E'
-                           : bucket === '61-80'  ? '#6DBF91'
-                           : bucket === '41-60'  ? '#7B9CC8'
-                           : bucket === '21-40'  ? '#C87B6D'
-                           : '#9B6DC8'
+              const color  = bucket === '81-100' ? ratingColor(0.9)
+                           : bucket === '61-80'  ? ratingColor(0.7)
+                           : bucket === '41-60'  ? ratingColor(0.5)
+                           : bucket === '21-40'  ? ratingColor(0.3)
+                           : ratingColor(0.1)
               return (
                 <div key={bucket} className="flex-1 flex flex-col items-center gap-1.5">
                   <span className="text-ns-muted text-[10px] font-body">{count || ''}</span>
@@ -139,14 +133,14 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
               if (val === null) return null
               return (
                 <div key={key} className="flex items-center gap-2">
-                  <Icon size={14} className="text-ns-gold/70 flex-shrink-0" />
+                  <Icon size={14} className="text-ns-secondary/70 flex-shrink-0" />
                   <div className="flex-1">
                     <div className="flex justify-between mb-1">
                       <span className="text-ns-muted text-[10px] font-body">{label}</span>
                       <span className="text-ns-text text-[10px] font-body font-medium">{val}/10</span>
                     </div>
                     <div className="h-1 rounded-full bg-ns-bg overflow-hidden">
-                      <div className="h-full rounded-full bg-ns-gold/70"
+                      <div className="h-full rounded-full bg-ns-secondary/70"
                         style={{ width: `${val * 10}%` }} />
                     </div>
                   </div>
@@ -166,7 +160,7 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
               <button key={f} onClick={() => setFilter(f)}
                 className={`px-3 py-1 rounded-full text-xs font-body transition-all ${
                   filter === f
-                    ? 'bg-ns-gold text-ns-bg'
+                    ? 'bg-ns-secondary text-ns-bg'
                     : 'bg-ns-surface border border-ns-border text-ns-muted hover:text-ns-text'
                 }`}>
                 {FILTER_LABELS[f]}
@@ -198,13 +192,13 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
       {/* Empty state */}
       {stats.totalRatings === 0 && (
         <div className="text-center py-20">
-          <RatingsIcon size={52} className="text-ns-gold/40 mx-auto mb-4" />
+          <RatingsIcon size={52} className="text-ns-secondary/40 mx-auto mb-4" />
           <h2 className="font-display text-3xl tracking-wider text-ns-text mb-2">NO RATINGS YET</h2>
           <p className="text-ns-muted font-body text-sm mb-6 max-w-xs mx-auto">
             Rate films you've seen to build your personal film journal and improve your recommendations.
           </p>
           <Link href="/discover"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-ns-gold
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-ns-secondary
                        text-ns-bg font-body font-semibold text-sm hover:bg-amber-400 transition-colors">
             Discover Films <ArrowRightIcon size={14} />
           </Link>
@@ -233,23 +227,23 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
       {/* Perfects shelf */}
       {stats.perfectScores > 0 && (
         <div className="mt-12">
-          <p className="text-ns-gold text-[10px] tracking-widest uppercase font-body mb-4">
+          <p className="text-ns-secondary text-[10px] tracking-widest uppercase font-body mb-4">
             Perfect 100 Films
           </p>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
             {items.filter(r => r.score === 100).map(r => (
               <Link key={r.id} href={`/movie/${r.tmdbId}`}
                 className="flex-shrink-0 w-[90px] group">
-                <div className="relative aspect-[2/3] rounded-lg overflow-hidden border-2 border-ns-gold/50
-                                group-hover:border-ns-gold transition-colors mb-1.5
-                                shadow-[0_0_20px_rgba(200,150,62,0.3)]">
+                <div className="relative aspect-[2/3] rounded-lg overflow-hidden border-2 border-ns-secondary/50
+                                group-hover:border-ns-secondary transition-colors mb-1.5
+                                shadow-[0_0_20px_rgb(var(--ns-secondary)/0.3)]">
                   <Image
                     src={tmdbImageUrl(r.posterPath, 'w185')} alt={r.title}
                     fill className="object-cover" sizes="90px"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent" />
                   <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2
-                                   text-ns-gold font-display text-lg tracking-wider">
+                                   text-ns-secondary font-display text-lg tracking-wider">
                     100
                   </span>
                 </div>
@@ -270,7 +264,7 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
 function StatCard({ label, value, gold = false }: { label: string; value: string; gold?: boolean }) {
   return (
     <div className="bg-ns-surface border border-ns-border rounded-xl p-4 text-center">
-      <p className={`font-display text-3xl tracking-wider ${gold ? 'text-ns-gold' : 'text-ns-text'}`}>
+      <p className={`font-display text-3xl tracking-wider ${gold ? 'text-ns-secondary' : 'text-ns-text'}`}>
         {value}
       </p>
       <p className="text-ns-muted text-xs font-body mt-0.5">{label}</p>
@@ -278,19 +272,12 @@ function StatCard({ label, value, gold = false }: { label: string; value: string
   )
 }
 
-function scoreColorHex(v: number): string {
-  if (v >= 80) return '#C8963E'
-  if (v >= 60) return '#6DBF91'
-  if (v >= 40) return '#7B9CC8'
-  return '#C87B6D'
-}
-
 function RatingCard({ rating }: { rating: MovieRatingData }) {
-  const color = scoreColorHex(rating.score)
+  const color = ratingColor(rating.score / 100)
   return (
     <Link href={`/movie/${rating.tmdbId}`} className="group block">
       <div className="relative aspect-[2/3] rounded-xl overflow-hidden border border-ns-border
-                      group-hover:border-ns-gold/30 transition-colors mb-2">
+                      group-hover:border-ns-secondary/30 transition-colors mb-2">
         <Image
           src={tmdbImageUrl(rating.posterPath, 'w342')} alt={rating.title}
           fill className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -308,7 +295,7 @@ function RatingCard({ rating }: { rating: MovieRatingData }) {
 
         {/* Dimension-rating indicator dot */}
         {(rating.storytelling !== null || rating.characters !== null) && (
-          <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-ns-gold/80"
+          <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-ns-secondary/80"
             title="Includes dimension ratings" />
         )}
       </div>
@@ -320,13 +307,13 @@ function RatingCard({ rating }: { rating: MovieRatingData }) {
 }
 
 function RatingRow({ rating }: { rating: MovieRatingData }) {
-  const color = scoreColorHex(rating.score)
+  const color = ratingColor(rating.score / 100)
   const date  = new Date(rating.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   return (
     <Link href={`/movie/${rating.tmdbId}`}
       className="flex items-center gap-4 p-3 rounded-xl bg-ns-surface border border-ns-border
-                 hover:border-ns-gold/30 transition-colors group">
+                 hover:border-ns-secondary/30 transition-colors group">
       {/* Poster */}
       <div className="flex-shrink-0 relative w-10 h-14 rounded-lg overflow-hidden border border-ns-border">
         <Image src={tmdbImageUrl(rating.posterPath, 'w185')} alt={rating.title}
@@ -335,7 +322,7 @@ function RatingRow({ rating }: { rating: MovieRatingData }) {
 
       {/* Title + meta */}
       <div className="flex-1 min-w-0">
-        <p className="text-ns-text text-sm font-body font-medium truncate group-hover:text-ns-gold
+        <p className="text-ns-text text-sm font-body font-medium truncate group-hover:text-ns-secondary
                       transition-colors">
           {rating.title}
         </p>

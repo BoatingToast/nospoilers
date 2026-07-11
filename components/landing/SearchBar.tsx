@@ -19,7 +19,7 @@ export default function SearchBar({ initialValue = '' }: { initialValue?: string
   return (
     <form onSubmit={handleSubmit} className="relative max-w-xl mx-auto w-full">
       <div className="flex items-center gap-0 bg-ns-surface border border-ns-border rounded-2xl
-                      overflow-hidden focus-within:border-ns-gold/40 focus-within:shadow-[0_0_20px_rgba(200,150,62,0.1)]
+                      overflow-hidden focus-within:border-ns-secondary/40 focus-within:shadow-[0_0_20px_rgb(var(--ns-secondary)/0.1)]
                       transition-all duration-300">
         {/* Search icon */}
         <div className="pl-5 text-ns-muted flex-shrink-0">
@@ -41,7 +41,7 @@ export default function SearchBar({ initialValue = '' }: { initialValue?: string
         <button
           type="submit"
           disabled={!query.trim()}
-          className="m-1.5 px-5 py-2.5 bg-ns-gold text-ns-bg text-sm font-semibold font-body
+          className="m-1.5 px-5 py-2.5 bg-ns-secondary text-ns-bg text-sm font-semibold font-body
                      rounded-xl hover:bg-amber-400 transition-colors disabled:opacity-40
                      disabled:cursor-not-allowed flex-shrink-0"
         >

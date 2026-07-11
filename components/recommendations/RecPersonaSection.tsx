@@ -17,7 +17,7 @@ export default function RecPersonaSection({ personas }: Props) {
     <section>
       <div className="mb-5">
         <h2 className="text-xl font-heading text-white flex items-center gap-2">
-          <RecsIcon size={18} className="text-ns-gold" /> Curated Themes For You
+          <RecsIcon size={18} className="text-ns-secondary" /> Curated Themes For You
         </h2>
         <p className="text-xs font-body text-ns-muted mt-1">
           Dynamically generated from your favorites and taste DNA
@@ -38,7 +38,7 @@ function PersonaGroup({ persona }: { persona: RecPersona }) {
     <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
       {/* Persona header */}
       <div className="px-5 py-4 border-b border-ns-border flex items-center gap-3">
-        <RecsIcon size={18} className="text-ns-gold/70 flex-shrink-0" />
+        <RecsIcon size={18} className="text-ns-secondary/70 flex-shrink-0" />
         <div className="min-w-0">
           <h3 className="text-sm font-heading text-white leading-tight truncate">
             {persona.title}
@@ -68,7 +68,7 @@ function PersonaMovieCard({ movie }: { movie: RecPersona['movies'][number] }) {
       className="flex-shrink-0 w-28 group"
     >
       {/* Poster */}
-      <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-2 border border-ns-border group-hover:border-ns-gold/50 transition-colors">
+      <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-2 border border-ns-border group-hover:border-ns-secondary/50 transition-colors">
         {img ? (
           <Image
             src={img}
@@ -83,7 +83,7 @@ function PersonaMovieCard({ movie }: { movie: RecPersona['movies'][number] }) {
           </div>
         )}
         {/* Match score badge */}
-        <div className="absolute top-1.5 left-1.5 text-[9px] font-mono font-bold bg-black/80 text-ns-gold px-1.5 py-0.5 rounded-md border border-ns-gold/30">
+        <div className="absolute top-1.5 left-1.5 text-[9px] font-mono font-bold bg-black/80 text-ns-secondary px-1.5 py-0.5 rounded-md border border-ns-secondary/30">
           {movie.matchScore}%
         </div>
       </div>

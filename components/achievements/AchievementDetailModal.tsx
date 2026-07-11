@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { UserAchievementData, AchievementRarity } from '@/types'
 import { getAchievementIcon, SuspenseIcon } from '@/components/icons'
+import Modal from '@/components/ui/Modal'
+import Badge from '@/components/ui/Badge'
 
 // ─── Rarity config ────────────────────────────────────────────────────────────
 
@@ -22,24 +24,24 @@ const RARITY_CONFIG: Record<AchievementRarity, {
   },
   rare: {
     label:       'Rare',
-    textClass:   'text-blue-400',
-    borderClass: 'border-blue-500/40',
-    bgClass:     'bg-blue-500/10',
-    glowStyle:   '0 0 20px rgba(96,165,250,0.25)',
+    textClass:   'text-ns-info',
+    borderClass: 'border-ns-info/40',
+    bgClass:     'bg-ns-info/10',
+    glowStyle:   '0 0 20px rgb(var(--ns-info)/0.25)',
   },
   epic: {
     label:       'Epic',
-    textClass:   'text-purple-400',
-    borderClass: 'border-purple-500/40',
-    bgClass:     'bg-purple-500/10',
-    glowStyle:   '0 0 20px rgba(168,85,247,0.25)',
+    textClass:   'text-ns-tier-epic',
+    borderClass: 'border-ns-tier-epic/40',
+    bgClass:     'bg-ns-tier-epic/10',
+    glowStyle:   '0 0 20px rgb(var(--ns-tier-epic)/0.25)',
   },
   legendary: {
     label:       'Legendary',
-    textClass:   'text-ns-gold',
-    borderClass: 'border-ns-gold/40',
-    bgClass:     'bg-ns-gold/10',
-    glowStyle:   '0 0 24px rgba(200,150,62,0.35)',
+    textClass:   'text-ns-secondary',
+    borderClass: 'border-ns-secondary/40',
+    bgClass:     'bg-ns-secondary/10',
+    glowStyle:   '0 0 24px rgb(var(--ns-secondary)/0.35)',
   },
 }
 
@@ -60,7 +62,6 @@ interface Props {
 }
 
 export default function AchievementDetailModal({ achievement, onClose, isNew = false }: Props) {
-  const backdropRef  = useRef<HTMLDivElement>(null)
   const [animate, setAnimate] = useState(false)
   const [progressW, setProgressW] = useState(0)
 
@@ -76,44 +77,18 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
     return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [pct])
 
-  // ESC to close
-  useEffect(() => {
-    const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', fn)
-    return () => window.removeEventListener('keydown', fn)
-  }, [onClose])
-
   return (
-    <div
-      ref={backdropRef}
-      onClick={e => { if (e.target === backdropRef.current) onClose() }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
-    >
-      <div
-        className="w-full max-w-sm bg-ns-bg border rounded-2xl overflow-hidden shadow-2xl"
-        style={{ borderColor: achievement.earned ? undefined : undefined }}
-      >
+    <Modal onClose={onClose} maxWidth="max-w-sm" className="overflow-hidden">
         {/* ── Header strip — rarity colour ─────────────────────────────── */}
         <div className={`h-1 w-full ${
-          achievement.rarity === 'legendary' ? 'bg-gradient-to-r from-ns-gold via-amber-400 to-ns-gold' :
-          achievement.rarity === 'epic'      ? 'bg-gradient-to-r from-purple-600 via-purple-400 to-purple-600' :
-          achievement.rarity === 'rare'      ? 'bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600' :
+          achievement.rarity === 'legendary' ? 'bg-gradient-to-r from-ns-secondary via-ns-secondary/50 to-ns-secondary' :
+          achievement.rarity === 'epic'      ? 'bg-gradient-to-r from-ns-tier-epic via-ns-tier-epic/50 to-ns-tier-epic' :
+          achievement.rarity === 'rare'      ? 'bg-gradient-to-r from-ns-info via-ns-info/50 to-ns-info' :
                                                'bg-ns-border'
         }`} />
 
         {/* ── Body ─────────────────────────────────────────────────────── */}
         <div className="p-6">
-
-          {/* Close */}
-          <button
-            onClick={onClose}
-            className="absolute top-5 right-5 w-7 h-7 flex items-center justify-center rounded-full
-                       text-ns-muted hover:text-ns-text hover:bg-ns-surface transition-colors"
-          >
-            <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
-          </button>
 
           {/* Icon */}
           <div className="flex justify-center mb-5">
@@ -131,7 +106,7 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
 
               {/* Earned checkmark */}
               {achievement.earned && (
-                <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-ns-gold
+                <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-ns-secondary
                                 flex items-center justify-center border-2 border-ns-bg">
                   <svg width="10" height="10" fill="none" stroke="white" strokeWidth="3" viewBox="0 0 24 24">
                     <path d="M20 6L9 17l-5-5"/>
@@ -141,7 +116,7 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
 
               {/* Pulse ring for newly unlocked */}
               {isNew && achievement.earned && (
-                <div className="absolute inset-0 rounded-full border-2 border-ns-gold animate-ping opacity-40" />
+                <div className="absolute inset-0 rounded-full border-2 border-ns-secondary animate-ping opacity-40" />
               )}
             </div>
           </div>
@@ -161,9 +136,9 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
               {rarity.label}
             </span>
             {/* Category */}
-            <span className="text-[10px] font-body text-ns-muted border border-ns-border rounded-full px-2 py-0.5">
+            <Badge variant="outline" className="uppercase tracking-widest">
               {CATEGORY_LABELS[achievement.category] ?? achievement.category}
-            </span>
+            </Badge>
           </div>
 
           {/* Description */}
@@ -175,7 +150,7 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
               <span className="text-ns-muted text-xs font-body">Progress</span>
-              <span className={`text-xs font-body font-medium ${achievement.earned ? 'text-ns-gold' : 'text-ns-muted'}`}>
+              <span className={`text-xs font-body font-medium ${achievement.earned ? 'text-ns-secondary' : 'text-ns-muted'}`}>
                 {achievement.progress} / {achievement.goal}
               </span>
             </div>
@@ -183,8 +158,8 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
               <div
                 className={`h-full rounded-full transition-all duration-700 ease-out ${
                   achievement.earned
-                    ? 'bg-gradient-to-r from-ns-gold to-amber-400'
-                    : 'bg-gradient-to-r from-ns-gold/50 to-ns-gold/30'
+                    ? 'bg-gradient-to-r from-ns-secondary to-ns-secondary/60'
+                    : 'bg-gradient-to-r from-ns-secondary/50 to-ns-secondary/30'
                 }`}
                 style={{ width: `${progressW}%` }}
               />
@@ -203,12 +178,12 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
 
           {/* XP reward */}
           <div className={`flex items-center justify-between p-3 rounded-xl border ${
-            achievement.earned ? 'border-ns-gold/20 bg-ns-gold/5' : 'border-ns-border bg-ns-surface'
+            achievement.earned ? 'border-ns-secondary/20 bg-ns-secondary/5' : 'border-ns-border bg-ns-surface'
           }`}>
             <span className="text-ns-muted text-xs font-body">XP Reward</span>
             <div className="flex items-center gap-1.5">
-              <SuspenseIcon size={16} className={achievement.earned ? 'text-ns-gold' : 'text-ns-muted'} />
-              <span className={`font-body font-semibold text-sm ${achievement.earned ? 'text-ns-gold' : 'text-ns-muted'}`}>
+              <SuspenseIcon size={16} className={achievement.earned ? 'text-ns-secondary' : 'text-ns-muted'} />
+              <span className={`font-body font-semibold text-sm ${achievement.earned ? 'text-ns-secondary' : 'text-ns-muted'}`}>
                 {achievement.xpReward} XP
               </span>
               {achievement.earned && (
@@ -217,7 +192,6 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
             </div>
           </div>
         </div>
-      </div>
 
       <style>{`
         @keyframes achievement-unlock {
@@ -231,6 +205,6 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
           animation: achievement-unlock 0.6s ease-out forwards;
         }
       `}</style>
-    </div>
+    </Modal>
   )
 }

@@ -34,15 +34,15 @@ export default function ProfileDNA({ scores, username }: Props) {
       <div className="h-[260px]">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart data={data} cx="50%" cy="50%" outerRadius="75%">
-            <PolarGrid stroke="#1C1C2E" />
+            <PolarGrid stroke="rgb(var(--ns-border))" />
             <PolarAngleAxis
               dataKey="trait"
-              tick={{ fill: '#52506A', fontSize: 11, fontFamily: 'var(--font-inter)' }}
+              tick={{ fill: 'rgb(var(--ns-muted))', fontSize: 11, fontFamily: 'var(--font-inter)' }}
             />
             <Radar
               dataKey="score"
-              stroke="#C8963E"
-              fill="#C8963E"
+              stroke="rgb(var(--ns-secondary))"
+              fill="rgb(var(--ns-secondary))"
               fillOpacity={0.15}
               strokeWidth={1.5}
             />
@@ -56,11 +56,11 @@ export default function ProfileDNA({ scores, username }: Props) {
           <div key={d.trait}>
             <div className="flex justify-between mb-1">
               <span className="text-ns-muted text-[11px] font-body">{d.trait}</span>
-              <span className="text-ns-gold text-[11px] font-body">{d.score.toFixed(1)}</span>
+              <span className="text-ns-secondary text-[11px] font-body">{d.score.toFixed(1)}</span>
             </div>
             <div className="h-1 bg-ns-border rounded-full overflow-hidden">
               <div
-                className="h-full bg-ns-gold rounded-full transition-all duration-700"
+                className="h-full bg-ns-secondary rounded-full transition-all duration-700"
                 style={{ width: `${(d.score / 10) * 100}%` }}
               />
             </div>

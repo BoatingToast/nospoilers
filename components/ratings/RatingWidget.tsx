@@ -9,7 +9,7 @@ const QuickRatingModal    = dynamic(() => import('./QuickRatingModal'),    { ssr
 const DetailedRatingModal = dynamic(() => import('./DetailedRatingModal'), { ssr: false })
 
 function scoreColor(v: number): string {
-  if (v >= 80) return 'text-ns-gold'
+  if (v >= 80) return 'text-ns-secondary'
   if (v >= 60) return 'text-green-400'
   if (v >= 40) return 'text-blue-400'
   return 'text-red-400'
@@ -82,7 +82,7 @@ export default function RatingWidget({ movie }: Props) {
         <button
           onClick={() => setModal('quick')}
           className="group flex items-center gap-2.5 px-3 py-2 rounded-xl
-                     bg-ns-surface border border-ns-border hover:border-ns-gold/40
+                     bg-ns-surface border border-ns-border hover:border-ns-secondary/40
                      transition-all duration-150"
         >
           {/* Score badge */}
@@ -97,11 +97,11 @@ export default function RatingWidget({ movie }: Props) {
           </div>
           {/* Sub-rating dot indicator */}
           {hasSubRatings && (
-            <span className="w-1.5 h-1.5 rounded-full bg-ns-gold opacity-60" title="Detailed rating" />
+            <span className="w-1.5 h-1.5 rounded-full bg-ns-secondary opacity-60" title="Detailed rating" />
           )}
           {/* Edit icon */}
           <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2"
-            viewBox="0 0 24 24" className="text-ns-muted/50 group-hover:text-ns-gold/60 transition-colors">
+            viewBox="0 0 24 24" className="text-ns-muted/50 group-hover:text-ns-secondary/60 transition-colors">
             <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
             <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
           </svg>
@@ -113,7 +113,7 @@ export default function RatingWidget({ movie }: Props) {
           className="flex items-center gap-2 px-3 py-2 rounded-xl
                      bg-ns-surface border border-dashed border-ns-border
                      text-ns-muted text-sm font-body
-                     hover:border-ns-gold/40 hover:text-ns-text
+                     hover:border-ns-secondary/40 hover:text-ns-text
                      transition-all duration-150"
         >
           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

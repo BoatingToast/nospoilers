@@ -66,7 +66,7 @@ function Slot({
                        flex items-center justify-center text-[10px] font-display leading-none
                        border-2 transition-colors ${
                          movie
-                           ? 'bg-ns-bg border-ns-gold text-ns-gold'
+                           ? 'bg-ns-bg border-ns-secondary text-ns-secondary'
                            : 'bg-ns-bg border-ns-border text-ns-muted'
                        }`}>
         {position}
@@ -79,7 +79,7 @@ function Slot({
           onDragEnd={onDragEnd}
           className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-ns-surface group cursor-grab active:cursor-grabbing
                        border-2 transition-all duration-150 shadow-lg
-                       ${isDragOver ? 'border-ns-gold shadow-ns-gold/20' : 'border-ns-border hover:border-ns-gold/40'}`}
+                       ${isDragOver ? 'border-ns-secondary shadow-ns-secondary/20' : 'border-ns-border hover:border-ns-secondary/40'}`}
         >
           {/* Poster */}
           {movie.posterPath ? (
@@ -140,11 +140,11 @@ function Slot({
           className={`w-full aspect-[2/3] rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5
                        transition-all duration-150 group
                        ${isDragOver
-                           ? 'border-ns-gold bg-ns-gold/10'
-                           : 'border-ns-border hover:border-ns-gold/50 hover:bg-ns-gold/5'
+                           ? 'border-ns-secondary bg-ns-secondary/10'
+                           : 'border-ns-border hover:border-ns-secondary/50 hover:bg-ns-secondary/5'
                        }`}
         >
-          <span className={`text-xl transition-colors ${isDragOver ? 'text-ns-gold' : 'text-ns-muted group-hover:text-ns-gold'}`}>
+          <span className={`text-xl transition-colors ${isDragOver ? 'text-ns-secondary' : 'text-ns-muted group-hover:text-ns-secondary'}`}>
             +
           </span>
           <span className="text-[10px] font-body text-ns-muted group-hover:text-white transition-colors hidden sm:block">
@@ -220,10 +220,10 @@ function MovieSearch({
           onChange={e => search(e.target.value)}
           placeholder="Search for a film…"
           className="w-full pl-10 pr-4 py-2.5 bg-ns-bg border border-ns-border rounded-xl text-sm font-body
-                     text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-gold/50 transition-colors"
+                     text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-secondary/50 transition-colors"
         />
         {loading && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-ns-gold/30 border-t-ns-gold rounded-full animate-spin" />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-ns-secondary/30 border-t-ns-secondary rounded-full animate-spin" />
         )}
       </div>
 
@@ -335,7 +335,7 @@ function HistoryPanel({ onRestore }: { onRestore: (movies: TopFiveEntry[]) => vo
           <button
             onClick={() => restore(snap)}
             disabled={restoring === snap.id}
-            className="text-xs font-heading font-medium text-ns-gold hover:text-amber-400 transition-colors flex-shrink-0"
+            className="text-xs font-heading font-medium text-ns-secondary hover:text-amber-400 transition-colors flex-shrink-0"
           >
             Restore
           </button>
@@ -564,7 +564,7 @@ export default function Top5Editor({ initialMovies, onSaved, onClose }: Props) {
                 const firstEmpty = slots.findIndex(s => s === null) + 1
                 setSearchingFor(firstEmpty)
               }}
-              className="w-full py-3 rounded-xl border border-dashed border-ns-border text-ns-muted text-sm font-body hover:border-ns-gold/40 hover:text-white transition-colors"
+              className="w-full py-3 rounded-xl border border-dashed border-ns-border text-ns-muted text-sm font-body hover:border-ns-secondary/40 hover:text-white transition-colors"
             >
               + Search for a film to add
             </button>
@@ -614,7 +614,7 @@ export default function Top5Editor({ initialMovies, onSaved, onClose }: Props) {
             <button
               onClick={handleSave}
               disabled={saving || filledCount === 0}
-              className="px-6 py-2 rounded-xl bg-ns-gold text-ns-bg text-sm font-heading font-semibold
+              className="px-6 py-2 rounded-xl bg-ns-secondary text-ns-bg text-sm font-heading font-semibold
                          hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {saving ? 'Saving…' : 'Save Top 5'}

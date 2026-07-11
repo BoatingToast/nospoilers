@@ -16,7 +16,7 @@ export default function DiscoverSection({ title, eyebrow, movies }: DiscoverSect
     <section className="mb-12">
       <div className="mb-5">
         {eyebrow && (
-          <p className="text-ns-gold text-xs tracking-[0.2em] uppercase font-body mb-1">{eyebrow}</p>
+          <p className="text-ns-secondary text-xs tracking-[0.2em] uppercase font-body mb-1">{eyebrow}</p>
         )}
         <h2 className="font-display text-3xl tracking-wider text-ns-text">{title.toUpperCase()}</h2>
       </div>
@@ -26,8 +26,8 @@ export default function DiscoverSection({ title, eyebrow, movies }: DiscoverSect
           <Link key={movie.id} href={`/movie/${movie.id}`} className="group flex-shrink-0">
             <div className="w-[150px]">
               <div className="relative w-[150px] h-[225px] rounded-xl overflow-hidden bg-ns-surface border border-ns-border
-                              transition-all duration-300 group-hover:border-ns-gold/30 group-hover:scale-[1.02]
-                              group-hover:shadow-[0_0_20px_rgba(200,150,62,0.12)]">
+                              transition-all duration-300 group-hover:border-ns-secondary/30 group-hover:scale-[1.02]
+                              group-hover:shadow-[0_0_20px_rgb(var(--ns-secondary)/0.12)]">
                 <Image
                   src={tmdbImageUrl(movie.poster_path, 'w342')}
                   alt={movie.title}
@@ -43,7 +43,7 @@ export default function DiscoverSection({ title, eyebrow, movies }: DiscoverSect
                 </div>
                 {movie.vote_average > 0 && (
                   <div className="absolute top-2 right-2 bg-ns-bg/80 backdrop-blur-sm rounded px-1.5 py-0.5
-                                  text-ns-gold text-[10px] font-body font-semibold border border-ns-gold/20">
+                                  text-ns-secondary text-[10px] font-body font-semibold border border-ns-secondary/20">
                     {movie.vote_average.toFixed(1)}
                   </div>
                 )}

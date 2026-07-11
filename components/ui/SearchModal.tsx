@@ -130,7 +130,7 @@ export default function SearchModal() {
                           <p className="text-ns-muted text-xs font-body">{formatYear(movie.release_date)}</p>
                         </div>
                         {movie.vote_average > 0 && (
-                          <span className="ml-auto text-ns-gold text-xs font-body flex-shrink-0">
+                          <span className="ml-auto text-ns-secondary text-xs font-body flex-shrink-0">
                             {movie.vote_average.toFixed(1)}
                           </span>
                         )}

@@ -63,7 +63,7 @@ export async function GET(
     instagramUrl:     user.instagramUrl     ?? null,
     createdAt:        user.createdAt.toISOString(),
     personality: user.personality ? {
-      primaryType:   getPersonalityBySlug(user.personality.primaryType) ?? { slug: 'thinker' as const, name: 'The Thinker', description: '', icon: '🧠', color: 'bg-violet-900/40', accentHex: '#7C3AED', traits: [] },
+      primaryType:   getPersonalityBySlug(user.personality.primaryType) ?? getPersonalityBySlug('thinker')!,
       secondaryType: user.personality.secondaryType ? getPersonalityBySlug(user.personality.secondaryType) : null,
       assignedAt:    user.personality.assignedAt.toISOString(),
     } : null,

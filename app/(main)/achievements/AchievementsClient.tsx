@@ -83,7 +83,7 @@ export default function AchievementsClient({ achievements, xp }: Props) {
         {/* Summary stats */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Completed',   value: earned.length,     color: 'text-ns-gold'    },
+            { label: 'Completed',   value: earned.length,     color: 'text-ns-secondary'    },
             { label: 'In Progress', value: inProgress.length, color: 'text-blue-400'   },
             { label: 'Locked',      value: locked.length,     color: 'text-ns-muted'   },
           ].map(s => (
@@ -105,8 +105,8 @@ export default function AchievementsClient({ achievements, xp }: Props) {
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-body
                         whitespace-nowrap transition-all duration-200 flex-shrink-0
                         ${category === cat.value
-                          ? 'bg-ns-gold text-ns-bg font-medium'
-                          : 'bg-ns-surface border border-ns-border text-ns-muted hover:border-ns-gold/30 hover:text-ns-text'
+                          ? 'bg-ns-secondary text-ns-bg font-medium'
+                          : 'bg-ns-surface border border-ns-border text-ns-muted hover:border-ns-secondary/30 hover:text-ns-text'
                         }`}
           >
             <cat.Icon size={12} />
@@ -123,7 +123,7 @@ export default function AchievementsClient({ achievements, xp }: Props) {
             onClick={() => setStatus(s.value)}
             className={`px-3 py-1 rounded-lg text-xs font-body transition-all duration-200
                         ${status === s.value
-                          ? 'bg-ns-surface border border-ns-gold/40 text-ns-gold'
+                          ? 'bg-ns-surface border border-ns-secondary/40 text-ns-secondary'
                           : 'text-ns-muted hover:text-ns-text'
                         }`}
           >
@@ -135,7 +135,7 @@ export default function AchievementsClient({ achievements, xp }: Props) {
       {/* Achievement list */}
       {filtered.length === 0 ? (
         <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-          <RecsIcon size={40} className="text-ns-gold/40 mx-auto mb-3" />
+          <RecsIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
           <p className="text-ns-muted font-body text-sm">No achievements in this filter.</p>
         </div>
       ) : (

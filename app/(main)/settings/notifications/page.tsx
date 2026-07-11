@@ -25,7 +25,7 @@ function Toggle({
       onClick={() => !disabled && onChange(!checked)}
       disabled={disabled}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none
-        ${checked ? 'bg-ns-gold' : 'bg-ns-border'}
+        ${checked ? 'bg-ns-secondary' : 'bg-ns-border'}
         ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
     >
       <span
@@ -126,13 +126,13 @@ export default function NotificationSettingsPage() {
       key:         'newFollowers',
       label:       'New Followers',
       description: 'When someone starts following you',
-      icon:        <PersonIcon size={16} className="text-ns-gold/70" />,
+      icon:        <PersonIcon size={16} className="text-ns-secondary/70" />,
     },
     {
       key:         'newFriends',
       label:       'New Friends',
       description: 'When a mutual follow creates a friendship',
-      icon:        <FriendsIcon size={16} className="text-ns-gold/70" />,
+      icon:        <FriendsIcon size={16} className="text-ns-secondary/70" />,
     },
     {
       key:         'friendActivity',
@@ -144,31 +144,31 @@ export default function NotificationSettingsPage() {
       key:         'collectionUpvotes',
       label:       'Collection Upvotes',
       description: 'When someone upvotes one of your collections',
-      icon:        <CollectionsIcon size={16} className="text-ns-gold/70" />,
+      icon:        <CollectionsIcon size={16} className="text-ns-secondary/70" />,
     },
     {
       key:         'reviewReplies',
       label:       'Review Replies',
       description: 'When someone replies to one of your reviews',
-      icon:        <ReviewsIcon size={16} className="text-ns-gold/70" />,
+      icon:        <ReviewsIcon size={16} className="text-ns-secondary/70" />,
     },
     {
       key:         'achievementUnlocks',
       label:       'Achievement Unlocks',
       description: 'When you earn a new achievement or badge',
-      icon:        <AchievementsIcon size={16} className="text-ns-gold/70" />,
+      icon:        <AchievementsIcon size={16} className="text-ns-secondary/70" />,
     },
     {
       key:         'dnaUpdates',
       label:       'Movie DNA Evolution',
       description: 'When your taste profile shifts and your DNA title changes',
-      icon:        <MovieDnaIcon size={16} className="text-ns-gold/70" />,
+      icon:        <MovieDnaIcon size={16} className="text-ns-secondary/70" />,
     },
     {
       key:         'recsRefreshed',
       label:       'New Recommendations',
       description: 'When your personalised recommendations are refreshed',
-      icon:        <RecsIcon size={16} className="text-ns-gold/70" />,
+      icon:        <RecsIcon size={16} className="text-ns-secondary/70" />,
     },
   ]
 
@@ -176,15 +176,15 @@ export default function NotificationSettingsPage() {
     <div className="max-w-xl mx-auto px-4 py-10">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 rounded-2xl bg-ns-gold/10 border border-ns-gold/20 flex items-center justify-center">
-          <NotificationsIcon size={18} className="text-ns-gold" />
+        <div className="w-10 h-10 rounded-2xl bg-ns-secondary/10 border border-ns-secondary/20 flex items-center justify-center">
+          <NotificationsIcon size={18} className="text-ns-secondary" />
         </div>
         <div>
           <h1 className="text-xl font-heading font-bold text-ns-text">Notification Settings</h1>
           <p className="text-xs font-body text-ns-muted/60 mt-0.5">Choose what you want to hear about</p>
         </div>
         {saved && (
-          <span className="ml-auto text-xs font-body text-ns-gold/80 bg-ns-gold/10 px-3 py-1 rounded-full">
+          <span className="ml-auto text-xs font-body text-ns-secondary/80 bg-ns-secondary/10 px-3 py-1 rounded-full">
             Saved
           </span>
         )}

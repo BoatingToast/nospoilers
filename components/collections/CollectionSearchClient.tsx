@@ -98,7 +98,7 @@ export default function CollectionSearchClient() {
       {/* Empty */}
       {!loading && searched && results.length === 0 && (
         <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-          <SearchIcon size={44} className="text-ns-gold/40 mx-auto mb-4" />
+          <SearchIcon size={44} className="text-ns-secondary/40 mx-auto mb-4" />
           <p className="text-ns-text font-body font-medium text-sm mb-1">No collections found</p>
           <p className="text-ns-muted font-body text-xs">
             Try a different title, creator username, or movie name.
@@ -109,7 +109,7 @@ export default function CollectionSearchClient() {
       {/* Initial state */}
       {!loading && !searched && (
         <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-          <CollectionsIcon size={44} className="text-ns-gold/40 mx-auto mb-4" />
+          <CollectionsIcon size={44} className="text-ns-secondary/40 mx-auto mb-4" />
           <p className="text-ns-muted font-body text-sm">
             Search by collection title, creator, or a movie title in the collection.
           </p>

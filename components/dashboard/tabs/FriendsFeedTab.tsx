@@ -10,10 +10,10 @@ export default function FriendsFeedTab() {
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-heading text-white">Friends</h2>
         <div className="flex items-center gap-3">
-          <Link href="/friends/find" className="text-xs font-body text-ns-muted hover:text-ns-gold transition-colors">
+          <Link href="/friends/find" className="text-xs font-body text-ns-muted hover:text-ns-secondary transition-colors">
             + Find Friends
           </Link>
-          <Link href="/friends" className="text-xs font-body text-ns-muted hover:text-ns-gold transition-colors">
+          <Link href="/friends" className="text-xs font-body text-ns-muted hover:text-ns-secondary transition-colors">
             Full page →
           </Link>
         </div>

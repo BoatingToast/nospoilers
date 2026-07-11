@@ -111,7 +111,7 @@ function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl:
           <p className="text-sm font-body text-white font-medium">@{username}</p>
           <Link
             href={`/profile/${username}`}
-            className="text-[11px] font-body text-ns-gold hover:text-amber-400 transition-colors"
+            className="text-[11px] font-body text-ns-secondary hover:text-amber-400 transition-colors"
             onClick={() => setOpen(false)}
           >
             View Profile →
@@ -185,7 +185,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link
             href={session ? '/dashboard' : '/'}
-            className="font-display text-xl sm:text-2xl tracking-widest text-ns-text hover:text-ns-gold transition-colors flex-shrink-0"
+            className="font-display text-xl sm:text-2xl tracking-widest text-ns-text hover:text-ns-secondary transition-colors flex-shrink-0"
           >
             NOSPOILERS
           </Link>
@@ -207,9 +207,9 @@ export default function Navbar() {
                     link.highlight
                       ? active
                         ? 'text-amber-300'
-                        : 'text-ns-gold hover:text-amber-300'
+                        : 'text-ns-secondary hover:text-amber-300'
                       : active
-                        ? 'text-ns-gold'
+                        ? 'text-ns-secondary'
                         : 'text-white/50 hover:text-white/90',
                   ].join(' ')}
                 >
@@ -223,9 +223,9 @@ export default function Navbar() {
                       link.highlight
                         ? active
                           ? 'bg-amber-300 scale-x-100'
-                          : 'bg-ns-gold scale-x-0 group-hover:scale-x-100'
+                          : 'bg-ns-secondary scale-x-0 group-hover:scale-x-100'
                         : active
-                          ? 'bg-ns-gold scale-x-100'
+                          ? 'bg-ns-secondary scale-x-100'
                           : 'bg-white/25 scale-x-0 group-hover:scale-x-100',
                     ].join(' ')}
                   />
@@ -313,8 +313,8 @@ export default function Navbar() {
                 className={[
                   'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-heading font-medium transition-all',
                   link.highlight
-                    ? active ? 'text-amber-300 bg-ns-gold/15' : 'text-ns-gold hover:text-amber-300 hover:bg-ns-gold/10'
-                    : active ? 'text-ns-gold bg-ns-gold/8'    : 'text-white/60 hover:text-white hover:bg-white/5',
+                    ? active ? 'text-amber-300 bg-ns-secondary/15' : 'text-ns-secondary hover:text-amber-300 hover:bg-ns-secondary/10'
+                    : active ? 'text-ns-secondary bg-ns-secondary/8'    : 'text-white/60 hover:text-white hover:bg-white/5',
                 ].join(' ')}
               >
                 {link.highlight && <RecsIcon size={14} />}
@@ -351,7 +351,7 @@ export default function Navbar() {
               >
                 <Avatar src={avatarUrl} username={username} size="sm" />
                 <div className="min-w-0">
-                  <p className="text-sm font-body text-white truncate group-hover:text-ns-gold transition-colors">@{username}</p>
+                  <p className="text-sm font-body text-white truncate group-hover:text-ns-secondary transition-colors">@{username}</p>
                   <p className="text-[11px] font-body text-ns-muted">View Profile</p>
                 </div>
               </Link>

@@ -94,10 +94,10 @@ export default function AddToWatchlistButton({ movie, compact = false }: Props) 
           ${status === 'watched'
             ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
             : status === 'watching'
-            ? 'bg-ns-gold/15 border border-ns-gold/30 text-ns-gold'
+            ? 'bg-ns-secondary/15 border border-ns-secondary/30 text-ns-secondary'
             : status === 'want_to_watch'
-            ? 'bg-ns-surface border border-ns-border text-ns-muted hover:border-ns-gold/30 hover:text-ns-gold'
-            : 'bg-ns-gold text-ns-bg hover:bg-ns-gold/90'
+            ? 'bg-ns-surface border border-ns-border text-ns-muted hover:border-ns-secondary/30 hover:text-ns-secondary'
+            : 'bg-ns-secondary text-ns-bg hover:bg-ns-secondary/90'
           }
           ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         `}

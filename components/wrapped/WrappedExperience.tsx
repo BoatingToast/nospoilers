@@ -23,7 +23,7 @@ function Slide({ children, className = '' }: { children: React.ReactNode; classN
   )
 }
 
-function StatNumber({ value, label, color = 'text-ns-gold' }: { value: string | number; label: string; color?: string }) {
+function StatNumber({ value, label, color = 'text-ns-secondary' }: { value: string | number; label: string; color?: string }) {
   return (
     <div className="text-center">
       <p className={`font-display text-8xl sm:text-9xl tracking-wider ${color} leading-none`}>{value}</p>
@@ -72,7 +72,7 @@ export default function WrappedExperience({ data, username, year }: Props) {
       {/* Background gradient per slide */}
       <div
         className="absolute inset-0 transition-all duration-700 opacity-30"
-        style={{ background: `radial-gradient(ellipse at center, ${slide.accent}40 0%, transparent 70%)` }}
+        style={{ background: `radial-gradient(ellipse at center, rgb(${slide.accent} / 0.25) 0%, transparent 70%)` }}
       />
 
       {/* Top bar */}
@@ -81,7 +81,7 @@ export default function WrappedExperience({ data, username, year }: Props) {
           ← Dashboard
         </Link>
         <p className="text-ns-muted text-xs font-body tracking-widest">{year} WRAPPED</p>
-        <button onClick={share} className="text-ns-gold text-sm font-body hover:text-ns-gold/80 transition-colors">
+        <button onClick={share} className="text-ns-secondary text-sm font-body hover:text-ns-secondary/80 transition-colors">
           {copied ? 'Copied!' : 'Share'}
         </button>
       </div>
@@ -92,7 +92,7 @@ export default function WrappedExperience({ data, username, year }: Props) {
           <button
             key={i}
             onClick={() => setCurrent(i)}
-            className={`h-1 rounded-full transition-all ${i === current ? 'w-6 bg-ns-gold' : 'w-1.5 bg-ns-border'}`}
+            className={`h-1 rounded-full transition-all ${i === current ? 'w-6 bg-ns-secondary' : 'w-1.5 bg-ns-border'}`}
           />
         ))}
       </div>
@@ -115,14 +115,14 @@ export default function WrappedExperience({ data, username, year }: Props) {
         {current < total - 1 ? (
           <button
             onClick={next}
-            className="px-5 py-2.5 rounded-xl bg-ns-gold text-ns-bg text-sm font-body font-medium hover:bg-ns-gold/90 transition-colors"
+            className="px-5 py-2.5 rounded-xl bg-ns-secondary text-ns-bg text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
           >
             Next →
           </button>
         ) : (
           <Link
             href="/dashboard"
-            className="px-5 py-2.5 rounded-xl bg-ns-gold text-ns-bg text-sm font-body font-medium hover:bg-ns-gold/90 transition-colors"
+            className="px-5 py-2.5 rounded-xl bg-ns-secondary text-ns-bg text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
           >
             Done
           </Link>
@@ -135,7 +135,7 @@ export default function WrappedExperience({ data, username, year }: Props) {
 // ─── Slide builder ────────────────────────────────────────────────────────────
 
 interface SlideData {
-  accent:  string
+  accent:  string   // space-separated "R G B" triplet, e.g. 'var(--ns-secondary)' resolved
   content: React.ReactNode
 }
 
@@ -144,14 +144,14 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
 
   // 1 — Intro
   slides.push({
-    accent: '#C8963E',
+    accent: 'var(--ns-secondary)',
     content: (
       <div className="text-center">
         <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-6">NoSpoilers</p>
         <h1 className="font-display text-7xl sm:text-9xl tracking-wider text-ns-text leading-none mb-4">
           {year}
         </h1>
-        <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-gold mb-6">
+        <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-secondary mb-6">
           WRAPPED
         </h2>
         <p className="text-ns-muted font-body text-sm">
@@ -163,11 +163,11 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
 
   // 2 — Movies watched
   slides.push({
-    accent: '#22C55E',
+    accent: 'var(--ns-success)',
     content: (
       <div className="text-center">
         <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-8">This year you watched</p>
-        <StatNumber value={data.moviesWatched || '?'} label="Films" color={data.moviesWatched > 0 ? 'text-emerald-400' : 'text-ns-muted'} />
+        <StatNumber value={data.moviesWatched || '?'} label="Films" color={data.moviesWatched > 0 ? 'text-ns-success' : 'text-ns-muted'} />
         {data.moviesWatched === 0 && (
           <p className="text-ns-muted font-body text-xs mt-6 max-w-xs text-center">
             Start adding movies to your watchlist and marking them as watched to track your journey!
@@ -185,7 +185,7 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
   // 3 — Top genres
   if (data.topGenres.length > 0) {
     slides.push({
-      accent: '#7C3AED',
+      accent: 'var(--ns-chart-1)',
       content: (
         <div className="text-center max-w-md">
           <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-8">Your favorite genres</p>
@@ -198,11 +198,11 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
               >
                 <div
                   className="absolute inset-0 opacity-20"
-                  style={{ background: `linear-gradient(90deg, #7C3AED${(3 - i) * 30}% , transparent)`, width: `${(3 - i) * 33}%` }}
+                  style={{ background: 'linear-gradient(90deg, rgb(var(--ns-chart-1)), transparent)', width: `${(3 - i) * 33}%` }}
                 />
                 <div className="flex items-center justify-between px-6 py-4 relative z-10">
                   <span className="text-ns-text font-body text-lg font-medium">{genre}</span>
-                  <span className="text-violet-400 font-display text-2xl tracking-wider">#{i + 1}</span>
+                  <span className="text-ns-chart-1 font-display text-2xl tracking-wider">#{i + 1}</span>
                 </div>
               </div>
             ))}
@@ -215,7 +215,7 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
   // 4 — Top movies
   if (data.topMovies.length > 0) {
     slides.push({
-      accent: '#C8963E',
+      accent: 'var(--ns-secondary)',
       content: (
         <div className="text-center max-w-lg w-full">
           <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-8">
@@ -233,7 +233,7 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
                     sizes="100px"
                   />
                   <div className="absolute bottom-1.5 right-1.5 w-5 h-5 rounded-full bg-ns-bg/80 flex items-center justify-center">
-                    <span className="text-ns-gold text-[9px] font-body font-bold">{i + 1}</span>
+                    <span className="text-ns-secondary text-[9px] font-body font-bold">{i + 1}</span>
                   </div>
                 </div>
                 <p className="text-ns-muted text-[9px] font-body mt-1.5 max-w-[80px] text-center leading-tight truncate">
@@ -250,12 +250,12 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
   // 5 — DNA highlight
   if (data.topTrait) {
     slides.push({
-      accent: '#C8963E',
+      accent: 'var(--ns-secondary)',
       content: (
         <div className="text-center">
           <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-8">Your defining trait</p>
-          <MovieDnaIcon size={60} className="text-ns-gold mx-auto mb-6" />
-          <p className="font-display text-5xl sm:text-6xl tracking-wider text-ns-gold mb-4">{data.topTrait.toUpperCase()}</p>
+          <MovieDnaIcon size={60} className="text-ns-secondary mx-auto mb-6" />
+          <p className="font-display text-5xl sm:text-6xl tracking-wider text-ns-secondary mb-4">{data.topTrait.toUpperCase()}</p>
           <p className="text-ns-muted font-body text-sm max-w-xs mx-auto">
             This dimension dominates your Movie DNA — it defines what you look for in every film.
           </p>
@@ -267,12 +267,12 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
   // 6 — Personality
   if (data.personalityType) {
     slides.push({
-      accent: '#7C3AED',
+      accent: 'var(--ns-chart-1)',
       content: (
         <div className="text-center">
           <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-8">You are</p>
-          <WrappedIcon size={64} className="text-violet-400 mx-auto mb-6" />
-          <p className="font-display text-5xl sm:text-6xl tracking-wider text-violet-400 leading-none mb-4">
+          <WrappedIcon size={64} className="text-ns-chart-1 mx-auto mb-6" />
+          <p className="font-display text-5xl sm:text-6xl tracking-wider text-ns-chart-1 leading-none mb-4">
             {data.personalityType.toUpperCase()}
           </p>
           <p className="text-ns-muted font-body text-sm">Your Movie Personality for {year}</p>
@@ -283,11 +283,11 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
 
   // 7 — Achievements
   slides.push({
-    accent: '#F59E0B',
+    accent: 'var(--ns-warning)',
     content: (
       <div className="text-center">
         <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-8">Achievements unlocked</p>
-        <StatNumber value={data.achievementsEarned} label="Badges Earned" color="text-amber-400" />
+        <StatNumber value={data.achievementsEarned} label="Badges Earned" color="text-ns-warning" />
         {data.achievementsEarned > 0 ? (
           <p className="text-ns-muted font-body text-sm mt-6">Keep watching to unlock more!</p>
         ) : (
@@ -301,14 +301,14 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
 
   // 8 — Finale / share card
   slides.push({
-    accent: '#C8963E',
+    accent: 'var(--ns-secondary)',
     content: (
       <div className="text-center max-w-sm">
         <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-6">
           NoSpoilers · {year} Wrapped
         </p>
         <div className="bg-ns-surface border border-ns-border rounded-2xl p-8 mb-8">
-          <p className="font-display text-3xl tracking-wider text-ns-gold mb-4">@{username}</p>
+          <p className="font-display text-3xl tracking-wider text-ns-secondary mb-4">@{username}</p>
           <div className="flex justify-center gap-8 text-center">
             <div>
               <p className="font-display text-3xl tracking-wider text-ns-text">{data.moviesWatched}</p>
@@ -320,7 +320,7 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
             </div>
             {data.personalityType && (
               <div>
-                <p className="font-display text-xl tracking-wider text-ns-gold">{data.personalityType.split(' ').pop()}</p>
+                <p className="font-display text-xl tracking-wider text-ns-secondary">{data.personalityType.split(' ').pop()}</p>
                 <p className="text-ns-muted text-xs font-body">Personality</p>
               </div>
             )}

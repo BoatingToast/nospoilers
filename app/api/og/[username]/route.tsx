@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og'
 import { prisma } from '@/lib/db'
 import { getPersonalityBySlug } from '@/services/personality'
+import { THEME } from '@/lib/theme'
 
 export const runtime = 'nodejs'
 
@@ -47,7 +48,7 @@ export async function GET(
           height: '630px',
           display: 'flex',
           flexDirection: 'column',
-          background: 'linear-gradient(135deg, #07070F 0%, #0C0C18 50%, #0F0F20 100%)',
+          background: `linear-gradient(135deg, ${THEME.bg} 0%, ${THEME.surface} 50%, ${THEME.surface2} 100%)`,
           fontFamily: 'system-ui, sans-serif',
           position: 'relative',
           overflow: 'hidden',
@@ -61,15 +62,15 @@ export async function GET(
           borderRadius: '50%',
           background: personality?.accentHex
             ? `radial-gradient(circle, ${personality.accentHex}30 0%, transparent 70%)`
-            : 'radial-gradient(circle, #C8963E30 0%, transparent 70%)',
+            : `radial-gradient(circle, ${THEME.secondary}30 0%, transparent 70%)`,
         }} />
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '48px 64px 0' }}>
-          <span style={{ fontSize: '22px', letterSpacing: '0.3em', color: '#C8963E', fontWeight: 700 }}>
+          <span style={{ fontSize: '22px', letterSpacing: '0.3em', color: THEME.secondary, fontWeight: 700 }}>
             NOSPOILERS
           </span>
-          <span style={{ fontSize: '14px', color: '#52506A', letterSpacing: '0.1em' }}>
+          <span style={{ fontSize: '14px', color: THEME.muted, letterSpacing: '0.1em' }}>
             MOVIE TASTE CARD
           </span>
         </div>
@@ -78,16 +79,16 @@ export async function GET(
         <div style={{ display: 'flex', flex: 1, padding: '40px 64px 48px', gap: '64px', alignItems: 'center' }}>
           {/* Left: identity */}
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-            <div style={{ fontSize: '64px', marginBottom: '8px', color: personality?.accentHex ?? '#C8963E', fontWeight: 900, letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: '64px', marginBottom: '8px', color: personality?.accentHex ?? THEME.secondary, fontWeight: 900, letterSpacing: '0.05em' }}>
               {(personality?.name ?? 'Film').charAt(0).toUpperCase()}
             </div>
-            <div style={{ fontSize: '20px', color: '#52506A', letterSpacing: '0.2em', marginBottom: '8px', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '20px', color: THEME.muted, letterSpacing: '0.2em', marginBottom: '8px', textTransform: 'uppercase' }}>
               @{user.username}
             </div>
-            <div style={{ fontSize: '48px', fontWeight: 900, color: '#EDE9E1', lineHeight: 1.1, marginBottom: '16px' }}>
+            <div style={{ fontSize: '48px', fontWeight: 900, color: THEME.text, lineHeight: 1.1, marginBottom: '16px' }}>
               {personality?.name ?? 'Film Lover'}
             </div>
-            <div style={{ fontSize: '16px', color: '#8B8A9B', lineHeight: 1.5, maxWidth: '380px' }}>
+            <div style={{ fontSize: '16px', color: THEME.muted, lineHeight: 1.5, maxWidth: '380px' }}>
               {personality?.description ?? 'A true lover of cinema.'}
             </div>
 
@@ -96,7 +97,7 @@ export async function GET(
               <div style={{ display: 'flex', gap: '10px', marginTop: '24px', flexWrap: 'wrap' }}>
                 {personality.traits.map(trait => (
                   <span key={trait} style={{
-                    background: '#1C1C2E',
+                    background: THEME.border,
                     border: `1px solid ${personality.accentHex}40`,
                     color: personality.accentHex,
                     padding: '6px 14px',
@@ -115,14 +116,14 @@ export async function GET(
           <div style={{ display: 'flex', flexDirection: 'column', width: '320px', gap: '20px' }}>
             {/* Top movies */}
             {user.onboardingMovies.length > 0 && (
-              <div style={{ background: '#0C0C18', border: '1px solid #1C1C2E', borderRadius: '16px', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: '#52506A', letterSpacing: '0.2em', marginBottom: '12px' }}>
+              <div style={{ background: THEME.surface, border: `1px solid ${THEME.border}`, borderRadius: '16px', padding: '20px' }}>
+                <div style={{ fontSize: '11px', color: THEME.muted, letterSpacing: '0.2em', marginBottom: '12px' }}>
                   FAVORITE FILMS
                 </div>
                 {user.onboardingMovies.map((m, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <span style={{ color: '#C8963E', fontSize: '12px', width: '14px' }}>{i + 1}</span>
-                    <span style={{ color: '#EDE9E1', fontSize: '14px' }}>{m.title}</span>
+                    <span style={{ color: THEME.secondary, fontSize: '12px', width: '14px' }}>{i + 1}</span>
+                    <span style={{ color: THEME.text, fontSize: '14px' }}>{m.title}</span>
                   </div>
                 ))}
               </div>
@@ -130,23 +131,23 @@ export async function GET(
 
             {/* DNA highlights */}
             {topTraits.length > 0 && (
-              <div style={{ background: '#0C0C18', border: '1px solid #1C1C2E', borderRadius: '16px', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: '#52506A', letterSpacing: '0.2em', marginBottom: '12px' }}>
+              <div style={{ background: THEME.surface, border: `1px solid ${THEME.border}`, borderRadius: '16px', padding: '20px' }}>
+                <div style={{ fontSize: '11px', color: THEME.muted, letterSpacing: '0.2em', marginBottom: '12px' }}>
                   MOVIE DNA
                 </div>
                 {topTraits.map(trait => (
                   <div key={trait.label} style={{ marginBottom: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ color: '#EDE9E1', fontSize: '12px' }}>{trait.label}</span>
-                      <span style={{ color: '#C8963E', fontSize: '12px', fontWeight: 700 }}>
+                      <span style={{ color: THEME.text, fontSize: '12px' }}>{trait.label}</span>
+                      <span style={{ color: THEME.secondary, fontSize: '12px', fontWeight: 700 }}>
                         {Math.round(trait.value * 10)}%
                       </span>
                     </div>
-                    <div style={{ height: '4px', background: '#1C1C2E', borderRadius: '2px' }}>
+                    <div style={{ height: '4px', background: THEME.border, borderRadius: '2px' }}>
                       <div style={{
                         height: '4px',
                         width: `${trait.value * 10}%`,
-                        background: personality?.accentHex ?? '#C8963E',
+                        background: personality?.accentHex ?? THEME.secondary,
                         borderRadius: '2px',
                       }} />
                     </div>
@@ -159,8 +160,8 @@ export async function GET(
 
         {/* Footer */}
         <div style={{ padding: '0 64px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '13px', color: '#52506A' }}>nospoilers.app</span>
-          <span style={{ fontSize: '13px', color: '#52506A' }}>Discover your Movie DNA</span>
+          <span style={{ fontSize: '13px', color: THEME.muted }}>nospoilers.app</span>
+          <span style={{ fontSize: '13px', color: THEME.muted }}>Discover your Movie DNA</span>
         </div>
       </div>
     ),

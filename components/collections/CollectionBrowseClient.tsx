@@ -100,7 +100,7 @@ export default function CollectionBrowseClient({ initialTab = 'trending' }: Prop
                 className={`flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-body whitespace-nowrap
                             border-b-2 -mb-px transition-all duration-150 flex-shrink-0
                             ${isActive
-                              ? 'border-ns-gold text-ns-gold'
+                              ? 'border-ns-secondary text-ns-secondary'
                               : 'border-transparent text-ns-muted hover:text-ns-text'
                             }`}
               >
@@ -121,14 +121,14 @@ export default function CollectionBrowseClient({ initialTab = 'trending' }: Prop
           <p className="text-ns-muted font-body text-sm mb-3">Could not load collections.</p>
           <button
             onClick={() => fetchTab(activeConfig)}
-            className="text-ns-gold text-sm font-body hover:text-amber-400 transition-colors"
+            className="text-ns-secondary text-sm font-body hover:text-amber-400 transition-colors"
           >
             Try again
           </button>
         </div>
       ) : collections.length === 0 ? (
         <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-          <CollectionsIcon size={40} className="text-ns-gold/40 mx-auto mb-3" />
+          <CollectionsIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
           <p className="text-ns-muted font-body text-sm">
             {activeTab === 'following'
               ? 'Follow creators to see their collections here.'
