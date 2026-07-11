@@ -1,5 +1,7 @@
 import Image from 'next/image'
 import { tmdbImageUrl, formatYear, formatRating } from '@/lib/utils'
+import Card from '@/components/ui/Card'
+import Badge from '@/components/ui/Badge'
 import type { TMDbMovie } from '@/types'
 
 interface MovieCardProps {
@@ -14,10 +16,9 @@ export default function MovieCard({ movie, size = 'md', showRating = true }: Mov
 
   return (
     <div className="group relative flex-shrink-0 cursor-pointer">
-      <div
-        className="relative overflow-hidden rounded-xl bg-ns-surface border border-ns-border
-                   transition-all duration-300 group-hover:border-ns-gold/30 group-hover:scale-[1.02]
-                   group-hover:shadow-[0_0_30px_rgba(200,150,62,0.15)]"
+      <Card
+        interactive
+        className="relative overflow-hidden rounded-xl group-hover:scale-[1.02]"
         style={{ width: widths[size], height: heights[size] }}
       >
         <Image
@@ -38,13 +39,15 @@ export default function MovieCard({ movie, size = 'md', showRating = true }: Mov
             {formatYear(movie.release_date)}
           </p>
         </div>
-      </div>
+      </Card>
 
       {showRating && movie.vote_average > 0 && (
-        <div className="absolute top-2 right-2 bg-ns-bg/80 backdrop-blur-sm rounded-md px-1.5 py-0.5
-                        text-ns-gold text-xs font-semibold font-body border border-ns-gold/20">
+        <Badge
+          variant="secondary"
+          className="absolute top-2 right-2 bg-ns-bg/80 backdrop-blur-sm rounded-md"
+        >
           {formatRating(movie.vote_average)}
-        </div>
+        </Badge>
       )}
     </div>
   )

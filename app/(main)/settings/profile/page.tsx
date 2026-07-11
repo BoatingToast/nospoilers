@@ -58,7 +58,7 @@ function TextInput({
       placeholder={placeholder}
       maxLength={maxLength}
       className="w-full bg-ns-surface border border-ns-border rounded-xl px-4 py-2.5 text-sm font-body
-                 text-ns-text placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-gold/40 transition-colors"
+                 text-ns-text placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-secondary/40 transition-colors"
     />
   )
 }
@@ -199,7 +199,7 @@ export default function EditProfilePage() {
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-ns-gold/20 border-t-ns-gold rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-ns-secondary/20 border-t-ns-secondary rounded-full animate-spin" />
       </div>
     )
   }
@@ -230,8 +230,8 @@ export default function EditProfilePage() {
             <div>
               <button
                 onClick={() => setShowCropModal(true)}
-                className="px-4 py-2 rounded-xl border border-ns-gold/30 text-ns-gold text-sm font-body
-                           hover:border-ns-gold/60 hover:bg-ns-gold/5 transition-all"
+                className="px-4 py-2 rounded-xl border border-ns-secondary/30 text-ns-secondary text-sm font-body
+                           hover:border-ns-secondary/60 hover:bg-ns-secondary/5 transition-all"
               >
                 Change Photo
               </button>
@@ -283,7 +283,7 @@ export default function EditProfilePage() {
                 maxLength={500}
                 rows={3}
                 className="w-full bg-ns-surface border border-ns-border rounded-xl px-4 py-3 text-sm font-body
-                           text-ns-text placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-gold/40
+                           text-ns-text placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-secondary/40
                            transition-colors resize-none"
               />
               <span className="absolute bottom-2.5 right-3 text-[10px] font-body text-ns-muted/40">
@@ -317,7 +317,7 @@ export default function EditProfilePage() {
                     onClick={() => toggleGenre(genre)}
                     className={`px-3 py-1.5 rounded-full text-xs font-body capitalize transition-all border ${
                       selected
-                        ? 'bg-ns-gold text-ns-bg border-ns-gold font-medium'
+                        ? 'bg-ns-secondary text-ns-bg border-ns-secondary font-medium'
                         : 'border-ns-border text-ns-muted hover:border-ns-muted/40'
                     }`}
                   >
@@ -333,7 +333,7 @@ export default function EditProfilePage() {
               value={profile.favoriteDecade}
               onChange={e => set('favoriteDecade', e.target.value)}
               className="w-full bg-ns-surface border border-ns-border rounded-xl px-4 py-2.5 text-sm font-body
-                         text-ns-text focus:outline-none focus:border-ns-gold/40 transition-colors"
+                         text-ns-text focus:outline-none focus:border-ns-secondary/40 transition-colors"
             >
               <option value="">— Select a decade —</option>
               {DECADES.map(d => <option key={d} value={d}>{d}</option>)}
@@ -421,8 +421,8 @@ export default function EditProfilePage() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-6 py-2.5 bg-ns-gold text-ns-bg rounded-xl text-sm font-body font-medium
-                           hover:bg-ns-gold/90 transition-colors disabled:opacity-60"
+                className="px-6 py-2.5 bg-ns-secondary text-ns-bg rounded-xl text-sm font-body font-medium
+                           hover:bg-ns-secondary/90 transition-colors disabled:opacity-60"
               >
                 {saving ? 'Saving…' : 'Save Changes'}
               </button>

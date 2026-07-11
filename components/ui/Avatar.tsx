@@ -29,28 +29,28 @@ function DefaultAvatar({ px }: { px: number }) {
       aria-hidden="true"
     >
       {/* Background */}
-      <circle cx="50" cy="50" r="50" fill="#0C0C16" />
+      <circle cx="50" cy="50" r="50" fill="rgb(var(--ns-surface-2))" />
       {/* Outer ring */}
-      <circle cx="50" cy="50" r="46" stroke="#C8963E" strokeWidth="1" strokeOpacity="0.2" />
+      <circle cx="50" cy="50" r="46" stroke="rgb(var(--ns-secondary))" strokeWidth="1" strokeOpacity="0.2" />
 
       {/* Clapperboard — rendered in a nested 24×24 viewport, centered at (22,24) 56px square */}
       <svg x="22" y="24" width="56" height="56" viewBox="0 0 24 24">
         {/* Clapper top bar */}
-        <rect x="2" y="2" width="20" height="6" rx="1.5" fill="#C8963E" fillOpacity="0.45" />
+        <rect x="2" y="2" width="20" height="6" rx="1.5" fill="rgb(var(--ns-secondary))" fillOpacity="0.45" />
         {/* Diagonal stripes on top bar */}
-        <line x1="7"  y1="2" x2="4"  y2="8" stroke="#0C0C16" strokeWidth="1.5" strokeOpacity="0.6" />
-        <line x1="12" y1="2" x2="9"  y2="8" stroke="#0C0C16" strokeWidth="1.5" strokeOpacity="0.6" />
-        <line x1="17" y1="2" x2="14" y2="8" stroke="#0C0C16" strokeWidth="1.5" strokeOpacity="0.6" />
+        <line x1="7"  y1="2" x2="4"  y2="8" stroke="rgb(var(--ns-surface-2))" strokeWidth="1.5" strokeOpacity="0.6" />
+        <line x1="12" y1="2" x2="9"  y2="8" stroke="rgb(var(--ns-surface-2))" strokeWidth="1.5" strokeOpacity="0.6" />
+        <line x1="17" y1="2" x2="14" y2="8" stroke="rgb(var(--ns-surface-2))" strokeWidth="1.5" strokeOpacity="0.6" />
         {/* Horizontal divider */}
-        <line x1="2" y1="8" x2="22" y2="8" stroke="#C8963E" strokeWidth="1" strokeOpacity="0.7" />
+        <line x1="2" y1="8" x2="22" y2="8" stroke="rgb(var(--ns-secondary))" strokeWidth="1" strokeOpacity="0.7" />
         {/* Body */}
         <rect x="2" y="8" width="20" height="14" rx="1.5"
-          fill="#C8963E" fillOpacity="0.07"
-          stroke="#C8963E" strokeWidth="1.2" strokeOpacity="0.5"
+          fill="rgb(var(--ns-secondary))" fillOpacity="0.07"
+          stroke="rgb(var(--ns-secondary))" strokeWidth="1.2" strokeOpacity="0.5"
         />
         {/* Content lines */}
-        <line x1="5" y1="13" x2="19" y2="13" stroke="#C8963E" strokeWidth="0.8" strokeOpacity="0.3" />
-        <line x1="5" y1="17" x2="14" y2="17" stroke="#C8963E" strokeWidth="0.8" strokeOpacity="0.3" />
+        <line x1="5" y1="13" x2="19" y2="13" stroke="rgb(var(--ns-secondary))" strokeWidth="0.8" strokeOpacity="0.3" />
+        <line x1="5" y1="17" x2="14" y2="17" stroke="rgb(var(--ns-secondary))" strokeWidth="0.8" strokeOpacity="0.3" />
       </svg>
     </svg>
   )

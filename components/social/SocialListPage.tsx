@@ -93,7 +93,7 @@ function EmptyState({ mode, hasSearch }: { mode: Mode; hasSearch: boolean }) {
       <Link
         href={cta.href}
         className="px-5 py-2.5 rounded-xl text-sm font-body font-semibold
-                   bg-ns-gold text-black hover:bg-amber-400 transition-colors"
+                   bg-ns-secondary text-black hover:bg-amber-400 transition-colors"
       >
         {cta.label}
       </Link>
@@ -119,7 +119,7 @@ function PageHeader({ mode, total }: { mode: Mode; total: number }) {
             href={t.href}
             className={`px-4 py-2 rounded-xl text-sm font-body font-semibold transition-all
               ${t.key === mode
-                ? 'bg-ns-gold text-black'
+                ? 'bg-ns-secondary text-black'
                 : 'text-ns-muted/70 hover:text-ns-text'
               }`}
           >
@@ -165,7 +165,7 @@ function Toolbar({
           placeholder={`Search ${mode === 'friends' ? 'friends' : mode === 'followers' ? 'followers' : 'following'}…`}
           className="w-full pl-9 pr-4 py-2.5 bg-ns-surface border border-ns-border/60
                      rounded-xl text-sm font-body text-ns-text placeholder:text-ns-muted/40
-                     focus:outline-none focus:border-ns-gold/40 transition-colors"
+                     focus:outline-none focus:border-ns-secondary/40 transition-colors"
         />
       </div>
 
@@ -174,7 +174,7 @@ function Toolbar({
         value={sort}
         onChange={e => onSort(e.target.value as SortKey)}
         className="px-3 py-2.5 bg-ns-surface border border-ns-border/60 rounded-xl
-                   text-sm font-body text-ns-muted/80 focus:outline-none focus:border-ns-gold/40
+                   text-sm font-body text-ns-muted/80 focus:outline-none focus:border-ns-secondary/40
                    transition-colors cursor-pointer"
       >
         {(Object.entries(SORT_LABELS) as [SortKey, string][]).map(([k, v]) => (
@@ -188,8 +188,8 @@ function Toolbar({
           onClick={() => onOnlyFriends(!onlyFriends)}
           className={`px-3 py-2.5 rounded-xl text-xs font-body font-semibold border transition-all
             ${onlyFriends
-              ? 'bg-ns-gold/15 text-ns-gold border-ns-gold/40'
-              : 'bg-ns-surface text-ns-muted/60 border-ns-border/60 hover:border-ns-gold/30'
+              ? 'bg-ns-secondary/15 text-ns-secondary border-ns-secondary/40'
+              : 'bg-ns-surface text-ns-muted/60 border-ns-border/60 hover:border-ns-secondary/30'
             }`}
         >
           <FriendsIcon size={12} className="inline mr-1.5" />
@@ -318,12 +318,12 @@ export default function SocialListPage({ mode }: SocialListPageProps) {
                 disabled={loadingMore}
                 className="px-6 py-2.5 rounded-xl text-sm font-body font-semibold
                            bg-ns-surface border border-ns-border/60
-                           text-ns-muted/70 hover:text-ns-gold hover:border-ns-gold/40
+                           text-ns-muted/70 hover:text-ns-secondary hover:border-ns-secondary/40
                            transition-all disabled:opacity-40"
               >
                 {loadingMore ? (
                   <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-ns-muted/40 border-t-ns-gold rounded-full animate-spin" />
+                    <span className="w-4 h-4 border-2 border-ns-muted/40 border-t-ns-secondary rounded-full animate-spin" />
                     Loading…
                   </span>
                 ) : 'Load More'}

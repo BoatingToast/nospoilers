@@ -21,7 +21,7 @@ function formatDate(iso: string): string {
 }
 
 function RatingBadge({ rating }: { rating: number }) {
-  const color = rating >= 80 ? 'text-emerald-400' : rating >= 60 ? 'text-ns-gold' : 'text-rose-400'
+  const color = rating >= 80 ? 'text-emerald-400' : rating >= 60 ? 'text-ns-secondary' : 'text-rose-400'
   return (
     <span className={`font-heading font-semibold text-sm ${color}`}>{rating}/100</span>
   )
@@ -95,14 +95,14 @@ function ReplyThread({
           {replies.map(reply => (
             <div key={reply.id} className="flex gap-2.5">
               <Link href={`/profile/${reply.username}`}
-                className="w-6 h-6 rounded-full bg-ns-gold/20 border border-ns-gold/30 flex-shrink-0
-                           flex items-center justify-center text-ns-gold text-[10px] font-bold hover:bg-ns-gold/30 transition-colors">
+                className="w-6 h-6 rounded-full bg-ns-secondary/20 border border-ns-secondary/30 flex-shrink-0
+                           flex items-center justify-center text-ns-secondary text-[10px] font-bold hover:bg-ns-secondary/30 transition-colors">
                 {reply.username[0]?.toUpperCase()}
               </Link>
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2">
                   <Link href={`/profile/${reply.username}`}
-                    className="text-xs font-heading font-medium text-white hover:text-ns-gold transition-colors">
+                    className="text-xs font-heading font-medium text-white hover:text-ns-secondary transition-colors">
                     @{reply.username}
                   </Link>
                   <span className="text-[10px] font-body text-ns-muted">{formatDate(reply.createdAt)}</span>
@@ -115,8 +115,8 @@ function ReplyThread({
           {/* Reply input */}
           {sessionId && (
             <div className="flex gap-2 items-start pt-1">
-              <div className="w-6 h-6 rounded-full bg-ns-gold/20 border border-ns-gold/30 flex-shrink-0
-                              flex items-center justify-center text-ns-gold text-[10px] font-bold">
+              <div className="w-6 h-6 rounded-full bg-ns-secondary/20 border border-ns-secondary/30 flex-shrink-0
+                              flex items-center justify-center text-ns-secondary text-[10px] font-bold">
                 {/* own initial */}
                 ✎
               </div>
@@ -127,13 +127,13 @@ function ReplyThread({
                   onKeyDown={e => e.key === 'Enter' && !e.shiftKey && postReply()}
                   placeholder="Write a reply..."
                   className="flex-1 bg-ns-bg border border-ns-border rounded-lg px-3 py-1.5 text-sm font-body
-                             text-ns-text placeholder-ns-muted/40 focus:outline-none focus:border-ns-gold/50 transition-colors"
+                             text-ns-text placeholder-ns-muted/40 focus:outline-none focus:border-ns-secondary/50 transition-colors"
                 />
                 <button
                   onClick={postReply}
                   disabled={posting || !draft.trim()}
-                  className="px-3 py-1.5 rounded-lg bg-ns-gold/15 text-ns-gold text-xs font-heading font-medium
-                             hover:bg-ns-gold/25 disabled:opacity-40 transition-colors whitespace-nowrap"
+                  className="px-3 py-1.5 rounded-lg bg-ns-secondary/15 text-ns-secondary text-xs font-heading font-medium
+                             hover:bg-ns-secondary/25 disabled:opacity-40 transition-colors whitespace-nowrap"
                 >
                   {posting ? '…' : 'Post'}
                 </button>
@@ -212,7 +212,7 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
   return (
     <article className={`rounded-2xl border p-5 transition-all duration-200 ${
       review.isFriend
-        ? 'bg-ns-gold/4 border-ns-gold/20'
+        ? 'bg-ns-secondary/4 border-ns-secondary/20'
         : 'bg-ns-surface border-ns-border'
     }`}>
 
@@ -221,20 +221,20 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
         <div className="flex items-center gap-3 min-w-0">
           {/* Avatar */}
           <Link href={`/profile/${review.username}`}
-            className="w-9 h-9 rounded-full bg-ns-gold/20 border border-ns-gold/30 flex-shrink-0
-                       flex items-center justify-center text-ns-gold text-sm font-bold
-                       hover:bg-ns-gold/30 transition-colors">
+            className="w-9 h-9 rounded-full bg-ns-secondary/20 border border-ns-secondary/30 flex-shrink-0
+                       flex items-center justify-center text-ns-secondary text-sm font-bold
+                       hover:bg-ns-secondary/30 transition-colors">
             {review.username[0]?.toUpperCase()}
           </Link>
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <Link href={`/profile/${review.username}`}
-                className="font-heading font-semibold text-sm text-white hover:text-ns-gold transition-colors">
+                className="font-heading font-semibold text-sm text-white hover:text-ns-secondary transition-colors">
                 @{review.username}
               </Link>
               {review.isFriend && (
-                <span className="px-2 py-0.5 rounded-full bg-ns-gold/15 text-ns-gold text-[10px] font-body">
+                <span className="px-2 py-0.5 rounded-full bg-ns-secondary/15 text-ns-secondary text-[10px] font-body">
                   Friend
                 </span>
               )}
@@ -318,7 +318,7 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
           disabled={!sessionId}
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-body transition-colors ${
             viewerVotes.includes('helpful')
-              ? 'bg-ns-gold/15 text-ns-gold'
+              ? 'bg-ns-secondary/15 text-ns-secondary'
               : 'text-ns-muted hover:text-white hover:bg-white/5'
           } disabled:opacity-50 disabled:cursor-default`}
         >

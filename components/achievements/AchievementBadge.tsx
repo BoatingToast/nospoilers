@@ -32,15 +32,15 @@ export default function AchievementBadge({ achievement, size = 'md' }: Props) {
         <div className={`
           rounded-full flex items-center justify-center border-2 relative
           transition-all duration-200
-          group-hover:scale-110 group-hover:border-ns-gold/40
+          group-hover:scale-110 group-hover:border-ns-secondary/40
           ${sm ? 'w-10 h-10 text-lg' : 'w-14 h-14 text-2xl'}
           ${achievement.earned
-            ? 'border-ns-gold bg-ns-gold/10 shadow-[0_0_12px_rgba(200,150,62,0.3)]'
+            ? 'border-ns-secondary bg-ns-secondary/10 shadow-[0_0_12px_rgb(var(--ns-secondary)/0.3)]'
             : 'border-ns-border bg-ns-surface'}
         `}>
           {achievement.icon}
           {achievement.earned && (
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-ns-gold
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-ns-secondary
                             flex items-center justify-center">
               <svg width="8" height="8" fill="none" stroke="white" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path d="M20 6 9 17l-5-5"/>
@@ -50,7 +50,7 @@ export default function AchievementBadge({ achievement, size = 'md' }: Props) {
         </div>
 
         {/* Name */}
-        <p className={`text-ns-text font-body font-medium leading-tight group-hover:text-ns-gold transition-colors
+        <p className={`text-ns-text font-body font-medium leading-tight group-hover:text-ns-secondary transition-colors
                        ${sm ? 'text-[10px]' : 'text-xs'}`}>
           {achievement.name}
         </p>
@@ -60,7 +60,7 @@ export default function AchievementBadge({ achievement, size = 'md' }: Props) {
           <div className={`w-full ${sm ? 'max-w-[40px]' : 'max-w-[56px]'}`}>
             <div className="h-0.5 bg-ns-border rounded-full overflow-hidden">
               <div
-                className="h-full bg-ns-gold/50 rounded-full transition-all"
+                className="h-full bg-ns-secondary/50 rounded-full transition-all"
                 style={{ width: `${pct}%` }}
               />
             </div>

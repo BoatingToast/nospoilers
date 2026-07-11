@@ -41,10 +41,10 @@ function RadioGroup({
             onClick={() => onChange(opt.value)}
             className={`flex-1 text-left px-4 py-3 rounded-xl border transition-all duration-150
                        ${value === opt.value
-                         ? 'bg-ns-gold/10 border-ns-gold'
+                         ? 'bg-ns-secondary/10 border-ns-secondary'
                          : 'bg-ns-surface border-ns-border hover:border-ns-muted/40'}`}
           >
-            <p className={`text-sm font-body font-medium ${value === opt.value ? 'text-ns-gold' : 'text-ns-text'}`}>
+            <p className={`text-sm font-body font-medium ${value === opt.value ? 'text-ns-secondary' : 'text-ns-text'}`}>
               {opt.label}
             </p>
             <p className="text-ns-muted text-xs font-body mt-0.5">{opt.sub}</p>
@@ -77,7 +77,7 @@ function SliderQuestion({
           <p className="text-ns-text font-body font-medium text-sm">{label}</p>
           <p className="text-ns-muted text-xs font-body mt-0.5">{sublabel}</p>
         </div>
-        <span className="text-ns-gold font-display text-xl">{value}</span>
+        <span className="text-ns-secondary font-display text-xl">{value}</span>
       </div>
       <div className="flex items-center gap-3">
         <span className="text-ns-muted text-xs font-body w-20 text-right">{leftLabel}</span>
@@ -86,7 +86,7 @@ function SliderQuestion({
           min={1} max={10}
           value={value}
           onChange={e => onChange(Number(e.target.value))}
-          className="flex-1 accent-[#C8963E] cursor-pointer"
+          className="flex-1 accent-ns-secondary cursor-pointer"
         />
         <span className="text-ns-muted text-xs font-body w-20">{rightLabel}</span>
       </div>

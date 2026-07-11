@@ -64,14 +64,14 @@ export default function PersonalityWidget({ username, initialData }: Props) {
           </>
         ) : (
           <div className="text-center py-4">
-            <FilmIcon size={40} className="text-ns-gold/40 mx-auto mb-3" />
+            <FilmIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
             <p className="text-ns-muted text-sm font-body mb-4">
               Your Movie Personality hasn&apos;t been discovered yet.
             </p>
             <button
               onClick={assign}
               disabled={loading}
-              className="px-6 py-2.5 bg-ns-gold text-ns-bg text-sm font-body font-medium rounded-xl hover:bg-ns-gold/90 transition-colors disabled:opacity-50"
+              className="px-6 py-2.5 bg-ns-secondary text-ns-bg text-sm font-body font-medium rounded-xl hover:bg-ns-secondary/90 transition-colors disabled:opacity-50"
             >
               {loading ? 'Analyzing...' : 'Discover My Personality'}
             </button>

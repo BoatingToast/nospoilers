@@ -26,7 +26,7 @@ export default function DiscussionPrompts({ movieTitle, onPrompt }: Props) {
           key={p}
           onClick={() => onPrompt(p)}
           className="flex-shrink-0 px-3 py-1.5 rounded-full border border-ns-border text-ns-muted text-xs font-body
-                     hover:border-ns-gold/40 hover:text-ns-gold transition-all duration-150 whitespace-nowrap"
+                     hover:border-ns-secondary/40 hover:text-ns-secondary transition-all duration-150 whitespace-nowrap"
         >
           {p}
         </button>

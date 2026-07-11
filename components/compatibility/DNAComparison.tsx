@@ -29,7 +29,7 @@ export default function DNAComparison({ dnaDiff, yourUsername, theirUsername }: 
       {/* Legend */}
       <div className="flex gap-6 mb-5 text-xs font-body">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-ns-gold" />
+          <div className="w-3 h-3 rounded-full bg-ns-secondary" />
           <span className="text-ns-muted">@{yourUsername}</span>
         </div>
         <div className="flex items-center gap-2">
@@ -59,7 +59,7 @@ export default function DNAComparison({ dnaDiff, yourUsername, theirUsername }: 
               <div className="relative h-2 bg-ns-border rounded-full overflow-hidden">
                 {/* Your bar */}
                 <div
-                  className="absolute left-0 top-0 h-full bg-ns-gold rounded-full opacity-90"
+                  className="absolute left-0 top-0 h-full bg-ns-secondary rounded-full opacity-90"
                   style={{ width: `${(you / 10) * 100}%` }}
                 />
                 {/* Their bar overlay (thinner, different color) */}
@@ -70,7 +70,7 @@ export default function DNAComparison({ dnaDiff, yourUsername, theirUsername }: 
               </div>
 
               <div className="flex justify-between mt-1">
-                <span className="text-ns-gold text-[10px] font-body">{you.toFixed(1)}</span>
+                <span className="text-ns-secondary text-[10px] font-body">{you.toFixed(1)}</span>
                 <span className="text-violet-400 text-[10px] font-body">{them.toFixed(1)}</span>
               </div>
             </div>

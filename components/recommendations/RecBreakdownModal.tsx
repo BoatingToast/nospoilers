@@ -57,7 +57,7 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
         {/* Header */}
         <div className="sticky top-0 bg-ns-surface border-b border-ns-border px-5 py-4 flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-body text-ns-gold uppercase tracking-widest mb-0.5">
+            <p className="text-[10px] font-body text-ns-secondary uppercase tracking-widest mb-0.5">
               Why We Recommend
             </p>
             <h3 className="text-base font-heading text-white leading-tight line-clamp-1">
@@ -74,10 +74,10 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
 
         <div className="p-5 space-y-5">
           {/* Match score */}
-          <div className="flex items-center gap-3 bg-ns-gold/10 border border-ns-gold/30 rounded-xl p-4">
-            <span className="text-3xl font-heading text-ns-gold">{rec.matchScore}%</span>
+          <div className="flex items-center gap-3 bg-ns-secondary/10 border border-ns-secondary/30 rounded-xl p-4">
+            <span className="text-3xl font-heading text-ns-secondary">{rec.matchScore}%</span>
             <div>
-              <p className="text-xs font-body text-ns-gold font-semibold">Overall Match</p>
+              <p className="text-xs font-body text-ns-secondary font-semibold">Overall Match</p>
               <p className="text-xs font-body text-ns-muted">
                 {rec.matchScore >= 90 ? 'Exceptional fit for your taste DNA'
                   : rec.matchScore >= 75 ? 'Strong alignment with your preferences'
@@ -102,10 +102,10 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
                     <div key={trait.trait}>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-1.5">
-                          <MetaIcon size={13} className="text-ns-gold/70" />
+                          <MetaIcon size={13} className="text-ns-secondary/70" />
                           <span className="text-xs font-body text-ns-text">{meta.label}</span>
                         </div>
-                        <span className="text-xs font-mono text-ns-gold">{matchPct}% match</span>
+                        <span className="text-xs font-mono text-ns-secondary">{matchPct}% match</span>
                       </div>
                       <div className="h-1.5 bg-ns-border rounded-full overflow-hidden">
                         <div
@@ -133,7 +133,7 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
               <div className="space-y-1.5">
                 {rec.matchedFavorites.map(fav => (
                   <div key={fav} className="flex items-center gap-2 text-xs font-body text-ns-text">
-                    <StarIcon size={12} className="text-ns-gold flex-shrink-0" />
+                    <StarIcon size={12} className="text-ns-secondary flex-shrink-0" />
                     <span>Because you liked <strong className="text-white">{fav}</strong></span>
                   </div>
                 ))}
@@ -151,7 +151,7 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
                 {rec.matchedGenres.map(g => (
                   <span
                     key={g}
-                    className="text-[10px] font-body text-ns-gold bg-ns-gold/10 border border-ns-gold/20 px-2 py-0.5 rounded-full"
+                    className="text-[10px] font-body text-ns-secondary bg-ns-secondary/10 border border-ns-secondary/20 px-2 py-0.5 rounded-full"
                   >
                     {g}
                   </span>

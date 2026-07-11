@@ -17,14 +17,14 @@ interface Props {
 
 function matchColor(score: number): string {
   if (score >= 85) return 'text-emerald-400'
-  if (score >= 70) return 'text-ns-gold'
+  if (score >= 70) return 'text-ns-secondary'
   if (score >= 55) return 'text-blue-400'
   return 'text-ns-muted'
 }
 
 function matchBg(score: number): string {
   if (score >= 85) return 'bg-emerald-400/10 border-emerald-400/30'
-  if (score >= 70) return 'bg-ns-gold/10 border-ns-gold/30'
+  if (score >= 70) return 'bg-ns-secondary/10 border-ns-secondary/30'
   if (score >= 55) return 'bg-blue-400/10 border-blue-400/30'
   return 'bg-ns-surface border-ns-border'
 }
@@ -45,7 +45,7 @@ export default function WhyModal({ rec, onClose }: Props) {
                       shadow-2xl shadow-black/80 overflow-hidden max-h-[85vh] flex flex-col">
 
         {/* Gold accent strip */}
-        <div className="h-0.5 w-full bg-gradient-to-r from-ns-gold/0 via-ns-gold to-ns-gold/0 flex-shrink-0" />
+        <div className="h-0.5 w-full bg-gradient-to-r from-ns-secondary/0 via-ns-secondary to-ns-secondary/0 flex-shrink-0" />
 
         {/* Header */}
         <div className="flex-shrink-0 p-5 pb-0">
@@ -62,7 +62,7 @@ export default function WhyModal({ rec, onClose }: Props) {
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-ns-gold text-[9px] tracking-widest uppercase font-body mb-1">
+              <p className="text-ns-secondary text-[9px] tracking-widest uppercase font-body mb-1">
                 Why this recommendation?
               </p>
               <h2 className="font-display text-xl tracking-wider text-ns-text leading-tight line-clamp-2">
@@ -87,12 +87,12 @@ export default function WhyModal({ rec, onClose }: Props) {
                              text-sm font-body font-semibold ${matchColor(rec.matchScore)} ${matchBg(rec.matchScore)}`}>
               <div className={`w-1.5 h-1.5 rounded-full ${
                 rec.matchScore >= 85 ? 'bg-emerald-400' :
-                rec.matchScore >= 70 ? 'bg-ns-gold' : 'bg-blue-400'
+                rec.matchScore >= 70 ? 'bg-ns-secondary' : 'bg-blue-400'
               }`} />
               {rec.matchScore}% Match
             </div>
             <Link href={`/movie/${rec.tmdbId}`}
-              className="text-ns-gold text-xs font-body hover:text-amber-400 transition-colors">
+              className="text-ns-secondary text-xs font-body hover:text-amber-400 transition-colors">
               View film <ArrowRightIcon size={11} className="inline-block" />
             </Link>
           </div>
@@ -102,7 +102,7 @@ export default function WhyModal({ rec, onClose }: Props) {
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
 
           {/* Explanation */}
-          <p className="text-ns-text font-body text-sm leading-relaxed border-l-2 border-ns-gold/40 pl-3">
+          <p className="text-ns-text font-body text-sm leading-relaxed border-l-2 border-ns-secondary/40 pl-3">
             {rec.explanation}
           </p>
 
@@ -112,7 +112,7 @@ export default function WhyModal({ rec, onClose }: Props) {
               <div className="flex flex-col gap-1.5">
                 {rec.matchedFavorites.map(title => (
                   <div key={title} className="flex items-center gap-2">
-                    <span className="w-1 h-1 rounded-full bg-ns-gold flex-shrink-0" />
+                    <span className="w-1 h-1 rounded-full bg-ns-secondary flex-shrink-0" />
                     <span className="text-ns-text font-body text-sm">{title}</span>
                   </div>
                 ))}
@@ -149,12 +149,12 @@ export default function WhyModal({ rec, onClose }: Props) {
                     {/* Two independent bars — one per score */}
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-body text-ns-gold w-6 flex-shrink-0">You</span>
+                        <span className="text-[9px] font-body text-ns-secondary w-6 flex-shrink-0">You</span>
                         <div className="flex-1 h-1.5 bg-ns-bg rounded-full overflow-hidden">
-                          <div className="h-full rounded-full bg-ns-gold transition-all duration-500"
+                          <div className="h-full rounded-full bg-ns-secondary transition-all duration-500"
                             style={{ width: `${t.yourScore * 10}%` }} />
                         </div>
-                        <span className="text-[9px] font-body text-ns-gold w-5 text-right">{t.yourScore}</span>
+                        <span className="text-[9px] font-body text-ns-secondary w-5 text-right">{t.yourScore}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] font-body text-ns-muted w-6 flex-shrink-0">Film</span>

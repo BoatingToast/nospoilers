@@ -24,14 +24,14 @@ export default function MovieVibeProfile({ scores }: { scores: DNAScores }) {
       <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-4">Movie Vibe</p>
       <ResponsiveContainer width="100%" height={220}>
         <RadarChart data={data} cx="50%" cy="50%" outerRadius="70%">
-          <PolarGrid stroke="#1C1C2E" />
+          <PolarGrid stroke="rgb(var(--ns-border))" />
           <PolarAngleAxis
             dataKey="dimension"
-            tick={{ fill: '#52506A', fontSize: 10, fontFamily: 'var(--font-inter)' }}
+            tick={{ fill: 'rgb(var(--ns-muted))', fontSize: 10, fontFamily: 'var(--font-inter)' }}
           />
-          <Radar dataKey="value" stroke="#C8963E" fill="#C8963E" fillOpacity={0.15} strokeWidth={2} />
+          <Radar dataKey="value" stroke="rgb(var(--ns-secondary))" fill="rgb(var(--ns-secondary))" fillOpacity={0.15} strokeWidth={2} />
           <Tooltip
-            contentStyle={{ background: '#0C0C18', border: '1px solid #1C1C2E', borderRadius: '8px', color: '#EDE9E1', fontSize: '12px' }}
+            contentStyle={{ background: 'rgb(var(--ns-surface))', border: '1px solid rgb(var(--ns-border))', borderRadius: '8px', color: 'rgb(var(--ns-text))', fontSize: '12px' }}
             formatter={(v: number) => [v.toFixed(1), '']}
           />
         </RadarChart>
@@ -41,12 +41,12 @@ export default function MovieVibeProfile({ scores }: { scores: DNAScores }) {
           <div key={key} className="flex items-center gap-2">
             <div className="flex-1 h-1 bg-ns-border rounded-full overflow-hidden">
               <div
-                className="h-full bg-ns-gold/70 rounded-full"
+                className="h-full bg-ns-secondary/70 rounded-full"
                 style={{ width: `${(scores[key] / 10) * 100}%` }}
               />
             </div>
             <span className="text-ns-muted text-[10px] font-body w-16">{label}</span>
-            <span className="text-ns-gold text-[10px] font-body w-4 text-right">{scores[key]}</span>
+            <span className="text-ns-secondary text-[10px] font-body w-4 text-right">{scores[key]}</span>
           </div>
         ))}
       </div>

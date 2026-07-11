@@ -78,13 +78,13 @@ export default function QuickRatingModal({
       <div className="relative z-10 w-full max-w-sm bg-ns-bg border border-ns-border rounded-2xl
                       shadow-2xl shadow-black/80 overflow-hidden">
         {/* Gold top strip */}
-        <div className="h-0.5 w-full bg-gradient-to-r from-ns-gold/0 via-ns-gold to-ns-gold/0" />
+        <div className="h-0.5 w-full bg-gradient-to-r from-ns-secondary/0 via-ns-secondary to-ns-secondary/0" />
 
         <div className="p-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-6">
             <div>
-              <p className="text-ns-gold text-[10px] tracking-widest uppercase font-body mb-1">
+              <p className="text-ns-secondary text-[10px] tracking-widest uppercase font-body mb-1">
                 Rate this film
               </p>
               <h2 className="font-display text-2xl tracking-wider text-ns-text leading-tight">
@@ -118,7 +118,7 @@ export default function QuickRatingModal({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full py-3 rounded-xl bg-ns-gold text-ns-bg font-body font-semibold
+              className="w-full py-3 rounded-xl bg-ns-secondary text-ns-bg font-body font-semibold
                          text-sm tracking-wide hover:bg-amber-400 disabled:opacity-50
                          transition-colors"
             >

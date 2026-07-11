@@ -68,7 +68,7 @@ export default async function SearchPage({ searchParams }: Props) {
       {/* No query */}
       {!query && !error && (
         <div className="text-center py-20">
-          <SearchIcon size={52} className="text-ns-gold/40 mx-auto mb-4" />
+          <SearchIcon size={52} className="text-ns-secondary/40 mx-auto mb-4" />
           <p className="text-ns-muted font-body text-sm">Type a movie title above and press Search.</p>
         </div>
       )}
@@ -76,7 +76,7 @@ export default async function SearchPage({ searchParams }: Props) {
       {/* No results */}
       {query && !error && movies.length === 0 && (
         <div className="text-center py-20">
-          <FilmIcon size={44} className="text-ns-gold/40 mx-auto mb-4" />
+          <FilmIcon size={44} className="text-ns-secondary/40 mx-auto mb-4" />
           <p className="text-ns-muted font-body text-sm">
             No results for &ldquo;{query}&rdquo;. Try a different title.
           </p>
@@ -98,14 +98,14 @@ export default async function SearchPage({ searchParams }: Props) {
                 />
                 {movie.vote_average > 0 && (
                   <div className="absolute top-2 right-2 bg-ns-bg/80 backdrop-blur-sm rounded-full px-2 py-0.5">
-                    <span className="text-ns-gold text-[10px] font-body font-bold">
+                    <span className="text-ns-secondary text-[10px] font-body font-bold">
                       <StarIcon size={9} className="inline-block mr-0.5" />{movie.vote_average.toFixed(1)}
                     </span>
                   </div>
                 )}
               </div>
 
-              <p className="text-ns-text text-xs font-body font-medium mt-2 truncate group-hover:text-ns-gold transition-colors">
+              <p className="text-ns-text text-xs font-body font-medium mt-2 truncate group-hover:text-ns-secondary transition-colors">
                 {movie.title}
               </p>
               <p className="text-ns-muted/60 text-[11px] font-body">{formatYear(movie.release_date)}</p>

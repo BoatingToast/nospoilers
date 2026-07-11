@@ -65,8 +65,8 @@ export default function PopularSpoilerZonesPage() {
         {/* Header */}
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-2">
-            <SpoilerZoneIcon size={28} className="text-ns-gold" />
-            <h1 className="font-display text-3xl tracking-widest text-ns-gold">SPOILER ZONES</h1>
+            <SpoilerZoneIcon size={28} className="text-ns-secondary" />
+            <h1 className="font-display text-3xl tracking-widest text-ns-secondary">SPOILER ZONES</h1>
           </div>
           <p className="text-ns-muted/60 font-body text-base ml-11">
             The most active discussions happening right now. Spoilers welcome.
@@ -102,7 +102,7 @@ function PopularCard({ zone }: { zone: PopularZone }) {
     <Link
       href={`/movie/${zone.tmdbId}`}
       className="group relative overflow-hidden rounded-2xl border border-ns-border/50
-                 bg-ns-surface/40 hover:border-ns-gold/30 transition-all duration-300
+                 bg-ns-surface/40 hover:border-ns-secondary/30 transition-all duration-300
                  hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30"
     >
       {/* Poster */}
@@ -128,10 +128,10 @@ function PopularCard({ zone }: { zone: PopularZone }) {
         {zone.isActive && (
           <div className="absolute top-2 left-2 flex items-center gap-1">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ns-gold opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-ns-gold" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ns-secondary opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-ns-secondary" />
             </span>
-            <span className="text-[9px] font-body text-ns-gold font-medium bg-black/40 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
+            <span className="text-[9px] font-body text-ns-secondary font-medium bg-black/40 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
               Active
             </span>
           </div>
@@ -159,8 +159,8 @@ function PopularCard({ zone }: { zone: PopularZone }) {
           <span>{timeAgo(zone.lastActivity)}</span>
         </div>
         <div className="w-full text-center py-1.5 rounded-lg text-[11px] font-body font-semibold
-                        bg-ns-gold/10 text-ns-gold border border-ns-gold/20
-                        group-hover:bg-ns-gold group-hover:text-black group-hover:border-ns-gold
+                        bg-ns-secondary/10 text-ns-secondary border border-ns-secondary/20
+                        group-hover:bg-ns-secondary group-hover:text-black group-hover:border-ns-secondary
                         transition-all duration-200">
           Open Zone
         </div>

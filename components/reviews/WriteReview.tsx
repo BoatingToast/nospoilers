@@ -124,7 +124,7 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
             onChange={e => setTitle(e.target.value)}
             maxLength={120}
             placeholder="A compelling one-liner..."
-            className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-2.5 text-sm font-body text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-gold/50 transition-colors"
+            className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-2.5 text-sm font-body text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-secondary/50 transition-colors"
           />
         </div>
 
@@ -142,7 +142,7 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
               ? 'Share your full thoughts — mark it as containing spoilers so others can choose to read it...'
               : 'Share your experience without revealing plot details. Talk about acting, visuals, emotion, atmosphere...'
             }
-            className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-3 text-sm font-body text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-gold/50 transition-colors resize-y leading-relaxed"
+            className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-3 text-sm font-body text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-secondary/50 transition-colors resize-y leading-relaxed"
           />
           <p className="text-[10px] font-body text-ns-muted/50 mt-1 text-right">
             {body.length}/4000
@@ -164,7 +164,7 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
                 value={rating}
                 onChange={e => setRating(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="—"
-                className="w-16 bg-ns-bg border border-ns-border rounded-lg px-2 py-1.5 text-sm font-body text-center text-ns-text focus:outline-none focus:border-ns-gold/50 transition-colors"
+                className="w-16 bg-ns-bg border border-ns-border rounded-lg px-2 py-1.5 text-sm font-body text-center text-ns-text focus:outline-none focus:border-ns-secondary/50 transition-colors"
               />
               <span className="text-ns-muted text-xs font-body">/100</span>
             </div>
@@ -185,7 +185,7 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
             <span className={`text-xs font-body ${hasSpoilers ? 'text-amber-400' : 'text-ns-muted'}`}>
               {hasSpoilers
                 ? <><WarningIcon size={12} className="inline-block mr-1 text-amber-400" />Contains spoilers</>
-                : <><SpoilerFreeIcon size={12} className="inline-block mr-1 text-ns-gold" />Spoiler-free</>
+                : <><SpoilerFreeIcon size={12} className="inline-block mr-1 text-ns-secondary" />Spoiler-free</>
               }
             </span>
           </label>
@@ -208,7 +208,7 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
         <button
           type="submit"
           disabled={saving || !body.trim()}
-          className="self-start px-6 py-2.5 rounded-xl bg-ns-gold text-ns-bg text-sm font-heading font-semibold
+          className="self-start px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-bg text-sm font-heading font-semibold
                      hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Publish Review'}

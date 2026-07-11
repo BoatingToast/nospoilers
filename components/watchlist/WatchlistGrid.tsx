@@ -31,7 +31,7 @@ const SORT_OPTIONS = [
 
 const STATUS_BADGE: Record<WatchStatus, { label: string; cls: string }> = {
   want_to_watch: { label: 'Want to Watch', cls: 'bg-ns-surface-2 text-ns-muted border-ns-border' },
-  watching:      { label: 'Watching',      cls: 'bg-ns-gold/10 text-ns-gold border-ns-gold/20' },
+  watching:      { label: 'Watching',      cls: 'bg-ns-secondary/10 text-ns-secondary border-ns-secondary/20' },
   watched:       { label: 'Watched',       cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
 }
 
@@ -89,7 +89,7 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
               onClick={() => handleStatusChange(f.value)}
               className={`px-4 py-1.5 rounded-full text-xs font-body transition-all
                 ${status === f.value
-                  ? 'bg-ns-gold text-ns-bg font-medium'
+                  ? 'bg-ns-secondary text-ns-bg font-medium'
                   : 'border border-ns-border text-ns-muted hover:border-ns-muted/40'
                 }`}
             >
@@ -101,7 +101,7 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
         <select
           value={sortBy}
           onChange={e => handleSortChange(e.target.value)}
-          className="bg-ns-surface border border-ns-border text-ns-muted text-xs font-body px-3 py-1.5 rounded-xl focus:outline-none focus:border-ns-gold/40"
+          className="bg-ns-surface border border-ns-border text-ns-muted text-xs font-body px-3 py-1.5 rounded-xl focus:outline-none focus:border-ns-secondary/40"
         >
           {SORT_OPTIONS.map(o => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -122,9 +122,9 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
         </div>
       ) : items.length === 0 ? (
         <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-          <FilmIcon size={44} className="text-ns-gold/40 mx-auto mb-4" />
+          <FilmIcon size={44} className="text-ns-secondary/40 mx-auto mb-4" />
           <p className="text-ns-muted font-body text-sm">Nothing here yet.</p>
-          <Link href="/discover" className="text-ns-gold text-sm font-body mt-2 inline-flex items-center gap-1 hover:underline">
+          <Link href="/discover" className="text-ns-secondary text-sm font-body mt-2 inline-flex items-center gap-1 hover:underline">
             Discover movies <ArrowRightIcon size={13} />
           </Link>
         </div>
@@ -146,7 +146,7 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
                     />
                     {item.matchScore && (
                       <div className="absolute top-2 right-2 bg-ns-bg/80 backdrop-blur-sm rounded-full px-2 py-0.5">
-                        <span className="text-ns-gold text-[10px] font-body font-bold">{item.matchScore}%</span>
+                        <span className="text-ns-secondary text-[10px] font-body font-bold">{item.matchScore}%</span>
                       </div>
                     )}
                   </div>

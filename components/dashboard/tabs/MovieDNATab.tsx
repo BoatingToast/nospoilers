@@ -15,7 +15,7 @@ export default function MovieDNATab({ dnaScores, username }: Props) {
   if (!dnaScores) {
     return (
       <div className="py-16 text-center">
-        <MovieDnaIcon size={40} className="text-ns-gold/40 mx-auto mb-3" />
+        <MovieDnaIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
         <p className="text-ns-muted font-body text-sm">
           Complete onboarding to generate your Movie DNA.
         </p>

@@ -10,13 +10,13 @@ export default function WhoWouldEnjoy({ wouldEnjoy, mightNotEnjoy }: WhoWouldEnj
       <div className="grid sm:grid-cols-2 gap-6">
         {wouldEnjoy.length > 0 && (
           <div>
-            <p className="text-ns-gold text-xs font-body font-semibold mb-2 uppercase tracking-wider">
+            <p className="text-ns-secondary text-xs font-body font-semibold mb-2 uppercase tracking-wider">
               Recommended for
             </p>
             <ul className="flex flex-col gap-2">
               {wouldEnjoy.map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-ns-text text-sm font-body">
-                  <span className="text-ns-gold mt-0.5 flex-shrink-0">✓</span>
+                  <span className="text-ns-secondary mt-0.5 flex-shrink-0">✓</span>
                   {item}
                 </li>
               ))}

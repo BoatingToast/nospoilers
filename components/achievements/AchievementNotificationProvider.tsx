@@ -22,9 +22,9 @@ const STORAGE_KEY = 'ns-earned-achievements'
 
 const RARITY_ACCENT: Record<AchievementRarity, string> = {
   common:    'border-ns-border',
-  rare:      'border-blue-500/50',
-  epic:      'border-purple-500/50',
-  legendary: 'border-ns-gold/60',
+  rare:      'border-ns-info/50',
+  epic:      'border-ns-tier-epic/50',
+  legendary: 'border-ns-secondary/60',
 }
 
 interface Notification {
@@ -114,15 +114,15 @@ export default function AchievementNotificationProvider() {
             style={{ maxWidth: 320 }}
           >
             {/* Icon */}
-            <div className="w-10 h-10 rounded-full bg-ns-surface border border-ns-gold/30
+            <div className="w-10 h-10 rounded-full bg-ns-surface border border-ns-secondary/30
                             flex items-center justify-center text-xl flex-shrink-0
-                            shadow-[0_0_12px_rgba(200,150,62,0.3)]">
+                            shadow-[0_0_12px_rgb(var(--ns-secondary)/0.3)]">
               {notif.achievement.icon}
             </div>
 
             {/* Text */}
             <div className="flex-1 min-w-0">
-              <p className="text-ns-gold text-[10px] font-body tracking-widest uppercase mb-0.5">
+              <p className="text-ns-secondary text-[10px] font-body tracking-widest uppercase mb-0.5">
                 Achievement Unlocked!
               </p>
               <p className="text-ns-text text-sm font-body font-medium truncate">
@@ -145,7 +145,7 @@ export default function AchievementNotificationProvider() {
               </button>
               <button
                 onClick={() => { setModalItem(notif.achievement); dismiss(notif.id) }}
-                className="text-ns-gold text-[10px] font-body hover:text-amber-400 transition-colors whitespace-nowrap"
+                className="text-ns-secondary text-[10px] font-body hover:text-ns-secondary/70 transition-colors whitespace-nowrap"
               >
                 View →
               </button>

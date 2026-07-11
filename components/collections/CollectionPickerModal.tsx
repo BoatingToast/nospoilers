@@ -230,14 +230,14 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
           {/* Loading */}
           {loading && (
             <div className="flex items-center justify-center py-12">
-              <div className="w-6 h-6 border-2 border-ns-gold/30 border-t-ns-gold rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-ns-secondary/30 border-t-ns-secondary rounded-full animate-spin" />
             </div>
           )}
 
           {/* No collections yet */}
           {!loading && collections.length === 0 && !showCreate && (
             <div className="py-12 text-center px-5">
-              <CollectionsIcon size={40} className="text-ns-gold/40 mx-auto mb-3" />
+              <CollectionsIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
               <p className="text-ns-muted font-body text-sm">You don&apos;t have any collections yet.</p>
               <p className="text-ns-muted/60 font-body text-xs mt-1">Create one below to get started.</p>
             </div>
@@ -279,7 +279,7 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
 
                       {/* Title + count */}
                       <div className="flex-1 text-left min-w-0">
-                        <p className="text-ns-text text-sm font-body font-medium truncate group-hover:text-ns-gold transition-colors">
+                        <p className="text-ns-text text-sm font-body font-medium truncate group-hover:text-ns-secondary transition-colors">
                           {col.title}
                         </p>
                         <p className="text-ns-muted text-xs font-body mt-0.5">
@@ -291,7 +291,7 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
                       {/* Check indicator */}
                       <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center border transition-all ${
                         isIn
-                          ? 'bg-ns-gold border-ns-gold text-ns-bg'
+                          ? 'bg-ns-secondary border-ns-secondary text-ns-bg'
                           : 'border-ns-border text-transparent group-hover:border-ns-muted/40'
                       }`}>
                         {isBusy ? (
@@ -321,13 +321,13 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
                   placeholder="Collection name..."
                   maxLength={60}
                   className="flex-1 bg-ns-surface border border-ns-border rounded-xl px-3 py-2 text-ns-text font-body text-sm
-                             placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-gold/40 transition-colors"
+                             placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-secondary/40 transition-colors"
                 />
                 <button
                   type="submit"
                   disabled={creating || !newTitle.trim()}
-                  className="px-4 py-2 bg-ns-gold text-ns-bg rounded-xl font-body font-medium text-sm
-                             hover:bg-ns-gold/90 transition-colors disabled:opacity-50 whitespace-nowrap"
+                  className="px-4 py-2 bg-ns-secondary text-ns-bg rounded-xl font-body font-medium text-sm
+                             hover:bg-ns-secondary/90 transition-colors disabled:opacity-50 whitespace-nowrap"
                 >
                   {creating ? 'Creating...' : 'Create & Add'}
                 </button>
@@ -349,7 +349,7 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
           {!showCreate ? (
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-1.5 text-ns-gold text-sm font-body hover:text-amber-400 transition-colors"
+              className="flex items-center gap-1.5 text-ns-secondary text-sm font-body hover:text-amber-400 transition-colors"
             >
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M12 5v14M5 12h14"/>

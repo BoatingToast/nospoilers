@@ -40,10 +40,10 @@ export default async function TrendingCollectionsPage() {
 
         {collections.length === 0 ? (
           <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-            <CollectionsIcon size={44} className="text-ns-gold/40 mx-auto mb-4" />
+            <CollectionsIcon size={44} className="text-ns-secondary/40 mx-auto mb-4" />
             <p className="text-ns-muted font-body text-sm">No trending collections yet.</p>
             <Link href="/collections/new"
-              className="inline-block mt-4 px-4 py-2 bg-ns-gold text-ns-bg rounded-xl text-sm font-body font-medium hover:bg-ns-gold/90 transition-colors">
+              className="inline-block mt-4 px-4 py-2 bg-ns-secondary text-ns-bg rounded-xl text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors">
               Create the first one
             </Link>
           </div>

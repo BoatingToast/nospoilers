@@ -107,7 +107,7 @@ export default function DetailedRatingModal({
       <div className="relative z-10 w-full max-w-lg bg-ns-bg border border-ns-border rounded-2xl
                       shadow-2xl shadow-black/80 overflow-hidden max-h-[92vh] flex flex-col">
         {/* Gold strip */}
-        <div className="h-0.5 w-full bg-gradient-to-r from-ns-gold/0 via-ns-gold to-ns-gold/0 flex-shrink-0" />
+        <div className="h-0.5 w-full bg-gradient-to-r from-ns-secondary/0 via-ns-secondary to-ns-secondary/0 flex-shrink-0" />
 
         {/* Scrollable body */}
         <div className="overflow-y-auto flex-1 p-6 space-y-7">
@@ -115,7 +115,7 @@ export default function DetailedRatingModal({
           {/* Header */}
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-ns-gold text-[10px] tracking-widest uppercase font-body mb-1">
+              <p className="text-ns-secondary text-[10px] tracking-widest uppercase font-body mb-1">
                 Detailed Rating
               </p>
               <h2 className="font-display text-2xl tracking-wider text-ns-text leading-tight">
@@ -180,7 +180,7 @@ export default function DetailedRatingModal({
               maxLength={500}
               className="w-full bg-ns-surface border border-ns-border rounded-xl px-3 py-2.5
                          text-ns-text text-sm font-body placeholder:text-ns-muted/40 resize-none
-                         focus:outline-none focus:border-ns-gold/40 transition-colors"
+                         focus:outline-none focus:border-ns-secondary/40 transition-colors"
             />
             <p className="text-ns-muted/40 text-[10px] font-body text-right">
               {review.length}/500
@@ -207,7 +207,7 @@ export default function DetailedRatingModal({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex-1 py-3 rounded-xl bg-ns-gold text-ns-bg font-body font-semibold
+              className="flex-1 py-3 rounded-xl bg-ns-secondary text-ns-bg font-body font-semibold
                          text-sm tracking-wide hover:bg-amber-400 disabled:opacity-50
                          transition-colors"
             >

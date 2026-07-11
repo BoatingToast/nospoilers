@@ -53,7 +53,7 @@ export default function DashboardNextFavorite() {
         <p className="text-ns-muted font-body text-sm mb-2">
           Complete your taste profile to unlock your Next Favorite.
         </p>
-        <Link href="/onboarding" className="text-ns-gold text-xs font-body hover:text-amber-400">
+        <Link href="/onboarding" className="text-ns-secondary text-xs font-body hover:text-amber-400">
           Set up profile <ArrowRightIcon size={11} className="inline-block" />
         </Link>
       </div>
@@ -71,8 +71,8 @@ export default function DashboardNextFavorite() {
 
   return (
     <>
-      <div className="bg-ns-surface border border-ns-gold/30 rounded-2xl overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-ns-gold/5 to-transparent pointer-events-none" />
+      <div className="bg-ns-surface border border-ns-secondary/30 rounded-2xl overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-ns-secondary/5 to-transparent pointer-events-none" />
 
         <div className="flex gap-0">
           {/* Poster thumbnail */}
@@ -90,14 +90,14 @@ export default function DashboardNextFavorite() {
 
           {/* Content */}
           <div className="flex-1 p-4 min-w-0">
-            <p className="text-[9px] font-body text-ns-gold uppercase tracking-widest mb-1 flex items-center gap-1">
+            <p className="text-[9px] font-body text-ns-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
               <RecsIcon size={10} /> Your Next Favorite
             </p>
             <div className="flex items-start gap-2 mb-1">
               <h3 className="text-sm font-heading text-white leading-tight truncate flex-1">
                 {rec.title}
               </h3>
-              <span className="text-[10px] font-mono text-ns-gold bg-ns-gold/10 border border-ns-gold/20 px-1.5 py-0.5 rounded-md flex-shrink-0">
+              <span className="text-[10px] font-mono text-ns-secondary bg-ns-secondary/10 border border-ns-secondary/20 px-1.5 py-0.5 rounded-md flex-shrink-0">
                 {rec.matchScore}%
               </span>
             </div>
@@ -107,7 +107,7 @@ export default function DashboardNextFavorite() {
 
             {/* Quick actions */}
             {sent ? (
-              <p className="text-xs font-body text-ns-gold flex items-center gap-1">
+              <p className="text-xs font-body text-ns-secondary flex items-center gap-1">
                 <CheckIcon size={12} /> Feedback saved
               </p>
             ) : (
@@ -124,7 +124,7 @@ export default function DashboardNextFavorite() {
                 ))}
                 <button
                   onClick={() => setShowWhy(true)}
-                  className="ml-auto text-[10px] font-body text-ns-gold hover:text-amber-400 transition-colors flex items-center gap-0.5"
+                  className="ml-auto text-[10px] font-body text-ns-secondary hover:text-amber-400 transition-colors flex items-center gap-0.5"
                 >
                   Why? <ArrowRightIcon size={10} />
                 </button>
@@ -143,7 +143,7 @@ export default function DashboardNextFavorite() {
           </Link>
           <Link
             href="/my-recommendations"
-            className="text-[10px] font-body text-ns-gold hover:text-amber-400 transition-colors"
+            className="text-[10px] font-body text-ns-secondary hover:text-amber-400 transition-colors"
           >
             All recommendations <ArrowRightIcon size={10} className="inline-block" />
           </Link>

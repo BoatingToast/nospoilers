@@ -88,8 +88,8 @@ export default function VoteButtons({
           title={isOwner ? 'Cannot vote on your own collection' : 'Upvote'}
           className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-xs font-body transition-all
             ${userVote === 'upvote'
-              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
-              : 'border-ns-border text-ns-muted hover:border-emerald-500/30 hover:text-emerald-400'
+              ? 'bg-ns-success/15 border-ns-success/40 text-ns-success'
+              : 'border-ns-border text-ns-muted hover:border-ns-success/30 hover:text-ns-success'
             } disabled:cursor-not-allowed disabled:opacity-40`}
         >
           <UpIcon active={userVote === 'upvote'} />
@@ -102,8 +102,8 @@ export default function VoteButtons({
           title={isOwner ? 'Cannot vote on your own collection' : 'Downvote'}
           className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-xs font-body transition-all
             ${userVote === 'downvote'
-              ? 'bg-red-500/15 border-red-500/40 text-red-400'
-              : 'border-ns-border text-ns-muted hover:border-red-500/30 hover:text-red-400'
+              ? 'bg-ns-danger/15 border-ns-danger/40 text-ns-danger'
+              : 'border-ns-border text-ns-muted hover:border-ns-danger/30 hover:text-ns-danger'
             } disabled:cursor-not-allowed disabled:opacity-40`}
         >
           <DownIcon active={userVote === 'downvote'} />
@@ -124,8 +124,8 @@ export default function VoteButtons({
         className={`group w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5
           border transition-all duration-200
           ${userVote === 'upvote'
-            ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.15)]'
-            : 'border-ns-border text-ns-muted hover:border-emerald-500/40 hover:text-emerald-400 hover:bg-emerald-500/5'
+            ? 'bg-ns-success/15 border-ns-success/50 text-ns-success shadow-[0_0_12px_rgb(var(--ns-success)/0.15)]'
+            : 'border-ns-border text-ns-muted hover:border-ns-success/40 hover:text-ns-success hover:bg-ns-success/5'
           } disabled:cursor-not-allowed disabled:opacity-40`}
       >
         <UpIcon active={userVote === 'upvote'} size={18} />
@@ -135,9 +135,9 @@ export default function VoteButtons({
       {/* Net score pill */}
       <div className={`px-2.5 py-1 rounded-full border text-xs font-body font-semibold text-center min-w-[40px]
         ${votes.score > 0
-          ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+          ? 'bg-ns-success/10 border-ns-success/20 text-ns-success'
           : votes.score < 0
-          ? 'bg-red-500/10 border-red-500/20 text-red-400'
+          ? 'bg-ns-danger/10 border-ns-danger/20 text-ns-danger'
           : 'bg-ns-surface border-ns-border text-ns-muted'
         }`}>
         {votes.score > 0 ? '+' : ''}{votes.score}
@@ -151,8 +151,8 @@ export default function VoteButtons({
         className={`group w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5
           border transition-all duration-200
           ${userVote === 'downvote'
-            ? 'bg-red-500/15 border-red-500/50 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.15)]'
-            : 'border-ns-border text-ns-muted hover:border-red-500/40 hover:text-red-400 hover:bg-red-500/5'
+            ? 'bg-ns-danger/15 border-ns-danger/50 text-ns-danger shadow-[0_0_12px_rgb(var(--ns-danger)/0.15)]'
+            : 'border-ns-border text-ns-muted hover:border-ns-danger/40 hover:text-ns-danger hover:bg-ns-danger/5'
           } disabled:cursor-not-allowed disabled:opacity-40`}
       >
         <span className="text-[11px] font-body font-semibold leading-none">{votes.downvotes}</span>

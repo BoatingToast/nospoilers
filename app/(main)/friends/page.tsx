@@ -33,7 +33,7 @@ export default async function FriendsPage() {
         </div>
         <Link
           href="/friends/find"
-          className="px-5 py-2.5 rounded-xl bg-ns-gold text-ns-bg text-sm font-body font-medium hover:bg-amber-400 transition-colors flex-shrink-0"
+          className="px-5 py-2.5 rounded-xl bg-ns-secondary text-ns-bg text-sm font-body font-medium hover:bg-amber-400 transition-colors flex-shrink-0"
         >
           + Find Friends
         </Link>
@@ -41,8 +41,8 @@ export default async function FriendsPage() {
 
       {/* Pending requests */}
       {pending.received.length > 0 && (
-        <div className="mb-8 bg-ns-surface border border-ns-gold/20 rounded-2xl p-5">
-          <p className="text-ns-gold text-xs tracking-widest uppercase font-body mb-4">
+        <div className="mb-8 bg-ns-surface border border-ns-secondary/20 rounded-2xl p-5">
+          <p className="text-ns-secondary text-xs tracking-widest uppercase font-body mb-4">
             Friend Requests · {pending.received.length}
           </p>
           <div className="space-y-3">
@@ -99,7 +99,7 @@ function FriendCard({ friend }: { friend: { id: string; username: string; avatar
       <div className="flex items-center gap-3">
         <Avatar src={friend.avatarUrl} username={friend.username} size="md" href />
         <div>
-          <Link href={`/profile/${friend.username}`} className="text-sm font-body text-white hover:text-ns-gold transition-colors font-medium">
+          <Link href={`/profile/${friend.username}`} className="text-sm font-body text-white hover:text-ns-secondary transition-colors font-medium">
             @{friend.username}
           </Link>
           {friend.personality && (
@@ -111,7 +111,7 @@ function FriendCard({ friend }: { friend: { id: string; username: string; avatar
       </div>
       <Link
         href={`/compatibility/${friend.username}`}
-        className="text-[10px] font-body text-ns-gold hover:text-amber-400 transition-colors"
+        className="text-[10px] font-body text-ns-secondary hover:text-amber-400 transition-colors"
       >
         Compare
       </Link>

@@ -101,7 +101,7 @@ export default function FriendRequestButton({
   if (status === 'pending_sent') {
     return (
       <div className="flex items-center gap-2">
-        <span className="px-4 py-2 rounded-xl text-sm font-body bg-ns-gold/10 border border-ns-gold/30 text-ns-gold">
+        <span className="px-4 py-2 rounded-xl text-sm font-body bg-ns-secondary/10 border border-ns-secondary/30 text-ns-secondary">
           Request Sent
         </span>
         <button
@@ -121,7 +121,7 @@ export default function FriendRequestButton({
         <button
           onClick={() => handleAction('accept')}
           disabled={loading}
-          className={`${base} bg-ns-gold text-ns-bg hover:bg-amber-400`}
+          className={`${base} bg-ns-secondary text-ns-bg hover:bg-amber-400`}
         >
           Accept
         </button>
@@ -141,7 +141,7 @@ export default function FriendRequestButton({
     <button
       onClick={sendRequest}
       disabled={loading}
-      className={`${base} bg-ns-gold text-ns-bg hover:bg-amber-400 font-medium`}
+      className={`${base} bg-ns-secondary text-ns-bg hover:bg-amber-400 font-medium`}
     >
       {loading ? '…' : '+ Add Friend'}
     </button>

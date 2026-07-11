@@ -38,7 +38,7 @@ export interface SocialUser {
 // ── Taste match ring ─────────────────────────────────────────────────────────
 
 function TasteMatchBadge({ pct }: { pct: number }) {
-  const color = pct >= 80 ? 'text-ns-gold' : pct >= 60 ? 'text-amber-400' : 'text-ns-muted/60'
+  const color = pct >= 80 ? 'text-ns-secondary' : pct >= 60 ? 'text-amber-400' : 'text-ns-muted/60'
   return (
     <span className={`text-[10px] font-body font-semibold ${color} whitespace-nowrap`}>
       {pct}% match
@@ -92,7 +92,7 @@ function InlineFollowBtn({
       className={`px-3 py-1.5 rounded-xl text-xs font-body font-semibold transition-all duration-200 whitespace-nowrap
         ${following
           ? 'bg-ns-border/60 text-ns-muted hover:bg-red-900/30 hover:text-red-400 hover:border-red-500/30 border border-transparent'
-          : 'bg-ns-gold text-black hover:bg-amber-400 border border-transparent'
+          : 'bg-ns-secondary text-black hover:bg-amber-400 border border-transparent'
         }
         ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
@@ -120,8 +120,8 @@ function Avatar({ user, size = 48 }: { user: SocialUser; size?: number }) {
           className="object-cover"
         />
       ) : (
-        <div className="w-full h-full bg-gradient-to-br from-ns-gold/25 to-ns-border flex items-center justify-center">
-          <span className="font-heading font-bold text-ns-gold" style={{ fontSize: size * 0.35 }}>
+        <div className="w-full h-full bg-gradient-to-br from-ns-secondary/25 to-ns-border flex items-center justify-center">
+          <span className="font-heading font-bold text-ns-secondary" style={{ fontSize: size * 0.35 }}>
             {initial}
           </span>
         </div>
@@ -149,12 +149,12 @@ export default function UserSocialCard({
   return (
     <div
       className="group relative bg-ns-surface border border-ns-border/60 rounded-2xl
-                 hover:border-ns-gold/25 hover:shadow-[0_0_20px_rgba(212,175,55,0.06)]
+                 hover:border-ns-secondary/25 hover:shadow-[0_0_20px_rgb(var(--ns-secondary)/0.06)]
                  transition-all duration-300 cursor-pointer overflow-hidden"
       onClick={() => router.push(`/profile/${user.username}`)}
     >
       {/* Subtle gold shimmer on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-ns-gold/0 to-ns-gold/0 group-hover:from-ns-gold/[0.02] group-hover:to-transparent transition-all duration-500 pointer-events-none rounded-2xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-ns-secondary/0 to-ns-secondary/0 group-hover:from-ns-secondary/[0.02] group-hover:to-transparent transition-all duration-500 pointer-events-none rounded-2xl" />
 
       <div className="flex items-center gap-4 p-4 relative">
         {/* Avatar */}
@@ -162,7 +162,7 @@ export default function UserSocialCard({
           <Avatar user={user} size={52} />
           {showFriendBadge && user.isFriend && (
             <span
-              className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-ns-gold
+              className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-ns-secondary
                          flex items-center justify-center shadow-sm"
               title="Friend"
             >
@@ -187,9 +187,9 @@ export default function UserSocialCard({
           {/* DNA badge */}
           {user.personality && (
             <div className="flex items-center gap-1.5 mt-1.5">
-              <div className="flex items-center gap-1 bg-ns-gold/10 border border-ns-gold/25 rounded-full px-2 py-0.5">
-                <MovieDnaIcon size={10} className="text-ns-gold/70 flex-shrink-0" />
-                <span className="text-[10px] font-body text-ns-gold/80 font-medium whitespace-nowrap">
+              <div className="flex items-center gap-1 bg-ns-secondary/10 border border-ns-secondary/25 rounded-full px-2 py-0.5">
+                <MovieDnaIcon size={10} className="text-ns-secondary/70 flex-shrink-0" />
+                <span className="text-[10px] font-body text-ns-secondary/80 font-medium whitespace-nowrap">
                   {user.personality}
                 </span>
               </div>
@@ -231,7 +231,7 @@ export default function UserSocialCard({
           <Link
             href={`/profile/${user.username}`}
             onClick={e => e.stopPropagation()}
-            className="text-[10px] font-body text-ns-muted/50 hover:text-ns-gold transition-colors whitespace-nowrap"
+            className="text-[10px] font-body text-ns-muted/50 hover:text-ns-secondary transition-colors whitespace-nowrap"
           >
             View Profile →
           </Link>

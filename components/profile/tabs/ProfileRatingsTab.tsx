@@ -18,7 +18,7 @@ interface RatingItem {
 type Sort = 'date' | 'score_desc' | 'score_asc'
 
 function scoreColor(s: number) {
-  if (s >= 85) return 'text-ns-gold'
+  if (s >= 85) return 'text-ns-secondary'
   if (s >= 70) return 'text-emerald-400'
   if (s >= 50) return 'text-blue-400'
   return 'text-ns-muted'
@@ -73,7 +73,7 @@ export default function ProfileRatingsTab({ username }: { username: string }) {
             key={s}
             onClick={() => setSort(s)}
             className={`px-3 py-1 rounded-full text-xs font-body transition-colors border
-              ${sort === s ? 'bg-ns-gold/10 border-ns-gold/40 text-ns-gold' : 'border-ns-border text-ns-muted hover:text-ns-text'}`}
+              ${sort === s ? 'bg-ns-secondary/10 border-ns-secondary/40 text-ns-secondary' : 'border-ns-border text-ns-muted hover:text-ns-text'}`}
           >
             {s === 'date' ? 'Recent' : s === 'score_desc' ? 'Highest' : 'Lowest'}
           </button>
@@ -92,7 +92,7 @@ export default function ProfileRatingsTab({ username }: { username: string }) {
         </div>
       ) : ratings.length === 0 ? (
         <div className="py-20 text-center">
-          <FilmIcon size={40} className="text-ns-gold/40 mx-auto mb-3" />
+          <FilmIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
           <p className="text-ns-muted font-body text-sm">No ratings yet.</p>
         </div>
       ) : (
@@ -118,7 +118,7 @@ export default function ProfileRatingsTab({ username }: { username: string }) {
                   <span className={`text-xs font-body font-bold ${scoreColor(r.score)}`}>{r.score}</span>
                 </div>
               </div>
-              <p className="text-xs font-body text-white line-clamp-1 group-hover:text-ns-gold transition-colors">{r.title}</p>
+              <p className="text-xs font-body text-white line-clamp-1 group-hover:text-ns-secondary transition-colors">{r.title}</p>
               <p className="text-[10px] font-body text-ns-muted mt-0.5">{timeAgo(r.createdAt)}</p>
             </Link>
           ))}
