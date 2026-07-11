@@ -76,7 +76,7 @@ function SocialModal({
                 onClick={() => setTab(t.key)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-body transition-colors
                   ${tab === t.key
-                    ? 'bg-ns-gold/15 text-ns-gold border border-ns-gold/30'
+                    ? 'bg-ns-secondary/15 text-ns-secondary border border-ns-secondary/30'
                     : 'text-ns-muted hover:text-ns-text'
                   }`}
               >
@@ -124,13 +124,13 @@ function SocialModal({
                       <Link
                         href={`/profile/${u.username}`}
                         onClick={onClose}
-                        className="text-sm font-body font-medium text-ns-text hover:text-ns-gold transition-colors"
+                        className="text-sm font-body font-medium text-ns-text hover:text-ns-secondary transition-colors"
                       >
                         @{u.username}
                       </Link>
                       {u.isFriend && (
                         <span className="inline-flex items-center gap-0.5 text-[9px] font-body
-                                         text-ns-gold/80 bg-ns-gold/10 border border-ns-gold/20
+                                         text-ns-secondary/80 bg-ns-secondary/10 border border-ns-secondary/20
                                          px-1.5 py-0.5 rounded-full">
                           <FriendsIcon size={9} />
                           Friends
@@ -167,12 +167,12 @@ function MiniFollowBtn({ username }: { username: string }) {
     await fetch(`/api/follow/${username}`, { method: 'POST' })
     setDone(true)
   }
-  if (done) return <span className="text-[10px] font-body text-ns-gold/70 flex-shrink-0">✓ Following</span>
+  if (done) return <span className="text-[10px] font-body text-ns-secondary/70 flex-shrink-0">✓ Following</span>
   return (
     <button
       onClick={follow}
       className="flex-shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-body font-semibold
-                 bg-ns-gold/10 text-ns-gold border border-ns-gold/30 hover:bg-ns-gold hover:text-black
+                 bg-ns-secondary/10 text-ns-secondary border border-ns-secondary/30 hover:bg-ns-secondary hover:text-black
                  transition-all duration-200"
     >
       + Follow
@@ -214,7 +214,7 @@ export default function SocialStats({
             onClick={() => setModal(s.key)}
             className="text-left group"
           >
-            <p className="font-display text-3xl tracking-wider text-ns-gold group-hover:text-amber-400 transition-colors">
+            <p className="font-display text-3xl tracking-wider text-ns-secondary group-hover:text-amber-400 transition-colors">
               {s.value.toLocaleString()}
             </p>
             <p className="text-ns-muted text-xs font-body mt-0.5 group-hover:text-ns-text transition-colors">

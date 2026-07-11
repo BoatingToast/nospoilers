@@ -36,7 +36,7 @@ export default function PendingActions({ requestId }: Props) {
       <button
         onClick={() => handle('accept')}
         disabled={loading}
-        className="px-3 py-1.5 rounded-xl text-xs font-body bg-ns-gold text-ns-bg hover:bg-amber-400 transition-colors disabled:opacity-50"
+        className="px-3 py-1.5 rounded-xl text-xs font-body bg-ns-secondary text-ns-bg hover:bg-amber-400 transition-colors disabled:opacity-50"
       >
         Accept
       </button>

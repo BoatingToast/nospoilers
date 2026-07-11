@@ -8,16 +8,39 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Every value reads from the CSS custom properties defined in
+        // app/globals.css — that file is the single source of truth for
+        // color. Change the brand there, not here.
         ns: {
-          bg:         '#07070F',
-          surface:    '#0C0C18',
-          'surface-2':'#121220',
-          border:     '#1C1C2E',
-          gold:       '#C8963E',
-          'gold-dim': '#7A5A25',
-          text:       '#EDE9E1',
-          muted:      '#52506A',
-          accent:     '#FF5F42',
+          bg:                    'rgb(var(--ns-bg) / <alpha-value>)',
+          surface:               'rgb(var(--ns-surface) / <alpha-value>)',
+          'surface-2':           'rgb(var(--ns-surface-2) / <alpha-value>)',
+          border:                'rgb(var(--ns-border) / <alpha-value>)',
+
+          primary:               'rgb(var(--ns-primary) / <alpha-value>)',
+          'primary-foreground':  'rgb(var(--ns-primary-foreground) / <alpha-value>)',
+
+          secondary:             'rgb(var(--ns-secondary) / <alpha-value>)',
+          'secondary-dim':       'rgb(var(--ns-secondary-dim) / <alpha-value>)',
+          'secondary-foreground':'rgb(var(--ns-secondary-foreground) / <alpha-value>)',
+
+          text:                  'rgb(var(--ns-text) / <alpha-value>)',
+          muted:                 'rgb(var(--ns-muted) / <alpha-value>)',
+
+          success:               'rgb(var(--ns-success) / <alpha-value>)',
+          danger:                'rgb(var(--ns-danger) / <alpha-value>)',
+          warning:               'rgb(var(--ns-warning) / <alpha-value>)',
+          info:                  'rgb(var(--ns-info) / <alpha-value>)',
+
+          'tier-epic':           'rgb(var(--ns-tier-epic) / <alpha-value>)',
+
+          'chart-1': 'rgb(var(--ns-chart-1) / <alpha-value>)',
+          'chart-2': 'rgb(var(--ns-chart-2) / <alpha-value>)',
+          'chart-3': 'rgb(var(--ns-chart-3) / <alpha-value>)',
+          'chart-4': 'rgb(var(--ns-chart-4) / <alpha-value>)',
+          'chart-5': 'rgb(var(--ns-chart-5) / <alpha-value>)',
+          'chart-6': 'rgb(var(--ns-chart-6) / <alpha-value>)',
+          'chart-7': 'rgb(var(--ns-chart-7) / <alpha-value>)',
         },
       },
       fontFamily: {

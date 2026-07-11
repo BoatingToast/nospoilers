@@ -16,7 +16,7 @@ export default function SimilarMovies({ movies }: { movies: TMDbMovie[] }) {
           <Link key={movie.id} href={`/movie/${movie.id}`} className="group flex-shrink-0">
             <div className="w-[130px]">
               <div className="relative w-[130px] h-[195px] rounded-xl overflow-hidden bg-ns-surface border border-ns-border
-                              transition-all duration-300 group-hover:border-ns-gold/30 group-hover:scale-[1.02]">
+                              transition-all duration-300 group-hover:border-ns-secondary/30 group-hover:scale-[1.02]">
                 <Image
                   src={tmdbImageUrl(movie.poster_path, 'w185')}
                   alt={movie.title}
@@ -26,7 +26,7 @@ export default function SimilarMovies({ movies }: { movies: TMDbMovie[] }) {
                 />
                 {movie.vote_average > 0 && (
                   <div className="absolute top-1.5 right-1.5 bg-ns-bg/80 backdrop-blur-sm rounded px-1 py-0.5
-                                  text-ns-gold text-[10px] font-body font-semibold border border-ns-gold/20">
+                                  text-ns-secondary text-[10px] font-body font-semibold border border-ns-secondary/20">
                     {movie.vote_average.toFixed(1)}
                   </div>
                 )}

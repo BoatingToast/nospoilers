@@ -23,24 +23,24 @@ const RARITY_CONFIG: Record<AchievementRarity, {
   },
   rare: {
     label:       'Rare',
-    textClass:   'text-blue-400',
-    borderClass: 'border-blue-500/30',
-    bgClass:     'bg-blue-500/5',
-    glowStyle:   'rgba(96,165,250,0.15)',
+    textClass:   'text-ns-info',
+    borderClass: 'border-ns-info/30',
+    bgClass:     'bg-ns-info/5',
+    glowStyle:   'rgb(var(--ns-info)/0.15)',
   },
   epic: {
     label:       'Epic',
-    textClass:   'text-purple-400',
-    borderClass: 'border-purple-500/30',
-    bgClass:     'bg-purple-500/5',
-    glowStyle:   'rgba(168,85,247,0.15)',
+    textClass:   'text-ns-tier-epic',
+    borderClass: 'border-ns-tier-epic/30',
+    bgClass:     'bg-ns-tier-epic/5',
+    glowStyle:   'rgb(var(--ns-tier-epic)/0.15)',
   },
   legendary: {
     label:       'Legendary',
-    textClass:   'text-ns-gold',
-    borderClass: 'border-ns-gold/30',
-    bgClass:     'bg-ns-gold/5',
-    glowStyle:   'rgba(200,150,62,0.2)',
+    textClass:   'text-ns-secondary',
+    borderClass: 'border-ns-secondary/30',
+    bgClass:     'bg-ns-secondary/5',
+    glowStyle:   'rgb(var(--ns-secondary)/0.2)',
   },
 }
 
@@ -63,7 +63,7 @@ export default function AchievementCard({ achievement }: Props) {
         className={`
           w-full text-left p-4 rounded-2xl border transition-all duration-200
           hover:scale-[1.02] hover:shadow-lg active:scale-[0.99]
-          focus:outline-none focus:ring-2 focus:ring-ns-gold/30
+          focus:outline-none focus:ring-2 focus:ring-ns-secondary/30
           ${achievement.earned
             ? `${rarity.borderClass} ${rarity.bgClass} bg-ns-surface`
             : 'border-ns-border bg-ns-surface'
@@ -104,7 +104,7 @@ export default function AchievementCard({ achievement }: Props) {
                 {achievement.name}
               </p>
               {achievement.earned && (
-                <div className="flex-shrink-0 w-4 h-4 rounded-full bg-ns-gold flex items-center justify-center">
+                <div className="flex-shrink-0 w-4 h-4 rounded-full bg-ns-secondary flex items-center justify-center">
                   <svg width="8" height="8" fill="none" stroke="white" strokeWidth="3" viewBox="0 0 24 24">
                     <path d="M20 6L9 17l-5-5"/>
                   </svg>
@@ -133,8 +133,8 @@ export default function AchievementCard({ achievement }: Props) {
                   <div
                     className={`h-full rounded-full transition-all ${
                       achievement.earned
-                        ? 'bg-gradient-to-r from-ns-gold to-amber-400'
-                        : 'bg-ns-gold/40'
+                        ? 'bg-gradient-to-r from-ns-secondary to-ns-secondary/60'
+                        : 'bg-ns-secondary/40'
                     }`}
                     style={{ width: `${pct}%` }}
                   />
@@ -156,7 +156,7 @@ export default function AchievementCard({ achievement }: Props) {
           {/* XP badge */}
           <div className="flex-shrink-0 flex flex-col items-end gap-1">
             <span className={`text-[10px] font-body font-semibold flex items-center gap-0.5 ${
-              achievement.earned ? 'text-ns-gold' : 'text-ns-muted/50'
+              achievement.earned ? 'text-ns-secondary' : 'text-ns-muted/50'
             }`}>
               <SuspenseIcon size={10} />
               {achievement.xpReward}

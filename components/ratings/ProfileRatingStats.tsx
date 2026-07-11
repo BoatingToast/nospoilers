@@ -1,19 +1,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { tmdbImageUrl } from '@/lib/utils'
+import { ratingColor } from '@/lib/theme'
 import type { RatingStats } from '@/types'
 
 interface Props {
   stats:      RatingStats
   isOwnProfile: boolean
   username:   string
-}
-
-function scoreColorHex(v: number): string {
-  if (v >= 80) return '#C8963E'
-  if (v >= 60) return '#6DBF91'
-  if (v >= 40) return '#7B9CC8'
-  return '#C87B6D'
 }
 
 export default function ProfileRatingStats({ stats, isOwnProfile, username }: Props) {
@@ -23,7 +17,7 @@ export default function ProfileRatingStats({ stats, isOwnProfile, username }: Pr
       <div className="bg-ns-surface border border-dashed border-ns-border rounded-2xl p-5 text-center">
         <p className="text-ns-muted text-xs font-body mb-2">No film ratings yet</p>
         <Link href="/ratings"
-          className="text-ns-gold text-xs font-body hover:text-amber-400 transition-colors">
+          className="text-ns-secondary text-xs font-body hover:text-ns-secondary/70 transition-colors">
           Start rating films →
         </Link>
       </div>
@@ -38,7 +32,7 @@ export default function ProfileRatingStats({ stats, isOwnProfile, username }: Pr
         <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Film Ratings</p>
         {isOwnProfile && (
           <Link href="/ratings"
-            className="text-ns-gold text-[10px] font-body hover:text-amber-400 transition-colors">
+            className="text-ns-secondary text-[10px] font-body hover:text-ns-secondary/70 transition-colors">
             View all →
           </Link>
         )}
@@ -54,14 +48,14 @@ export default function ProfileRatingStats({ stats, isOwnProfile, username }: Pr
         </div>
         <div>
           <span className="font-display text-3xl tracking-wider"
-            style={{ color: scoreColorHex(stats.averageScore) }}>
+            style={{ color: ratingColor(stats.averageScore / 100) }}>
             {stats.averageScore.toFixed(0)}
           </span>
           <span className="text-ns-muted text-xs font-body ml-1">avg</span>
         </div>
         {stats.perfectScores > 0 && (
           <div>
-            <span className="font-display text-3xl tracking-wider text-ns-gold">
+            <span className="font-display text-3xl tracking-wider text-ns-secondary">
               {stats.perfectScores}
             </span>
             <span className="text-ns-muted text-xs font-body ml-1">perfect</span>
@@ -73,11 +67,11 @@ export default function ProfileRatingStats({ stats, isOwnProfile, username }: Pr
       <div className="flex items-end gap-1 h-10 mb-4">
         {Object.entries(stats.distribution).map(([bucket, count]) => {
           const pct   = (count / maxDist) * 100
-          const color = bucket === '81-100' ? '#C8963E'
-                      : bucket === '61-80'  ? '#6DBF91'
-                      : bucket === '41-60'  ? '#7B9CC8'
-                      : bucket === '21-40'  ? '#C87B6D'
-                      : '#9B6DC8'
+          const color = bucket === '81-100' ? ratingColor(0.9)
+                      : bucket === '61-80'  ? ratingColor(0.7)
+                      : bucket === '41-60'  ? ratingColor(0.5)
+                      : bucket === '21-40'  ? ratingColor(0.3)
+                      : ratingColor(0.1)
           return (
             <div key={bucket} className="flex-1 rounded-t-sm transition-all"
               style={{ height: `${Math.max(4, pct)}%`, background: color, opacity: count === 0 ? 0.15 : 0.8 }}
@@ -96,12 +90,12 @@ export default function ProfileRatingStats({ stats, isOwnProfile, username }: Pr
               <Link key={m.tmdbId} href={`/movie/${m.tmdbId}`}
                 className="flex-shrink-0 group relative">
                 <div className="relative w-10 h-14 rounded-md overflow-hidden border border-ns-border
-                                group-hover:border-ns-gold/40 transition-colors">
+                                group-hover:border-ns-secondary/40 transition-colors">
                   <Image src={tmdbImageUrl(m.posterPath, 'w185')} alt={m.title}
                     fill className="object-cover" sizes="40px" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                   <span className="absolute bottom-0.5 left-0 right-0 text-center font-display text-[9px]"
-                    style={{ color: scoreColorHex(m.score) }}>
+                    style={{ color: ratingColor(m.score / 100) }}>
                     {m.score}
                   </span>
                 </div>

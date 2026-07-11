@@ -23,7 +23,7 @@ const CollectionIcon = ({ size }: { size: number }) => (
   <svg
     width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8"
     viewBox="0 0 24 24"
-    className="text-ns-muted group-hover:text-ns-gold transition-colors flex-shrink-0"
+    className="text-ns-muted group-hover:text-ns-secondary transition-colors flex-shrink-0"
   >
     <rect x="3" y="3" width="7" height="18" rx="1"/>
     <rect x="13" y="3" width="8" height="11" rx="1"/>
@@ -45,7 +45,7 @@ export default function AddToCollectionButton({ movie, compact = false }: Props)
           onClick={() => setOpen(true)}
           title="Add to Collection"
           className="flex items-center justify-center w-7 h-7 rounded-lg border border-ns-border
-                     text-ns-muted hover:border-ns-gold/40 hover:text-ns-gold
+                     text-ns-muted hover:border-ns-secondary/40 hover:text-ns-secondary
                      transition-all duration-200 group flex-shrink-0"
         >
           <CollectionIcon size={13} />
@@ -54,7 +54,7 @@ export default function AddToCollectionButton({ movie, compact = false }: Props)
         <button
           onClick={() => setOpen(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-ns-border
-                     text-ns-muted text-sm font-body hover:border-ns-gold/40 hover:text-ns-gold
+                     text-ns-muted text-sm font-body hover:border-ns-secondary/40 hover:text-ns-secondary
                      transition-all duration-200 group"
         >
           <CollectionIcon size={15} />

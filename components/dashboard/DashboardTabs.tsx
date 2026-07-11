@@ -78,11 +78,11 @@ export default function DashboardTabs({ overview, dnaScores, username }: Props) 
               onClick={() => setActive(key)}
               className={`flex items-center gap-1.5 px-3 py-3 text-sm font-body whitespace-nowrap border-b-2 transition-colors flex-shrink-0
                 ${isActive
-                  ? 'border-ns-gold text-white'
+                  ? 'border-ns-secondary text-white'
                   : 'border-transparent text-ns-muted hover:text-ns-text'
                 }`}
             >
-              <Icon size={16} className={isActive ? 'text-ns-gold' : 'text-current'} />
+              <Icon size={16} className={isActive ? 'text-ns-secondary' : 'text-current'} />
               <span className="hidden sm:inline">{label}</span>
             </button>
           )

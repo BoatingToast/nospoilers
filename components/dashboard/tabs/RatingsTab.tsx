@@ -17,7 +17,7 @@ interface Rating {
 type Sort = 'date' | 'score_desc' | 'score_asc'
 
 function scoreColor(s: number) {
-  if (s >= 85) return 'text-ns-gold'
+  if (s >= 85) return 'text-ns-secondary'
   if (s >= 70) return 'text-emerald-400'
   if (s >= 50) return 'text-blue-400'
   return 'text-ns-muted'
@@ -57,14 +57,14 @@ export default function RatingsTab() {
             onClick={() => setSort(s)}
             className={`px-3 py-1 rounded-full text-xs font-body transition-colors border
               ${sort === s
-                ? 'bg-ns-gold/10 border-ns-gold/40 text-ns-gold'
+                ? 'bg-ns-secondary/10 border-ns-secondary/40 text-ns-secondary'
                 : 'border-ns-border text-ns-muted hover:text-ns-text'}`}
           >
             {label}
           </button>
         ))}
         <div className="flex-1" />
-        <Link href="/ratings" className="text-xs font-body text-ns-muted hover:text-ns-gold transition-colors flex items-center gap-0.5">
+        <Link href="/ratings" className="text-xs font-body text-ns-muted hover:text-ns-secondary transition-colors flex items-center gap-0.5">
           Full page <ArrowRightIcon size={11} className="inline-block" />
         </Link>
       </div>
@@ -77,9 +77,9 @@ export default function RatingsTab() {
         </div>
       ) : ratings.length === 0 ? (
         <div className="py-16 text-center">
-          <RatingsIcon size={40} className="text-ns-gold/40 mx-auto mb-3" />
+          <RatingsIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
           <p className="text-ns-muted font-body text-sm">No ratings yet.</p>
-          <Link href="/discover" className="text-ns-gold text-sm font-body hover:text-amber-400 transition-colors mt-2 inline-flex items-center gap-1">
+          <Link href="/discover" className="text-ns-secondary text-sm font-body hover:text-amber-400 transition-colors mt-2 inline-flex items-center gap-1">
             Discover films to rate <ArrowRightIcon size={13} />
           </Link>
         </div>

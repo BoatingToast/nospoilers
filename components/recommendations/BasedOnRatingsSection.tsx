@@ -14,7 +14,7 @@ function RatingRecCard({ rec }: { rec: RatingRec }) {
 
   const matchColor =
     rec.matchScore >= 85 ? 'text-emerald-400' :
-    rec.matchScore >= 70 ? 'text-ns-gold' :
+    rec.matchScore >= 70 ? 'text-ns-secondary' :
     'text-ns-muted'
 
   return (
@@ -43,7 +43,7 @@ function RatingRecCard({ rec }: { rec: RatingRec }) {
       </div>
 
       {/* Title */}
-      <p className="text-xs font-body text-white line-clamp-2 mb-1 group-hover:text-ns-gold transition-colors">
+      <p className="text-xs font-body text-white line-clamp-2 mb-1 group-hover:text-ns-secondary transition-colors">
         {rec.title}
       </p>
 
@@ -95,7 +95,7 @@ export default function BasedOnRatingsSection() {
       {/* Header */}
       <div className="px-5 py-4 border-b border-ns-border">
         <div className="flex items-center gap-2 mb-0.5">
-          <RatingsIcon size={16} className="text-ns-gold flex-shrink-0" />
+          <RatingsIcon size={16} className="text-ns-secondary flex-shrink-0" />
           <h2 className="text-sm font-heading text-white">Based On Your Ratings</h2>
         </div>
         <p className="text-[11px] font-body text-ns-muted">

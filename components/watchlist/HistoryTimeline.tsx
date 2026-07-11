@@ -13,7 +13,7 @@ export default function HistoryTimeline({ byMonth }: Props) {
       {Object.entries(byMonth).map(([month, movies]) => (
         <section key={month}>
           <div className="flex items-center gap-4 mb-5">
-            <h2 className="font-display text-xl tracking-wider text-ns-gold">{month.toUpperCase()}</h2>
+            <h2 className="font-display text-xl tracking-wider text-ns-secondary">{month.toUpperCase()}</h2>
             <div className="flex-1 h-px bg-ns-border" />
             <span className="text-ns-muted text-xs font-body">{movies.length} film{movies.length !== 1 ? 's' : ''}</span>
           </div>
@@ -31,7 +31,7 @@ export default function HistoryTimeline({ byMonth }: Props) {
                   />
                   {movie.rating && (
                     <div className="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-ns-bg/80 backdrop-blur-sm flex items-center justify-center">
-                      <span className="text-ns-gold text-[9px] font-body font-bold">{movie.rating}</span>
+                      <span className="text-ns-secondary text-[9px] font-body font-bold">{movie.rating}</span>
                     </div>
                   )}
                 </div>

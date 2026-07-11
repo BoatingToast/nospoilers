@@ -33,7 +33,7 @@ export default function CollectionCard({ collection, isOwner }: Props) {
 
         {/* Movie count badge */}
         <div className="absolute bottom-3 left-3">
-          <span className="text-ns-gold text-xs font-body font-medium">
+          <span className="text-ns-secondary text-xs font-body font-medium">
             {collection.movieCount} film{collection.movieCount !== 1 ? 's' : ''}
           </span>
         </div>
@@ -48,7 +48,7 @@ export default function CollectionCard({ collection, isOwner }: Props) {
       </div>
 
       {/* Info */}
-      <h3 className="text-ns-text text-sm font-body font-medium truncate group-hover:text-ns-gold transition-colors">
+      <h3 className="text-ns-text text-sm font-body font-medium truncate group-hover:text-ns-secondary transition-colors">
         {collection.title}
       </h3>
       <p className="text-ns-muted text-xs font-body mt-0.5">

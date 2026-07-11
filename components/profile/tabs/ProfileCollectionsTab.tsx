@@ -55,7 +55,7 @@ export default function ProfileCollectionsTab({ username }: { username: string }
   if (collections.length === 0) {
     return (
       <div className="py-20 text-center">
-        <CollectionsIcon size={40} className="text-ns-gold/40 mx-auto mb-3" />
+        <CollectionsIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
         <p className="text-ns-muted font-body text-sm">No public collections yet.</p>
       </div>
     )
@@ -64,7 +64,7 @@ export default function ProfileCollectionsTab({ username }: { username: string }
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {collections.map(c => (
-        <Link key={c.id} href={`/collections/${c.id}`} className="group bg-ns-surface border border-ns-border rounded-2xl p-4 hover:border-ns-gold/40 transition-colors">
+        <Link key={c.id} href={`/collections/${c.id}`} className="group bg-ns-surface border border-ns-border rounded-2xl p-4 hover:border-ns-secondary/40 transition-colors">
           <div className="flex items-start gap-3">
             {/* Preview posters strip */}
             <div className="flex -space-x-3 flex-shrink-0">
@@ -83,14 +83,14 @@ export default function ProfileCollectionsTab({ username }: { username: string }
               ))}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-body text-white group-hover:text-ns-gold transition-colors line-clamp-1">{c.title}</p>
+              <p className="text-sm font-body text-white group-hover:text-ns-secondary transition-colors line-clamp-1">{c.title}</p>
               {c.description && (
                 <p className="text-xs font-body text-ns-muted line-clamp-2 mt-0.5">{c.description}</p>
               )}
               <div className="flex items-center gap-3 mt-2">
                 <span className="text-[10px] font-body text-ns-muted">{c.movieCount} films</span>
                 {c.upvotes > 0 && (
-                  <span className="text-[10px] font-body text-ns-gold">▲ {c.upvotes}</span>
+                  <span className="text-[10px] font-body text-ns-secondary">▲ {c.upvotes}</span>
                 )}
               </div>
             </div>

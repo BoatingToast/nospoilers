@@ -2,6 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * ─── Design tokens ──────────────────────────────────────────────────────────
+ * Single source of truth for every color in the app. Stored as space-separated
+ * "R G B" triplets so Tailwind's `rgb(var(--x) / <alpha-value>)` pattern can
+ * apply opacity modifiers (e.g. `bg-ns-secondary/20`) to any token.
+ *
+ * Rebranding the whole app = changing --ns-primary and --ns-secondary here.
+ * Nothing else should ever hold a literal hex/rgb color — see tailwind.config.ts
+ * for how these are exposed as `ns-*` utility classes.
+ */
+:root {
+  /* Structure — cinematic navy canvas, derived from the brand primary */
+  --ns-bg:          5 8 20;      /* page canvas */
+  --ns-surface:     11 15 36;    /* card / panel surface */
+  --ns-surface-2:   16 21 46;    /* elevated surface (modals, popovers) */
+  --ns-border:      27 34 66;    /* hairline borders */
+
+  /* Brand */
+  --ns-primary:            15 27 66;     /* #0F1B42 — structural surfaces: nav, headers, hero panels */
+  --ns-primary-foreground: 237 233 225;  /* text/icons on primary-filled surfaces */
+
+  --ns-secondary:            104 13 209;   /* #680DD1 — highlights, interactive elements, CTAs */
+  --ns-secondary-dim:        70 9 141;     /* muted/disabled accent state */
+  --ns-secondary-foreground: 255 255 255;  /* text/icons on secondary-filled surfaces */
+
+  /* Typography */
+  --ns-text:  237 233 225;  /* primary copy */
+  --ns-muted: 148 152 189;  /* secondary copy — tuned for WCAG AA on --ns-bg */
+
+  /* Status */
+  --ns-success: 52 211 153;
+  --ns-danger:  248 113 113;
+  --ns-warning: 251 191 36;
+  --ns-info:    96 165 250;
+
+  /* Achievement / rarity tier (kept distinct from --ns-secondary so the
+     brand accent and the "epic" rarity don't collide visually) */
+  --ns-tier-epic: 45 212 191;
+
+  /* Categorical / chart palette — used where several distinct series need
+     stable, unrelated hues (personality types, DNA charts, etc.) */
+  --ns-chart-1: 124 58 237;   /* violet   */
+  --ns-chart-2: 220 38 38;    /* red      */
+  --ns-chart-3: 5 150 105;    /* emerald  */
+  --ns-chart-4: 217 119 6;    /* amber    */
+  --ns-chart-5: 234 88 12;    /* orange   */
+  --ns-chart-6: 71 85 105;    /* slate    */
+  --ns-chart-7: 2 132 199;    /* sky      */
+}
+
 @layer base {
   *, *::before, *::after {
     box-sizing: border-box;
@@ -14,13 +64,13 @@
   }
 
   body {
-    background-color: #07070F;
-    color: #EDE9E1;
+    background-color: rgb(var(--ns-bg));
+    color: rgb(var(--ns-text));
   }
 
   ::selection {
-    background-color: rgba(200, 150, 62, 0.3);
-    color: #EDE9E1;
+    background-color: rgb(var(--ns-secondary) / 0.3);
+    color: rgb(var(--ns-text));
   }
 }
 

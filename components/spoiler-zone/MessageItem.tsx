@@ -35,7 +35,7 @@ function renderContent(content: string, currentUser?: string) {
       const username = part.slice(1)
       return (
         <Link key={i} href={`/profile/${username}`}
-          className="text-ns-gold hover:text-amber-400 transition-colors font-medium">
+          className="text-ns-secondary hover:text-amber-400 transition-colors font-medium">
           {part}
         </Link>
       )
@@ -58,8 +58,8 @@ function ReactionPill({
       onClick={() => onToggle(reaction.emoji)}
       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-body transition-all
         ${reaction.userReacted
-          ? 'bg-ns-gold/15 border border-ns-gold/40 text-ns-gold'
-          : 'bg-ns-surface border border-ns-border text-ns-muted hover:border-ns-gold/30 hover:text-ns-text'
+          ? 'bg-ns-secondary/15 border border-ns-secondary/40 text-ns-secondary'
+          : 'bg-ns-surface border border-ns-border text-ns-muted hover:border-ns-secondary/30 hover:text-ns-text'
         }`}
     >
       <span>{reaction.emoji}</span>
@@ -96,7 +96,7 @@ function ReactionRow({
           onClick={() => setExpanded(true)}
           className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-body
                      bg-ns-surface border border-ns-border text-ns-muted/70
-                     hover:border-ns-gold/30 hover:text-ns-text transition-all"
+                     hover:border-ns-secondary/30 hover:text-ns-text transition-all"
         >
           +{overflow}
         </button>
@@ -106,7 +106,7 @@ function ReactionRow({
           onClick={() => setExpanded(false)}
           className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-body
                      bg-ns-surface border border-ns-border text-ns-muted/50
-                     hover:border-ns-gold/20 hover:text-ns-muted transition-all"
+                     hover:border-ns-secondary/20 hover:text-ns-muted transition-all"
         >
           less
         </button>
@@ -155,7 +155,7 @@ function VoteButtons({
       <button
         onClick={() => onVote('upvote')}
         className={`w-6 h-6 flex items-center justify-center rounded transition-colors
-          ${userVote === 'upvote' ? 'text-ns-gold' : 'text-ns-muted/40 hover:text-ns-gold'}`}
+          ${userVote === 'upvote' ? 'text-ns-secondary' : 'text-ns-muted/40 hover:text-ns-secondary'}`}
         title="Upvote"
       >
         <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24">
@@ -163,7 +163,7 @@ function VoteButtons({
         </svg>
       </button>
       <span className={`text-[10px] font-body font-medium min-w-[18px] text-center
-        ${score > 0 ? 'text-ns-gold' : score < 0 ? 'text-red-400/80' : 'text-ns-muted/40'}`}>
+        ${score > 0 ? 'text-ns-secondary' : score < 0 ? 'text-red-400/80' : 'text-ns-muted/40'}`}>
         {score > 0 ? `+${score}` : score}
       </span>
       <button
@@ -232,8 +232,8 @@ export default function MessageItem({
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => { setShowActions(false); setShowEmoji(false) }}
       className={`group relative flex items-start gap-3 px-4 py-2.5 transition-colors
-        ${isHighlighted ? 'bg-ns-gold/5 ring-1 ring-ns-gold/20 rounded-xl' : 'hover:bg-ns-surface/40'}
-        ${isFriend ? 'border-l-2 border-ns-gold/30 pl-3' : ''}
+        ${isHighlighted ? 'bg-ns-secondary/5 ring-1 ring-ns-secondary/20 rounded-xl' : 'hover:bg-ns-surface/40'}
+        ${isFriend ? 'border-l-2 border-ns-secondary/30 pl-3' : ''}
       `}
     >
       {/* Avatar */}
@@ -246,7 +246,7 @@ export default function MessageItem({
 
         {/* Friend badge */}
         {isFriend && (
-          <span className="inline-flex items-center gap-1 text-[9px] font-body text-ns-gold/70 mb-0.5">
+          <span className="inline-flex items-center gap-1 text-[9px] font-body text-ns-secondary/70 mb-0.5">
             <svg width="8" height="8" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
             </svg>
@@ -265,7 +265,7 @@ export default function MessageItem({
         {/* Header row */}
         <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
           <Link href={`/profile/${message.username}`}
-            className="text-sm font-body font-semibold text-ns-text hover:text-ns-gold transition-colors">
+            className="text-sm font-body font-semibold text-ns-text hover:text-ns-secondary transition-colors">
             @{message.username}
           </Link>
           <span className="text-[10px] font-body text-ns-muted/50" title={fullTime(message.createdAt)}>
@@ -275,7 +275,7 @@ export default function MessageItem({
             <span className="text-[10px] font-body text-ns-muted/40 italic">edited</span>
           )}
           {message.isPinned && (
-            <span className="inline-flex items-center gap-1 text-[9px] font-body text-ns-gold/60 tracking-wide">
+            <span className="inline-flex items-center gap-1 text-[9px] font-body text-ns-secondary/60 tracking-wide">
               <PinIcon size={9} strokeWidth={1.75} />
               {message.pinnedLabel ?? 'Pinned'}
             </span>
@@ -286,7 +286,7 @@ export default function MessageItem({
         {message.parentPreview && (
           <div className="flex items-start gap-2 mb-1.5 pl-2 border-l-2 border-ns-border">
             <p className="text-xs font-body text-ns-muted/60 leading-snug line-clamp-2">
-              <span className="text-ns-gold/70 font-medium">@{message.parentPreview.username}</span>
+              <span className="text-ns-secondary/70 font-medium">@{message.parentPreview.username}</span>
               {': '}
               {message.parentPreview.content}
             </p>
@@ -321,7 +321,7 @@ export default function MessageItem({
           <div className="relative">
             <button
               onClick={() => setShowEmoji(v => !v)}
-              className="w-7 h-7 flex items-center justify-center rounded text-ns-muted/60 hover:text-ns-gold transition-colors"
+              className="w-7 h-7 flex items-center justify-center rounded text-ns-muted/60 hover:text-ns-secondary transition-colors"
               title="React"
             >
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -340,7 +340,7 @@ export default function MessageItem({
           {/* Reply */}
           <button
             onClick={() => onReply(message)}
-            className="w-7 h-7 flex items-center justify-center rounded text-ns-muted/60 hover:text-ns-gold transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded text-ns-muted/60 hover:text-ns-secondary transition-colors"
             title="Reply"
           >
             <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

@@ -81,7 +81,7 @@ export default function CollectionSearchBar({
             placeholder={placeholder}
             className="w-full bg-ns-surface border border-ns-border rounded-2xl pl-10 pr-14 py-3.5
                        text-ns-text font-body text-sm placeholder:text-ns-muted/50
-                       focus:outline-none focus:border-ns-gold/40 transition-colors"
+                       focus:outline-none focus:border-ns-secondary/40 transition-colors"
           />
           {query && (
             <button
@@ -95,8 +95,8 @@ export default function CollectionSearchBar({
             </button>
           )}
           <button type="submit"
-            className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-ns-gold text-ns-bg
-                       rounded-lg text-xs font-body font-medium hover:bg-ns-gold/90 transition-colors">
+            className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-ns-secondary text-ns-bg
+                       rounded-lg text-xs font-body font-medium hover:bg-ns-secondary/90 transition-colors">
             Go
           </button>
         </div>
@@ -113,7 +113,7 @@ export default function CollectionSearchBar({
               onClick={() => setShowDropdown(false)}
               className={`flex items-center gap-3 px-4 py-3 transition-colors
                 ${i === activeIdx
-                  ? 'bg-ns-gold/10 text-ns-gold'
+                  ? 'bg-ns-secondary/10 text-ns-secondary'
                   : 'text-ns-muted hover:bg-ns-surface/80 hover:text-ns-text'
                 } ${i > 0 ? 'border-t border-ns-border/50' : ''}`}
             >

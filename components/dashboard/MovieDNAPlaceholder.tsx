@@ -10,8 +10,8 @@ export default function MovieDNAPlaceholder() {
     <div>
       <div className="flex items-center gap-3 mb-6">
         <h2 className="font-display text-2xl tracking-wider text-ns-text">MOVIE DNA</h2>
-        <span className="px-2 py-0.5 rounded-full bg-ns-gold/10 border border-ns-gold/20
-                         text-ns-gold text-xs font-body tracking-wider uppercase">
+        <span className="px-2 py-0.5 rounded-full bg-ns-secondary/10 border border-ns-secondary/20
+                         text-ns-secondary text-xs font-body tracking-wider uppercase">
           Coming Soon
         </span>
       </div>
@@ -26,7 +26,7 @@ export default function MovieDNAPlaceholder() {
               {trait.label}
             </p>
             <div className="h-2 bg-ns-border rounded-full overflow-hidden">
-              <div className="h-full w-0 bg-ns-gold/30 rounded-full" />
+              <div className="h-full w-0 bg-ns-secondary/30 rounded-full" />
             </div>
             <p className="text-ns-muted/50 text-xs font-body mt-2">{trait.value}</p>
           </div>

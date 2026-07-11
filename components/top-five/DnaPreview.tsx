@@ -45,7 +45,7 @@ export default function DnaPreview({ current, predicted, deltas, loading }: Prop
     <div className="rounded-2xl bg-ns-surface border border-ns-border overflow-hidden">
       {/* Header */}
       <div className="px-4 py-3 border-b border-ns-border flex items-center gap-2">
-        <MovieDnaIcon size={16} className="text-ns-gold flex-shrink-0" />
+        <MovieDnaIcon size={16} className="text-ns-secondary flex-shrink-0" />
         <h3 className="font-heading font-semibold text-white text-sm">DNA Preview</h3>
         {loading && (
           <span className="ml-auto text-xs font-body text-ns-muted animate-pulse">Calculating…</span>
@@ -70,7 +70,7 @@ export default function DnaPreview({ current, predicted, deltas, loading }: Prop
           return (
             <div key={dim}>
               <div className="flex items-center gap-2 mb-1.5">
-                <Icon size={14} className="text-ns-gold/70 flex-shrink-0" />
+                <Icon size={14} className="text-ns-secondary/70 flex-shrink-0" />
                 <span className="text-xs font-heading font-medium text-white flex-1">{label}</span>
                 {/* Current value */}
                 <span className="text-xs font-body text-ns-muted w-7 text-right">{fmt(cur)}</span>
@@ -97,14 +97,14 @@ export default function DnaPreview({ current, predicted, deltas, loading }: Prop
               <div className="h-1 bg-ns-border rounded-full overflow-visible relative">
                 {/* Current */}
                 <div
-                  className="absolute h-full rounded-full bg-ns-gold/40 transition-all duration-300"
+                  className="absolute h-full rounded-full bg-ns-secondary/40 transition-all duration-300"
                   style={{ width: `${pct}%` }}
                 />
                 {/* Predicted overlay */}
                 {!loading && hasChange && (
                   <div
                     className={`absolute h-full rounded-full transition-all duration-500 ${
-                      isUp ? 'bg-emerald-400/60' : isDown ? 'bg-rose-400/60' : 'bg-ns-gold/40'
+                      isUp ? 'bg-emerald-400/60' : isDown ? 'bg-rose-400/60' : 'bg-ns-secondary/40'
                     }`}
                     style={{ width: `${predPct}%` }}
                   />

@@ -57,15 +57,15 @@ export default function StepGenres({ selected, setSelected, onNext, onBack }: St
               className={`relative flex flex-col items-center justify-center gap-2 p-5 rounded-2xl
                          border transition-all duration-200 cursor-pointer select-none
                          ${active
-                           ? 'bg-ns-gold/10 border-ns-gold text-ns-gold shadow-[0_0_20px_rgba(200,150,62,0.1)]'
+                           ? 'bg-ns-secondary/10 border-ns-secondary text-ns-secondary shadow-[0_0_20px_rgb(var(--ns-secondary)/0.1)]'
                            : 'bg-ns-surface border-ns-border text-ns-muted hover:border-ns-muted/40 hover:text-ns-text'
                          }`}
             >
               <genre.Icon size={24} />
               <span className="text-sm font-body font-medium">{genre.label}</span>
               {active && (
-                <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-ns-gold flex items-center justify-center">
-                  <svg width="8" height="8" fill="none" stroke="#07070F" strokeWidth="3" viewBox="0 0 24 24">
+                <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-ns-secondary flex items-center justify-center">
+                  <svg width="8" height="8" fill="none" stroke="rgb(var(--ns-bg))" strokeWidth="3" viewBox="0 0 24 24">
                     <path d="M20 6L9 17l-5-5"/>
                   </svg>
                 </div>

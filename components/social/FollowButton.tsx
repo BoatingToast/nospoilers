@@ -23,7 +23,7 @@ function Toast({ message, type }: { message: string; type: 'error' | 'success' }
                   text-sm font-body shadow-2xl pointer-events-none
                   ${type === 'error'
                     ? 'bg-red-900/90 border border-red-500/40 text-red-200'
-                    : 'bg-ns-surface border border-ns-gold/40 text-ns-gold'
+                    : 'bg-ns-surface border border-ns-secondary/40 text-ns-secondary'
                   }`}
       style={{ animation: 'szFadeIn 0.2s ease-out' }}
     >
@@ -146,7 +146,7 @@ export default function FollowButton({
         href="/login"
         className={`font-body font-semibold border transition-all duration-200
           ${size === 'sm' ? 'px-3 py-1.5 text-xs rounded-lg' : 'px-4 py-2 text-sm rounded-xl'}
-          bg-ns-gold/10 text-ns-gold border-ns-gold/40 hover:bg-ns-gold hover:text-black hover:border-ns-gold`}
+          bg-ns-secondary/10 text-ns-secondary border-ns-secondary/40 hover:bg-ns-secondary hover:text-black hover:border-ns-secondary`}
       >
         + Follow
       </Link>
@@ -168,7 +168,7 @@ export default function FollowButton({
 
   const friendBadge = isFriend && (
     <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-body
-                     bg-ns-gold/10 border border-ns-gold/30 text-ns-gold">
+                     bg-ns-secondary/10 border border-ns-secondary/30 text-ns-secondary">
       <FriendsStarIcon />
       Friends
     </span>
@@ -206,8 +206,8 @@ export default function FollowButton({
             disabled={loading}
             className={`${cls} font-body font-semibold border transition-all duration-200 disabled:opacity-40
               ${justFollow
-                ? 'bg-ns-gold text-black border-ns-gold scale-105 shadow-lg shadow-ns-gold/25'
-                : 'bg-ns-gold/10 text-ns-gold border-ns-gold/40 hover:bg-ns-gold hover:text-black hover:border-ns-gold hover:shadow-md hover:shadow-ns-gold/20 active:scale-[0.97]'
+                ? 'bg-ns-secondary text-black border-ns-secondary scale-105 shadow-lg shadow-ns-secondary/25'
+                : 'bg-ns-secondary/10 text-ns-secondary border-ns-secondary/40 hover:bg-ns-secondary hover:text-black hover:border-ns-secondary hover:shadow-md hover:shadow-ns-secondary/20 active:scale-[0.97]'
               }`}
           >
             {loading ? (

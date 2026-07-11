@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
+type Variant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger' | 'success'
 type Size    = 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -12,10 +12,12 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  primary:   'bg-ns-gold text-ns-bg font-semibold hover:bg-amber-400 active:scale-[0.98]',
-  secondary: 'bg-ns-surface-2 text-ns-text border border-ns-border hover:border-ns-gold/50 hover:bg-ns-surface',
+  primary:   'bg-ns-secondary text-ns-secondary-foreground font-semibold hover:bg-ns-secondary/90 active:scale-[0.98]',
+  secondary: 'bg-ns-surface-2 text-ns-text border border-ns-border hover:border-ns-secondary/50 hover:bg-ns-surface',
   ghost:     'text-ns-muted hover:text-ns-text hover:bg-ns-surface',
-  danger:    'bg-red-600/10 text-red-400 border border-red-600/20 hover:bg-red-600/20',
+  outline:   'bg-transparent text-ns-text border border-ns-border hover:border-ns-secondary/50 hover:text-ns-secondary',
+  danger:    'bg-ns-danger/10 text-ns-danger border border-ns-danger/20 hover:bg-ns-danger/20',
+  success:   'bg-ns-success/10 text-ns-success border border-ns-success/20 hover:bg-ns-success/20',
 }
 
 const sizeClasses: Record<Size, string> = {

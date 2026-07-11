@@ -26,7 +26,7 @@ export default function WelcomeSection({ user }: WelcomeSectionProps) {
       </h1>
       <div className="flex flex-wrap gap-6 text-sm font-body text-ns-muted">
         <span className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-ns-gold" />
+          <span className="w-1.5 h-1.5 rounded-full bg-ns-secondary" />
           {user.email}
         </span>
         <span className="flex items-center gap-2">

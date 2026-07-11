@@ -12,7 +12,7 @@ import type { NotificationItem } from '@/services/notifications'
 // ── Icon resolver ─────────────────────────────────────────────────────────────
 
 function NotifIcon({ icon, unread }: { icon: string; unread: boolean }) {
-  const cls = `flex-shrink-0 ${unread ? 'text-ns-gold' : 'text-ns-muted/50'}`
+  const cls = `flex-shrink-0 ${unread ? 'text-ns-secondary' : 'text-ns-muted/50'}`
   const size = 16
   switch (icon) {
     case 'person':      return <PersonIcon      size={size} className={cls} />
@@ -83,12 +83,12 @@ function NotifRow({
       className={`flex items-start gap-3 px-4 py-3.5 transition-colors group relative
         ${n.read
           ? 'hover:bg-ns-bg/30'
-          : 'bg-ns-gold/[0.04] hover:bg-ns-gold/[0.07] border-l-2 border-ns-gold/40'
+          : 'bg-ns-secondary/[0.04] hover:bg-ns-secondary/[0.07] border-l-2 border-ns-secondary/40'
         }`}
     >
       {/* Icon */}
       <div className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0
-        ${n.read ? 'bg-ns-bg/50' : 'bg-ns-gold/10'}`}>
+        ${n.read ? 'bg-ns-bg/50' : 'bg-ns-secondary/10'}`}>
         <NotifIcon icon={n.icon} unread={!n.read} />
       </div>
 
@@ -109,7 +109,7 @@ function NotifRow({
 
       {/* Unread dot */}
       {!n.read && (
-        <span className="w-2 h-2 rounded-full bg-ns-gold mt-1.5 flex-shrink-0 shadow-sm shadow-ns-gold/50" />
+        <span className="w-2 h-2 rounded-full bg-ns-secondary mt-1.5 flex-shrink-0 shadow-sm shadow-ns-secondary/50" />
       )}
     </Link>
   )
@@ -241,15 +241,15 @@ export default function NotificationBell() {
         aria-label={`Notifications${unread > 0 ? ` — ${unread} unread` : ''}`}
         className={`relative p-2 rounded-xl transition-all duration-200
           ${open
-            ? 'text-ns-gold bg-ns-gold/10 shadow-[0_0_12px_rgba(212,175,55,0.15)]'
+            ? 'text-ns-secondary bg-ns-secondary/10 shadow-[0_0_12px_rgb(var(--ns-secondary)/0.15)]'
             : 'text-ns-muted hover:text-ns-text hover:bg-ns-bg/50'
           }`}
       >
         <BellSvg ringing={ringing} />
         {unread > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1
-                           rounded-full bg-ns-gold text-black text-[9px] font-body font-bold
-                           flex items-center justify-center shadow-md shadow-ns-gold/30
+                           rounded-full bg-ns-secondary text-black text-[9px] font-body font-bold
+                           flex items-center justify-center shadow-md shadow-ns-secondary/30
                            animate-pulse">
             {unread > 99 ? '99+' : unread}
           </span>
@@ -266,7 +266,7 @@ export default function NotificationBell() {
           {/* Panel header */}
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-ns-border flex-shrink-0">
             <div className="flex items-center gap-2">
-              <NotificationsIcon size={15} className="text-ns-gold/70" />
+              <NotificationsIcon size={15} className="text-ns-secondary/70" />
               <span className="text-xs font-body font-semibold text-ns-text tracking-wide uppercase">
                 Notifications
               </span>
@@ -279,7 +279,7 @@ export default function NotificationBell() {
             <Link
               href="/settings/notifications"
               onClick={() => setOpen(false)}
-              className="text-[10px] font-body text-ns-muted/50 hover:text-ns-gold transition-colors"
+              className="text-[10px] font-body text-ns-muted/50 hover:text-ns-secondary transition-colors"
             >
               Settings
             </Link>
@@ -325,7 +325,7 @@ export default function NotificationBell() {
               <Link
                 href="/notifications"
                 onClick={() => setOpen(false)}
-                className="text-xs font-body text-ns-muted/50 hover:text-ns-gold transition-colors"
+                className="text-xs font-body text-ns-muted/50 hover:text-ns-secondary transition-colors"
               >
                 View all notifications →
               </Link>

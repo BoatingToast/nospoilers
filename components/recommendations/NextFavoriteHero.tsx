@@ -41,9 +41,9 @@ export default function NextFavoriteHero({ rec, onFeedback }: Props) {
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-3xl border border-ns-gold/40 bg-ns-surface">
+      <div className="relative overflow-hidden rounded-3xl border border-ns-secondary/40 bg-ns-surface">
         {/* Glow */}
-        <div className="absolute inset-0 bg-gradient-to-br from-ns-gold/10 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-ns-secondary/10 via-transparent to-transparent pointer-events-none" />
 
         <div className="flex flex-col sm:flex-row gap-0">
           {/* Poster */}
@@ -72,11 +72,11 @@ export default function NextFavoriteHero({ rec, onFeedback }: Props) {
             {/* Header */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-body text-ns-gold uppercase tracking-widest flex items-center gap-1.5">
+                <span className="text-xs font-body text-ns-secondary uppercase tracking-widest flex items-center gap-1.5">
                   <RecsIcon size={12} /> Your Next Favorite
                 </span>
-                <div className="flex-1 h-px bg-ns-gold/20" />
-                <span className="text-xs font-mono font-bold text-ns-gold bg-ns-gold/10 px-2 py-0.5 rounded-full border border-ns-gold/30">
+                <div className="flex-1 h-px bg-ns-secondary/20" />
+                <span className="text-xs font-mono font-bold text-ns-secondary bg-ns-secondary/10 px-2 py-0.5 rounded-full border border-ns-secondary/30">
                   {rec.matchScore}% match
                 </span>
               </div>
@@ -113,7 +113,7 @@ export default function NextFavoriteHero({ rec, onFeedback }: Props) {
             {/* Actions */}
             <div className="space-y-3">
               {sent ? (
-                <p className="text-sm font-body text-ns-gold flex items-center gap-1.5">
+                <p className="text-sm font-body text-ns-secondary flex items-center gap-1.5">
                   <CheckIcon size={14} /> Thanks for your feedback!
                 </p>
               ) : (
@@ -133,7 +133,7 @@ export default function NextFavoriteHero({ rec, onFeedback }: Props) {
 
               <button
                 onClick={() => setShowWhy(true)}
-                className="text-xs font-body text-ns-gold hover:text-amber-400 transition-colors underline underline-offset-2 flex items-center gap-1"
+                className="text-xs font-body text-ns-secondary hover:text-amber-400 transition-colors underline underline-offset-2 flex items-center gap-1"
               >
                 Why this recommendation? <ArrowRightIcon size={11} />
               </button>

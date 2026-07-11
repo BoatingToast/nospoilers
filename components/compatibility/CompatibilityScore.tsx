@@ -9,10 +9,10 @@ interface Props {
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 80) return '#22C55E'  // green
-  if (score >= 60) return '#C8963E'  // gold
-  if (score >= 40) return '#F59E0B'  // amber
-  return '#EF4444'                    // red
+  if (score >= 80) return 'rgb(var(--ns-success))'
+  if (score >= 60) return 'rgb(var(--ns-secondary))'
+  if (score >= 40) return 'rgb(var(--ns-warning))'
+  return 'rgb(var(--ns-danger))'
 }
 
 function getScoreLabel(score: number): string {
@@ -58,7 +58,7 @@ export default function CompatibilityScore({ score, insight, reasons }: Props) {
           <svg width="192" height="192" viewBox="0 0 192 192" className="-rotate-90 absolute inset-0">
             <circle
               cx="96" cy="96" r={radius}
-              fill="none" stroke="#1C1C2E" strokeWidth="8"
+              fill="none" stroke="rgb(var(--ns-border))" strokeWidth="8"
             />
             <circle
               cx="96" cy="96" r={radius}

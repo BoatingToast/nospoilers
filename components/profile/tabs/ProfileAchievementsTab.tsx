@@ -41,7 +41,7 @@ export default function ProfileAchievementsTab({ username }: { username: string 
   if (achievements.length === 0) {
     return (
       <div className="py-20 text-center">
-        <AchievementsIcon size={40} className="text-ns-gold/40 mx-auto mb-3" />
+        <AchievementsIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
         <p className="text-ns-muted font-body text-sm">No achievements yet.</p>
       </div>
     )
@@ -58,23 +58,23 @@ export default function ProfileAchievementsTab({ username }: { username: string 
         onClick={() => setSelected(item)}
         className={`text-left p-4 rounded-2xl border transition-all
           ${item.earned
-            ? 'bg-ns-gold/5 border-ns-gold/30 hover:border-ns-gold/60'
+            ? 'bg-ns-secondary/5 border-ns-secondary/30 hover:border-ns-secondary/60'
             : 'bg-ns-surface border-ns-border hover:border-ns-muted/40'
           }`}
       >
-        <AchIco size={22} className={`mb-2 ${item.earned ? 'text-ns-gold' : 'text-ns-muted/40'}`} />
+        <AchIco size={22} className={`mb-2 ${item.earned ? 'text-ns-secondary' : 'text-ns-muted/40'}`} />
         <p className={`text-xs font-body font-medium mb-1 ${item.earned ? 'text-white' : 'text-ns-muted'}`}>
           {def.name}
         </p>
         {item.earned ? (
-          <p className="text-[10px] font-body text-ns-gold flex items-center gap-0.5">
+          <p className="text-[10px] font-body text-ns-secondary flex items-center gap-0.5">
             <CheckIcon size={10} /> Earned
           </p>
         ) : (
           <div>
             <div className="h-1 bg-ns-border rounded-full overflow-hidden mt-1">
               <div
-                className="h-full bg-ns-gold/40 rounded-full"
+                className="h-full bg-ns-secondary/40 rounded-full"
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -122,11 +122,11 @@ export default function ProfileAchievementsTab({ username }: { username: string 
               className="bg-ns-surface border border-ns-border rounded-3xl p-8 max-w-sm w-full text-center"
               onClick={e => e.stopPropagation()}
             >
-              {(() => { const Icon = getAchievementIcon(selected.slug); return <Icon size={44} className="text-ns-gold mx-auto mb-4" /> })()}
+              {(() => { const Icon = getAchievementIcon(selected.slug); return <Icon size={44} className="text-ns-secondary mx-auto mb-4" /> })()}
               <h3 className="font-heading text-white text-xl mb-2">{def.name}</h3>
               <p className="text-ns-muted text-sm font-body mb-4">{def.description}</p>
               {selected.earned ? (
-                <p className="text-ns-gold text-sm font-body flex items-center justify-center gap-1">
+                <p className="text-ns-secondary text-sm font-body flex items-center justify-center gap-1">
                   <CheckIcon size={13} /> Earned {selected.earnedAt
                     ? new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(selected.earnedAt))
                     : ''}
@@ -135,7 +135,7 @@ export default function ProfileAchievementsTab({ username }: { username: string 
                 <div>
                   <div className="h-2 bg-ns-border rounded-full overflow-hidden mb-2">
                     <div
-                      className="h-full bg-ns-gold/60 rounded-full"
+                      className="h-full bg-ns-secondary/60 rounded-full"
                       style={{ width: `${Math.min(100, (selected.progress / selected.goal) * 100)}%` }}
                     />
                   </div>

@@ -40,7 +40,7 @@ export default function FriendRecs() {
       {/* Header */}
       <div className="px-5 py-4 border-b border-ns-border">
         <div className="flex items-center gap-2 mb-0.5">
-          <FriendsIcon size={16} className="text-ns-gold flex-shrink-0" />
+          <FriendsIcon size={16} className="text-ns-secondary flex-shrink-0" />
           <h2 className="text-sm font-heading text-white">Because Your Friends Loved It</h2>
         </div>
         <p className="text-[11px] font-body text-ns-muted">
@@ -72,12 +72,12 @@ export default function FriendRecs() {
                 )}
                 {/* Match badge */}
                 <div className="absolute top-2 right-2 bg-black/70 rounded-full px-1.5 py-0.5">
-                  <span className="text-[10px] font-body font-medium text-ns-gold">{rec.matchScore}%</span>
+                  <span className="text-[10px] font-body font-medium text-ns-secondary">{rec.matchScore}%</span>
                 </div>
               </div>
 
               {/* Title */}
-              <p className="text-xs font-body text-white line-clamp-1 group-hover:text-ns-gold transition-colors mb-1">
+              <p className="text-xs font-body text-white line-clamp-1 group-hover:text-ns-secondary transition-colors mb-1">
                 {rec.title}
               </p>
 
@@ -86,7 +86,7 @@ export default function FriendRecs() {
                 {rec.friendRatings.slice(0, 2).map(fr => (
                   <p key={fr.username} className="text-[10px] font-body text-ns-muted">
                     <span className="text-white/60">@{fr.username}</span>
-                    {' '}<span className="text-ns-gold">{fr.score}</span>
+                    {' '}<span className="text-ns-secondary">{fr.score}</span>
                   </p>
                 ))}
               </div>

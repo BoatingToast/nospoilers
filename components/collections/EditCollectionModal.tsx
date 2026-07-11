@@ -278,11 +278,11 @@ export default function EditCollectionModal({
               key={t}
               onClick={() => setTab(t)}
               className={`px-6 py-3 text-xs font-body tracking-widest uppercase transition-colors relative
-                ${tab === t ? 'text-ns-gold' : 'text-ns-muted hover:text-ns-text'}`}
+                ${tab === t ? 'text-ns-secondary' : 'text-ns-muted hover:text-ns-text'}`}
             >
               {t === 'details' ? 'Details' : t === 'movies' ? `Movies (${movies.length})` : 'Add Movies'}
               {tab === t && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-ns-gold" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-ns-secondary" />
               )}
             </button>
           ))}
@@ -304,7 +304,7 @@ export default function EditCollectionModal({
                   maxLength={100}
                   className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-3
                              text-ns-text font-body text-sm placeholder:text-ns-muted/40
-                             focus:outline-none focus:border-ns-gold/60 transition-colors"
+                             focus:outline-none focus:border-ns-secondary/60 transition-colors"
                 />
               </div>
 
@@ -319,7 +319,7 @@ export default function EditCollectionModal({
                   maxLength={500}
                   className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-3
                              text-ns-text font-body text-sm placeholder:text-ns-muted/40
-                             focus:outline-none focus:border-ns-gold/60 transition-colors resize-none"
+                             focus:outline-none focus:border-ns-secondary/60 transition-colors resize-none"
                   placeholder="What's this collection about?"
                 />
                 <p className="text-ns-muted/40 text-xs font-body text-right mt-1">
@@ -336,7 +336,7 @@ export default function EditCollectionModal({
                     onClick={() => setIsPublic(true)}
                     className={`flex-1 py-2.5 rounded-xl border text-sm font-body transition-colors
                       ${isPublic
-                        ? 'border-ns-gold text-ns-gold bg-ns-gold/10'
+                        ? 'border-ns-secondary text-ns-secondary bg-ns-secondary/10'
                         : 'border-ns-border text-ns-muted hover:border-ns-muted/40'}`}
                   >
                     🌍 Public
@@ -345,7 +345,7 @@ export default function EditCollectionModal({
                     onClick={() => setIsPublic(false)}
                     className={`flex-1 py-2.5 rounded-xl border text-sm font-body transition-colors
                       ${!isPublic
-                        ? 'border-ns-gold text-ns-gold bg-ns-gold/10'
+                        ? 'border-ns-secondary text-ns-secondary bg-ns-secondary/10'
                         : 'border-ns-border text-ns-muted hover:border-ns-muted/40'}`}
                   >
                     🔒 Private
@@ -360,7 +360,7 @@ export default function EditCollectionModal({
               <button
                 onClick={saveDetails}
                 disabled={saving}
-                className="w-full py-3 rounded-xl bg-ns-gold text-ns-bg font-body text-sm
+                className="w-full py-3 rounded-xl bg-ns-secondary text-ns-bg font-body text-sm
                            font-semibold hover:bg-amber-400 transition-colors disabled:opacity-50"
               >
                 {saving ? 'Saving…' : 'Save Details'}
@@ -376,7 +376,7 @@ export default function EditCollectionModal({
                   <p className="text-ns-muted font-body text-sm">No movies yet.</p>
                   <button
                     onClick={() => setTab('add')}
-                    className="mt-3 text-ns-gold text-xs font-body hover:text-amber-400 transition-colors"
+                    className="mt-3 text-ns-secondary text-xs font-body hover:text-amber-400 transition-colors"
                   >
                     + Add Movies
                   </button>
@@ -385,7 +385,7 @@ export default function EditCollectionModal({
                 <>
                   <p className="text-ns-muted/50 text-xs font-body mb-3">
                     Drag rows to reorder. Changes save automatically.
-                    {reordering && <span className="ml-2 text-ns-gold">Saving order…</span>}
+                    {reordering && <span className="ml-2 text-ns-secondary">Saving order…</span>}
                   </p>
                   <div className="space-y-2">
                     {movies.map((movie, idx) => (
@@ -397,7 +397,7 @@ export default function EditCollectionModal({
                         onDragEnd={onDragEnd}
                         onDragOver={e => e.preventDefault()}
                         className="flex items-center gap-3 bg-ns-bg border border-ns-border rounded-xl
-                                   p-2 cursor-grab active:cursor-grabbing group hover:border-ns-gold/30
+                                   p-2 cursor-grab active:cursor-grabbing group hover:border-ns-secondary/30
                                    transition-colors select-none"
                       >
                         {/* Drag handle */}
@@ -467,7 +467,7 @@ export default function EditCollectionModal({
                 autoFocus
                 className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-3
                            text-ns-text font-body text-sm placeholder:text-ns-muted/40
-                           focus:outline-none focus:border-ns-gold/60 transition-colors mb-4"
+                           focus:outline-none focus:border-ns-secondary/60 transition-colors mb-4"
               />
 
               {addError && (
@@ -521,8 +521,8 @@ export default function EditCollectionModal({
                             ${already
                               ? 'border border-emerald-500/30 text-emerald-400 cursor-default'
                               : adding
-                                ? 'border border-ns-gold/30 text-ns-gold/50 cursor-wait'
-                                : 'border border-ns-gold/50 text-ns-gold hover:bg-ns-gold/10'}`}
+                                ? 'border border-ns-secondary/30 text-ns-secondary/50 cursor-wait'
+                                : 'border border-ns-secondary/50 text-ns-secondary hover:bg-ns-secondary/10'}`}
                         >
                           {already ? '✓ Added' : adding ? 'Adding…' : '+ Add'}
                         </button>

@@ -40,7 +40,7 @@ function UserCard({ user }: { user: UserResult }) {
                     hover:border-ns-border/70 transition-all">
       {/* Avatar */}
       <Link href={`/profile/${user.username}`} className="flex-shrink-0 mt-0.5">
-        <div className="w-11 h-11 rounded-full overflow-hidden bg-ns-border ring-2 ring-transparent hover:ring-ns-gold/30 transition-all">
+        <div className="w-11 h-11 rounded-full overflow-hidden bg-ns-border ring-2 ring-transparent hover:ring-ns-secondary/30 transition-all">
           {user.avatarUrl
             ? <img src={user.avatarUrl} alt={user.username} className="w-full h-full object-cover" />
             : (
@@ -59,7 +59,7 @@ function UserCard({ user }: { user: UserResult }) {
           <div className="min-w-0">
             <Link
               href={`/profile/${user.username}`}
-              className="text-sm font-body font-semibold text-ns-text hover:text-ns-gold transition-colors"
+              className="text-sm font-body font-semibold text-ns-text hover:text-ns-secondary transition-colors"
             >
               @{user.username}
             </Link>
@@ -80,7 +80,7 @@ function UserCard({ user }: { user: UserResult }) {
         {/* Meta row */}
         <div className="flex items-center flex-wrap gap-x-3 gap-y-0.5 mt-1.5">
           {user.personality && (
-            <span className="text-[11px] font-body text-ns-gold/70 font-medium">
+            <span className="text-[11px] font-body text-ns-secondary/70 font-medium">
               {PERSONALITY_LABELS[user.personality] ?? user.personality}
             </span>
           )}
@@ -254,12 +254,12 @@ export default function FindFriends() {
           placeholder="Search by username or display name…"
           className="w-full pl-11 pr-12 py-3.5 bg-ns-surface border border-ns-border rounded-2xl
                      text-sm font-body text-white placeholder-ns-muted/40
-                     focus:outline-none focus:border-ns-gold/50 transition-colors"
+                     focus:outline-none focus:border-ns-secondary/50 transition-colors"
           autoFocus
         />
         {searchLoading && (
           <span className="absolute right-4 top-1/2 -translate-y-1/2">
-            <span className="w-4 h-4 border border-ns-muted/40 border-t-ns-gold rounded-full animate-spin block" />
+            <span className="w-4 h-4 border border-ns-muted/40 border-t-ns-secondary rounded-full animate-spin block" />
           </span>
         )}
         {!searchLoading && query.length > 0 && (

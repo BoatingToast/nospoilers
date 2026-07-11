@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic'
 import { tmdbImageUrl, formatYear } from '@/lib/utils'
 import AddToWatchlistButton from '@/components/watchlist/AddToWatchlistButton'
 import AddToCollectionButton from '@/components/collections/AddToCollectionButton'
+import Card from '@/components/ui/Card'
 import type { EnrichedRec } from '@/services/curated-recs'
 
 const WhyModal = dynamic(() => import('./WhyModal'), { ssr: false })
@@ -16,10 +17,10 @@ interface Props {
 }
 
 function matchColor(score: number) {
-  if (score >= 85) return { text: 'text-emerald-400', dot: 'bg-emerald-400', bar: '#34d399' }
-  if (score >= 70) return { text: 'text-ns-gold',     dot: 'bg-ns-gold',     bar: '#C8963E' }
-  if (score >= 55) return { text: 'text-blue-400',    dot: 'bg-blue-400',    bar: '#60a5fa' }
-  return               { text: 'text-ns-muted',       dot: 'bg-ns-muted',    bar: '#52506A' }
+  if (score >= 85) return { text: 'text-ns-success',   dot: 'bg-ns-success' }
+  if (score >= 70) return { text: 'text-ns-secondary', dot: 'bg-ns-secondary' }
+  if (score >= 55) return { text: 'text-ns-info',      dot: 'bg-ns-info' }
+  return               { text: 'text-ns-muted',        dot: 'bg-ns-muted' }
 }
 
 export default function CuratedRecCard({ rec }: Props) {
@@ -31,9 +32,7 @@ export default function CuratedRecCard({ rec }: Props) {
       <div className="group w-[170px] flex-shrink-0 flex flex-col">
         {/* Poster */}
         <Link href={`/movie/${rec.tmdbId}`} className="block relative mb-3">
-          <div className="relative w-[170px] h-[255px] rounded-xl overflow-hidden border border-ns-border
-                          group-hover:border-ns-gold/30 transition-all duration-300
-                          group-hover:shadow-[0_0_20px_rgba(200,150,62,0.1)]">
+          <Card interactive className="relative w-[170px] h-[255px] rounded-xl overflow-hidden">
             <Image
               src={tmdbImageUrl(rec.posterPath, 'w342')}
               alt={rec.title}
@@ -44,7 +43,7 @@ export default function CuratedRecCard({ rec }: Props) {
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-ns-bg via-black/10 to-transparent
                             opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          </div>
+          </Card>
 
           {/* Match badge — always visible */}
           <div className={`absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 rounded-full
@@ -59,7 +58,7 @@ export default function CuratedRecCard({ rec }: Props) {
         {/* Title */}
         <Link href={`/movie/${rec.tmdbId}`}>
           <h3 className="text-ns-text text-[12px] font-body font-semibold leading-tight line-clamp-2
-                         group-hover:text-ns-gold transition-colors mb-1">
+                         group-hover:text-ns-secondary transition-colors mb-1">
             {rec.title}
           </h3>
         </Link>
@@ -121,7 +120,7 @@ export default function CuratedRecCard({ rec }: Props) {
             className="flex-shrink-0 flex items-center gap-1 px-2 py-1.5 rounded-lg
                        border border-ns-border bg-ns-surface
                        text-ns-muted text-[10px] font-body
-                       hover:border-ns-gold/40 hover:text-ns-gold
+                       hover:border-ns-secondary/40 hover:text-ns-secondary
                        transition-all duration-150"
           >
             <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

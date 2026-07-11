@@ -380,7 +380,7 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
         {/* Title + stats + member button row */}
         <div className="flex items-start justify-between gap-4 mb-3">
           <div>
-            <h2 className="font-display text-xl tracking-widest text-ns-gold leading-none mb-1">
+            <h2 className="font-display text-xl tracking-widest text-ns-secondary leading-none mb-1">
               SPOILER ZONE
             </h2>
             <p className="text-ns-muted text-xs font-body truncate max-w-[240px]">{movieTitle}</p>
@@ -416,7 +416,7 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
                 onClick={() => { setFilter(f.key); setSearchQuery(''); setSearchInput('') }}
                 className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-body transition-all
                   ${active
-                    ? 'bg-ns-gold/15 text-ns-gold border border-ns-gold/30'
+                    ? 'bg-ns-secondary/15 text-ns-secondary border border-ns-secondary/30'
                     : 'text-ns-muted hover:text-ns-text hover:bg-ns-surface/40'}`}
               >
                 <f.Icon size={12} strokeWidth={active ? 2.5 : 2} />
@@ -435,7 +435,7 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
               onChange={e => setSearchInput(e.target.value)}
               placeholder="Search messages…"
               className="w-full bg-ns-surface border border-ns-border rounded-lg pl-8 pr-3 py-1.5 text-xs font-body
-                         text-ns-text placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-gold/40 transition-colors"
+                         text-ns-text placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-secondary/40 transition-colors"
             />
           </div>
           {searchQuery && (
@@ -491,14 +491,14 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
 
         {loading ? (
           <div className="flex justify-center py-8">
-            <svg className="animate-spin text-ns-gold/40" width="20" height="20" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin text-ns-secondary/40" width="20" height="20" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
             </svg>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-            <EmptyDiscussionIcon size={52} className="text-ns-gold/30 mb-4" strokeWidth={1.5} />
+            <EmptyDiscussionIcon size={52} className="text-ns-secondary/30 mb-4" strokeWidth={1.5} />
             <p className="text-ns-muted font-body text-sm">
               {searchQuery ? 'No messages found.' : 'Be the first to spark discussion!'}
             </p>
@@ -557,7 +557,7 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
       ) : (
         <div className="flex-shrink-0 px-4 py-4 border-t border-ns-border text-center">
           <p className="text-xs font-body text-ns-muted">
-            <a href="/auth/signin" className="text-ns-gold hover:text-amber-400 transition-colors">Sign in</a>
+            <a href="/auth/signin" className="text-ns-secondary hover:text-amber-400 transition-colors">Sign in</a>
             {' '}to join the discussion
           </p>
         </div>
