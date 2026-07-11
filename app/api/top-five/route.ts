@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { getTopFive, saveTopFive } from '@/services/top-five'
+import { ensureTopFiveFromOnboarding, getTopFive, saveTopFive } from '@/services/top-five'
 
 // GET /api/top-five            (own list)
 // GET /api/top-five?userId=xxx (public view — for profiles)
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const movies = await getTopFive(session.user.id)
+  const movies = await ensureTopFiveFromOnboarding(session.user.id)
   return NextResponse.json({ movies })
 }
 
