@@ -1,14 +1,16 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
+import { useSession } from 'next-auth/react'
 import NextFavoriteHero from './NextFavoriteHero'
 import CuratedRecCard   from './CuratedRecCard'
 import RecPersonaSection from './RecPersonaSection'
 import RecAccuracyWidget from './RecAccuracyWidget'
 import BasedOnRatingsSection from './BasedOnRatingsSection'
 import FriendRecs from '@/components/friends/FriendRecs'
+import MovieDNACard from '@/components/dashboard/MovieDNACard'
 import type { CuratedRecGroups, EnrichedRec } from '@/services/curated-recs'
-import type { RecPersona } from '@/types'
+import type { RecPersona, MovieDnaProfile } from '@/types'
 import {
   RecsIcon, FilmIcon, MovieDnaIcon, TrendingIcon, CalendarIcon,
   type IconProps,
@@ -151,11 +153,15 @@ function SectionShelf({ items, section, topTraits }: ShelfProps) {
 // ─── Main client ──────────────────────────────────────────────────────────────
 
 export default function RecommendationCenterClient() {
+  const { data: session } = useSession()
   const [groups,   setGroups]   = useState<CuratedRecGroups | null>(null)
   const [personas, setPersonas] = useState<RecPersona[]>([])
   const [recLoading, setRecLoading] = useState(true)
   const [perLoading, setPerLoading] = useState(true)
   const [, startTransition] = useTransition()
+
+  const [dnaProfile, setDnaProfile] = useState<MovieDnaProfile | null>(null)
+  const [dnaLoading, setDnaLoading] = useState(true)
 
   useEffect(() => {
     // Fetch curated recs
@@ -174,6 +180,17 @@ export default function RecommendationCenterClient() {
         .finally(() => setPerLoading(false))
     })
   }, [])
+
+  // Movie DNA teaser — same reusable card/bundle used on the Dashboard and profiles
+  useEffect(() => {
+    const username = session?.user?.name
+    if (!username) return
+    fetch(`/api/dna/${username}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(data => setDnaProfile(data))
+      .catch(() => {})
+      .finally(() => setDnaLoading(false))
+  }, [session?.user?.name])
 
   async function handleFeedback(tmdbId: number, feedbackType: string) {
     // Submit feedback (fire-and-forget for hero card)
@@ -210,6 +227,13 @@ export default function RecommendationCenterClient() {
         </div>
         <RecAccuracyWidget />
       </div>
+
+      {/* ─── Movie DNA teaser — same reusable card as Dashboard/profiles ───── */}
+      {(dnaLoading || dnaProfile) && (
+        <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
+          <MovieDNACard profile={dnaProfile} loading={dnaLoading} compact />
+        </div>
+      )}
 
       {/* ─── 🎯 NEXT FAVORITE hero ─────────────────────────────────────────── */}
       {recLoading ? (

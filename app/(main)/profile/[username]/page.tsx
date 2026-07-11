@@ -3,7 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { getPersonalityBySlug } from '@/services/personality'
-import ProfileDNA from '@/components/profile/ProfileDNA'
+import { getMovieDnaProfile } from '@/services/dna'
+import MovieDNACard from '@/components/dashboard/MovieDNACard'
 import PersonalityBadge from '@/components/profile/PersonalityBadge'
 import TasteCard from '@/components/profile/TasteCard'
 import ProfileTabs from '@/components/profile/ProfileTabs'
@@ -99,6 +100,7 @@ export default async function ProfilePage({ params }: Props) {
     where: { OR: [{ userAId: user.id }, { userBId: user.id }] },
   })
 
+  const dnaProfile = await getMovieDnaProfile(user.id)
   const dnaScores: DNAScores | null = user.tasteProfile ? {
     suspenseScore:        user.tasteProfile.suspenseScore,
     emotionalImpactScore: user.tasteProfile.emotionalImpactScore,
@@ -249,7 +251,11 @@ export default async function ProfilePage({ params }: Props) {
               </div>
             )}
 
-            {dnaScores && <ProfileDNA scores={dnaScores} username={user.username} />}
+            {dnaProfile && (
+              <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
+                <MovieDNACard profile={dnaProfile} compact username={user.username} />
+              </div>
+            )}
 
             <SpoilerZoneMemberships userId={user.id} />
           </div>

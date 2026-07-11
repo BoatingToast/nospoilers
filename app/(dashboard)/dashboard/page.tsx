@@ -5,7 +5,6 @@ import { prisma } from '@/lib/db'
 import WelcomeSection       from '@/components/dashboard/WelcomeSection'
 import FavoriteMovies       from '@/components/dashboard/FavoriteMovies'
 import MovieDNACard         from '@/components/dashboard/MovieDNACard'
-import TasteSummary         from '@/components/dashboard/TasteSummary'
 import RecommendationFeed   from '@/components/recommendations/RecommendationFeed'
 import PersonalityWidget    from '@/components/dashboard/PersonalityWidget'
 import SimilarUsersWidget   from '@/components/dashboard/SimilarUsersWidget'
@@ -22,11 +21,11 @@ import DashboardFriendsCard    from '@/components/dashboard/DashboardFriendsCard
 import MyActivityWidget        from '@/components/dashboard/MyActivityWidget'
 import LiveSocialStats         from '@/components/social/LiveSocialStats'
 import { getUserPersonality } from '@/services/personality'
+import { getMovieDnaProfile } from '@/services/dna'
 import { upsertWrappedStats } from '@/services/activity'
 import { checkAndUpdateAchievements } from '@/services/achievements'
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import type { DNAScores } from '@/types'
 
 export const metadata: Metadata = { title: 'Dashboard — NoSpoilers' }
 
@@ -53,23 +52,16 @@ export default async function DashboardPage() {
   })
   if (!user) redirect('/login')
 
-  const dnaScores: DNAScores | null = user.tasteProfile ? {
-    suspenseScore:        user.tasteProfile.suspenseScore,
-    emotionalImpactScore: user.tasteProfile.emotionalImpactScore,
-    complexityScore:      user.tasteProfile.complexityScore,
-    humorScore:           user.tasteProfile.humorScore,
-    realismScore:         user.tasteProfile.realismScore,
-    actionScore:          user.tasteProfile.actionScore,
-    darknessScore:        user.tasteProfile.darknessScore,
-  } : null
-
-  const personality    = await getUserPersonality(user.id)
+  const [dnaProfile, personality] = await Promise.all([
+    getMovieDnaProfile(user.id),
+    getUserPersonality(user.id),
+  ])
   const friendCount    = user._count.friendshipsAsA + user._count.friendshipsAsB
 
   // Background tasks
   void Promise.all([
     upsertWrappedStats(user.id),
-    user.tasteProfile ? checkAndUpdateAchievements(user.id, 'dna_updated') : null,
+    dnaProfile ? checkAndUpdateAchievements(user.id, 'dna_updated') : null,
   ]).catch(() => {})
 
   // ── Overview tab content (server-rendered) ────────────────────────────────
@@ -101,9 +93,14 @@ export default async function DashboardPage() {
       <WatchlistPreview />
 
       {/* Personality */}
-      {dnaScores && (
+      {dnaProfile && (
         <PersonalityWidget username={user.username} initialData={personality} />
       )}
+
+      {/* Movie DNA */}
+      <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
+        <MovieDNACard profile={dnaProfile} compact username={user.username} />
+      </div>
 
       {/* 🎯 Next Favorite hero + accuracy */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -145,7 +142,7 @@ export default async function DashboardPage() {
   return (
     <DashboardTabs
       overview={overview}
-      dnaScores={dnaScores}
+      dnaProfile={dnaProfile}
       username={user.username}
     />
   )
