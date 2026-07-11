@@ -888,6 +888,50 @@ export function PinIcon(props: IconProps) {
   )
 }
 
+// MailIcon - contact and email actions
+export function MailIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M4 7 L12 13 L20 7" />
+    </Svg>
+  )
+}
+
+// InstagramIcon - social link
+export function InstagramIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.25" cy="6.75" r="0.8" fill="currentColor" stroke="none" />
+    </Svg>
+  )
+}
+
+// LinkedInIcon - social link
+export function LinkedInIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="8" y1="11" x2="8" y2="17" />
+      <line x1="12" y1="17" x2="12" y2="11" />
+      <path d="M12 13.8 C12.5 12 14 11 15.8 11 C17.7 11 19 12.3 19 14.6 V17" />
+      <circle cx="8" cy="7.5" r="0.8" fill="currentColor" stroke="none" />
+    </Svg>
+  )
+}
+
+// TikTokIcon - social link
+export function TikTokIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M14 3 V14.3 C14 17.4 11.5 20 8.4 20 C5.9 20 4 18.1 4 15.6 C4 13.1 5.9 11.2 8.4 11.2 C9.1 11.2 9.7 11.3 10.3 11.6" />
+      <path d="M14 3 C14.7 5.9 17.2 8.2 20 8.5 V11.6 C17.7 11.5 15.6 10.7 14 9.3" />
+    </Svg>
+  )
+}
+
 // ── Achievement icon map ───────────────────────────────────────────────────────
 // Maps achievement slugs → SVG icon component. Use getAchievementIcon(slug)
 // in UI components instead of rendering the emoji stored in the data layer.
