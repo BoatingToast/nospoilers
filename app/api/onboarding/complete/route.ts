@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { generateDNA } from '@/services/dna'
 import { ensureTopFiveFromOnboarding } from '@/services/top-five'
+import { recalcTasteProfile } from '@/services/ratings'
 import type { PreferencesInput } from '@/types'
 
 export async function POST(req: Request) {
@@ -45,6 +46,15 @@ export async function POST(req: Request) {
     }),
   ])
   await ensureTopFiveFromOnboarding(session.user.id)
+  await recalcTasteProfile(session.user.id)
 
-  return NextResponse.json({ ok: true, dna })
+  const finalProfile = await prisma.tasteProfile.findUnique({
+    where: { userId: session.user.id },
+    select: {
+      suspenseScore: true, emotionalImpactScore: true, complexityScore: true,
+      humorScore: true, realismScore: true, actionScore: true, darknessScore: true,
+    },
+  })
+
+  return NextResponse.json({ ok: true, dna: finalProfile ?? dna })
 }

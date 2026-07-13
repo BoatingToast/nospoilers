@@ -123,8 +123,7 @@ export async function saveTopFive(
 
   await replaceTopFiveRows(userId, movies)
 
-  // Trigger DNA recalc asynchronously
-  void recalcTasteProfile(userId).catch(() => {})
+  await recalcTasteProfile(userId).catch(() => {})
 }
 
 // ─── History ──────────────────────────────────────────────────────────────────

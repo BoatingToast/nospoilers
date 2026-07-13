@@ -20,6 +20,14 @@ interface Props {
     title:       string
     posterPath:  string | null
     releaseDate: string | null
+    genreIds:    number[]
+    runtime:     number | null
+    voteAverage: number
+    voteCount:   number
+    popularity:  number
+    originalLanguage: string
+    budget:      number
+    keywords:    string[]
   }
   existing:  MovieRatingData | null
   onSaved:   (rating: MovieRatingData) => void
@@ -68,10 +76,7 @@ export default function DetailedRatingModal({
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tmdbId:      movie.tmdbId,
-          title:       movie.title,
-          posterPath:  movie.posterPath,
-          releaseDate: movie.releaseDate,
+          ...movie,
           score,         // always the user's chosen value
           review:      review.trim() || null,
           ...subs,
