@@ -2,7 +2,7 @@ const assert = require('node:assert/strict')
 const test = require('node:test')
 
 const { classifyText, matchingTitle } = require('../classifier.js')
-const { normalizeSettings, isDomainPaused } = require('../shared.js')
+const { normalizeSettings, isDomainPaused, effectiveProtectedTitles } = require('../shared.js')
 
 const balanced = {
   protectedTitles: ['Dune: Part Two'],
@@ -61,10 +61,13 @@ test('short titles match complete words instead of substrings', () => {
 test('settings normalization deduplicates titles and domains', () => {
   const settings = normalizeSettings({
     protectedTitles: [' Dune ', 'dune', 'Severance'],
+    passportTitles: ['Severance', 'The Last of Us'],
     pausedDomains: ['https://www.youtube.com/feed', 'youtube.com'],
     sensitivity: 'unknown',
   })
   assert.deepEqual(settings.protectedTitles, ['Dune', 'Severance'])
+  assert.deepEqual(settings.passportTitles, ['Severance', 'The Last of Us'])
+  assert.deepEqual(effectiveProtectedTitles(settings), ['Dune', 'Severance', 'The Last of Us'])
   assert.deepEqual(settings.pausedDomains, ['youtube.com'])
   assert.equal(settings.sensitivity, 'balanced')
   assert.equal(isDomainPaused('music.youtube.com', settings.pausedDomains), true)

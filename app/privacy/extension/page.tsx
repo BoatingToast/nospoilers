@@ -52,6 +52,12 @@ export default function ExtensionPrivacyPage() {
                 Chrome&apos;s synchronized extension storage.
               </li>
               <li>
+                <strong className="text-ns-text">Plot Passport titles:</strong> When you explicitly choose Sync on
+                the signed-in NoSpoilers website, the page sends the names of unfinished titles to the installed
+                extension. The extension validates the website origin and stores those title names separately from
+                titles you entered manually.
+              </li>
+              <li>
                 <strong className="text-ns-text">Per-page counts:</strong> The number shown on the extension badge
                 is calculated locally for the current tab and is not retained as browsing history.
               </li>

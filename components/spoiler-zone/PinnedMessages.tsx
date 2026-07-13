@@ -32,8 +32,8 @@ export default function PinnedMessages({ pinned, onJump }: Props) {
               <p className="text-xs font-body text-ns-muted group-hover:text-ns-text transition-colors truncate">
                 <span className="text-ns-secondary font-medium">@{msg.username}</span>
                 {': '}
-                {msg.content.slice(0, 100)}
-                {msg.content.length > 100 && '…'}
+                {msg.viewerUnlocked ? msg.content.slice(0, 100) : 'Locked by your Plot Passport'}
+                {msg.viewerUnlocked && msg.content.length > 100 && '…'}
               </p>
             </button>
           ))}

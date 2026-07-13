@@ -27,6 +27,9 @@ reload button on `chrome://extensions` and refresh the page being tested.
 - Dynamic feeds are monitored with a batched `MutationObserver`, so newly loaded
   Reddit, YouTube, search, and social posts are checked without rescanning the
   whole page after each update.
+- A signed-in user can open **Plot Passport** on NoSpoilers and send every
+  unfinished title to the shield with one click. Passport titles remain separate
+  from manually protected titles, so syncing never deletes the user's own list.
 
 Settings use `chrome.storage.sync`, so Chrome can sync them between the user's
 signed-in browsers. Page text is classified locally and is never uploaded.
@@ -73,9 +76,10 @@ Before every update, increment `version` in `manifest.json`, rerun the tests,
 and create a fresh package. The privacy URL will become public after the website
 changes containing that route are deployed.
 
-## Current scope
+## Plot Passport handoff
 
-This first version intentionally uses a user-managed protected list. It does not
-yet sign in to the NoSpoilers web app or pull the account watchlist. That can be
-added later through a narrow extension-sync API without changing the on-page
-classifier.
+The extension does not store NoSpoilers credentials or call a private account
+API. On the trusted NoSpoilers Plot Passport page, the signed-in web app sends
+only the user&apos;s unfinished title names to the installed content script. The
+extension validates the origin and stores those names in Chrome sync separately
+from its manual list.

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { ReviewWithMeta } from '@/services/reviews'
 import type { ReplyWithUser } from '@/services/reviews'
 import { WarningIcon } from '@/components/icons'
+import { passportLevelLabel } from '@/lib/plot-passport'
 
 interface Props {
   review:      ReviewWithMeta
@@ -158,6 +159,7 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
   const [viewerVotes, setViewerVotes] = useState<string[]>(review.viewerVotes)
   const [deleting,    setDeleting]    = useState(false)
   const [confirmDel,  setConfirmDel]  = useState(false)
+  const passportLocked = !isOwn && !review.viewerUnlocked && !spoilerRevealed
 
   async function vote(type: 'upvote' | 'downvote' | 'helpful') {
     if (!sessionId) return
@@ -252,9 +254,9 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
           {review.rating !== null && <RatingBadge rating={review.rating} />}
 
           {/* Spoiler badge */}
-          {review.hasSpoilers && (
+          {review.spoilerLevel !== 'safe' && (
             <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-400 text-[10px] font-body whitespace-nowrap">
-              <WarningIcon size={10} className="inline-block mr-1" />Spoilers
+              <WarningIcon size={10} className="inline-block mr-1" />{passportLevelLabel(review.spoilerLevel)}
             </span>
           )}
 
@@ -287,22 +289,31 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
       )}
 
       {/* Body — spoiler gate */}
-      {review.hasSpoilers && !spoilerRevealed ? (
+      {passportLocked ? (
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mb-3">
           <div className="flex flex-col items-center gap-3 py-2">
             <p className="text-amber-400 text-sm font-heading font-medium flex items-center gap-1.5">
-              <WarningIcon size={14} />Contains Spoilers
+              <WarningIcon size={14} />Locked by your Plot Passport
             </p>
             <p className="text-ns-muted text-xs font-body text-center max-w-xs">
-              This review reveals plot details. Only read if you've already seen the film.
+              You are at {review.viewerProgress}%. This review unlocks automatically at {review.unlockAtProgress}%.
             </p>
-            <button
-              onClick={() => setSpoilerRevealed(true)}
-              className="px-4 py-2 rounded-xl border border-amber-500/40 text-amber-400 text-sm font-heading font-medium
-                         hover:bg-amber-500/15 transition-colors"
-            >
-              Show Review
-            </button>
+            <div className="flex flex-wrap justify-center gap-2">
+              {sessionId && (
+                <Link
+                  href="/plot-passport"
+                  className="px-4 py-2 rounded-xl bg-ns-secondary text-ns-bg text-xs font-heading font-semibold hover:bg-amber-400 transition-colors"
+                >
+                  Update progress
+                </Link>
+              )}
+              <button
+                onClick={() => setSpoilerRevealed(true)}
+                className="px-4 py-2 rounded-xl border border-amber-500/40 text-amber-400 text-xs font-heading font-medium hover:bg-amber-500/15 transition-colors"
+              >
+                Reveal anyway
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -369,11 +380,13 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
       </div>
 
       {/* Reply thread */}
-      <ReplyThread
-        reviewId={review.id}
-        replyCount={review.replyCount}
-        sessionId={sessionId}
-      />
+      {!passportLocked && (
+        <ReplyThread
+          reviewId={review.id}
+          replyCount={review.replyCount}
+          sessionId={sessionId}
+        />
+      )}
     </article>
   )
 }
