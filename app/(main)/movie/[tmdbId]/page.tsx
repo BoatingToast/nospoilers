@@ -120,6 +120,14 @@ export default async function MoviePage({ params }: Props) {
                 title:       movie.title,
                 posterPath:  movie.poster_path,
                 releaseDate: movie.release_date ?? null,
+                genreIds:    movie.genres.map(g => g.id),
+                runtime:     movie.runtime,
+                voteAverage: movie.vote_average,
+                voteCount:   movie.vote_count,
+                popularity:  movie.popularity,
+                originalLanguage: movie.original_language,
+                budget:      movie.budget,
+                keywords,
               }}
             />
             <AddToWatchlistButton

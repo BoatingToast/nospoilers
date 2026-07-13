@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/db'
+import { recalcTasteProfile } from './ratings'
+import { analyzeReviewTraits } from './dna-v2'
 import type { DNAScores } from '@/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -33,103 +35,16 @@ export interface ReviewStats {
 
 export type SortMode = 'helpful' | 'popular' | 'top' | 'newest' | 'friends'
 
-// ─── Sentiment keyword map → DNA dimension ────────────────────────────────────
-
-const SENTIMENT_MAP: { key: keyof DNAScores; terms: string[] }[] = [
-  {
-    key: 'complexityScore',
-    terms: ['complex', 'layered', 'nuanced', 'deep', 'intricate', 'thought-provoking',
-            'cerebral', 'philosophical', 'multi-layered', 'dense', 'sophisticated',
-            'intelligent', 'profound', 'rich narrative', 'subtlety', 'subtext'],
-  },
-  {
-    key: 'emotionalImpactScore',
-    terms: ['emotional', 'moving', 'heartbreaking', 'tears', 'cried', 'powerful',
-            'touching', 'poignant', 'devastating', 'beautiful', 'stirring',
-            'gut-wrenching', 'uplifting', 'resonant', 'deeply felt', 'haunting'],
-  },
-  {
-    key: 'actionScore',
-    terms: ['action', 'exciting', 'fast-paced', 'adrenaline', 'explosive', 'spectacle',
-            'thrilling action', 'chase', 'fight scene', 'intense sequences', 'kinetic'],
-  },
-  {
-    key: 'humorScore',
-    terms: ['funny', 'hilarious', 'witty', 'comedy', 'laugh', 'clever humor', 'charming',
-            'delightful', 'quirky', 'playful', 'light-hearted', 'amusing', 'comedic'],
-  },
-  {
-    key: 'suspenseScore',
-    terms: ['tense', 'suspense', 'edge of my seat', 'gripping', 'nail-biting',
-            "couldn't stop", 'unpredictable', 'mystery', 'kept me guessing',
-            'twist', 'dread', 'mounting tension', 'anticipation'],
-  },
-  {
-    key: 'darknessScore',
-    terms: ['dark', 'gritty', 'disturbing', 'bleak', 'unsettling', 'brutal',
-            'harrowing', 'nihilistic', 'oppressive', 'visceral', 'hard to watch',
-            'trauma', 'heavy', 'pitch black'],
-  },
-  {
-    key: 'realismScore',
-    terms: ['realistic', 'authentic', 'genuine', 'true to life', 'believable',
-            'grounded', 'naturalistic', 'documentary-like', 'raw', 'honest',
-            'real performances', 'lifelike'],
-  },
-]
-
-// ─── Sentiment analysis ───────────────────────────────────────────────────────
-
-export function analyzeReviewSentiment(body: string): Partial<Record<keyof DNAScores, number>> {
-  const text   = body.toLowerCase()
-  const result: Partial<Record<keyof DNAScores, number>> = {}
-
-  for (const { key, terms } of SENTIMENT_MAP) {
-    const hits = terms.filter(t => text.includes(t)).length
-    if (hits > 0) {
-      // Each hit adds up to 20 points, capped at 60
-      result[key] = Math.min(hits * 20, 60)
-    }
-  }
-
-  return result
-}
-
-// ─── Apply review sentiment to user's DNA ─────────────────────────────────────
+// Backward-compatible name for callers that used the old review analyzer. DNA
+// v2 returns traits on the correct 1–10 scale and applies them only during a
+// complete deterministic rebuild.
+export const analyzeReviewSentiment = analyzeReviewTraits
 
 export async function applyReviewSentimentToDNA(
   userId: string,
-  sentiment: Partial<Record<keyof DNAScores, number>>,
+  _sentiment: Partial<Record<keyof DNAScores, number>>,
 ): Promise<void> {
-  if (Object.keys(sentiment).length === 0) return
-
-  const profile = await prisma.tasteProfile.findUnique({ where: { userId } })
-  if (!profile) return
-
-  // Small blend: each review contributes 8% weight toward the signalled dimensions
-  const REVIEW_WEIGHT = 0.08
-
-  const updates: Partial<Record<keyof DNAScores, number>> = {}
-
-  const dims: (keyof DNAScores)[] = [
-    'complexityScore', 'emotionalImpactScore', 'actionScore',
-    'humorScore', 'suspenseScore', 'darknessScore', 'realismScore',
-  ]
-
-  for (const dim of dims) {
-    const signal = sentiment[dim]
-    if (signal === undefined) continue
-    const current = profile[dim] as number
-    // Blend: pull slightly toward the signalled strength
-    updates[dim] = current * (1 - REVIEW_WEIGHT) + signal * REVIEW_WEIGHT
-  }
-
-  if (Object.keys(updates).length > 0) {
-    await prisma.tasteProfile.update({
-      where: { userId },
-      data:  updates as Record<string, number>,
-    })
-  }
+  await recalcTasteProfile(userId)
 }
 
 // ─── Create review ────────────────────────────────────────────────────────────
@@ -157,9 +72,7 @@ export async function createReview(
     },
   })
 
-  // Async DNA update — fire and forget
-  const sentiment = analyzeReviewSentiment(body)
-  void applyReviewSentimentToDNA(userId, sentiment).catch(() => {})
+  await recalcTasteProfile(userId).catch(() => {})
 
   return { id: review.id }
 }
@@ -186,10 +99,8 @@ export async function updateReview(
     },
   })
 
-  // Re-analyze if body changed
-  if (updates.body) {
-    const sentiment = analyzeReviewSentiment(updates.body)
-    void applyReviewSentimentToDNA(userId, sentiment).catch(() => {})
+  if (updates.body !== undefined || updates.rating !== undefined) {
+    await recalcTasteProfile(userId).catch(() => {})
   }
 }
 
@@ -197,6 +108,7 @@ export async function updateReview(
 
 export async function deleteReview(reviewId: string, userId: string): Promise<void> {
   await prisma.review.deleteMany({ where: { id: reviewId, userId } })
+  await recalcTasteProfile(userId).catch(() => {})
 }
 
 // ─── Get reviews for a movie ──────────────────────────────────────────────────
