@@ -18,6 +18,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     body:        body.review,
     rating:      body.rating,
     hasSpoilers: body.hasSpoilers,
+    spoilerLevel: body.spoilerLevel,
   })
 
   return NextResponse.json({ ok: true })

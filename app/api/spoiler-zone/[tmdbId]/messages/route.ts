@@ -3,6 +3,7 @@ import { getServerSession }                                   from 'next-auth'
 import { authOptions }                                        from '@/lib/auth'
 import { prisma }                                             from '@/lib/db'
 import { formatMessage, MSG_INCLUDE, VALID_SPOILER_LEVELS }   from '@/lib/spoiler-zone-helpers'
+import { classifySpoilerBoundary }                           from '@/lib/plot-passport'
 
 type Params = { params: Promise<{ tmdbId: string }> }
 
@@ -23,6 +24,13 @@ export async function GET(req: Request, { params }: Params) {
 
   const session     = await getServerSession(authOptions)
   const currentUser = session?.user?.id ?? null
+  const viewerPassport = currentUser
+    ? await prisma.watchlistItem.findUnique({
+        where: { userId_tmdbId: { userId: currentUser, tmdbId } },
+        select: { progressPercent: true },
+      })
+    : null
+  const viewerProgress = viewerPassport?.progressPercent ?? 0
 
   const url         = new URL(req.url)
   const cursor      = url.searchParams.get('cursor')
@@ -112,8 +120,8 @@ export async function GET(req: Request, { params }: Params) {
 
     const pinnedSet = new Set(pinnedRows.map(p => p.id))
     return NextResponse.json({
-      messages:    recent.filter(m => !pinnedSet.has(m.id)).map(m => formatMessage(m, currentUser)),
-      pinned:      pinnedRows.map(p => formatMessage(p, currentUser)),
+      messages:    recent.filter(m => !pinnedSet.has(m.id)).map(m => formatMessage(m, currentUser, viewerProgress)),
+      pinned:      pinnedRows.map(p => formatMessage(p, currentUser, viewerProgress)),
       nextCursor:  recent.length > 0 ? recent[0].id : null,   // oldest in current page
       hasMore:     olderExist,
     })
@@ -128,8 +136,8 @@ export async function GET(req: Request, { params }: Params) {
     : null
 
   return NextResponse.json({
-    messages:   messages.filter(m => !pinnedSet.has(m.id)).map(m => formatMessage(m, currentUser)),
-    pinned:     pinnedRows.map(p => formatMessage(p, currentUser)),
+    messages:   messages.filter(m => !pinnedSet.has(m.id)).map(m => formatMessage(m, currentUser, viewerProgress)),
+    pinned:     pinnedRows.map(p => formatMessage(p, currentUser, viewerProgress)),
     nextCursor,
     hasMore,
   })
@@ -163,11 +171,15 @@ export async function POST(req: Request, { params }: Params) {
 
   const content      = body.content?.trim()
   const movieTitle   = body.movieTitle?.trim() ?? ''
-  const spoilerLevel = (VALID_SPOILER_LEVELS.includes(body.spoilerLevel as never)
+  const requestedLevel = (VALID_SPOILER_LEVELS.includes(body.spoilerLevel as never)
     ? body.spoilerLevel : 'safe') as string
 
   if (!content || content.length === 0) return NextResponse.json({ error: 'Message cannot be empty' }, { status: 400 })
   if (content.length > 2000)            return NextResponse.json({ error: 'Message too long (max 2000 chars)' }, { status: 400 })
+
+  const spoilerLevel = requestedLevel === 'theory' || requestedLevel === 'behind'
+    ? requestedLevel
+    : classifySpoilerBoundary(content, requestedLevel)
 
   if (body.parentId) {
     const parent = await prisma.spoilerZoneMessage.findUnique({ where: { id: body.parentId } })

@@ -44,7 +44,7 @@
 
   function shouldProtect() {
     return settings.enabled &&
-      (settings.protectedTitles.length > 0 || settings.blockGenericSpoilers) &&
+      (NoSpoilersShared.effectiveProtectedTitles(settings).length > 0 || settings.blockGenericSpoilers) &&
       !NoSpoilersShared.isDomainPaused(currentHostname(), settings.pausedDomains)
   }
 
@@ -135,7 +135,10 @@
     const text = collectText(element)
     if (text.length < 3 || text.length > 8000) return
 
-    const result = NoSpoilersClassifier.classifyText(text, settings)
+    const result = NoSpoilersClassifier.classifyText(text, {
+      ...settings,
+      protectedTitles: NoSpoilersShared.effectiveProtectedTitles(settings),
+    })
     if (result.blocked) hideElement(element, result)
   }
 
@@ -232,6 +235,41 @@
 
   chrome.storage.onChanged.addListener((_changes, areaName) => {
     if (areaName === 'sync') void refreshSettings()
+  })
+
+  const PASSPORT_HOSTS = new Set([
+    'nospoilers-blush.vercel.app',
+    'nospoilers.xyz',
+    'www.nospoilers.xyz',
+    'localhost',
+    '127.0.0.1',
+  ])
+
+  window.addEventListener('message', event => {
+    if (event.source !== window || event.origin !== window.location.origin) return
+    if (!PASSPORT_HOSTS.has(window.location.hostname)) return
+    if (event.data?.type !== 'NS_PLOT_PASSPORT_SYNC' || event.data?.source !== 'nospoilers-web') return
+
+    const requestId = String(event.data.requestId ?? '').slice(0, 120)
+    const passportTitles = Array.isArray(event.data.titles)
+      ? event.data.titles.filter(title => typeof title === 'string').slice(0, 500)
+      : []
+
+    void NoSpoilersShared.saveSettings({ passportTitles }).then(next => {
+      settings = next
+      window.postMessage({
+        type: 'NS_PLOT_PASSPORT_SYNC_RESULT',
+        requestId,
+        ok: true,
+        count: next.passportTitles.length,
+      }, window.location.origin)
+    }).catch(() => {
+      window.postMessage({
+        type: 'NS_PLOT_PASSPORT_SYNC_RESULT',
+        requestId,
+        ok: false,
+      }, window.location.origin)
+    })
   })
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

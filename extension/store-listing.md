@@ -26,6 +26,7 @@ Features:
 - Reveal one shield or every shield on the page
 - Pause protection on individual websites
 - Add a selected title from Chrome's right-click menu
+- Sync unfinished titles from your NoSpoilers Plot Passport
 - Sync preferences through Chrome
 - No ads, tracking, or NoSpoilers backend account required
 
@@ -51,6 +52,7 @@ No. Every executable file is included in the extension package.
 
 - **Website content:** Processed temporarily and locally to classify likely spoilers; not stored or transmitted to NoSpoilers.
 - **User-provided protected titles and preferences:** Stored with `chrome.storage.sync` so Chrome may synchronize them across the user's signed-in browsers; not transmitted to NoSpoilers.
+- **Plot Passport titles:** Sent from the trusted NoSpoilers page only when the signed-in user presses Sync; stored in Chrome synchronized storage and kept separate from manually entered titles.
 - **Paused domains:** Stored only when explicitly selected by the user; used solely to disable protection on that domain.
 - No data is sold, used for personalized advertising, or shared with third parties by NoSpoilers.
 

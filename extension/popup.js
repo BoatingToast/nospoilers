@@ -15,6 +15,7 @@
     statusDot: document.querySelector('#statusDot'),
     pauseSite: document.querySelector('#pauseSite'),
     revealAll: document.querySelector('#revealAll'),
+    openPassport: document.querySelector('#openPassport'),
   }
 
   let settings = { ...NoSpoilersShared.DEFAULT_SETTINGS }
@@ -38,10 +39,12 @@
 
   function renderTitles() {
     elements.titleList.replaceChildren()
-    elements.titleCount.textContent = String(settings.protectedTitles.length)
-    elements.emptyState.hidden = settings.protectedTitles.length > 0
+    const effectiveTitles = NoSpoilersShared.effectiveProtectedTitles(settings)
+    const passportKeys = new Set(settings.passportTitles.map(title => title.toLocaleLowerCase()))
+    elements.titleCount.textContent = String(effectiveTitles.length)
+    elements.emptyState.hidden = effectiveTitles.length > 0
 
-    for (const title of settings.protectedTitles) {
+    for (const title of effectiveTitles) {
       const item = document.createElement('li')
       item.className = 'title-chip'
 
@@ -50,13 +53,18 @@
 
       const remove = document.createElement('button')
       remove.type = 'button'
-      remove.textContent = '×'
-      remove.setAttribute('aria-label', `Stop protecting ${title}`)
-      remove.addEventListener('click', () => {
-        void updateSettings({
-          protectedTitles: settings.protectedTitles.filter(value => value !== title),
+      const fromPassport = passportKeys.has(title.toLocaleLowerCase())
+      remove.textContent = fromPassport ? 'PP' : '×'
+      remove.disabled = fromPassport
+      remove.title = fromPassport ? 'Managed by Plot Passport' : `Stop protecting ${title}`
+      remove.setAttribute('aria-label', fromPassport ? `${title} is managed by Plot Passport` : `Stop protecting ${title}`)
+      if (!fromPassport) {
+        remove.addEventListener('click', () => {
+          void updateSettings({
+            protectedTitles: settings.protectedTitles.filter(value => value !== title),
+          })
         })
-      })
+      }
 
       item.append(label, remove)
       elements.titleList.append(item)
@@ -79,7 +87,7 @@
     } else if (paused) {
       elements.statusDot.classList.add('paused')
       elements.blockStatus.textContent = 'Protection paused on this site'
-    } else if (settings.protectedTitles.length === 0 && !settings.blockGenericSpoilers) {
+    } else if (NoSpoilersShared.effectiveProtectedTitles(settings).length === 0 && !settings.blockGenericSpoilers) {
       elements.blockStatus.textContent = 'Add a title to start protection'
     } else {
       elements.statusDot.classList.add('active')
@@ -148,6 +156,10 @@
   elements.revealAll.addEventListener('click', async () => {
     await sendToPage({ type: 'NS_REVEAL_ALL' })
     await refreshPageStatus()
+  })
+
+  elements.openPassport.addEventListener('click', () => {
+    void chrome.tabs.create({ url: 'https://nospoilers-blush.vercel.app/plot-passport' })
   })
 
   async function init() {

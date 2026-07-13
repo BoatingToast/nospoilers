@@ -5,6 +5,7 @@
     enabled: true,
     sensitivity: 'balanced',
     protectedTitles: [],
+    passportTitles: [],
     pausedDomains: [],
     blockGenericSpoilers: false,
   })
@@ -49,6 +50,7 @@
         ? settings.sensitivity
         : DEFAULT_SETTINGS.sensitivity,
       protectedTitles: uniqueStrings(settings.protectedTitles, cleanTitle),
+      passportTitles: uniqueStrings(settings.passportTitles, cleanTitle),
       pausedDomains: uniqueStrings(settings.pausedDomains, cleanDomain),
       blockGenericSpoilers: settings.blockGenericSpoilers === true,
     }
@@ -60,6 +62,13 @@
       const domain = cleanDomain(raw)
       return domain && (host === domain || host.endsWith(`.${domain}`))
     })
+  }
+
+  function effectiveProtectedTitles(settings) {
+    return uniqueStrings([
+      ...(settings?.protectedTitles ?? []),
+      ...(settings?.passportTitles ?? []),
+    ], cleanTitle)
   }
 
   async function getSettings() {
@@ -80,6 +89,7 @@
     cleanDomain,
     cleanTitle,
     getSettings,
+    effectiveProtectedTitles,
     isDomainPaused,
     normalizeSettings,
     saveSettings,

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { getWatchlist, getWatchlistStats } from '@/services/watchlist'
 import WatchlistGrid from '@/components/watchlist/WatchlistGrid'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'My Watchlist — NoSpoilers' }
 
@@ -29,9 +30,17 @@ export default async function WatchlistPage({ searchParams }: Props) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="mb-8">
           <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-2">Personal</p>
-          <h1 className="font-display text-5xl sm:text-6xl tracking-wider text-ns-text mb-2">
-            MY WATCHLIST
-          </h1>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h1 className="font-display text-5xl sm:text-6xl tracking-wider text-ns-text mb-2">
+              MY WATCHLIST
+            </h1>
+            <Link
+              href="/plot-passport"
+              className="mb-2 rounded-xl border border-ns-secondary/35 bg-ns-secondary/10 px-4 py-2 text-xs font-heading font-semibold text-ns-secondary transition-colors hover:bg-ns-secondary hover:text-ns-bg"
+            >
+              Open Plot Passport
+            </Link>
+          </div>
 
           {/* Stats row */}
           <div className="flex gap-6 mt-4">
