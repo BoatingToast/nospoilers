@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { ReviewWithMeta } from '@/services/reviews'
 import { WarningIcon, SpoilerFreeIcon } from '@/components/icons'
+import type { PlotPassportLevel } from '@/lib/plot-passport'
 
 interface Props {
   tmdbId:     number
@@ -24,11 +25,14 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
   const [title,       setTitle]       = useState(existing?.title ?? '')
   const [body,        setBody]        = useState(existing?.body ?? '')
   const [rating,      setRating]      = useState<number | ''>(existing?.rating ?? '')
-  const [hasSpoilers, setHasSpoilers] = useState(existing?.hasSpoilers ?? false)
+  const [spoilerLevel, setSpoilerLevel] = useState<PlotPassportLevel | 'auto'>(
+    existing?.spoilerLevel ?? 'auto',
+  )
   const [saving,      setSaving]      = useState(false)
   const [error,       setError]       = useState('')
 
   const isEdit = !!existing
+  const hasSpoilers = spoilerLevel === 'mid' || spoilerLevel === 'ending'
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -43,6 +47,7 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
       review:      body.trim(),
       rating:      rating !== '' ? Number(rating) : undefined,
       hasSpoilers,
+      spoilerLevel,
     }
 
     try {
@@ -68,6 +73,7 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
           id: '', userId: '', username: '', tmdbId, movieTitle,
           upvotes: 0, downvotes: 0, helpfulCount: 0, replyCount: 0,
           isFriend: false, viewerVotes: [], createdAt: new Date().toISOString(),
+          spoilerLevel: 'safe', viewerUnlocked: true, unlockAtProgress: 0, viewerProgress: 100,
         }),
         ...payload,
         title:   payload.title ?? null,
@@ -170,36 +176,43 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
             </div>
           </div>
 
-          {/* Spoiler toggle */}
-          <label className="flex items-center gap-2.5 cursor-pointer select-none ml-auto">
-            <div
-              onClick={() => setHasSpoilers(v => !v)}
-              className={`relative w-10 h-5 rounded-full transition-colors duration-200 flex-shrink-0 ${
-                hasSpoilers ? 'bg-amber-500' : 'bg-ns-border'
-              }`}
+          {/* Plot Passport boundary */}
+          <label className="flex items-center gap-2.5 ml-auto">
+            <span className="text-xs font-body text-ns-muted whitespace-nowrap">Safe to show</span>
+            <select
+              value={spoilerLevel}
+              onChange={e => setSpoilerLevel(e.target.value as PlotPassportLevel | 'auto')}
+              className="bg-ns-bg border border-ns-border rounded-lg px-2.5 py-1.5 text-xs font-body text-ns-text focus:outline-none focus:border-ns-secondary/50"
             >
-              <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${
-                hasSpoilers ? 'translate-x-5' : ''
-              }`} />
-            </div>
-            <span className={`text-xs font-body ${hasSpoilers ? 'text-amber-400' : 'text-ns-muted'}`}>
-              {hasSpoilers
-                ? <><WarningIcon size={12} className="inline-block mr-1 text-amber-400" />Contains spoilers</>
-                : <><SpoilerFreeIcon size={12} className="inline-block mr-1 text-ns-secondary" />Spoiler-free</>
-              }
-            </span>
+              <option value="auto">Auto-detect</option>
+              <option value="safe">For everyone</option>
+              <option value="mid">After halfway</option>
+              <option value="ending">After finishing</option>
+            </select>
           </label>
         </div>
 
-        {/* Spoiler notice */}
-        {hasSpoilers && (
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/8 border border-amber-500/20">
-            <WarningIcon size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
-            <p className="text-amber-300/80 text-xs font-body leading-relaxed">
-              Your review will be hidden behind a spoiler gate. Readers must tap to reveal it.
-            </p>
-          </div>
-        )}
+        {/* Plot Passport notice */}
+        <div className={`flex items-start gap-2 p-3 rounded-xl border ${
+          spoilerLevel === 'safe'
+            ? 'bg-emerald-500/8 border-emerald-500/20'
+            : 'bg-amber-500/8 border-amber-500/20'
+        }`}>
+          {spoilerLevel === 'safe'
+            ? <SpoilerFreeIcon size={14} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+            : <WarningIcon size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />}
+          <p className={`text-xs font-body leading-relaxed ${
+            spoilerLevel === 'safe' ? 'text-emerald-300/80' : 'text-amber-300/80'
+          }`}>
+            {spoilerLevel === 'auto'
+              ? 'Plot Passport will detect the earliest safe viewing point from your review and lock it for viewers who are not there yet.'
+              : spoilerLevel === 'safe'
+                ? 'Everyone can read this review, including people who have not started the movie.'
+                : spoilerLevel === 'mid'
+                  ? 'This review unlocks automatically when a viewer reaches 50%.'
+                  : 'This review unlocks automatically only after a viewer finishes the movie.'}
+          </p>
+        </div>
 
         {error && (
           <p className="text-rose-400 text-sm font-body">{error}</p>

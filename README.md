@@ -57,6 +57,15 @@ npm run dev
 
 Open http://localhost:3000
 
+### Chrome extension
+
+The standalone NoSpoilers Shield extension lives in [`extension/`](extension/README.md).
+It classifies page content on-device and hides likely spoilers for a user-managed
+movie/show list. No NoSpoilers backend or API key is required.
+
+To try it locally, open `chrome://extensions`, enable **Developer mode**, choose
+**Load unpacked**, and select the `extension` directory.
+
 ---
 
 ## Project Structure
@@ -106,6 +115,8 @@ nospoilers/
 | `npm run db:migrate` | Create & run a migration |
 | `npm run db:studio` | Open Prisma Studio at localhost:5555 |
 | `npm run db:generate` | Regenerate Prisma client after schema changes |
+| `npm run test:extension` | Run the extension classifier and manifest tests |
+| `npm run package:extension` | Validate and package the Chrome Web Store upload ZIP |
 
 ---
 

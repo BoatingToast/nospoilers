@@ -278,6 +278,10 @@ export interface WatchlistItemData {
   rewatchCount: number
   notes:       string | null
   watchedAt:   string | null
+  progressPercent: number
+  currentSeason: number | null
+  currentEpisode: number | null
+  passportUpdatedAt: string | null
   addedAt:     string
   matchScore:  number | null
   voteAverage: number | null
@@ -626,6 +630,8 @@ export interface SZMessageData {
   isDeleted:     boolean
   isTheory:      boolean
   spoilerLevel:  SpoilerLevel
+  viewerUnlocked: boolean
+  unlockAtProgress: number
   parentId:      string | null
   parentPreview: { id: string; username: string; content: string } | null
   isPinned:      boolean
