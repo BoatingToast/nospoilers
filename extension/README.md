@@ -48,6 +48,31 @@ From the repository root:
 npm run test:extension
 ```
 
+## Chrome Web Store release
+
+From the repository root, build the upload-ready ZIP:
+
+```bash
+npm run package:extension
+```
+
+Upload `dist/nospoilers-shield-latest.zip` in the Chrome Web Store Developer
+Dashboard. The command validates Manifest V3, runtime files, icon dimensions,
+and required store artwork before packaging. It keeps tests, source artwork,
+and listing notes out of the extension ZIP, with `manifest.json` at its root.
+
+Use these supporting files when completing the listing:
+
+- `store-listing.md` — descriptions, permission justifications, and privacy answers
+- `store-assets/icon-128.png` — store icon
+- `store-assets/screenshot-1280x800.png` — product screenshot
+- `store-assets/small-promo-440x280.png` — small promotional tile
+- `https://nospoilers-blush.vercel.app/privacy/extension` — public privacy policy
+
+Before every update, increment `version` in `manifest.json`, rerun the tests,
+and create a fresh package. The privacy URL will become public after the website
+changes containing that route are deployed.
+
 ## Current scope
 
 This first version intentionally uses a user-managed protected list. It does not
