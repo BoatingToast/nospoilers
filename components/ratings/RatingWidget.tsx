@@ -31,6 +31,14 @@ interface Props {
     title:       string
     posterPath:  string | null
     releaseDate: string | null
+    genreIds:    number[]
+    runtime:     number | null
+    voteAverage: number
+    voteCount:   number
+    popularity:  number
+    originalLanguage: string
+    budget:      number
+    keywords:    string[]
   }
 }
 
