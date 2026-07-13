@@ -16,17 +16,17 @@
  *     g. Release era    — golden-era films lean complex; modern blockbusters lean action
  *     h. Budget signal  — tentpoles lean action; micro-budget leans realism
  *
- * Results are cached in-process (Map<tmdbId, DNAScores>) so repeated page renders
- * in the same server process pay zero recomputation cost. The TMDb fetch layer
- * already caches raw API responses across requests via Next.js fetch caching.
+ * Results are cached in-process by the complete metadata payload. A movie first
+ * seen with partial metadata can therefore never poison a later, richer result.
+ * Cached objects are copied on read so user-specific refinements cannot leak
+ * into another user's calculation.
  */
 
 import type { DNAScores } from '@/types'
 import { FILM_SIGNATURES, GENRE_TRAIT_MAP } from './dna'
 
 // ─── In-process cache ─────────────────────────────────────────────────────────
-// Key: `${tmdbId}` — scores are deterministic from metadata so one entry per movie.
-const _cache = new Map<number, DNAScores>()
+const _cache = new Map<string, DNAScores>()
 
 // ─── Keyword → trait influence map ───────────────────────────────────────────
 // Each entry is a partial DNAScores delta added when the keyword is present.
@@ -172,11 +172,28 @@ export interface MovieVibeInput {
   budget?:           number
 }
 
+function cacheKey(movie: MovieVibeInput, keywords: string[]): string {
+  return [
+    movie.id,
+    movie.genres.map(genre => genre.id).sort((a, b) => a - b).join(','),
+    movie.runtime ?? '',
+    movie.vote_average,
+    movie.vote_count,
+    movie.popularity,
+    movie.release_date,
+    movie.original_language,
+    movie.budget ?? '',
+    [...keywords].sort().join(','),
+  ].join('|')
+}
+
 // ─── Main scoring function ────────────────────────────────────────────────────
 
 export function computeMovieVibe(movie: MovieVibeInput, keywords: string[] = []): DNAScores {
   // ── Cache hit ──────────────────────────────────────────────────────────────
-  if (_cache.has(movie.id)) return _cache.get(movie.id)!
+  const key = cacheKey(movie, keywords)
+  const cached = _cache.get(key)
+  if (cached) return { ...cached }
 
   // ── Baseline ──────────────────────────────────────────────────────────────
   const scores: DNAScores = {
@@ -194,8 +211,8 @@ export function computeMovieVibe(movie: MovieVibeInput, keywords: string[] = [])
   if (sig) {
     applyDelta(scores, sig)
     const result = finalise(scores)
-    _cache.set(movie.id, result)
-    return result
+    _cache.set(key, result)
+    return { ...result }
   }
 
   // ── Priority 2: computed from metadata ───────────────────────────────────
@@ -237,11 +254,11 @@ export function computeMovieVibe(movie: MovieVibeInput, keywords: string[] = [])
     applyDelta(scores, { emotionalImpactScore: 0.5 })
   } else if (va >= 7.5) {
     applyDelta(scores, { emotionalImpactScore: 0.4 })
+  } else if (va < 5.0) {
+    applyDelta(scores, { actionScore: 0.7, complexityScore: -0.7, humorScore: 0.3 })
   } else if (va < 6.0) {
     // Lower-rated films tend to be crowd-pleasing action/comedy rather than thoughtful
     applyDelta(scores, { actionScore: 0.4, complexityScore: -0.4 })
-  } else if (va < 5.0) {
-    applyDelta(scores, { actionScore: 0.7, complexityScore: -0.7, humorScore: 0.3 })
   }
 
   // 2e. Popularity (TMDb's own score, typically 0–1000+)
@@ -290,8 +307,8 @@ export function computeMovieVibe(movie: MovieVibeInput, keywords: string[] = [])
   }
 
   const result = finalise(scores)
-  _cache.set(movie.id, result)
-  return result
+  _cache.set(key, result)
+  return { ...result }
 }
 
 // ─── Returns the dimension key currently with the highest score ───────────────
@@ -316,7 +333,10 @@ function finalise(scores: DNAScores): DNAScores {
 // ─── Cache management ─────────────────────────────────────────────────────────
 /** Call this if you need to force a recalculation (e.g. after metadata update). */
 export function invalidateVibeCache(tmdbId: number) {
-  _cache.delete(tmdbId)
+  const prefix = `${tmdbId}|`
+  for (const key of _cache.keys()) {
+    if (key.startsWith(prefix)) _cache.delete(key)
+  }
 }
 
 /** Wipe the entire in-process cache (useful for tests). */
