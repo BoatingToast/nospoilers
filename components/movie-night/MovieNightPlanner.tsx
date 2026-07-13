@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
@@ -251,6 +252,7 @@ function PickCard({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
 }
 
 export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
+  const router = useRouter()
   const [sessionName, setSessionName] = useState('Friday Movie Night')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     () => new Set(seed.participants.slice(0, 5).map(p => p.id)),
@@ -261,6 +263,9 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
   const [avoidDivisive, setAvoidDivisive] = useState(false)
   const [vetoGenres, setVetoGenres] = useState<Set<number>>(() => new Set())
   const [copied, setCopied] = useState(false)
+  const [creatingRoom, setCreatingRoom] = useState(false)
+  const [liveError, setLiveError] = useState('')
+  const [joinCode, setJoinCode] = useState('')
 
   const selectedCount = selectedIds.size
   const hasFriends = seed.participants.some(p => !p.isViewer)
@@ -309,6 +314,58 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
     window.setTimeout(() => setCopied(false), 1600)
   }
 
+  async function startLiveRoom() {
+    if (ranked.length < 2 || creatingRoom) {
+      setLiveError('Choose filters that leave at least two movie picks.')
+      return
+    }
+
+    setCreatingRoom(true)
+    setLiveError('')
+    try {
+      const response = await fetch('/api/movie-night/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: sessionName,
+          mood,
+          maxRuntime: runtime === 'any' ? null : Number(runtime),
+          vetoGenres: [...vetoGenres],
+          unseenOnly,
+          avoidDivisive,
+          candidates: ranked.slice(0, 12).map(candidate => ({
+            tmdbId:      candidate.tmdbId,
+            title:       candidate.title,
+            posterPath:  candidate.posterPath,
+            releaseDate: candidate.releaseDate,
+            genreIds:    candidate.genreIds,
+            runtime:     candidate.runtime,
+            voteAverage: candidate.voteAverage,
+            groupFit:    candidate.displayScore,
+            explanation: candidate.groupReason,
+          })),
+        }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error ?? 'Could not start the live room')
+
+      window.localStorage.setItem(`nospoilers:movie-night:${data.code}`, data.token)
+      router.push(`/movie-night/${data.code}`)
+    } catch (cause) {
+      setLiveError(cause instanceof Error ? cause.message : 'Could not start the live room')
+      setCreatingRoom(false)
+    }
+  }
+
+  function openRoomByCode() {
+    const code = joinCode.trim().toUpperCase()
+    if (code.length < 4) {
+      setLiveError('Enter a valid room code.')
+      return
+    }
+    router.push(`/movie-night/${code}`)
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       <div className="mb-8 flex flex-col lg:flex-row lg:items-end justify-between gap-5">
@@ -338,6 +395,55 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
           </div>
         </div>
       </div>
+
+      <section className="relative overflow-hidden rounded-3xl border border-ns-secondary/30 bg-ns-surface mb-6">
+        <div className="absolute inset-0 bg-gradient-to-r from-ns-secondary/12 via-transparent to-ns-success/5 pointer-events-none" />
+        <div className="relative p-5 sm:p-7 flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-ns-secondary/10 border border-ns-secondary/30 flex items-center justify-center flex-shrink-0">
+              <FriendsIcon size={23} className="text-ns-secondary" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <h2 className="text-lg font-heading text-white">Make it a live vote</h2>
+                <Badge variant="success">New</Badge>
+              </div>
+              <p className="text-sm font-body text-ns-muted leading-relaxed max-w-xl">
+                Share a room, let everyone vote privately, and reveal the first movie the whole group wants to watch.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 xl:flex-shrink-0">
+            <div className="flex rounded-xl border border-ns-border bg-ns-surface-2 overflow-hidden focus-within:border-ns-secondary/50">
+              <input
+                value={joinCode}
+                onChange={event => setJoinCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
+                onKeyDown={event => { if (event.key === 'Enter') openRoomByCode() }}
+                placeholder="ROOM CODE"
+                aria-label="Room code"
+                className="w-32 bg-transparent px-3 py-2.5 text-sm font-display tracking-widest text-white placeholder:text-ns-muted/50 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={openRoomByCode}
+                className="px-3 text-xs font-body text-ns-muted border-l border-ns-border hover:text-white hover:bg-white/5 transition-colors"
+              >
+                Join
+              </button>
+            </div>
+            <Button onClick={startLiveRoom} loading={creatingRoom} disabled={ranked.length < 2} variant="primary">
+              <ShareIcon size={16} />
+              Start live room
+            </Button>
+          </div>
+        </div>
+        {liveError && (
+          <div className="relative border-t border-ns-danger/20 bg-ns-danger/5 px-5 sm:px-7 py-2.5 text-xs font-body text-ns-danger">
+            {liveError}
+          </div>
+        )}
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-6 items-start">
         <aside className="bg-ns-surface border border-ns-border rounded-2xl p-5 lg:sticky lg:top-24">

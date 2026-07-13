@@ -8,73 +8,73 @@ datasource db {
 }
 
 model User {
-  id                  String            @id @default(cuid())
-  email               String            @unique
+  id                  String   @id @default(cuid())
+  email               String   @unique
   password            String
-  username            String            @unique
-  onboardingCompleted Boolean           @default(false)
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  username            String   @unique
+  onboardingCompleted Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   // Profile customisation
-  avatarUrl           String?
-  displayName         String?
-  bio                 String?           @db.VarChar(500)
-  location            String?
-  favoriteDecade      String?
-  favoriteDirector    String?
-  favoriteActor       String?
-  twitterUrl          String?
-  letterboxdUrl       String?
-  instagramUrl        String?
+  avatarUrl        String?
+  displayName      String?
+  bio              String? @db.VarChar(500)
+  location         String?
+  favoriteDecade   String?
+  favoriteDirector String?
+  favoriteActor    String?
+  twitterUrl       String?
+  letterboxdUrl    String?
+  instagramUrl     String?
 
-  favoriteMovies      FavoriteMovie[]
-  onboardingMovies    OnboardingMovie[]
-  preferences         UserPreferences?
-  tasteProfile        TasteProfile?
-  recommendations     Recommendation[]
-  personality         UserPersonality?
+  favoriteMovies   FavoriteMovie[]
+  onboardingMovies OnboardingMovie[]
+  preferences      UserPreferences?
+  tasteProfile     TasteProfile?
+  recommendations  Recommendation[]
+  personality      UserPersonality?
 
   // Follow graph
-  following           UserFollow[]      @relation("Follower")
-  followers           UserFollow[]      @relation("Following")
+  following UserFollow[] @relation("Follower")
+  followers UserFollow[] @relation("Following")
 
   // Compatibility
-  compatibilityFrom   TasteCompatibility[] @relation("CompatibilityFrom")
-  compatibilityTo     TasteCompatibility[] @relation("CompatibilityTo")
+  compatibilityFrom TasteCompatibility[] @relation("CompatibilityFrom")
+  compatibilityTo   TasteCompatibility[] @relation("CompatibilityTo")
 
   // Activity + Wrapped
-  activityEvents      ActivityEvent[]
-  wrappedStats        WrappedStats[]
+  activityEvents ActivityEvent[]
+  wrappedStats   WrappedStats[]
 
   // Phase 5
-  watchlistItems      WatchlistItem[]
-  collections         Collection[]
-  achievements        UserAchievement[]
-  xpEvents            XPEvent[]
-  recFeedback         RecommendationFeedback[]
+  watchlistItems WatchlistItem[]
+  collections    Collection[]
+  achievements   UserAchievement[]
+  xpEvents       XPEvent[]
+  recFeedback    RecommendationFeedback[]
 
   // Phase 6: Ratings
-  movieRatings        MovieRating[]
+  movieRatings MovieRating[]
 
   // Phase 7: Collection community
-  collectionVotes     CollectionVote[]
+  collectionVotes CollectionVote[]
 
   // Phase 8: Friends
-  sentFriendRequests     FriendRequest[]  @relation("FriendRequestSender")
-  receivedFriendRequests FriendRequest[]  @relation("FriendRequestReceiver")
-  friendshipsAsA         Friendship[]     @relation("FriendshipUserA")
-  friendshipsAsB         Friendship[]     @relation("FriendshipUserB")
+  sentFriendRequests     FriendRequest[] @relation("FriendRequestSender")
+  receivedFriendRequests FriendRequest[] @relation("FriendRequestReceiver")
+  friendshipsAsA         Friendship[]    @relation("FriendshipUserA")
+  friendshipsAsB         Friendship[]    @relation("FriendshipUserB")
   privacy                UserPrivacy?
 
   // Phase 9: Reviews
-  reviews                Review[]
-  reviewVotes            ReviewVote[]
-  reviewReplies          ReviewReply[]
+  reviews       Review[]
+  reviewVotes   ReviewVote[]
+  reviewReplies ReviewReply[]
 
   // Phase 10: Top 5 Movies
-  topFiveMovies          TopFiveMovie[]
-  topFiveSnapshots       TopFiveSnapshot[]
+  topFiveMovies    TopFiveMovie[]
+  topFiveSnapshots TopFiveSnapshot[]
 
   // Spoiler Zone
   spoilerZoneMessages    SpoilerZoneMessage[]
@@ -83,10 +83,14 @@ model User {
   spoilerZoneMemberships SpoilerZoneMembership[]
 
   // Social
-  notificationsReceived  Notification[] @relation("NotificationRecipient")
-  notificationsSent      Notification[] @relation("NotificationActor")
-  activityLikes          ActivityLike[]
-  notificationPrefs      NotificationPreference?
+  notificationsReceived Notification[]          @relation("NotificationRecipient")
+  notificationsSent     Notification[]          @relation("NotificationActor")
+  activityLikes         ActivityLike[]
+  notificationPrefs     NotificationPreference?
+
+  // Movie Night Live
+  hostedMovieNightRooms  MovieNightRoom[]            @relation("MovieNightHost")
+  movieNightParticipants MovieNightRoomParticipant[] @relation("MovieNightParticipantUser")
 
   @@index([email])
   @@index([username])
@@ -136,22 +140,22 @@ model UserPreferences {
 }
 
 model TasteProfile {
-  id                   String   @id @default(cuid())
-  userId               String   @unique
-  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  suspenseScore        Float    @default(5)
-  emotionalImpactScore Float    @default(5)
-  complexityScore      Float    @default(5)
-  humorScore           Float    @default(5)
-  realismScore         Float    @default(5)
-  actionScore          Float    @default(5)
-  darknessScore        Float    @default(5)
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  suspenseScore        Float     @default(5)
+  emotionalImpactScore Float     @default(5)
+  complexityScore      Float     @default(5)
+  humorScore           Float     @default(5)
+  realismScore         Float     @default(5)
+  actionScore          Float     @default(5)
+  darknessScore        Float     @default(5)
   // Snapshot of previous DNA values — used for "Your Taste Is Evolving" widget
-  dnaSnapshot          Json?    // { suspenseScore, emotionalImpactScore, ... }
+  dnaSnapshot          Json? // { suspenseScore, emotionalImpactScore, ... }
   dnaSnapshotAt        DateTime?
-  ratingCount          Int      @default(0)  // how many ratings were used in last recalc
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  ratingCount          Int       @default(0) // how many ratings were used in last recalc
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 }
 
 model Recommendation {
@@ -166,7 +170,7 @@ model Recommendation {
   explanation String
   createdAt   DateTime @default(now())
 
-  feedback    RecommendationFeedback?
+  feedback RecommendationFeedback?
 
   @@unique([userId, tmdbId])
   @@index([userId, matchScore(sort: Desc)])
@@ -187,7 +191,7 @@ model UserPersonality {
 model UserFollow {
   id          String   @id @default(cuid())
   followerId  String
-  follower    User     @relation("Follower",  fields: [followerId],  references: [id], onDelete: Cascade)
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
   followingId String
   following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
@@ -200,9 +204,9 @@ model UserFollow {
 model TasteCompatibility {
   id           String   @id @default(cuid())
   userId       String
-  user         User     @relation("CompatibilityFrom", fields: [userId],       references: [id], onDelete: Cascade)
+  user         User     @relation("CompatibilityFrom", fields: [userId], references: [id], onDelete: Cascade)
   targetUserId String
-  target       User     @relation("CompatibilityTo",   fields: [targetUserId], references: [id], onDelete: Cascade)
+  target       User     @relation("CompatibilityTo", fields: [targetUserId], references: [id], onDelete: Cascade)
   score        Int
   reasons      Json
   insight      String
@@ -252,13 +256,13 @@ model WatchlistItem {
   runtime      Int?
   voteAverage  Float?
   status       String    @default("want_to_watch") // want_to_watch | watching | watched
-  rating       Int?      // 1-10 user rating (set when watched)
+  rating       Int? // 1-10 user rating (set when watched)
   rewatchCount Int       @default(0)
   notes        String?
   watchedAt    DateTime?
   addedAt      DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  matchScore   Int?      // from recommendation engine if added from there
+  matchScore   Int? // from recommendation engine if added from there
 
   @@unique([userId, tmdbId])
   @@index([userId, status])
@@ -272,16 +276,16 @@ model Collection {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title       String
   description String?
-  coverPath   String?  // poster_path of cover movie
+  coverPath   String? // poster_path of cover movie
   isPublic    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  movies      CollectionMovie[]
+  movies CollectionMovie[]
 
   // Phase 7: Community
-  votes       CollectionVote[]
-  analytics   CollectionAnalytics?
+  votes     CollectionVote[]
+  analytics CollectionAnalytics?
 
   @@index([userId])
   @@index([isPublic, createdAt(sort: Desc)])
@@ -296,7 +300,7 @@ model CollectionVote {
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   collectionId String
   collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  voteType     String     // "upvote" | "downvote"
+  voteType     String // "upvote" | "downvote"
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -312,8 +316,8 @@ model CollectionAnalytics {
   saves           Int        @default(0)
   upvotes         Int        @default(0)
   downvotes       Int        @default(0)
-  score           Int        @default(0)         // net score: upvotes - downvotes
-  popularityScore Float      @default(0)         // Wilson lower bound (0-100)
+  score           Int        @default(0) // net score: upvotes - downvotes
+  popularityScore Float      @default(0) // Wilson lower bound (0-100)
   updatedAt       DateTime   @updatedAt
 
   @@index([score(sort: Desc)])
@@ -330,7 +334,7 @@ model CollectionMovie {
   posterPath   String?
   releaseDate  String?
   addedAt      DateTime   @default(now())
-  position     Int        @default(0)   // manual sort order; lower = earlier
+  position     Int        @default(0) // manual sort order; lower = earlier
 
   @@unique([collectionId, tmdbId])
   @@index([collectionId])
@@ -338,15 +342,15 @@ model CollectionMovie {
 
 // Achievements (definitions live in code; only progress is stored)
 model UserAchievement {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  slug      String   // achievement slug
-  progress  Int      @default(0)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug      String // achievement slug
+  progress  Int       @default(0)
   goal      Int
-  earned    Boolean  @default(false)
+  earned    Boolean   @default(false)
   earnedAt  DateTime?
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime  @updatedAt
 
   @@unique([userId, slug])
   @@index([userId])
@@ -358,8 +362,8 @@ model XPEvent {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount    Int
-  reason    String   // 'watched_movie' | 'earned_achievement' | 'created_collection' | etc.
-  meta      Json?    // { movieTitle?, achievementName? }
+  reason    String // 'watched_movie' | 'earned_achievement' | 'created_collection' | etc.
+  meta      Json? // { movieTitle?, achievementName? }
   createdAt DateTime @default(now())
 
   @@index([userId, createdAt(sort: Desc)])
@@ -368,16 +372,16 @@ model XPEvent {
 // ─── Phase 6: Rating System ───────────────────────────────────────────────────
 
 model MovieRating {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tmdbId        Int
-  title         String
-  posterPath    String?
-  releaseDate   String?
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tmdbId      Int
+  title       String
+  posterPath  String?
+  releaseDate String?
 
   // Overall score (1-100)
-  score         Int
+  score Int
 
   // Dimension ratings (1-10 each, optional — descriptive metadata only, never affect score)
   storytelling  Int?
@@ -388,10 +392,10 @@ model MovieRating {
   suspense      Int?
 
   // Optional written review
-  review        String?
+  review String?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, tmdbId])
   @@index([userId, score(sort: Desc)])
@@ -404,7 +408,7 @@ model MovieRating {
 model FriendRequest {
   id         String   @id @default(cuid())
   senderId   String
-  sender     User     @relation("FriendRequestSender",   fields: [senderId],   references: [id], onDelete: Cascade)
+  sender     User     @relation("FriendRequestSender", fields: [senderId], references: [id], onDelete: Cascade)
   receiverId String
   receiver   User     @relation("FriendRequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
   status     String   @default("pending") // "pending" | "accepted" | "rejected"
@@ -450,9 +454,9 @@ model Review {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   tmdbId      Int
   movieTitle  String
-  title       String?  // optional headline
+  title       String? // optional headline
   body        String
-  rating      Int?     // 1-100, independent from MovieRating
+  rating      Int? // 1-100, independent from MovieRating
   hasSpoilers Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -471,7 +475,7 @@ model ReviewVote {
   review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String   // "upvote" | "downvote" | "helpful"
+  type      String // "upvote" | "downvote" | "helpful"
   createdAt DateTime @default(now())
 
   @@unique([reviewId, userId, type])
@@ -496,18 +500,18 @@ model ReviewReply {
 // ─── Phase 10: Top 5 Movies ──────────────────────────────────────────────────
 
 model TopFiveMovie {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   tmdbId      Int
   title       String
   posterPath  String?
   releaseDate String?
-  genreIds    Int[]    // stored for offline DNA calculation
-  position    Int      // 1-5
+  genreIds    Int[] // stored for offline DNA calculation
+  position    Int // 1-5
 
-  addedAt     DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  addedAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, position])
   @@unique([userId, tmdbId])
@@ -529,26 +533,26 @@ model TopFiveSnapshot {
 // ─── Spoiler Zone ─────────────────────────────────────────────────────────────
 
 model SpoilerZoneMessage {
-  id          String    @id @default(cuid())
-  tmdbId      Int
-  movieTitle  String
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content     String    @db.Text
-  editedAt    DateTime?
-  isDeleted   Boolean   @default(false)
-  isTheory    Boolean   @default(false)
-  parentId    String?
-  parent      SpoilerZoneMessage?  @relation("SZMReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  replies     SpoilerZoneMessage[] @relation("SZMReplies")
-  isPinned    Boolean   @default(false)
-  pinnedLabel String?
-  voteScore   Int       @default(0)
-  spoilerLevel String    @default("safe")   // "safe" | "mid" | "ending" | "theory" | "behind"
-  reactions   SpoilerZoneReaction[]
-  votes       SpoilerZoneVote[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id           String                @id @default(cuid())
+  tmdbId       Int
+  movieTitle   String
+  userId       String
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content      String                @db.Text
+  editedAt     DateTime?
+  isDeleted    Boolean               @default(false)
+  isTheory     Boolean               @default(false)
+  parentId     String?
+  parent       SpoilerZoneMessage?   @relation("SZMReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies      SpoilerZoneMessage[]  @relation("SZMReplies")
+  isPinned     Boolean               @default(false)
+  pinnedLabel  String?
+  voteScore    Int                   @default(0)
+  spoilerLevel String                @default("safe") // "safe" | "mid" | "ending" | "theory" | "behind"
+  reactions    SpoilerZoneReaction[]
+  votes        SpoilerZoneVote[]
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
 
   @@index([tmdbId, createdAt(sort: Desc)])
   @@index([tmdbId, voteScore(sort: Desc)])
@@ -560,17 +564,17 @@ model SpoilerZoneMessage {
 }
 
 model SpoilerZoneMembership {
-  id                   String   @id @default(cuid())
+  id                   String    @id @default(cuid())
   userId               String
-  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   tmdbId               Int
   movieTitle           String
   moviePoster          String?
-  lastSeenAt           DateTime @default(now())
-  createdAt            DateTime @default(now())
-  pinned               Boolean  @default(false)
+  lastSeenAt           DateTime  @default(now())
+  createdAt            DateTime  @default(now())
+  pinned               Boolean   @default(false)
   pinnedAt             DateTime?
-  notificationsEnabled Boolean  @default(true)
+  notificationsEnabled Boolean   @default(true)
 
   @@unique([userId, tmdbId])
   @@index([userId])
@@ -599,7 +603,7 @@ model SpoilerZoneVote {
   message   SpoilerZoneMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
   userId    String
   user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String             // "upvote" | "downvote"
+  type      String // "upvote" | "downvote"
   createdAt DateTime           @default(now())
 
   @@unique([messageId, userId])
@@ -614,7 +618,7 @@ model RecommendationFeedback {
   user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   recommendationId String         @unique
   recommendation   Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
-  feedback         String         // 'liked' | 'dismissed' | 'watched' | 'not_interested'
+  feedback         String // 'liked' | 'dismissed' | 'watched' | 'not_interested'
   createdAt        DateTime       @default(now())
 
   @@index([userId])
@@ -628,7 +632,7 @@ model Notification {
   recipientId String
   recipient   User     @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
   actorId     String
-  actor       User     @relation("NotificationActor",    fields: [actorId],    references: [id], onDelete: Cascade)
+  actor       User     @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
   type        String
   metadata    Json     @default("{}")
   read        Boolean  @default(false)
@@ -654,18 +658,101 @@ model ActivityLike {
 // ─── Notification Preferences ─────────────────────────────────────────────────
 // All default true — users can opt out of individual channels
 model NotificationPreference {
-  id                    String  @id @default(cuid())
-  userId                String  @unique
-  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  newFollowers          Boolean @default(true)
-  newFriends            Boolean @default(true)
-  friendActivity        Boolean @default(true)
-  collectionUpvotes     Boolean @default(true)
-  reviewReplies         Boolean @default(true)
-  achievementUnlocks    Boolean @default(true)
-  dnaUpdates            Boolean @default(true)
-  recsRefreshed         Boolean @default(true)
+  newFollowers       Boolean @default(true)
+  newFriends         Boolean @default(true)
+  friendActivity     Boolean @default(true)
+  collectionUpvotes  Boolean @default(true)
+  reviewReplies      Boolean @default(true)
+  achievementUnlocks Boolean @default(true)
+  dnaUpdates         Boolean @default(true)
+  recsRefreshed      Boolean @default(true)
 
   @@index([userId])
+}
+
+// ─── Movie Night Live ──────────────────────────────────────────────────────────────────────────
+
+model MovieNightRoom {
+  id                 String                      @id @default(cuid())
+  code               String                      @unique
+  hostId             String
+  host               User                        @relation("MovieNightHost", fields: [hostId], references: [id], onDelete: Cascade)
+  name               String
+  mood               String
+  maxRuntime         Int?
+  vetoGenres         Int[]
+  unseenOnly         Boolean                     @default(true)
+  avoidDivisive      Boolean                     @default(false)
+  status             String                      @default("voting") // voting | matched | closed
+  matchedCandidateId String?
+  matchedCandidate   MovieNightRoomCandidate?    @relation("MatchedCandidate", fields: [matchedCandidateId], references: [id], onDelete: SetNull)
+  participants       MovieNightRoomParticipant[]
+  candidates         MovieNightRoomCandidate[]   @relation("RoomCandidates")
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+  expiresAt          DateTime
+
+  @@index([hostId, createdAt(sort: Desc)])
+  @@index([code, status])
+  @@index([expiresAt])
+}
+
+model MovieNightRoomParticipant {
+  id          String           @id @default(cuid())
+  roomId      String
+  room        MovieNightRoom   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?            @relation("MovieNightParticipantUser", fields: [userId], references: [id], onDelete: SetNull)
+  displayName String
+  avatarUrl   String?
+  tokenHash   String           @unique
+  isHost      Boolean          @default(false)
+  votes       MovieNightVote[]
+  joinedAt    DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([roomId, userId])
+  @@index([roomId, joinedAt])
+  @@index([userId])
+}
+
+model MovieNightRoomCandidate {
+  id             String           @id @default(cuid())
+  roomId         String
+  room           MovieNightRoom   @relation("RoomCandidates", fields: [roomId], references: [id], onDelete: Cascade)
+  tmdbId         Int
+  title          String
+  posterPath     String?
+  releaseDate    String?
+  genreIds       Int[]
+  runtime        Int?
+  voteAverage    Float?
+  groupFit       Int
+  explanation    String
+  position       Int
+  votes          MovieNightVote[]
+  matchedInRooms MovieNightRoom[] @relation("MatchedCandidate")
+  createdAt      DateTime         @default(now())
+
+  @@unique([roomId, tmdbId])
+  @@index([roomId, position])
+}
+
+model MovieNightVote {
+  id            String                    @id @default(cuid())
+  participantId String
+  participant   MovieNightRoomParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  candidateId   String
+  candidate     MovieNightRoomCandidate   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  value         String // watch | maybe | pass
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@unique([participantId, candidateId])
+  @@index([candidateId, value])
+  @@index([participantId])
 }

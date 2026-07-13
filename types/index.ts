@@ -534,6 +534,47 @@ export interface MovieNightSeed {
   generatedAt:  string
 }
 
+export type MovieNightVoteValue = 'watch' | 'maybe' | 'pass'
+
+export interface MovieNightLiveParticipant {
+  id:          string
+  displayName: string
+  avatarUrl:   string | null
+  isHost:      boolean
+  voteCount:   number
+  finished:    boolean
+}
+
+export interface MovieNightLiveCandidate {
+  id:          string
+  tmdbId:      number
+  title:       string
+  posterPath:  string | null
+  releaseDate: string | null
+  genreIds:    number[]
+  runtime:     number | null
+  voteAverage: number | null
+  groupFit:    number
+  explanation: string
+  position:    number
+  voteCount:   number
+  myVote:      MovieNightVoteValue | null
+}
+
+export interface MovieNightLiveState {
+  code:            string
+  name:            string
+  mood:            string
+  status:          'voting' | 'matched' | 'closed'
+  expiresAt:       string
+  participantId:   string | null
+  participantCount: number
+  candidates:      MovieNightLiveCandidate[]
+  participants:    MovieNightLiveParticipant[]
+  matchedCandidate: MovieNightLiveCandidate | null
+  matchKind:       'unanimous' | 'consensus' | null
+}
+
 // ─── DNA Evolution + Rating-Based Recs ───────────────────────────────────────
 
 export interface DnaEvolution {
