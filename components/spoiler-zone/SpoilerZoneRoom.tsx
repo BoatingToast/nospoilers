@@ -172,11 +172,10 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
 
     ch
       // New message
-      .on('broadcast', { event: 'sz_message' }, ({ payload }: { payload: { message: SZMessageData } }) => {
-        setMessages(prev => {
-          if (prev.some(m => m.id === payload.message.id)) return prev
-          return [...prev, payload.message]
-        })
+      .on('broadcast', { event: 'sz_message' }, () => {
+        // Refetch so the API applies this viewer's Plot Passport boundary.
+        // A sender's realtime payload is intentionally never trusted for personalized unlocking.
+        void fetchMessages()
         setStats(s => ({ ...s, messageCount: s.messageCount + 1 }))
       })
       // Edit
@@ -230,7 +229,7 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
       void supabase.removeChannel(ch)
       channelRef.current = null
     }
-  }, [tmdbId, filter, session?.user?.name])
+  }, [tmdbId, filter, session?.user?.name, fetchMessages])
 
   const broadcastTyping = useCallback(() => {
     if (!channelRef.current || !session?.user?.name) return

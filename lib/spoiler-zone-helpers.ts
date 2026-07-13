@@ -6,6 +6,7 @@
  */
 
 import type { SZMessageData, SZReactionGroup, SpoilerLevel } from '@/types'
+import { canViewSpoilerLevel, requiredProgressForLevel } from '@/lib/plot-passport'
 
 export const VALID_SPOILER_LEVELS: SpoilerLevel[] = ['safe', 'mid', 'ending', 'theory', 'behind']
 
@@ -47,7 +48,13 @@ export type MsgRow = {
   parent?:     { id: string; user: { username: string }; content: string } | null
 }
 
-export function formatMessage(msg: MsgRow, currentUserId: string | null): SZMessageData {
+export function formatMessage(
+  msg: MsgRow,
+  currentUserId: string | null,
+  viewerProgress = 0,
+): SZMessageData {
+  const viewerUnlocked = msg.userId === currentUserId ||
+    canViewSpoilerLevel(msg.spoilerLevel, viewerProgress)
   return {
     id:            msg.id,
     tmdbId:        msg.tmdbId,
@@ -59,9 +66,15 @@ export function formatMessage(msg: MsgRow, currentUserId: string | null): SZMess
     isDeleted:     msg.isDeleted,
     isTheory:      msg.isTheory,
     spoilerLevel:  (msg.spoilerLevel ?? 'safe') as SZMessageData['spoilerLevel'],
+    viewerUnlocked,
+    unlockAtProgress: requiredProgressForLevel(msg.spoilerLevel),
     parentId:      msg.parentId,
     parentPreview: msg.parent
-      ? { id: msg.parent.id, username: msg.parent.user.username, content: msg.parent.content.slice(0, 120) }
+      ? {
+          id: msg.parent.id,
+          username: msg.parent.user.username,
+          content: viewerUnlocked ? msg.parent.content.slice(0, 120) : 'Locked by Plot Passport',
+        }
       : null,
     isPinned:      msg.isPinned,
     pinnedLabel:   msg.pinnedLabel,

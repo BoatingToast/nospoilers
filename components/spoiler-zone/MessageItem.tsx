@@ -201,7 +201,9 @@ export default function MessageItem({
   const [showEmoji, setShowEmoji]     = useState(false)
   const [showActions, setShowActions] = useState(false)
   const [collapsed, setCollapsed]     = useState(message.voteScore <= -5)
+  const [passportRevealed, setPassportRevealed] = useState(false)
   const isOwn = message.userId === currentUser
+  const passportLocked = !isOwn && !message.viewerUnlocked && !passportRevealed
 
   if (message.isDeleted) {
     return (
@@ -222,6 +224,34 @@ export default function MessageItem({
         >
           [Low-quality message — click to expand]
         </button>
+      </div>
+    )
+  }
+
+  if (passportLocked) {
+    return (
+      <div className="mx-4 my-2 rounded-xl border border-ns-secondary/20 bg-ns-secondary/5 px-4 py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-heading font-semibold text-ns-secondary">Locked by your Plot Passport</p>
+            <p className="mt-1 text-[11px] font-body text-ns-muted">
+              This {message.spoilerLevel === 'ending' ? 'ending discussion' : 'mid-movie discussion'} unlocks at {message.unlockAtProgress}% progress.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {currentUser && (
+              <Link href="/plot-passport" className="rounded-lg bg-ns-secondary px-3 py-1.5 text-[10px] font-heading font-semibold text-ns-bg">
+                Update progress
+              </Link>
+            )}
+            <button
+              onClick={() => setPassportRevealed(true)}
+              className="rounded-lg border border-ns-secondary/30 px-3 py-1.5 text-[10px] font-heading font-semibold text-ns-secondary hover:bg-ns-secondary/10"
+            >
+              Reveal anyway
+            </button>
+          </div>
+        </div>
       </div>
     )
   }

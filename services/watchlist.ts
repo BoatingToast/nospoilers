@@ -3,6 +3,7 @@ import { logActivity } from './activity'
 import { awardXP } from './xp'
 import { checkAndUpdateAchievements } from './achievements'
 import type { WatchlistItemData, WatchStatus } from '@/types'
+import { normalizeProgress, progressForStatus, statusForProgress } from '@/lib/plot-passport'
 
 // ─── Add / upsert ─────────────────────────────────────────────────────────────
 
@@ -28,8 +29,16 @@ export async function addToWatchlist(
       voteAverage: movie.voteAverage ?? null,
       matchScore:  movie.matchScore ?? null,
       status,
+      progressPercent: progressForStatus(status),
+      passportUpdatedAt: new Date(),
+      watchedAt: status === 'watched' ? new Date() : null,
     },
-    update: { status },
+    update: {
+      status,
+      progressPercent: progressForStatus(status),
+      passportUpdatedAt: new Date(),
+      watchedAt: status === 'watched' ? new Date() : null,
+    },
   })
 
   await logActivity(userId, 'added_to_watchlist' as any, { movieTitle: movie.title, status })
@@ -44,15 +53,47 @@ export async function addToWatchlist(
 export async function updateWatchlistItem(
   userId: string,
   tmdbId: number,
-  update: { status?: WatchStatus; rating?: number | null; notes?: string | null; rewatchCount?: number },
+  update: {
+    status?: WatchStatus
+    rating?: number | null
+    notes?: string | null
+    rewatchCount?: number
+    progressPercent?: number
+    currentSeason?: number | null
+    currentEpisode?: number | null
+  },
 ): Promise<WatchlistItemData> {
-  // Read existing BEFORE writing, so we know whether status is actually changing
-  const existing = update.status
-    ? await prisma.watchlistItem.findUnique({ where: { userId_tmdbId: { userId, tmdbId } } })
-    : null
+  const existing = await prisma.watchlistItem.findUnique({
+    where: { userId_tmdbId: { userId, tmdbId } },
+  })
+  if (!existing) throw new Error('Watchlist item not found')
 
   const data: Record<string, unknown> = { ...update, updatedAt: new Date() }
-  if (update.status === 'watched') data.watchedAt = new Date()
+  if (update.progressPercent !== undefined) {
+    const progress = normalizeProgress(update.progressPercent)
+    data.progressPercent = progress
+    data.status = statusForProgress(progress)
+  } else if (update.status) {
+    data.progressPercent = progressForStatus(update.status, existing.progressPercent)
+  }
+
+  if (update.currentSeason !== undefined) {
+    data.currentSeason = update.currentSeason === null ? null : Math.max(1, Math.round(update.currentSeason))
+  }
+  if (update.currentEpisode !== undefined) {
+    data.currentEpisode = update.currentEpisode === null ? null : Math.max(1, Math.round(update.currentEpisode))
+  }
+
+  const nextStatus = (data.status ?? existing.status) as string
+  if (nextStatus === 'watched') {
+    data.watchedAt = existing.watchedAt ?? new Date()
+  } else if (existing.status === 'watched') {
+    data.watchedAt = null
+  }
+  if (update.status !== undefined || update.progressPercent !== undefined ||
+      update.currentSeason !== undefined || update.currentEpisode !== undefined) {
+    data.passportUpdatedAt = new Date()
+  }
 
   // Write to DB first — achievement progress calculators query the DB,
   // so the row must already reflect the new status before we check.
@@ -62,10 +103,10 @@ export async function updateWatchlistItem(
   })
 
   // Now run side-effects that depend on the new DB state
-  if (update.status === 'watched' && existing?.status !== 'watched') {
-    await awardXP(userId, 25, 'watched_movie', { movieTitle: existing?.title ?? item.title })
+  if (nextStatus === 'watched' && existing.status !== 'watched') {
+    await awardXP(userId, 25, 'watched_movie', { movieTitle: existing.title ?? item.title })
     await checkAndUpdateAchievements(userId, 'watched_movie')
-    await logActivity(userId, 'watched_movie' as any, { movieTitle: existing?.title ?? item.title, tmdbId })
+    await logActivity(userId, 'watched_movie' as any, { movieTitle: existing.title ?? item.title, tmdbId })
   }
 
   return toData(item)
@@ -81,10 +122,10 @@ export async function removeFromWatchlist(userId: string, tmdbId: number): Promi
 
 export async function getWatchlist(
   userId: string,
-  opts: { status?: WatchStatus; sortBy?: string } = {},
+  opts: { status?: WatchStatus | 'all'; sortBy?: string } = {},
 ): Promise<WatchlistItemData[]> {
   const where: Record<string, unknown> = { userId }
-  if (opts.status) where.status = opts.status
+  if (opts.status && opts.status !== 'all') where.status = opts.status
 
   let orderBy: Record<string, string> = { addedAt: 'desc' }
   if (opts.sortBy === 'title')      orderBy = { title: 'asc' }
@@ -122,6 +163,8 @@ function toData(item: {
   id: string; tmdbId: number; title: string; posterPath: string | null
   releaseDate: string | null; status: string; rating: number | null
   rewatchCount: number; notes: string | null; watchedAt: Date | null
+  progressPercent: number; currentSeason: number | null; currentEpisode: number | null
+  passportUpdatedAt: Date | null
   addedAt: Date; matchScore: number | null; voteAverage: number | null
   genreIds: number[]
 }): WatchlistItemData {
@@ -136,6 +179,10 @@ function toData(item: {
     rewatchCount: item.rewatchCount,
     notes:       item.notes,
     watchedAt:   item.watchedAt?.toISOString() ?? null,
+    progressPercent: item.progressPercent,
+    currentSeason: item.currentSeason,
+    currentEpisode: item.currentEpisode,
+    passportUpdatedAt: item.passportUpdatedAt?.toISOString() ?? null,
     addedAt:     item.addedAt.toISOString(),
     matchScore:  item.matchScore,
     voteAverage: item.voteAverage,

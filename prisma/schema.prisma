@@ -260,6 +260,12 @@ model WatchlistItem {
   rewatchCount Int       @default(0)
   notes        String?
   watchedAt    DateTime?
+  // Plot Passport: 0 = not started, 1-99 = in progress, 100 = finished.
+  // Episode coordinates are optional so the same passport can grow into TV tracking.
+  progressPercent   Int       @default(0)
+  currentSeason     Int?
+  currentEpisode    Int?
+  passportUpdatedAt DateTime?
   addedAt      DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   matchScore   Int? // from recommendation engine if added from there
@@ -470,6 +476,7 @@ model Review {
   body        String
   rating      Int? // 1-100, independent from MovieRating
   hasSpoilers Boolean  @default(false)
+  spoilerLevel String  @default("safe") // safe | mid | ending
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

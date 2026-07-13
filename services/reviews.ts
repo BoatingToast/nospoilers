@@ -2,6 +2,12 @@ import { prisma } from '@/lib/db'
 import { recalcTasteProfile } from './ratings'
 import { analyzeReviewTraits } from './dna-v2'
 import type { DNAScores } from '@/types'
+import {
+  canViewSpoilerLevel,
+  classifySpoilerBoundary,
+  requiredProgressForLevel,
+  type PlotPassportLevel,
+} from '@/lib/plot-passport'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -15,6 +21,10 @@ export interface ReviewWithMeta {
   body:        string
   rating:      number | null
   hasSpoilers: boolean
+  spoilerLevel: PlotPassportLevel
+  viewerUnlocked: boolean
+  unlockAtProgress: number
+  viewerProgress: number
   createdAt:   string
   updatedAt:   string
   upvotes:     number
@@ -58,8 +68,14 @@ export async function createReview(
     title?:      string
     rating?:     number
     hasSpoilers?: boolean
+    spoilerLevel?: PlotPassportLevel | 'auto'
   } = {},
 ): Promise<{ id: string }> {
+  const spoilerLevel = classifySpoilerBoundary(
+    `${opts.title ?? ''} ${body}`,
+    opts.spoilerLevel === 'auto' ? undefined : opts.spoilerLevel,
+    opts.hasSpoilers,
+  )
   const review = await prisma.review.create({
     data: {
       userId,
@@ -68,7 +84,8 @@ export async function createReview(
       body,
       title:       opts.title      ?? null,
       rating:      opts.rating     ?? null,
-      hasSpoilers: opts.hasSpoilers ?? false,
+      hasSpoilers: spoilerLevel !== 'safe',
+      spoilerLevel,
     },
   })
 
@@ -87,15 +104,26 @@ export async function updateReview(
     body?:       string
     rating?:     number | null
     hasSpoilers?: boolean
+    spoilerLevel?: PlotPassportLevel | 'auto'
   },
 ): Promise<void> {
+  const existing = await prisma.review.findFirst({ where: { id: reviewId, userId } })
+  if (!existing) return
+  const nextBody = updates.body ?? existing.body
+  const nextTitle = updates.title === undefined ? existing.title : updates.title
+  const spoilerLevel = classifySpoilerBoundary(
+    `${nextTitle ?? ''} ${nextBody}`,
+    updates.spoilerLevel === 'auto' ? undefined : updates.spoilerLevel ?? existing.spoilerLevel,
+    updates.hasSpoilers ?? existing.hasSpoilers,
+  )
   await prisma.review.updateMany({
     where: { id: reviewId, userId },
     data:  {
       ...(updates.title      !== undefined && { title:       updates.title }),
       ...(updates.body       !== undefined && { body:        updates.body }),
       ...(updates.rating     !== undefined && { rating:      updates.rating }),
-      ...(updates.hasSpoilers !== undefined && { hasSpoilers: updates.hasSpoilers }),
+      hasSpoilers: spoilerLevel !== 'safe',
+      spoilerLevel,
     },
   })
 
@@ -121,6 +149,14 @@ export async function getMovieReviews(
   limit        = 20,
   cursor?:     string,
 ): Promise<ReviewWithMeta[]> {
+  const viewerPassport = viewerId
+    ? await prisma.watchlistItem.findUnique({
+        where: { userId_tmdbId: { userId: viewerId, tmdbId } },
+        select: { progressPercent: true },
+      })
+    : null
+  const viewerProgress = viewerPassport?.progressPercent ?? 0
+
   // Build orderBy based on sort mode
   // For computed sorts we'll fetch more and sort in memory
   const isComputedSort = sort === 'helpful' || sort === 'popular' || sort === 'top' || sort === 'friends'
@@ -170,6 +206,10 @@ export async function getMovieReviews(
       body:        row.body,
       rating:      row.rating,
       hasSpoilers: row.hasSpoilers,
+      spoilerLevel: row.spoilerLevel as PlotPassportLevel,
+      viewerUnlocked: row.userId === viewerId || canViewSpoilerLevel(row.spoilerLevel, viewerProgress),
+      unlockAtProgress: requiredProgressForLevel(row.spoilerLevel),
+      viewerProgress,
       createdAt:   row.createdAt.toISOString(),
       updatedAt:   row.updatedAt.toISOString(),
       upvotes,
@@ -248,6 +288,10 @@ export async function getUserReviewForMovie(
     body:        row.body,
     rating:      row.rating,
     hasSpoilers: row.hasSpoilers,
+    spoilerLevel: row.spoilerLevel as PlotPassportLevel,
+    viewerUnlocked: true,
+    unlockAtProgress: requiredProgressForLevel(row.spoilerLevel),
+    viewerProgress: 100,
     createdAt:   row.createdAt.toISOString(),
     updatedAt:   row.updatedAt.toISOString(),
     upvotes:     row.votes.filter(v => v.type === 'upvote').length,
