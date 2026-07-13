@@ -33,7 +33,8 @@ export async function POST(req: Request) {
   const {
     tmdbId, title, posterPath, releaseDate, score,
     storytelling, characters, entertainment, emotion, complexity, suspense,
-    review,
+    review, genreIds, runtime, voteAverage, voteCount, popularity,
+    originalLanguage, budget, keywords,
   } = body
 
   if (!tmdbId || typeof score !== 'number' || score < 1 || score > 100) {
@@ -62,6 +63,14 @@ export async function POST(req: Request) {
     score,
     storytelling, characters, entertainment, emotion, complexity, suspense,
     review,
+    genreIds: Array.isArray(genreIds) ? genreIds.filter(Number.isInteger) : undefined,
+    runtime: typeof runtime === 'number' ? runtime : null,
+    voteAverage: typeof voteAverage === 'number' ? voteAverage : null,
+    voteCount: typeof voteCount === 'number' ? voteCount : null,
+    popularity: typeof popularity === 'number' ? popularity : null,
+    originalLanguage: typeof originalLanguage === 'string' ? originalLanguage : null,
+    budget: typeof budget === 'number' ? budget : null,
+    keywords: Array.isArray(keywords) ? keywords.filter((value): value is string => typeof value === 'string') : undefined,
   })
 
   return NextResponse.json({ rating })

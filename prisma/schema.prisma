@@ -380,6 +380,18 @@ model MovieRating {
   posterPath  String?
   releaseDate String?
 
+  // Cached TMDb evidence used by deterministic Movie DNA recalculation.
+  // Version 0 marks legacy rows that should be hydrated on their next recalc.
+  genreIds           Int[]    @default([])
+  runtime            Int?
+  voteAverage        Float?
+  voteCount          Int?
+  popularity         Float?
+  originalLanguage   String?
+  budget             Int?
+  keywords           String[] @default([])
+  dnaMetadataVersion Int      @default(0)
+
   // Overall score (1-100)
   score Int
 
