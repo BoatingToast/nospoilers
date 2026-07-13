@@ -116,6 +116,7 @@ nospoilers/
 | `npm run db:studio` | Open Prisma Studio at localhost:5555 |
 | `npm run db:generate` | Regenerate Prisma client after schema changes |
 | `npm run test:extension` | Run the extension classifier and manifest tests |
+| `npm run package:extension` | Validate and package the Chrome Web Store upload ZIP |
 
 ---
 
