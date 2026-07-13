@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NoSpoilers Shield</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">NS</span>
+          <div>
+            <p class="eyebrow">NoSpoilers</p>
+            <h1>Shield</h1>
+          </div>
+        </div>
+
+        <label class="switch" title="Enable or disable spoiler protection everywhere">
+          <input id="enabled" type="checkbox" aria-label="Enable spoiler protection">
+          <span class="switch-track"><span class="switch-thumb"></span></span>
+        </label>
+      </header>
+
+      <section class="site-card" aria-live="polite">
+        <div class="site-status">
+          <span id="statusDot" class="status-dot"></span>
+          <div>
+            <strong id="siteLabel">Checking this page…</strong>
+            <small id="blockStatus">No spoilers hidden yet</small>
+          </div>
+        </div>
+        <button id="revealAll" class="text-button" type="button" disabled>Reveal all</button>
+      </section>
+
+      <section class="section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Protected list</p>
+            <h2>What are you avoiding?</h2>
+          </div>
+          <span id="titleCount" class="count">0</span>
+        </div>
+
+        <form id="titleForm" class="add-form">
+          <input
+            id="titleInput"
+            type="text"
+            maxlength="120"
+            autocomplete="off"
+            placeholder="Movie or show title"
+            aria-label="Movie or show title"
+          >
+          <button type="submit" aria-label="Add protected title">Add</button>
+        </form>
+
+        <div id="emptyState" class="empty-state">
+          <span aria-hidden="true">◎</span>
+          <p>Add a title to start hiding likely spoilers.</p>
+        </div>
+        <ul id="titleList" class="title-list" aria-label="Protected titles"></ul>
+      </section>
+
+      <section class="section controls">
+        <div class="control-row">
+          <label for="sensitivity">
+            <span>Sensitivity</span>
+            <small>How aggressively mentions are hidden</small>
+          </label>
+          <select id="sensitivity">
+            <option value="relaxed">Relaxed</option>
+            <option value="balanced">Balanced</option>
+            <option value="strict">Strict</option>
+          </select>
+        </div>
+
+        <label class="control-row generic-row" for="genericSpoilers">
+          <span>
+            <span>Generic spoiler phrases</span>
+            <small>Hide strong warnings even without a listed title</small>
+          </span>
+          <input id="genericSpoilers" type="checkbox">
+        </label>
+
+        <button id="pauseSite" class="site-button" type="button">
+          Pause on this site
+        </button>
+      </section>
+
+      <footer>
+        Detection happens on your device. Page content is never uploaded.
+      </footer>
+    </main>
+
+    <script src="shared.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
