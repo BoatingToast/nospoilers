@@ -92,6 +92,9 @@ model User {
   hostedMovieNightRooms  MovieNightRoom[]            @relation("MovieNightHost")
   movieNightParticipants MovieNightRoomParticipant[] @relation("MovieNightParticipantUser")
 
+  // External taste/history imports (Letterboxd, IMDb)
+  importBatches ImportBatch[]
+
   @@index([email])
   @@index([username])
 }
@@ -274,6 +277,29 @@ model WatchlistItem {
   @@index([userId, status])
   @@index([userId, addedAt(sort: Desc)])
   @@index([userId, watchedAt(sort: Desc)])
+}
+
+// A server-validated import preview and its eventual commit summary. The
+// preview payload is retained so users can inspect what a previous import did
+// without trusting movie metadata posted back from the browser.
+model ImportBatch {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source        String
+  fileName      String
+  status        String    @default("previewed") // previewed | completed | failed
+  totalRows     Int       @default(0)
+  matchedRows   Int       @default(0)
+  conflictRows  Int       @default(0)
+  unmatchedRows Int       @default(0)
+  payload       Json?
+  summary       Json?
+  createdAt     DateTime  @default(now())
+  completedAt   DateTime?
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, status])
 }
 
 model Collection {

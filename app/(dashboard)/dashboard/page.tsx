@@ -89,6 +89,23 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {user._count.movieRatings < 5 && (
+        <div className="rounded-2xl border border-ns-secondary/25 bg-gradient-to-r from-ns-secondary/10 to-transparent p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p className="text-sm font-heading font-semibold text-ns-text">Unlock better recommendations</p>
+            <p className="mt-1 text-xs font-body leading-relaxed text-ns-muted">
+              Import your Letterboxd or IMDb history to build a richer Movie DNA instantly.
+            </p>
+          </div>
+          <Link
+            href="/settings/data"
+            className="mt-4 inline-flex rounded-xl bg-ns-secondary px-4 py-2 text-xs font-body font-semibold text-ns-bg transition-colors hover:bg-amber-300 sm:mt-0 sm:flex-shrink-0"
+          >
+            Import my taste
+          </Link>
+        </div>
+      )}
+
       {/* Watchlist preview */}
       <WatchlistPreview />
 
