@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken }                   from 'next-auth/jwt'
+import { getToken }                   from '@/lib/get-auth-token'
 import { prisma }                     from '@/lib/db'
 
 export async function GET(

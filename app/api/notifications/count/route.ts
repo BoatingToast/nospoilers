@@ -1,7 +1,7 @@
 /** GET /api/notifications/count — unread count only (lightweight navbar poll) */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken }                   from 'next-auth/jwt'
+import { getToken }                   from '@/lib/get-auth-token'
 import { getUnreadCount }             from '@/services/notifications'
 
 export async function GET(req: NextRequest) {
