@@ -186,7 +186,7 @@ export default function Navbar() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-ns-bg/90 backdrop-blur-md border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 relative flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
 
           {/* Logo */}
           <Link
@@ -196,9 +196,9 @@ export default function Navbar() {
             NOSPOILERS
           </Link>
 
-          {/* Desktop nav — absolutely centered */}
+          {/* Desktop nav — shares space with logo and right controls so it can't overlap them */}
           <nav
-            className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2"
+            className="hidden md:flex items-center gap-8 flex-1 min-w-0 justify-center"
             aria-label="Main navigation"
           >
             {visibleLinks.map(link => {
@@ -241,7 +241,7 @@ export default function Navbar() {
           </nav>
 
           {/* Right — search + profile dropdown / auth */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
 
             {/* Search */}
             <div className="hidden md:block">
