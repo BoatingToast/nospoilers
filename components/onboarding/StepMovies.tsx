@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { tmdbImageUrl, formatYear } from '@/lib/utils'
 import Button from '@/components/ui/Button'
 import type { TMDbMovie } from '@/types'
+import TasteImport from '@/components/settings/TasteImport'
 
 export interface SelectedMovie {
   tmdbId:      number
@@ -30,6 +31,7 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
   const [open,      setOpen]      = useState(false)
   const [searching, setSearching] = useState(false)
   const [searchErr, setSearchErr] = useState<string | null>(null)
+  const [showImport, setShowImport] = useState(false)
   const inputRef   = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const timerRef   = useRef<ReturnType<typeof setTimeout>>()
@@ -104,6 +106,27 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
         <p className="text-ns-muted font-body text-sm">
           Search for and select {MIN}–{MAX} movies you love. These shape your entire Movie DNA.
         </p>
+      </div>
+
+      <div className="mb-6">
+        <button
+          type="button"
+          onClick={() => setShowImport(value => !value)}
+          className="w-full rounded-2xl border border-ns-secondary/25 bg-ns-secondary/5 px-5 py-4 text-left transition-colors hover:border-ns-secondary/45 hover:bg-ns-secondary/10"
+        >
+          <span className="block text-sm font-body font-semibold text-ns-secondary">Already use Letterboxd or IMDb?</span>
+          <span className="mt-1 block text-xs font-body text-ns-muted">Import your history and we&apos;ll suggest favorites from your highest ratings.</span>
+        </button>
+        {showImport && (
+          <div className="mt-3">
+            <TasteImport
+              compact
+              onImported={favorites => {
+                setSelected(favorites.slice(0, MAX))
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Search input */}

@@ -17,6 +17,7 @@ import {
   AchievementsIcon,
   ClapperboardIcon,
   LockIcon,
+  SettingsIcon,
   CloseIcon,
   ArrowRightIcon,
   type IconProps,
@@ -55,6 +56,7 @@ const DROPDOWN_ITEMS: DropdownItem[] = [
   { href: '/friends',           label: 'Friends',          Icon: FriendsIcon      },
   { href: '/achievements',      label: 'Achievements',     Icon: AchievementsIcon },
   { href: '/settings/profile',  label: 'Edit Profile',     Icon: LockIcon         },
+  { href: '/settings/data',     label: 'Import & Export',  Icon: SettingsIcon     },
   { href: '/settings/privacy',  label: 'Privacy Settings', Icon: LockIcon         },
 ]
 

@@ -74,6 +74,15 @@ export async function searchMovies(query: string, page = 1): Promise<TMDbSearchR
   return tmdbFetch('/search/movie', { query, page: String(page), include_adult: 'false' })
 }
 
+export async function findMovieByImdbId(imdbId: string): Promise<TMDbMovie | null> {
+  const data = await tmdbFetch<{ movie_results?: TMDbMovie[] }>(
+    `/find/${encodeURIComponent(imdbId)}`,
+    { external_source: 'imdb_id' },
+    86400,
+  )
+  return data.movie_results?.[0] ?? null
+}
+
 export async function searchMulti(query: string): Promise<TMDbMultiSearchResponse> {
   return tmdbFetch('/search/multi', { query, include_adult: 'false' }, 60)
 }
