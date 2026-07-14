@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse }    from 'next/server'
-import { getToken }                      from 'next-auth/jwt'
+import { getToken }                      from '@/lib/get-auth-token'
 import { generateRecommendations }       from '@/services/recommendations'
 import { notifyRecsRefreshed }           from '@/services/notifications'
 

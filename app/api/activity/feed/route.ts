@@ -1,7 +1,7 @@
 /** GET /api/activity/feed — social feed for the current user */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken }                   from 'next-auth/jwt'
+import { getToken }                   from '@/lib/get-auth-token'
 import { getFriendsFeed }             from '@/services/friends-feed'
 
 export async function GET(req: NextRequest) {

@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken }                   from 'next-auth/jwt'
+import { getToken }                   from '@/lib/get-auth-token'
 import { getNotifications, getUnreadCount, markAllRead, markOneRead } from '@/services/notifications'
 
 export async function GET(req: NextRequest) {
