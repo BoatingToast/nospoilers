@@ -7,6 +7,7 @@ import { tmdbImageUrl, formatYear } from '@/lib/utils'
 import AddToCollectionButton from '@/components/collections/AddToCollectionButton'
 import type { WatchlistItemData, WatchStatus } from '@/types'
 import { FilmIcon, ArrowRightIcon } from '@/components/icons'
+import WatchlistRoulette from './WatchlistRoulette'
 
 interface Props {
   initialItems:   WatchlistItemData[]
@@ -80,6 +81,8 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
 
   return (
     <div>
+      <WatchlistRoulette movies={items.filter(item => item.status === 'want_to_watch')} />
+
       {/* Filters + Sort */}
       <div className="flex flex-wrap gap-3 items-center justify-between mb-6">
         <div className="flex gap-2 flex-wrap">
