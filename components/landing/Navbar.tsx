@@ -23,7 +23,7 @@ import {
   type IconProps,
 } from '@/components/icons'
 
-// ─── Primary nav (4 items max) ───────────────────────────────────────────────
+// ─── Primary nav ─────────────────────────────────────────────────────────────
 
 interface NavLink {
   href:         string
@@ -33,6 +33,7 @@ interface NavLink {
 }
 
 const NAV_LINKS: NavLink[] = [
+  { href: '/dashboard',          label: 'Dashboard',   authRequired: true  },
   { href: '/discover',           label: 'Discover',    authRequired: false },
   { href: '/collections',        label: 'Collections', authRequired: false },
   { href: '/my-recommendations', label: 'Recs',        authRequired: true, highlight: true },
