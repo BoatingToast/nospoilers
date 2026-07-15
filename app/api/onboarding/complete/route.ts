@@ -45,8 +45,16 @@ export async function POST(req: Request) {
       data:  { onboardingCompleted: true },
     }),
   ])
-  await ensureTopFiveFromOnboarding(session.user.id)
-  await recalcTasteProfile(session.user.id)
+  // The questionnaire DNA above is the source of truth for completing
+  // onboarding. These derived-data refreshes improve the finished profile,
+  // but a stale schema or transient dependency failure must not strand the
+  // user on the final step after onboardingCompleted has already been saved.
+  await ensureTopFiveFromOnboarding(session.user.id).catch(error => {
+    console.error('Failed to seed Top 5 during onboarding completion:', error)
+  })
+  await recalcTasteProfile(session.user.id).catch(error => {
+    console.error('Failed to refresh Movie DNA during onboarding completion:', error)
+  })
 
   const finalProfile = await prisma.tasteProfile.findUnique({
     where: { userId: session.user.id },
