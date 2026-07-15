@@ -39,6 +39,7 @@ export default function OnboardingPage() {
   }
 
   async function handleComplete(preferences: PreferenceAnswers) {
+    let navigationStarted = false
     setLoading(true)
     setError('')
     try {
@@ -48,16 +49,21 @@ export default function OnboardingPage() {
         body:    JSON.stringify({ genres, preferences }),
       })
       if (!res.ok) {
-        const data = await res.json()
-        setError(data.error ?? 'Something went wrong.')
+        const data = await res.json().catch(() => null) as { error?: string } | null
+        setError(data?.error ?? 'We couldn\'t generate your Movie DNA. Please try again.')
         return
       }
-      // Update the JWT so middleware knows onboarding is done
-      await update({ onboardingCompleted: true })
-      router.push('/dashboard')
+      // Keep the client session in sync before showing the dashboard.
+      await update({ onboardingCompleted: true }).catch(() => null)
+      navigationStarted = true
+      router.replace('/dashboard')
       router.refresh()
+    } catch {
+      setError('We couldn\'t generate your Movie DNA. Check your connection and try again.')
     } finally {
-      setLoading(false)
+      // On success, leave loading latched until navigation unmounts this page.
+      // Only restore the button when the request itself failed.
+      if (!navigationStarted) setLoading(false)
     }
   }
 
