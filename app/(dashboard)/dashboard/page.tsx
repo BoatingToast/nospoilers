@@ -15,6 +15,7 @@ import DashboardNextFavorite from '@/components/recommendations/DashboardNextFav
 import RecAccuracyWidget    from '@/components/recommendations/RecAccuracyWidget'
 import DnaEvolutionWidget   from '@/components/dashboard/DnaEvolutionWidget'
 import DashboardTabs        from '@/components/dashboard/DashboardTabs'
+import QuickActions         from '@/components/dashboard/QuickActions'
 import YourSpoilerZones        from '@/components/dashboard/YourSpoilerZones'
 import FriendsActivityWidget   from '@/components/dashboard/FriendsActivityWidget'
 import DashboardFriendsCard    from '@/components/dashboard/DashboardFriendsCard'
@@ -105,6 +106,12 @@ export default async function DashboardPage() {
           </Link>
         </div>
       )}
+
+      <QuickActions
+        ratingsCount={user._count.movieRatings}
+        watchlistCount={user._count.watchlistItems}
+        friendCount={friendCount}
+      />
 
       {/* Watchlist preview */}
       <WatchlistPreview />
