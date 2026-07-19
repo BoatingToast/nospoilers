@@ -23,7 +23,14 @@ interface QuickAction {
   Icon: ComponentType<IconProps>
 }
 
+
+
 // CHUNK 1 — QUICK ACTION SETUP AND PERSONALIZED COUNTS
+
+
+
+
+
 
 function buildQuickActions({
   ratingsCount,
@@ -62,7 +69,14 @@ function buildQuickActions({
   ]
 }
 
-// CHUNK 2 — REUSABLE ACTION CARD
+
+
+
+
+
+
+
+
 
 function QuickActionCard({ href, label, description, status, Icon }: QuickAction) {
   return (
@@ -96,7 +110,11 @@ function QuickActionCard({ href, label, description, status, Icon }: QuickAction
   )
 }
 
-// CHUNK 3 — RESPONSIVE DASHBOARD LAUNCHER
+
+
+
+
+
 
 export default function QuickActions(props: QuickActionsProps) {
   const actions = buildQuickActions(props)

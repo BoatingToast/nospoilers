@@ -503,6 +503,17 @@ export function PlusIcon(props: IconProps) {
   )
 }
 
+// Upload a creator-owned film
+export function UploadMovieIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M8 4 V7 M12 4 V7 M16 4 V7 M8 17 V20 M12 17 V20 M16 17 V20" />
+      <path d="M12 15 V9 M9.5 11.5 L12 9 L14.5 11.5" />
+    </Svg>
+  )
+}
+
 // Close / X
 export function CloseIcon(props: IconProps) {
   return (

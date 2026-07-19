@@ -32,7 +32,7 @@ export default function WatchlistRoulette({ movies }: Props) {
     const unpicked = movies.filter(movie => movie.tmdbId !== selectedMovie?.tmdbId)
     const choices = unpicked.length > 0 ? unpicked : movies
 
-    if (choices.length === 0) return
+    if (choices.length ===   0) return
 
     setIsOpen(true)
     setIsPicking(true)

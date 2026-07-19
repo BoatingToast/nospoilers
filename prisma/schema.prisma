@@ -95,6 +95,9 @@ model User {
   // External taste/history imports (Letterboxd, IMDb)
   importBatches ImportBatch[]
 
+  // Creator uploads
+  uploadedMovies UploadedMovie[]
+
   @@index([email])
   @@index([username])
 }
@@ -300,6 +303,27 @@ model ImportBatch {
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([userId, status])
+}
+
+// Original films shared by NoSpoilers creators. Video bytes live in Supabase
+// Storage; this row is the source of truth for ownership and upload state.
+model UploadedMovie {
+  id               String    @id @default(cuid())
+  userId           String
+  creator          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title            String    @db.VarChar(120)
+  description      String?   @db.VarChar(1000)
+  originalFileName String    @db.VarChar(255)
+  storagePath      String    @unique
+  mimeType         String
+  fileSize         Int
+  status           String    @default("uploading") // uploading | ready
+  uploadedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, uploadedAt(sort: Desc)])
 }
 
 model Collection {

@@ -16,6 +16,7 @@ import RecAccuracyWidget    from '@/components/recommendations/RecAccuracyWidget
 import DnaEvolutionWidget   from '@/components/dashboard/DnaEvolutionWidget'
 import DashboardTabs        from '@/components/dashboard/DashboardTabs'
 import QuickActions         from '@/components/dashboard/QuickActions'
+import UploadMovieSection   from '@/components/dashboard/UploadMovieSection'
 import YourSpoilerZones        from '@/components/dashboard/YourSpoilerZones'
 import FriendsActivityWidget   from '@/components/dashboard/FriendsActivityWidget'
 import DashboardFriendsCard    from '@/components/dashboard/DashboardFriendsCard'
@@ -68,6 +69,8 @@ export default async function DashboardPage() {
   // ── Overview tab content (server-rendered) ────────────────────────────────
   const overview = (
     <div className="flex flex-col gap-8">
+      <UploadMovieSection />
+
       <WelcomeSection user={{ id: user.id, email: user.email, username: user.username, avatarUrl: user.avatarUrl ?? null, createdAt: user.createdAt }} />
 
       {/* Stats row */}
