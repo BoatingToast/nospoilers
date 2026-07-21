@@ -8,19 +8,27 @@ import {
   MAX_MOVIE_DESCRIPTION_LENGTH,
   MAX_MOVIE_TITLE_LENGTH,
   MOVIE_UPLOAD_BUCKET,
+  isMovieWatchRegion,
+  mergeMovieWatchProviders,
   movieExtensionForMimeType,
+  normalizeMovieWatchProviders,
   normalizeMovieMimeType,
+  type MovieWatchProvider,
 } from '@/lib/movie-uploads'
 import { ensureMovieUploadBucket } from '@/lib/supabase-storage'
+import { findAutomaticMovieMatch, getMovieWatchProviders } from '@/services/tmdb'
 
 export const runtime = 'nodejs'
 
 interface StartUploadBody {
   title?: unknown
   description?: unknown
+  releaseYear?: unknown
   fileName?: unknown
   fileSize?: unknown
   mimeType?: unknown
+  watchProviders?: unknown
+  watchRegion?: unknown
 }
 
 async function readJson<T>(request: Request): Promise<T | null> {
@@ -47,10 +55,15 @@ export async function POST(request: Request) {
 
   const title = typeof body.title === 'string' ? body.title.trim() : ''
   const description = typeof body.description === 'string' ? body.description.trim() : ''
+  const releaseYear = body.releaseYear === undefined || body.releaseYear === null || body.releaseYear === ''
+    ? null
+    : Number(body.releaseYear)
   const fileName = typeof body.fileName === 'string' ? body.fileName.trim() : ''
   const fileSize = typeof body.fileSize === 'number' ? body.fileSize : NaN
   const suppliedMimeType = typeof body.mimeType === 'string' ? body.mimeType : ''
   const mimeType = normalizeMovieMimeType(suppliedMimeType, fileName)
+  const watchProviderResult = normalizeMovieWatchProviders(body.watchProviders)
+  const watchRegion = typeof body.watchRegion === 'string' ? body.watchRegion.trim().toUpperCase() : 'US'
 
   if (!title) return NextResponse.json({ error: 'Add a title for your movie' }, { status: 400 })
   if (title.length > MAX_MOVIE_TITLE_LENGTH) {
@@ -59,12 +72,23 @@ export async function POST(request: Request) {
   if (description.length > MAX_MOVIE_DESCRIPTION_LENGTH) {
     return NextResponse.json({ error: `Description must be ${MAX_MOVIE_DESCRIPTION_LENGTH} characters or fewer` }, { status: 400 })
   }
+  if (releaseYear !== null && (
+    !Number.isInteger(releaseYear) || releaseYear < 1888 || releaseYear > new Date().getFullYear() + 5
+  )) {
+    return NextResponse.json({ error: 'Add a valid four-digit release year' }, { status: 400 })
+  }
   if (!fileName) return NextResponse.json({ error: 'Choose a movie file' }, { status: 400 })
   if (!Number.isInteger(fileSize) || fileSize <= 0 || fileSize > MAX_MOVIE_BYTES) {
     return NextResponse.json({ error: 'Movie must be smaller than 1 GB' }, { status: 400 })
   }
   if (!mimeType) {
     return NextResponse.json({ error: 'Upload an MP4, MOV, M4V, or WEBM movie' }, { status: 400 })
+  }
+  if (watchProviderResult.error) {
+    return NextResponse.json({ error: watchProviderResult.error }, { status: 400 })
+  }
+  if (!isMovieWatchRegion(watchRegion)) {
+    return NextResponse.json({ error: 'Choose a valid two-letter watch region' }, { status: 400 })
   }
 
   const extension = movieExtensionForMimeType(mimeType)
@@ -74,6 +98,26 @@ export async function POST(request: Request) {
   const storagePath = `${session.user.id}/${movieId}/movie.${extension}`
 
   try {
+    let tmdbId: number | null = null
+    let automaticProviders: MovieWatchProvider[] = []
+
+    try {
+      const match = await findAutomaticMovieMatch(title, releaseYear)
+      if (match) {
+        tmdbId = match.id
+        const availability = await getMovieWatchProviders(match.id, watchRegion)
+        automaticProviders = availability?.providers ?? []
+      }
+    } catch (matchError) {
+      // Availability should enhance an upload, never prevent an original film
+      // from being shared when TMDB is unavailable or has no matching title.
+      console.warn('[movie-uploads] automatic provider lookup skipped', matchError)
+    }
+
+    const watchProviders = mergeMovieWatchProviders(
+      automaticProviders,
+      watchProviderResult.providers,
+    )
     const supabase = await ensureMovieUploadBucket()
     const movie = await prisma.uploadedMovie.create({
       data: {
@@ -81,10 +125,21 @@ export async function POST(request: Request) {
         userId: session.user.id,
         title,
         description: description || null,
+        releaseYear,
+        tmdbId,
         originalFileName: fileName.slice(0, 255),
         storagePath,
         mimeType,
         fileSize,
+        watchProviders: watchProviders.map(provider => ({
+          name: provider.name,
+          url: provider.url,
+          source: provider.source ?? 'creator',
+          providerId: provider.providerId ?? null,
+          logoPath: provider.logoPath ?? null,
+          accessTypes: provider.accessTypes ?? [],
+        })),
+        watchRegion,
       },
       select: { id: true },
     })
@@ -102,6 +157,7 @@ export async function POST(request: Request) {
       movieId: movie.id,
       path: data.path,
       token: data.token,
+      automaticMatch: tmdbId ? { tmdbId, providerCount: automaticProviders.length } : null,
     }, { status: 201 })
   } catch (error) {
     if (storageUnavailable(error)) {
@@ -130,7 +186,16 @@ export async function PATCH(request: Request) {
     if (!movie) return NextResponse.json({ error: 'Upload not found' }, { status: 404 })
 
     if (movie.status === 'ready') {
-      return NextResponse.json({ movie: { id: movie.id, title: movie.title, status: movie.status } })
+      return NextResponse.json({
+        movie: {
+          id: movie.id,
+          title: movie.title,
+          status: movie.status,
+          tmdbId: movie.tmdbId,
+          watchProviders: movie.watchProviders,
+          watchRegion: movie.watchRegion,
+        },
+      })
     }
 
     const supabase = await ensureMovieUploadBucket()
@@ -149,7 +214,14 @@ export async function PATCH(request: Request) {
     const readyMovie = await prisma.uploadedMovie.update({
       where: { id: movie.id },
       data: { status: 'ready', uploadedAt: new Date() },
-      select: { id: true, title: true, status: true },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        tmdbId: true,
+        watchProviders: true,
+        watchRegion: true,
+      },
     })
 
     return NextResponse.json({ movie: readyMovie })

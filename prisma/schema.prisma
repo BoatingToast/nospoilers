@@ -313,10 +313,15 @@ model UploadedMovie {
   creator          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   title            String    @db.VarChar(120)
   description      String?   @db.VarChar(1000)
+  releaseYear      Int?
+  tmdbId           Int?
   originalFileName String    @db.VarChar(255)
   storagePath      String    @unique
   mimeType         String
   fileSize         Int
+  // Merged automatic and creator-supplied viewing options for the selected region.
+  watchProviders   Json      @default("[]")
+  watchRegion      String    @default("US") @db.VarChar(2)
   status           String    @default("uploading") // uploading | ready
   uploadedAt       DateTime?
   createdAt        DateTime  @default(now())
@@ -324,6 +329,7 @@ model UploadedMovie {
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([status, uploadedAt(sort: Desc)])
+  @@index([tmdbId])
 }
 
 model Collection {

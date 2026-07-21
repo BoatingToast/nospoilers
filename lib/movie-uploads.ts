@@ -3,6 +3,38 @@ export const MOVIE_UPLOAD_BUCKET = 'movie-uploads'
 export const MAX_MOVIE_BYTES = 1024 * 1024 * 1024 // 1 GB
 export const MAX_MOVIE_TITLE_LENGTH = 120
 export const MAX_MOVIE_DESCRIPTION_LENGTH = 1000
+export const MAX_MOVIE_WATCH_PROVIDERS = 8
+export const MAX_MOVIE_PROVIDER_NAME_LENGTH = 60
+
+export type MovieWatchProviderSource = 'creator' | 'tmdb'
+export type MovieWatchAccessType = 'stream' | 'free' | 'ads' | 'rent' | 'buy'
+
+export interface MovieWatchProvider {
+  name: string
+  url: string
+  source?: MovieWatchProviderSource
+  providerId?: number
+  logoPath?: string | null
+  accessTypes?: MovieWatchAccessType[]
+}
+
+export interface MovieWatchAvailability {
+  region: string
+  link: string
+  providers: MovieWatchProvider[]
+}
+
+export interface MovieWatchProviderValidation {
+  providers: MovieWatchProvider[]
+  error: string | null
+}
+
+export const MOVIE_WATCH_REGIONS = [
+  { code: 'US', label: 'United States' },
+  { code: 'CA', label: 'Canada' },
+  { code: 'GB', label: 'United Kingdom' },
+  { code: 'AU', label: 'Australia' },
+] as const
 
 export const MOVIE_MIME_TYPES = [
   'video/mp4',
@@ -42,4 +74,93 @@ export function formatMovieFileSize(bytes: number) {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`
+}
+
+export function isMovieWatchRegion(value: unknown): value is string {
+  return typeof value === 'string' && /^[A-Z]{2}$/.test(value)
+}
+
+/**
+ * Validates creator-supplied watch links before they are stored or rendered.
+ * Empty rows are ignored so the entire feature remains optional.
+ */
+export function normalizeMovieWatchProviders(value: unknown): MovieWatchProviderValidation {
+  if (value === undefined || value === null) return { providers: [], error: null }
+  if (!Array.isArray(value)) return { providers: [], error: 'Watch providers must be a list' }
+  if (value.length > MAX_MOVIE_WATCH_PROVIDERS) {
+    return { providers: [], error: `Add no more than ${MAX_MOVIE_WATCH_PROVIDERS} watch providers` }
+  }
+
+  const providers: MovieWatchProvider[] = []
+  const seen = new Set<string>()
+
+  for (const item of value) {
+    if (!item || typeof item !== 'object') {
+      return { providers: [], error: 'Each watch provider needs a name and link' }
+    }
+
+    const record = item as Record<string, unknown>
+    const name = typeof record.name === 'string' ? record.name.trim() : ''
+    const rawUrl = typeof record.url === 'string' ? record.url.trim() : ''
+
+    if (!name && !rawUrl) continue
+    if (!name || !rawUrl) {
+      return { providers: [], error: 'Add both a platform name and watch link' }
+    }
+    if (name.length > MAX_MOVIE_PROVIDER_NAME_LENGTH) {
+      return {
+        providers: [],
+        error: `Platform names must be ${MAX_MOVIE_PROVIDER_NAME_LENGTH} characters or fewer`,
+      }
+    }
+
+    let url: URL
+    try {
+      url = new URL(rawUrl)
+    } catch {
+      return { providers: [], error: `Add a valid link for ${name}` }
+    }
+
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      return { providers: [], error: `The link for ${name} must start with http:// or https://` }
+    }
+
+    const normalized: MovieWatchProvider = {
+      name,
+      url: url.toString(),
+      source: 'creator',
+      accessTypes: [],
+    }
+    const key = normalized.name.toLowerCase()
+    if (!seen.has(key)) {
+      providers.push(normalized)
+      seen.add(key)
+    }
+  }
+
+  return { providers, error: null }
+}
+
+/** Creator links win over automatic entries with the same provider name. */
+export function mergeMovieWatchProviders(
+  automaticProviders: MovieWatchProvider[],
+  creatorProviders: MovieWatchProvider[],
+): MovieWatchProvider[] {
+  const merged = [...automaticProviders]
+  const indexByName = new Map(
+    merged.map((provider, index) => [provider.name.toLowerCase(), index]),
+  )
+
+  for (const provider of creatorProviders) {
+    const key = provider.name.toLowerCase()
+    const existingIndex = indexByName.get(key)
+    if (existingIndex === undefined) {
+      indexByName.set(key, merged.length)
+      merged.push(provider)
+    } else {
+      merged[existingIndex] = provider
+    }
+  }
+
+  return merged
 }

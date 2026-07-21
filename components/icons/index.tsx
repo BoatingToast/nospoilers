@@ -164,6 +164,19 @@ export function WatchlistIcon(props: IconProps) {
   )
 }
 
+// Where to Watch — a cinema screen with a play mark and broadcast signal
+export function WhereToWatchIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
+      <path d="M10 9 L15 12 L10 15 Z" fill="currentColor" stroke="none" />
+      <path d="M7.5 2.5 C10 4.2 14 4.2 16.5 2.5" />
+      <line x1="8" y1="22" x2="16" y2="22" />
+      <line x1="12" y1="19" x2="12" y2="22" />
+    </Svg>
+  )
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 7. Reviews — speech bubble with film-strip header
 // ─────────────────────────────────────────────────────────────────────────────

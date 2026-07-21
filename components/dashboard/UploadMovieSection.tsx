@@ -2,6 +2,7 @@
 
 import { useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from 'react'
 import Modal from '@/components/ui/Modal'
+import WhereToWatch from '@/components/movie/WhereToWatch'
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -14,9 +15,14 @@ import {
   formatMovieFileSize,
   MAX_MOVIE_BYTES,
   MAX_MOVIE_DESCRIPTION_LENGTH,
+  MAX_MOVIE_PROVIDER_NAME_LENGTH,
   MAX_MOVIE_TITLE_LENGTH,
+  MAX_MOVIE_WATCH_PROVIDERS,
+  MOVIE_WATCH_REGIONS,
   MOVIE_UPLOAD_BUCKET,
+  normalizeMovieWatchProviders,
   normalizeMovieMimeType,
+  type MovieWatchProvider,
 } from '@/lib/movie-uploads'
 
 type UploadStage = 'details' | 'uploading' | 'success'
@@ -29,19 +35,23 @@ interface UploadTicket {
 
 interface UploadMovieDialogProps {
   onClose: () => void
-  onUploaded: (title: string) => void
+  onUploaded: (movie: UploadedMovieSummary) => void
 }
 
+interface UploadedMovieSummary {
+  title: string
+  tmdbId: number | null
+  watchProviders: MovieWatchProvider[]
+  watchRegion: string
+}
 
-
-
-
-
-
-
-
-
-
+interface FinishedUploadResponse {
+  movie: {
+    tmdbId: number | null
+    watchProviders: MovieWatchProvider[]
+    watchRegion: string
+  }
+}
 
 function movieFileError(file: File) {
   if (!normalizeMovieMimeType(file.type, file.name)) {
@@ -69,6 +79,10 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
   const [stage, setStage] = useState<UploadStage>('details')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [releaseYear, setReleaseYear] = useState('')
+  const [watchProviders, setWatchProviders] = useState<MovieWatchProvider[]>([])
+  const [watchRegion, setWatchRegion] = useState('US')
+  const [matchedTmdbId, setMatchedTmdbId] = useState<number | null>(null)
   const [movieFile, setMovieFile] = useState<File | null>(null)
   const [error, setError] = useState('')
   const [dragOver, setDragOver] = useState(false)
@@ -108,10 +122,31 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
+  function addWatchProvider() {
+    if (watchProviders.length >= MAX_MOVIE_WATCH_PROVIDERS) return
+    setWatchProviders(current => [...current, { name: '', url: '' }])
+  }
+
+  function updateWatchProvider(index: number, field: keyof MovieWatchProvider, value: string) {
+    setWatchProviders(current => current.map((provider, providerIndex) => (
+      providerIndex === index ? { ...provider, [field]: value } : provider
+    )))
+    setError('')
+  }
+
+  function removeWatchProvider(index: number) {
+    setWatchProviders(current => current.filter((_, providerIndex) => providerIndex !== index))
+    setError('')
+  }
+
   function resetForm() {
     setStage('details')
     setTitle('')
     setDescription('')
+    setReleaseYear('')
+    setWatchProviders([])
+    setWatchRegion('US')
+    setMatchedTmdbId(null)
     setMovieFile(null)
     setError('')
     setProgress(0)
@@ -128,6 +163,12 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
     }
     if (!trimmedTitle) {
       setError('Add a title for your movie.')
+      return
+    }
+
+    const watchProviderResult = normalizeMovieWatchProviders(watchProviders)
+    if (watchProviderResult.error) {
+      setError(watchProviderResult.error)
       return
     }
 
@@ -154,9 +195,12 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
         body: JSON.stringify({
           title: trimmedTitle,
           description: description.trim(),
+          releaseYear: releaseYear ? Number(releaseYear) : null,
           fileName: movieFile.name,
           fileSize: movieFile.size,
           mimeType,
+          watchProviders: watchProviderResult.providers,
+          watchRegion,
         }),
       })
 
@@ -187,11 +231,21 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
       if (!finishResponse.ok) {
         throw new Error(await responseError(finishResponse, 'Could not finish the upload.'))
       }
+      const finished = await finishResponse.json() as FinishedUploadResponse
+      const storedProviders = Array.isArray(finished.movie.watchProviders)
+        ? finished.movie.watchProviders
+        : watchProviderResult.providers
 
       window.clearInterval(progressTimer)
       setProgress(100)
       setStage('success')
-      onUploaded(trimmedTitle)
+      setMatchedTmdbId(finished.movie.tmdbId)
+      onUploaded({
+        title: trimmedTitle,
+        tmdbId: finished.movie.tmdbId,
+        watchProviders: storedProviders,
+        watchRegion: finished.movie.watchRegion,
+      })
     } catch (uploadError) {
       window.clearInterval(progressTimer)
       if (movieId) {
@@ -202,17 +256,6 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
       setProgress(0)
     }
   }
-
-
-
-
-
-
-
-
-
-
-
 
   return (
     <Modal
@@ -307,8 +350,8 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
                 )}
               </div>
 
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div className="sm:col-span-1">
+              <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_9rem]">
+                <div>
                   <label htmlFor="movie-title" className="text-sm font-body text-ns-muted">Movie title</label>
                   <input
                     id="movie-title"
@@ -320,7 +363,23 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
                     className="mt-1.5 w-full rounded-xl border border-ns-border bg-ns-surface px-4 py-3 text-sm font-body text-ns-text placeholder:text-ns-muted/50 transition-colors focus:border-ns-secondary/50 focus:outline-none focus:ring-2 focus:ring-ns-secondary/30"
                   />
                 </div>
-                <div className="sm:col-span-1">
+                <div>
+                  <label htmlFor="movie-release-year" className="text-sm font-body text-ns-muted">
+                    Release year <span className="text-ns-muted/55">(optional)</span>
+                  </label>
+                  <input
+                    id="movie-release-year"
+                    type="number"
+                    inputMode="numeric"
+                    min={1888}
+                    max={new Date().getFullYear() + 5}
+                    value={releaseYear}
+                    onChange={event => setReleaseYear(event.target.value.slice(0, 4))}
+                    placeholder="2026"
+                    className="mt-1.5 w-full rounded-xl border border-ns-border bg-ns-surface px-4 py-3 text-sm font-body text-ns-text placeholder:text-ns-muted/50 transition-colors focus:border-ns-secondary/50 focus:outline-none focus:ring-2 focus:ring-ns-secondary/30"
+                  />
+                </div>
+                <div className="sm:col-span-2">
                   <label htmlFor="movie-description" className="text-sm font-body text-ns-muted">Short description <span className="text-ns-muted/55">(optional)</span></label>
                   <textarea
                     id="movie-description"
@@ -333,6 +392,124 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
                   />
                 </div>
               </div>
+
+              <section aria-labelledby="movie-watch-providers-title" className="rounded-2xl border border-ns-border bg-ns-surface/35 p-4 sm:p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h3 id="movie-watch-providers-title" className="text-sm font-heading font-semibold text-ns-text">
+                      Automatic Where to Watch
+                    </h3>
+                    <p className="mt-1 text-xs leading-relaxed font-body text-ns-muted">
+                      NoSpoilers matches the title and optional release year, then adds every available service automatically.
+                    </p>
+                  </div>
+                  <label className="flex flex-shrink-0 items-center gap-2 text-xs font-body text-ns-muted">
+                    Region
+                    <select
+                      value={watchRegion}
+                      onChange={event => setWatchRegion(event.target.value)}
+                      className="rounded-lg border border-ns-border bg-ns-surface px-2.5 py-2 text-xs text-ns-text focus:border-ns-secondary/50 focus:outline-none"
+                    >
+                      {MOVIE_WATCH_REGIONS.map(region => (
+                        <option key={region.code} value={region.code}>{region.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-ns-success/20 bg-ns-success/5 px-3.5 py-3">
+                  <CheckIcon size={15} className="mt-0.5 flex-shrink-0 text-ns-success" />
+                  <p className="text-xs leading-relaxed font-body text-ns-muted">
+                    Nothing to select or confirm. If a confident catalog match exists, its streaming, rental, and purchase options are saved during upload.
+                  </p>
+                </div>
+
+                <div className="mt-5 flex items-start justify-between gap-4 border-t border-ns-border/70 pt-4">
+                  <div>
+                    <p className="text-xs font-heading font-semibold text-ns-text">Manual links</p>
+                    <p className="mt-0.5 text-[11px] font-body text-ns-muted">
+                      Optional fallback for originals or direct platform URLs.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addWatchProvider}
+                    disabled={watchProviders.length >= MAX_MOVIE_WATCH_PROVIDERS}
+                    className="flex-shrink-0 rounded-lg border border-ns-secondary/35 px-3 py-1.5 text-xs font-body font-semibold text-ns-secondary transition-colors hover:bg-ns-secondary/10 disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    + Add link
+                  </button>
+                </div>
+
+                {watchProviders.length === 0 ? (
+                  <button
+                    type="button"
+                    onClick={addWatchProvider}
+                    className="mt-4 flex w-full items-center justify-center rounded-xl border border-dashed border-ns-border px-4 py-4 text-xs font-body text-ns-muted transition-colors hover:border-ns-secondary/40 hover:text-ns-secondary"
+                  >
+                    Add a direct link only if you want to override or supplement the automatic results
+                  </button>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    <datalist id="movie-watch-platforms">
+                      <option value="Netflix" />
+                      <option value="Hulu" />
+                      <option value="HBO Max" />
+                      <option value="Disney+" />
+                      <option value="Prime Video" />
+                      <option value="Apple TV+" />
+                      <option value="YouTube" />
+                    </datalist>
+
+                    {watchProviders.map((provider, index) => (
+                      <div key={index} className="grid gap-2 rounded-xl border border-ns-border/70 bg-ns-bg/35 p-3 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.35fr)_2rem] sm:items-end">
+                        <div>
+                          <label htmlFor={`watch-provider-name-${index}`} className="text-[10px] font-body uppercase tracking-wider text-ns-muted">
+                            Platform {index + 1}
+                          </label>
+                          <input
+                            id={`watch-provider-name-${index}`}
+                            list="movie-watch-platforms"
+                            value={provider.name}
+                            maxLength={MAX_MOVIE_PROVIDER_NAME_LENGTH}
+                            onChange={event => updateWatchProvider(index, 'name', event.target.value)}
+                            placeholder="Netflix"
+                            className="mt-1 w-full rounded-lg border border-ns-border bg-ns-surface px-3 py-2.5 text-sm font-body text-ns-text placeholder:text-ns-muted/45 focus:border-ns-secondary/50 focus:outline-none focus:ring-2 focus:ring-ns-secondary/25"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor={`watch-provider-url-${index}`} className="text-[10px] font-body uppercase tracking-wider text-ns-muted">
+                            Watch link
+                          </label>
+                          <input
+                            id={`watch-provider-url-${index}`}
+                            type="url"
+                            inputMode="url"
+                            value={provider.url}
+                            onChange={event => updateWatchProvider(index, 'url', event.target.value)}
+                            placeholder="https://..."
+                            className="mt-1 w-full rounded-lg border border-ns-border bg-ns-surface px-3 py-2.5 text-sm font-body text-ns-text placeholder:text-ns-muted/45 focus:border-ns-secondary/50 focus:outline-none focus:ring-2 focus:ring-ns-secondary/25"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeWatchProvider(index)}
+                          aria-label={`Remove ${provider.name || `platform ${index + 1}`}`}
+                          className="flex h-8 w-8 items-center justify-center justify-self-end rounded-lg text-ns-muted transition-colors hover:bg-ns-danger/10 hover:text-ns-danger sm:justify-self-auto"
+                        >
+                          <CloseIcon size={13} />
+                        </button>
+                      </div>
+                    ))}
+
+                    <div className="pt-1">
+                      <p className="text-[10px] font-body text-ns-muted/70">
+                        {watchProviders.length}/{MAX_MOVIE_WATCH_PROVIDERS} manual links added
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </section>
 
               {error && (
                 <div role="alert" className="flex items-start gap-2 rounded-xl border border-ns-danger/25 bg-ns-danger/10 px-4 py-3 text-xs font-body text-ns-danger">
@@ -367,8 +544,11 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
             <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-ns-secondary/25 bg-ns-secondary/10 text-ns-secondary">
               <UploadMovieIcon size={28} className="animate-pulse" />
             </span>
-            <h2 id="upload-movie-dialog-title" className="mt-5 font-display text-3xl tracking-wider text-ns-text">UPLOADING YOUR MOVIE</h2>
+            <h2 id="upload-movie-dialog-title" className="mt-5 font-display text-3xl tracking-wider text-ns-text">UPLOADING &amp; MATCHING</h2>
             <p className="mt-2 truncate text-sm font-body text-ns-muted">{movieFile?.name}</p>
+            <p className="mx-auto mt-2 max-w-sm text-xs font-body text-ns-muted/70">
+              Checking regional watch options automatically while your movie uploads.
+            </p>
             <div
               role="progressbar"
               aria-label="Movie upload progress"
@@ -401,6 +581,17 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
             <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed font-body text-ns-muted">
               <span className="font-semibold text-ns-text">{title.trim()}</span> is safely uploaded. Tomorrow&apos;s Reels feature will give viewers a new way to discover it.
             </p>
+            <p className={`mx-auto mt-3 w-fit rounded-full px-3 py-1 text-[10px] font-body font-semibold uppercase tracking-wider ${
+              matchedTmdbId
+                ? 'bg-ns-success/10 text-ns-success'
+                : 'bg-ns-surface text-ns-muted'
+            }`}>
+              {matchedTmdbId
+                ? 'Catalog matched automatically'
+                : watchProviders.length > 0
+                  ? 'Manual watch links saved'
+                  : 'No catalog match · upload still ready'}
+            </p>
             <div className="mt-7 flex flex-col justify-center gap-2 sm:flex-row">
               <button
                 type="button"
@@ -424,14 +615,9 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
   )
 }
 
-
-
-
-
-
 export default function UploadMovieSection() {
   const [isOpen, setIsOpen] = useState(false)
-  const [uploadedTitle, setUploadedTitle] = useState<string | null>(null)
+  const [uploadedMovie, setUploadedMovie] = useState<UploadedMovieSummary | null>(null)
 
   return (
     <section aria-labelledby="upload-movie-section-title">
@@ -466,10 +652,10 @@ export default function UploadMovieSection() {
           <span className="flex flex-shrink-0 items-center justify-between gap-4 border-t border-ns-border/60 pt-4 sm:justify-end sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
             <span>
               <span className="block text-[10px] font-body uppercase tracking-wider text-ns-muted/70">
-                {uploadedTitle ? 'Uploaded today' : 'Ready when you are'}
+                {uploadedMovie ? 'Uploaded today' : 'Ready when you are'}
               </span>
               <span className="mt-1 block max-w-40 truncate text-xs font-body font-semibold text-ns-text">
-                {uploadedTitle ?? 'Choose a movie'}
+                {uploadedMovie?.title ?? 'Choose a movie'}
               </span>
             </span>
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-ns-secondary text-ns-secondary-foreground transition-transform duration-300 group-hover:translate-x-1">
@@ -479,10 +665,28 @@ export default function UploadMovieSection() {
         </span>
       </button>
 
+      {uploadedMovie && uploadedMovie.watchProviders.length > 0 && (
+        <div className="mt-3 flex flex-col gap-3 rounded-2xl border border-ns-border bg-ns-surface/55 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-[10px] font-body uppercase tracking-[0.16em] text-ns-muted">
+              Latest upload{uploadedMovie.tmdbId ? ' · Catalog matched automatically' : ''}
+            </p>
+            <p className="mt-0.5 truncate text-sm font-heading font-semibold text-ns-text">
+              {uploadedMovie.title} · {uploadedMovie.watchProviders.length} {uploadedMovie.watchProviders.length === 1 ? 'service' : 'services'}
+            </p>
+          </div>
+          <WhereToWatch
+            movieTitle={uploadedMovie.title}
+            providers={uploadedMovie.watchProviders}
+            region={uploadedMovie.watchRegion}
+          />
+        </div>
+      )}
+
       {isOpen && (
         <UploadMovieDialog
           onClose={() => setIsOpen(false)}
-          onUploaded={setUploadedTitle}
+          onUploaded={setUploadedMovie}
         />
       )}
     </section>
