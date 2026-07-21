@@ -6,7 +6,7 @@ import { tmdbImageUrl, formatYear } from '@/lib/utils'
 import type { EnrichedRec } from '@/services/curated-recs'
 import {
   FilmIcon, CompassIcon, MovieDnaIcon, RatingsIcon, TrendingIcon, CalendarIcon,
-  CloseIcon, ArrowRightIcon,
+  CloseIcon, ArrowRightIcon, RecsIcon,
   type IconProps,
 } from '@/components/icons'
 
@@ -32,6 +32,8 @@ function matchBg(score: number): string {
 export default function WhyModal({ rec, onClose }: Props) {
   const hasContent =
     rec.matchedFavorites.length > 0  ||
+    rec.matchedRatings.length   > 0  ||
+    rec.matchedLikedPicks.length > 0 ||
     rec.matchedGenres.length    > 0  ||
     rec.matchedTraits.length    > 0  ||
     rec.ratingInsight !== null
@@ -117,6 +119,29 @@ export default function WhyModal({ rec, onClose }: Props) {
                   </div>
                 ))}
               </div>
+            </Section>
+          )}
+
+          {/* Because you rated… */}
+          {rec.matchedRatings.length > 0 && (
+            <Section Icon={RatingsIcon} title="Because you rated">
+              <div className="flex flex-col gap-1.5">
+                {rec.matchedRatings.map(rating => (
+                  <div key={`${rating.title}-${rating.score}`} className="flex items-center justify-between gap-3">
+                    <span className="text-ns-text font-body text-sm">{rating.title}</span>
+                    <span className="text-ns-secondary font-mono text-xs flex-shrink-0">{rating.score}/100</span>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {/* Learned from recommendation feedback */}
+          {rec.matchedLikedPicks.length > 0 && (
+            <Section Icon={RecsIcon} title="Learned from your feedback">
+              <p className="text-ns-text font-body text-sm">
+                You liked {rec.matchedLikedPicks.join(' and ')}, so this pick follows that signal.
+              </p>
             </Section>
           )}
 

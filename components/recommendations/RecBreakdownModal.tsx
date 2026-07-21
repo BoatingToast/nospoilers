@@ -141,6 +141,34 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
             </section>
           )}
 
+          {/* High-rating anchors */}
+          {rec.matchedRatings.length > 0 && (
+            <section>
+              <h4 className="text-xs font-body text-ns-muted uppercase tracking-wider mb-2">
+                Your Highest Ratings
+              </h4>
+              <div className="space-y-1.5">
+                {rec.matchedRatings.map(rating => (
+                  <div key={`${rating.title}-${rating.score}`} className="flex items-center justify-between gap-3 text-xs font-body">
+                    <span className="text-ns-text">Because you rated <strong className="text-white">{rating.title}</strong></span>
+                    <span className="text-ns-secondary font-mono flex-shrink-0">{rating.score}/100</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {rec.matchedLikedPicks.length > 0 && (
+            <section>
+              <h4 className="text-xs font-body text-ns-muted uppercase tracking-wider mb-2">
+                Your Recommendation Feedback
+              </h4>
+              <p className="text-xs font-body text-ns-text bg-white/5 rounded-lg px-3 py-2.5 border border-ns-border">
+                You liked {rec.matchedLikedPicks.join(' and ')}, so this result follows that signal.
+              </p>
+            </section>
+          )}
+
           {/* Genre matches */}
           {rec.matchedGenres.length > 0 && (
             <section>

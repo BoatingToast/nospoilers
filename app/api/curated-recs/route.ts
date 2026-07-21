@@ -13,7 +13,15 @@ export async function GET() {
   } catch (err) {
     console.error('curated-recs error:', err)
     return NextResponse.json(
-      { weThinkYoudLike: [], similarToFavorites: [], expandYourTaste: [], rediscoverClassics: [] },
+      {
+        nextFavorite: null,
+        weThinkYoudLike: [],
+        similarToFavorites: [],
+        dnaBasedPicks: [],
+        expandYourTaste: [],
+        rediscoverClassics: [],
+        topTraits: [],
+      },
       { status: 200 }
     )
   }
