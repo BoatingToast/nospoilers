@@ -15,6 +15,7 @@ import DashboardNextFavorite from '@/components/recommendations/DashboardNextFav
 import RecAccuracyWidget    from '@/components/recommendations/RecAccuracyWidget'
 import DnaEvolutionWidget   from '@/components/dashboard/DnaEvolutionWidget'
 import DashboardTabs        from '@/components/dashboard/DashboardTabs'
+import DashboardSectionNav  from '@/components/dashboard/DashboardSectionNav'
 import YourSpoilerZones        from '@/components/dashboard/YourSpoilerZones'
 import FriendsActivityWidget   from '@/components/dashboard/FriendsActivityWidget'
 import DashboardFriendsCard    from '@/components/dashboard/DashboardFriendsCard'
@@ -89,6 +90,8 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      <DashboardSectionNav />
+
       {user._count.movieRatings < 5 && (
         <div className="rounded-2xl border border-ns-secondary/25 bg-gradient-to-r from-ns-secondary/10 to-transparent p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
@@ -107,7 +110,9 @@ export default async function DashboardPage() {
       )}
 
       {/* Watchlist preview */}
-      <WatchlistPreview />
+      <div id="dashboard-watchlist" className="scroll-mt-36">
+        <WatchlistPreview />
+      </div>
 
       {/* Personality */}
       {dnaProfile && (
@@ -115,12 +120,12 @@ export default async function DashboardPage() {
       )}
 
       {/* Movie DNA */}
-      <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
+      <div id="dashboard-dna" className="scroll-mt-36 bg-ns-surface border border-ns-border rounded-2xl p-6">
         <MovieDNACard profile={dnaProfile} compact username={user.username} />
       </div>
 
       {/* 🎯 Next Favorite hero + accuracy */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div id="dashboard-recommendations" className="scroll-mt-36 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2"><DashboardNextFavorite /></div>
         <div className="lg:col-span-1"><RecAccuracyWidget /></div>
       </div>
@@ -129,7 +134,7 @@ export default async function DashboardPage() {
       <CuratedRecsWidget />
 
       {/* Your Spoiler Zones — full-width community hub */}
-      <div className="border-t border-ns-border/30 pt-8">
+      <div id="dashboard-community" className="scroll-mt-36 border-t border-ns-border/30 pt-8">
         <YourSpoilerZones />
       </div>
 
@@ -152,7 +157,9 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <FavoriteMovies />
+      <div id="dashboard-favorites" className="scroll-mt-36">
+        <FavoriteMovies />
+      </div>
     </div>
   )
 
