@@ -14,9 +14,9 @@ interface SocialLink {
 
 const SOCIAL_LINKS: SocialLink[] = [
   {
-    href: 'https://www.tiktok.com/@nospoilersss',
+    href: 'https://www.tiktok.com/@no.spoilers3',
     label: 'TikTok',
-    handle: '@nospoilersss',
+    handle: '@no.spoilers3',
     Icon: TikTokIcon,
   },
   {
