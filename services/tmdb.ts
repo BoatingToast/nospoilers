@@ -4,7 +4,14 @@ import type {
   TMDbCredits,
   TMDbSearchResponse,
   TMDbMultiSearchResponse,
+  TMDbWatchProvidersResponse,
 } from '@/types'
+import type {
+  MovieWatchAccessType,
+  MovieWatchAvailability,
+  MovieWatchProvider,
+} from '@/lib/movie-uploads'
+import { selectAutomaticMovieMatch } from '@/lib/movie-matching'
 
 const BASE_URL = 'https://api.themoviedb.org/3'
 
@@ -74,6 +81,11 @@ export async function searchMovies(query: string, page = 1): Promise<TMDbSearchR
   return tmdbFetch('/search/movie', { query, page: String(page), include_adult: 'false' })
 }
 
+export async function findAutomaticMovieMatch(title: string, releaseYear: number | null) {
+  const search = await searchMovies(title)
+  return selectAutomaticMovieMatch(title, releaseYear, search.results)
+}
+
 export async function findMovieByImdbId(imdbId: string): Promise<TMDbMovie | null> {
   const data = await tmdbFetch<{ movie_results?: TMDbMovie[] }>(
     `/find/${encodeURIComponent(imdbId)}`,
@@ -116,6 +128,58 @@ export async function getMovieKeywords(id: number): Promise<string[]> {
 
 export async function getMovieRecommendations(id: number): Promise<TMDbSearchResponse> {
   return tmdbFetch(`/movie/${id}/recommendations`)
+}
+
+export async function getMovieWatchProviders(
+  id: number,
+  region = 'US',
+): Promise<MovieWatchAvailability | null> {
+  const data = await tmdbFetch<TMDbWatchProvidersResponse>(
+    `/movie/${id}/watch/providers`,
+    {},
+    21600,
+  )
+  const regionCode = region.toUpperCase()
+  const availability = data.results?.[regionCode]
+  if (!availability) return null
+
+  const providerMap = new Map<number, MovieWatchProvider & { displayPriority: number }>()
+  const groups: Array<[
+    keyof Pick<typeof availability, 'flatrate' | 'free' | 'ads' | 'rent' | 'buy'>,
+    MovieWatchAccessType,
+  ]> = [
+    ['flatrate', 'stream'],
+    ['free', 'free'],
+    ['ads', 'ads'],
+    ['rent', 'rent'],
+    ['buy', 'buy'],
+  ]
+
+  for (const [key, accessType] of groups) {
+    for (const provider of availability[key] ?? []) {
+      const existing = providerMap.get(provider.provider_id)
+      if (existing) {
+        if (!existing.accessTypes?.includes(accessType)) existing.accessTypes?.push(accessType)
+        continue
+      }
+
+      providerMap.set(provider.provider_id, {
+        name: provider.provider_name,
+        url: availability.link,
+        source: 'tmdb',
+        providerId: provider.provider_id,
+        logoPath: provider.logo_path,
+        accessTypes: [accessType],
+        displayPriority: provider.display_priority,
+      })
+    }
+  }
+
+  const providers = [...providerMap.values()]
+    .sort((a, b) => a.displayPriority - b.displayPriority)
+    .map(({ displayPriority: _displayPriority, ...provider }) => provider)
+
+  return { region: regionCode, link: availability.link, providers }
 }
 
 // ─── Discovery ───────────────────────────────────────────────────────────────

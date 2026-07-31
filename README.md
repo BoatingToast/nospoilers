@@ -11,6 +11,7 @@ Movie discovery platform — find films you'll love without spoilers.
 - Node.js 18+
 - PostgreSQL running locally (or a connection string from Neon, Supabase, Railway, etc.)
 - TMDb API key — free at https://www.themoviedb.org/settings/api
+- Supabase project for profile pictures and creator movie uploads
 
 ---
 
@@ -38,6 +39,13 @@ Open `.env` and fill in:
 | `NEXTAUTH_SECRET` | Run `openssl rand -base64 32` to generate |
 | `TMDB_API_KEY` | From your TMDb account settings |
 | `TMDB_ACCESS_TOKEN` | Read Access Token from TMDb (preferred over API key) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase public anon key used for direct uploads |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only key used to issue secure upload tokens |
+
+Create a public Supabase Storage bucket named `avatars` for profile pictures.
+The app creates the public `movie-uploads` bucket automatically when a creator
+starts their first movie upload.
 
 ### 3. Set up the database
 

@@ -15,6 +15,8 @@ import DashboardNextFavorite from '@/components/recommendations/DashboardNextFav
 import RecAccuracyWidget    from '@/components/recommendations/RecAccuracyWidget'
 import DnaEvolutionWidget   from '@/components/dashboard/DnaEvolutionWidget'
 import DashboardTabs        from '@/components/dashboard/DashboardTabs'
+import QuickActions         from '@/components/dashboard/QuickActions'
+import UploadMovieSection   from '@/components/dashboard/UploadMovieSection'
 import DashboardSectionNav  from '@/components/dashboard/DashboardSectionNav'
 import YourSpoilerZones        from '@/components/dashboard/YourSpoilerZones'
 import FriendsActivityWidget   from '@/components/dashboard/FriendsActivityWidget'
@@ -68,6 +70,8 @@ export default async function DashboardPage() {
   // ── Overview tab content (server-rendered) ────────────────────────────────
   const overview = (
     <div className="flex flex-col gap-8">
+      <UploadMovieSection />
+
       <WelcomeSection user={{ id: user.id, email: user.email, username: user.username, avatarUrl: user.avatarUrl ?? null, createdAt: user.createdAt }} />
 
       {/* Stats row */}
@@ -108,6 +112,12 @@ export default async function DashboardPage() {
           </Link>
         </div>
       )}
+
+      <QuickActions
+        ratingsCount={user._count.movieRatings}
+        watchlistCount={user._count.watchlistItems}
+        friendCount={friendCount}
+      />
 
       {/* Watchlist preview */}
       <div id="dashboard-watchlist" className="scroll-mt-36">

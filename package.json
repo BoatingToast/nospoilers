@@ -13,7 +13,8 @@
     "db:generate": "prisma generate",
     "test:extension": "node --test extension/tests/*.test.cjs",
     "package:extension": "node scripts/package-extension.mjs",
-    "test:dna": "node --experimental-strip-types --test tests/dna-v2.test.ts"
+    "test:dna": "node --experimental-strip-types --test tests/dna-v2.test.ts",
+    "test:uploads": "node --experimental-strip-types --test tests/movie-uploads.test.ts tests/movie-matching.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
