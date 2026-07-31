@@ -74,6 +74,27 @@ export interface TMDbSearchResponse {
   total_results: number
 }
 
+export interface TMDbWatchProvider {
+  display_priority: number
+  logo_path: string | null
+  provider_id: number
+  provider_name: string
+}
+
+export interface TMDbWatchProviderRegion {
+  link: string
+  flatrate?: TMDbWatchProvider[]
+  free?: TMDbWatchProvider[]
+  ads?: TMDbWatchProvider[]
+  rent?: TMDbWatchProvider[]
+  buy?: TMDbWatchProvider[]
+}
+
+export interface TMDbWatchProvidersResponse {
+  id: number
+  results: Record<string, TMDbWatchProviderRegion>
+}
+
 export interface TMDbMultiSearchResponse {
   page: number
   results: Array<(TMDbMovie & { media_type: 'movie' }) | (TMDbPerson & { media_type: 'person' })>

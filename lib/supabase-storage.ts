@@ -1,6 +1,30 @@
 import { createClient } from '@supabase/supabase-js'
+import { MAX_MOVIE_BYTES, MOVIE_MIME_TYPES, MOVIE_UPLOAD_BUCKET } from './movie-uploads'
 
 export const AVATAR_BUCKET = 'avatars'
+
+/**
+ * Makes the creator-upload bucket self-configuring in new environments. Existing
+ * projects keep their current bucket settings; new buckets are public so the
+ * upcoming Reels feed can stream finished movies without proxying video bytes.
+ */
+export async function ensureMovieUploadBucket() {
+  const supabase = getSupabaseAdmin()
+  const { data: bucket } = await supabase.storage.getBucket(MOVIE_UPLOAD_BUCKET)
+
+  if (!bucket) {
+    const { error } = await supabase.storage.createBucket(MOVIE_UPLOAD_BUCKET, {
+      public: true,
+      fileSizeLimit: MAX_MOVIE_BYTES,
+      allowedMimeTypes: [...MOVIE_MIME_TYPES],
+    })
+
+    // Another request may have created the bucket between getBucket and here.
+    if (error && !/already exists|duplicate/i.test(error.message)) throw error
+  }
+
+  return supabase
+}
 
 /**
  * Returns a Supabase admin client (service role — server-side only).

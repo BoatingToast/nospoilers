@@ -8,6 +8,7 @@ import AddToCollectionButton from '@/components/collections/AddToCollectionButto
 import type { WatchlistItemData, WatchStatus } from '@/types'
 import { FilmIcon, ArrowRightIcon } from '@/components/icons'
 import WatchlistRoulette from './WatchlistRoulette'
+import WatchlistKnockout from './WatchlistKnockout'
 
 interface Props {
   initialItems:   WatchlistItemData[]
@@ -42,6 +43,7 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
   const [sortBy,   setSortBy]   = useState(initialSortBy)
   const [loading,  setLoading]  = useState(false)
   const [updating, setUpdating] = useState<string | null>(null)
+  const unwatchedMovies = items.filter(item => item.status === 'want_to_watch')
 
   async function fetchItems(newStatus: string, newSort: string) {
     setLoading(true)
@@ -81,7 +83,8 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
 
   return (
     <div>
-      <WatchlistRoulette movies={items.filter(item => item.status === 'want_to_watch')} />
+      <WatchlistRoulette movies={unwatchedMovies} />
+      <WatchlistKnockout movies={items} />
 
       {/* Filters + Sort */}
       <div className="flex flex-wrap gap-3 items-center justify-between mb-6">

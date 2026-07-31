@@ -1,13 +1,21 @@
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 import type { Metadata } from 'next'
-import { getMovieById, getMovieCredits, getMovieSimilar, getMovieKeywords } from '@/services/tmdb'
+import {
+  getMovieById,
+  getMovieCredits,
+  getMovieSimilar,
+  getMovieKeywords,
+  getMovieWatchProviders,
+} from '@/services/tmdb'
 import { computeMovieVibe } from '@/services/movie-vibe'
 import { makeSpoilerFree, generateAudienceProfile } from '@/services/spoiler-free'
 import { tmdbImageUrl, formatYear } from '@/lib/utils'
 import MovieVibeProfile from '@/components/movie/MovieVibeProfile'
 import WhoWouldEnjoy from '@/components/movie/WhoWouldEnjoy'
 import SimilarMovies from '@/components/movie/SimilarMovies'
+import WhereToWatch from '@/components/movie/WhereToWatch'
 import AddToWatchlistButton from '@/components/watchlist/AddToWatchlistButton'
 import AddToCollectionButton from '@/components/collections/AddToCollectionButton'
 import RatingWidget from '@/components/ratings/RatingWidget'
@@ -33,11 +41,16 @@ export default async function MoviePage({ params }: Props) {
   const id = parseInt(tmdbId, 10)
   if (isNaN(id)) notFound()
 
-  const [movie, credits, similar, keywords] = await Promise.all([
+  const requestHeaders = await headers()
+  const detectedRegion = requestHeaders.get('x-vercel-ip-country')?.toUpperCase()
+  const watchRegion = detectedRegion && /^[A-Z]{2}$/.test(detectedRegion) ? detectedRegion : 'US'
+
+  const [movie, credits, similar, keywords, watchAvailability] = await Promise.all([
     getMovieById(id).catch(() => null),
     getMovieCredits(id).catch(() => ({ id, cast: [], crew: [] })),
     getMovieSimilar(id).catch(() => ({ results: [] })),
     getMovieKeywords(id).catch(() => [] as string[]),
+    getMovieWatchProviders(id, watchRegion).catch(() => null),
   ])
 
   if (!movie) notFound()
@@ -114,6 +127,13 @@ export default async function MoviePage({ params }: Props) {
 
           {/* Action buttons */}
           <div className="mt-2 flex flex-wrap gap-2">
+            {watchAvailability && watchAvailability.providers.length > 0 && (
+              <WhereToWatch
+                movieTitle={movie.title}
+                providers={watchAvailability.providers}
+                region={watchAvailability.region}
+              />
+            )}
             <RatingWidget
               movie={{
                 tmdbId:      movie.id,

@@ -35,10 +35,19 @@ export default async function FeaturedMovies() {
 
         {/* Movie cards scroll row */}
         {movies.length > 0 ? (
-          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-6 px-6">
-            {movies.map(movie => (
-              <MovieCard key={movie.id} movie={movie} size="md" />
-            ))}
+          <div>
+            <div
+              className="flex snap-x snap-mandatory scroll-px-6 gap-4 overflow-x-auto pb-4
+                         scrollbar-hide -mx-6 px-6"
+              aria-label="Featured films"
+            >
+              {movies.map(movie => (
+                <MovieCard key={movie.id} movie={movie} size="md" />
+              ))}
+            </div>
+            <p className="mt-1 text-center text-[10px] font-body uppercase tracking-[0.18em] text-ns-muted/60 sm:hidden">
+              Swipe to explore
+            </p>
           </div>
         ) : (
           <PlaceholderRow />

@@ -8,6 +8,7 @@ import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import MovieNightIcebreaker from './MovieNightIcebreaker'
 import { formatYear, tmdbImageUrl } from '@/lib/utils'
 import {
   CheckIcon,
@@ -395,6 +396,15 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
           </div>
         </div>
       </div>
+
+      <MovieNightIcebreaker
+        players={seed.participants
+          .filter(participant => selectedIds.has(participant.id))
+          .map(participant => ({
+            id: participant.id,
+            label: participant.isViewer ? 'You' : participant.username,
+          }))}
+      />
 
       <section className="relative overflow-hidden rounded-3xl border border-ns-secondary/30 bg-ns-surface mb-6">
         <div className="absolute inset-0 bg-gradient-to-r from-ns-secondary/12 via-transparent to-ns-success/5 pointer-events-none" />
