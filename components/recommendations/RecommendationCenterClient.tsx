@@ -192,16 +192,16 @@ export default function RecommendationCenterClient() {
       .finally(() => setDnaLoading(false))
   }, [session?.user?.name])
 
-  async function handleFeedback(tmdbId: number, feedbackType: string) {
-    // Submit feedback (fire-and-forget for hero card)
+  async function handleFeedback(recommendation: EnrichedRec, feedbackType: string) {
     try {
-      await fetch('/api/recommendations/feedback', {
+      const response = await fetch('/api/recommendations/feedback', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ tmdbId, feedback: feedbackType }),
+        body:    JSON.stringify({ recommendation, feedback: feedbackType }),
       })
+      return response.ok
     } catch {
-      // Non-fatal
+      return false
     }
   }
 

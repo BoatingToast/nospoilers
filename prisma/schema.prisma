@@ -693,7 +693,7 @@ model RecommendationFeedback {
   user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   recommendationId String         @unique
   recommendation   Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
-  feedback         String // 'liked' | 'dismissed' | 'watched' | 'not_interested'
+  feedback         String // 'liked' | 'dismissed' | 'watched' | 'not_interested' | 'watchlist'
   createdAt        DateTime       @default(now())
 
   @@index([userId])

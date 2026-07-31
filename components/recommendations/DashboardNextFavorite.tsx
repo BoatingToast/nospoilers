@@ -16,6 +16,8 @@ export default function DashboardNextFavorite() {
   const [loading, setLoading] = useState(true)
   const [showWhy, setShowWhy] = useState(false)
   const [sent,    setSent]    = useState<string | null>(null)
+  const [saving,  setSaving]  = useState(false)
+  const [saveError, setSaveError] = useState(false)
 
   useEffect(() => {
     fetch('/api/curated-recs')
@@ -27,14 +29,21 @@ export default function DashboardNextFavorite() {
 
   async function handleFeedback(type: string) {
     if (!rec) return
-    setSent(type)
+    setSaving(true)
+    setSaveError(false)
     try {
-      await fetch('/api/recommendations/feedback', {
+      const response = await fetch('/api/recommendations/feedback', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ tmdbId: rec.tmdbId, feedback: type }),
+        body:    JSON.stringify({ recommendation: rec, feedback: type }),
       })
-    } catch {/* non-fatal */}
+      if (!response.ok) throw new Error('Feedback request failed')
+      setSent(type)
+    } catch {
+      setSaveError(true)
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (loading) {
@@ -117,6 +126,7 @@ export default function DashboardNextFavorite() {
                     key={value}
                     title={title}
                     onClick={() => handleFeedback(value)}
+                    disabled={saving}
                     className="text-ns-muted hover:text-white hover:scale-110 transition-all"
                   >
                     <Icon size={16} />
@@ -129,6 +139,9 @@ export default function DashboardNextFavorite() {
                   Why? <ArrowRightIcon size={10} />
                 </button>
               </div>
+            )}
+            {saveError && (
+              <p className="mt-1 text-[10px] font-body text-red-400">Couldn&apos;t save. Try again.</p>
             )}
           </div>
         </div>

@@ -160,7 +160,7 @@ function scoreCandidate(
 
 /**
  * Generates and stores up to 30 recommendations for a user.
- * Deletes existing recommendations first so results are fresh.
+ * Refreshes current recommendations while preserving rows that carry feedback.
  */
 export async function generateRecommendations(userId: string): Promise<void> {
   const user = await prisma.user.findUnique({
@@ -219,11 +219,14 @@ export async function generateRecommendations(userId: string): Promise<void> {
 
   if (scored.length === 0) return
 
-  // Atomically replace recommendations
+  // Upsert the fresh set and only remove stale rows that have no feedback.
+  // RecommendationFeedback belongs to a Recommendation row, so deleting every
+  // row here used to erase the very signals the ranking engine should learn from.
+  const freshTmdbIds = scored.map(({ movie }) => movie.id)
   await prisma.$transaction([
-    prisma.recommendation.deleteMany({ where: { userId } }),
-    prisma.recommendation.createMany({
-      data: scored.map(({ movie, score, explanation }) => ({
+    ...scored.map(({ movie, score, explanation }) => prisma.recommendation.upsert({
+      where: { userId_tmdbId: { userId, tmdbId: movie.id } },
+      create: {
         userId,
         tmdbId:      movie.id,
         title:       movie.title,
@@ -231,8 +234,21 @@ export async function generateRecommendations(userId: string): Promise<void> {
         releaseDate: movie.release_date,
         matchScore:  score,
         explanation,
-      })),
-      skipDuplicates: true,
+      },
+      update: {
+        title:       movie.title,
+        posterPath:  movie.poster_path,
+        releaseDate: movie.release_date,
+        matchScore:  score,
+        explanation,
+      },
+    })),
+    prisma.recommendation.deleteMany({
+      where: {
+        userId,
+        tmdbId: { notIn: freshTmdbIds },
+        feedback: { is: null },
+      },
     }),
   ])
 }

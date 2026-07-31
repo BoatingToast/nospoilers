@@ -18,7 +18,7 @@ export async function getRecAccuracy(userId: string): Promise<RecAccuracy> {
 
   const total       = feedbacks.length
   const loved       = feedbacks.filter(f => f.feedback === 'liked').length
-  const accepted    = feedbacks.filter(f => f.feedback === 'watched').length
+  const accepted    = feedbacks.filter(f => f.feedback === 'watched' || f.feedback === 'watchlist').length
   const dismissed   = feedbacks.filter(f => f.feedback === 'dismissed').length
   const notForMe    = feedbacks.filter(f => f.feedback === 'not_interested').length
   const accuracyPct = total === 0 ? 0 : Math.round(((loved + accepted) / total) * 100)

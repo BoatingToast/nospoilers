@@ -26,6 +26,9 @@ function matchColor(score: number) {
 export default function CuratedRecCard({ rec }: Props) {
   const [showWhy, setShowWhy] = useState(false)
   const colors = matchColor(rec.matchScore)
+  const strongestRating = rec.matchedRatings?.[0]
+  const strongestFavorite = rec.similarToTitle ?? rec.matchedFavorites?.[0]
+  const likedPick = rec.matchedLikedPicks?.[0]
 
   return (
     <>
@@ -69,13 +72,25 @@ export default function CuratedRecCard({ rec }: Props) {
           </p>
         )}
 
-        {/* "Because you liked" — show the specific attribution if available */}
-        {(rec.similarToTitle ?? rec.matchedFavorites[0]) && (
+        {/* Show the strongest concrete reason directly on the card. */}
+        {(strongestRating || likedPick || strongestFavorite) && (
           <p className="text-ns-muted text-[10px] font-body leading-tight line-clamp-2 mb-1.5">
-            <span className="text-ns-muted/50">Like </span>
-            <span className="text-ns-muted">
-              {rec.similarToTitle ?? rec.matchedFavorites.slice(0, 2).join(' & ')}
-            </span>
+            {strongestRating ? (
+              <>
+                <span className="text-ns-muted/50">You rated </span>
+                <span className="text-ns-muted">{strongestRating.title} {strongestRating.score}</span>
+              </>
+            ) : likedPick ? (
+              <>
+                <span className="text-ns-muted/50">You liked </span>
+                <span className="text-ns-muted">{likedPick}</span>
+              </>
+            ) : (
+              <>
+                <span className="text-ns-muted/50">Like </span>
+                <span className="text-ns-muted">{strongestFavorite}</span>
+              </>
+            )}
           </p>
         )}
 

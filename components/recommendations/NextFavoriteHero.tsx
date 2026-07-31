@@ -18,18 +18,24 @@ import {
 
 interface Props {
   rec: EnrichedRec
-  onFeedback?: (tmdbId: number, feedback: string) => void
+  onFeedback?: (recommendation: EnrichedRec, feedback: string) => Promise<boolean>
 }
 
 export default function NextFavoriteHero({ rec, onFeedback }: Props) {
   const [showWhy, setShowWhy] = useState(false)
   const [sent,    setSent]    = useState<string | null>(null)
+  const [saving,  setSaving]  = useState(false)
+  const [saveError, setSaveError] = useState(false)
 
   const img = tmdbImageUrl(rec.posterPath, 'w342')
 
-  function handleFeedback(type: string) {
-    setSent(type)
-    onFeedback?.(rec.tmdbId, type)
+  async function handleFeedback(type: string) {
+    setSaving(true)
+    setSaveError(false)
+    const saved = onFeedback ? await onFeedback(rec, type) : true
+    setSaving(false)
+    if (saved) setSent(type)
+    else setSaveError(true)
   }
 
   const ACTIONS = [
@@ -96,6 +102,20 @@ export default function NextFavoriteHero({ rec, onFeedback }: Props) {
               </p>
 
               {/* Matched favorites */}
+              {rec.matchedRatings.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {rec.matchedRatings.map(rating => (
+                    <span
+                      key={`${rating.title}-${rating.score}`}
+                      className="text-[10px] font-body text-ns-muted bg-white/5 border border-ns-border rounded-full px-2.5 py-0.5"
+                    >
+                      You rated <span className="text-ns-text">{rating.title}</span>{' '}
+                      <span className="text-ns-secondary">{rating.score}/100</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+
               {rec.matchedFavorites.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-4">
                   {rec.matchedFavorites.map(fav => (
@@ -122,6 +142,7 @@ export default function NextFavoriteHero({ rec, onFeedback }: Props) {
                     <button
                       key={value}
                       onClick={() => handleFeedback(value)}
+                      disabled={saving}
                       className={`${color} text-white text-xs font-body px-3 py-1.5 rounded-full transition-colors flex items-center gap-1.5`}
                     >
                       <Icon size={12} />
@@ -129,6 +150,10 @@ export default function NextFavoriteHero({ rec, onFeedback }: Props) {
                     </button>
                   ))}
                 </div>
+              )}
+
+              {saveError && (
+                <p className="text-xs font-body text-red-400">Couldn&apos;t save that yet. Please try again.</p>
               )}
 
               <button

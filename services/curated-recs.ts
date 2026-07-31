@@ -1,7 +1,7 @@
 /**
  * curated-recs.ts
  *
- * Produces four personalised recommendation groups powered by:
+ * Produces five personalised recommendation groups powered by:
  *   • Movie DNA (computeMovieVibe)
  *   • User taste profile (TasteProfile)
  *   • Favorite movies (onboardingMovies)
@@ -11,8 +11,9 @@
  * Groups:
  *   1. "We Think You'd Like"   — highest overall match score
  *   2. "Similar To Favorites"  — explicitly tied to a specific favorite film
- *   3. "Expand Your Taste"     — scores well on the user's weakest DNA traits
- *   4. "Rediscover Classics"   — pre-1990 films that align with user DNA
+ *   3. "Based On Your DNA"      — strongest Movie DNA trait alignment
+ *   4. "Expand Your Taste"      — scores well on the user's weakest DNA traits
+ *   5. "Rediscover Classics"    — pre-1990 films that align with user DNA
  */
 
 import { prisma } from '@/lib/db'
@@ -23,6 +24,13 @@ import {
   getTopRatedMovies,
 } from './tmdb'
 import { computeMovieVibe } from './movie-vibe'
+import {
+  buildGenreAffinities,
+  pickDiverseRecommendations,
+  scoreGenreAffinity,
+  selectPositiveRatingAnchors,
+  type GenreAffinity,
+} from './recommendation-ranking'
 import type { DNAScores, TMDbMovie } from '@/types'
 
 // ─── Public types ──────────────────────────────────────────────────────────────
@@ -41,6 +49,11 @@ export interface MatchedTrait {
   movieScore:  number   // movie's DNA score on this trait
 }
 
+export interface MatchedRating {
+  title: string
+  score: number
+}
+
 export interface EnrichedRec {
   tmdbId:           number
   title:            string
@@ -53,6 +66,8 @@ export interface EnrichedRec {
   explanation:      string   // one compelling sentence
   // Attribution (used by Why? modal)
   matchedFavorites: string[]       // "Because you liked …"
+  matchedRatings:   MatchedRating[] // "Because you rated …"
+  matchedLikedPicks: string[]      // positive recommendation feedback
   matchedGenres:    string[]       // genres the user prefers that appear in this film
   matchedTraits:    MatchedTrait[] // DNA dimensions that align
   ratingInsight:    string | null  // e.g. "You rate sci-fi films 83/100 on average"
@@ -105,11 +120,19 @@ const DNA_META: Record<keyof DNAScores, { label: string; icon: string }> = {
 
 const DNA_KEYS = Object.keys(DNA_META) as (keyof DNAScores)[]
 
+type RecommendationAnchor = {
+  tmdbId: number
+  title: string
+  kind: 'favorite' | 'rating' | 'liked-pick'
+  score?: number
+  affinity?: number
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> {
   // ── 1. Fetch all user signals ─────────────────────────────────────────────
-  const [user, watchlistRows, ratingRows, membershipRows] = await Promise.all([
+  const [user, watchlistRows, ratingRows, membershipRows, feedbackRows] = await Promise.all([
     prisma.user.findUnique({
       where:  { id: userId },
       select: {
@@ -124,12 +147,23 @@ export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> 
     prisma.watchlistItem.findMany({ where: { userId }, select: { tmdbId: true, status: true, genreIds: true } }),
     prisma.movieRating.findMany({
       where:  { userId },
-      select: { tmdbId: true, score: true },
+      select: { tmdbId: true, title: true, score: true, genreIds: true },
     }),
     // Spoiler Zone memberships — weak additional genre signal
     prisma.spoilerZoneMembership.findMany({
       where:  { userId },
       select: { tmdbId: true },
+    }),
+    // Keep dismissed / already-seen recommendations out of future shelves and
+    // reuse positive feedback as a light source for new candidates.
+    prisma.recommendationFeedback.findMany({
+      where:   { userId },
+      orderBy: { createdAt: 'desc' },
+      take:    50,
+      select: {
+        feedback: true,
+        recommendation: { select: { tmdbId: true, title: true } },
+      },
     }),
   ])
 
@@ -145,52 +179,90 @@ export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> 
   // All tmdbIds the user has already encountered — exclude from recommendations
   // Include SZ memberships: user has seen (or is very interested in) those films
   const membershipTmdbIds = new Set(membershipRows.map(m => m.tmdbId))
+  const feedbackTmdbIds = new Set(feedbackRows.map(row => row.recommendation.tmdbId))
   const seenIds = new Set<number>([
     ...favorites.map(m => m.tmdbId),
     ...watchlistRows.map(r => r.tmdbId),
     ...ratingRows.map(r => r.tmdbId),
     ...membershipTmdbIds,
+    ...feedbackTmdbIds,
   ])
 
   // ── 2. Build rating genre affinity ────────────────────────────────────────
-  // Join ratings with watchlist rows (which carry genreIds) by tmdbId
-  const ratingScoreMap = new Map(ratingRows.map(r => [r.tmdbId, r.score]))
-  const ratingGenreAffinity = new Map<number, { total: number; count: number }>()
-  for (const w of watchlistRows) {
-    const score = ratingScoreMap.get(w.tmdbId)
-    if (score === undefined) continue
-    for (const gid of w.genreIds ?? []) {
-      const entry = ratingGenreAffinity.get(gid) ?? { total: 0, count: 0 }
-      ratingGenreAffinity.set(gid, { total: entry.total + score, count: entry.count + 1 })
-    }
-  }
+  // MovieRating already carries cached TMDb genre evidence. Using it directly
+  // means every rating can shape the shelf, not only ratings whose movie also
+  // happens to be present in the watchlist.
+  const ratingGenreAffinity = buildGenreAffinities(ratingRows)
 
-  // Spoiler Zone memberships → weak genre boost (equivalent to a neutral 65/100 rating)
+  // Spoiler Zone memberships → weak positive genre signal.
   // Use watchlist genreIds for membership movies if available (they were already fetched)
   const watchlistGenreMap = new Map(watchlistRows.map(r => [r.tmdbId, r.genreIds ?? []]))
   for (const tmdbId of membershipTmdbIds) {
     const genreIds = watchlistGenreMap.get(tmdbId) ?? []
     for (const gid of genreIds) {
-      const entry = ratingGenreAffinity.get(gid) ?? { total: 0, count: 0 }
-      // Treat a SZ membership as a soft 65/100 signal (weaker than a real rating)
-      ratingGenreAffinity.set(gid, { total: entry.total + 65, count: entry.count + 1 })
+      const entry = ratingGenreAffinity.get(gid)
+      if (!entry) {
+        ratingGenreAffinity.set(gid, { averageScore: 65, signal: 0.1, count: 1 })
+      } else {
+        const nextCount = entry.count + 1
+        ratingGenreAffinity.set(gid, {
+          averageScore: (entry.averageScore * entry.count + 65) / nextCount,
+          signal:       (entry.signal * entry.count + 0.1) / nextCount,
+          count:        nextCount,
+        })
+      }
     }
   }
 
   // ── 3. Gather candidate pools ─────────────────────────────────────────────
   const take5Favs = favorites.slice(0, 5)
+  const favoriteIds = new Set(take5Favs.map(favorite => favorite.tmdbId))
+  const ratingAnchors = selectPositiveRatingAnchors(ratingRows, 5)
+    .filter(rating => !favoriteIds.has(rating.tmdbId))
+    .slice(0, 4)
+  const likedPickAnchors = feedbackRows
+    .filter(row => row.feedback === 'liked' || row.feedback === 'watchlist')
+    .map(row => row.recommendation)
+    .filter(rec => !favoriteIds.has(rec.tmdbId) && !ratingAnchors.some(rating => rating.tmdbId === rec.tmdbId))
+    .slice(0, 2)
+
+  const sourceAnchors: RecommendationAnchor[] = [
+    ...take5Favs.map(favorite => ({
+      tmdbId: favorite.tmdbId,
+      title:  favorite.title,
+      kind:   'favorite' as const,
+    })),
+    ...ratingAnchors.map(rating => ({
+      tmdbId:    rating.tmdbId,
+      title:     rating.title,
+      kind:      'rating' as const,
+      score:     rating.score,
+      affinity:  rating.affinity,
+    })),
+    ...likedPickAnchors.map(rec => ({
+      tmdbId: rec.tmdbId,
+      title:  rec.title,
+      kind:   'liked-pick' as const,
+    })),
+  ]
+
+  const positiveRatingGenreIds = [...ratingGenreAffinity.entries()]
+    .filter(([, affinity]) => affinity.signal > 0.15)
+    .sort((a, b) => (b[1].signal * Math.sqrt(b[1].count)) - (a[1].signal * Math.sqrt(a[1].count)))
+    .map(([genreId]) => genreId)
+  const discoveryGenreIds = [...new Set([
+    ...userGenres.map(genre => GENRE_NAME_TO_ID[genre]).filter((id): id is number => Boolean(id)),
+    ...positiveRatingGenreIds,
+  ])].slice(0, 3)
 
   const [recResults, similarResults, genreResults, classicPageResults] = await Promise.all([
-    // TMDb recs for each favorite
-    Promise.allSettled(take5Favs.map(f => getMovieRecommendations(f.tmdbId))),
+    // TMDb recs for favorites, highly rated films, and previously liked picks
+    Promise.allSettled(sourceAnchors.map(anchor => getMovieRecommendations(anchor.tmdbId))),
     // TMDb similar for each favorite (different signal than recs)
     Promise.allSettled(take5Favs.map(f => getMovieSimilar(f.tmdbId))),
-    // Genre-based discovery for the user's top 2 genres
+    // Genre discovery combines explicit preferences with actual rating history.
     Promise.allSettled(
-      userGenres.slice(0, 2)
-        .map(g => GENRE_NAME_TO_ID[g])
-        .filter(Boolean)
-        .map(id => getMoviesByGenre(id, 1))
+      discoveryGenreIds.map(id => getMoviesByGenre(id, 1))
     ),
     // Top-rated all time across pages 1-3 (for classics pool — we need pre-1990 films)
     Promise.allSettled([
@@ -200,45 +272,41 @@ export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> 
     ]),
   ])
 
-  // Merge candidates per favorite (so we can track origin)
-  const favCandidates: Map<number, { movie: TMDbMovie; fromFavTitle: string }[]> = new Map()
-
-  for (let i = 0; i < take5Favs.length; i++) {
-    const fav   = take5Favs[i]
-    const recR  = recResults[i]
-    const simR  = similarResults[i]
-    const pool: TMDbMovie[] = []
-    if (recR.status  === 'fulfilled') pool.push(...recR.value.results)
-    if (simR.status  === 'fulfilled') pool.push(...simR.value.results)
-    for (const m of pool) {
-      if (!favCandidates.has(fav.tmdbId)) favCandidates.set(fav.tmdbId, [])
-      favCandidates.get(fav.tmdbId)!.push({ movie: m, fromFavTitle: fav.title })
-    }
-  }
-
   // Deduplicate all candidates into a flat map keyed by tmdbId
-  const allMovies = new Map<number, { movie: TMDbMovie; fromFavTitles: string[] }>()
+  const allMovies = new Map<number, { movie: TMDbMovie; sources: RecommendationAnchor[] }>()
 
-  for (const [, entries] of favCandidates) {
-    for (const { movie, fromFavTitle } of entries) {
-      if (seenIds.has(movie.id) || !movie.poster_path || movie.vote_count < 80) continue
-      const existing = allMovies.get(movie.id)
-      if (existing) {
-        if (!existing.fromFavTitles.includes(fromFavTitle))
-          existing.fromFavTitles.push(fromFavTitle)
-      } else {
-        allMovies.set(movie.id, { movie, fromFavTitles: [fromFavTitle] })
-      }
+  function addCandidate(movie: TMDbMovie, source?: RecommendationAnchor) {
+    if (seenIds.has(movie.id) || !movie.poster_path || movie.vote_count < 80) return
+    const existing = allMovies.get(movie.id)
+    if (!existing) {
+      allMovies.set(movie.id, { movie, sources: source ? [source] : [] })
+      return
+    }
+    if (source && !existing.sources.some(item => item.tmdbId === source.tmdbId && item.kind === source.kind)) {
+      existing.sources.push(source)
     }
   }
+
+  recResults.forEach((result, index) => {
+    if (result.status !== 'fulfilled') return
+    for (const movie of result.value.results) addCandidate(movie, sourceAnchors[index])
+  })
+
+  similarResults.forEach((result, index) => {
+    if (result.status !== 'fulfilled') return
+    const favorite = take5Favs[index]
+    const source: RecommendationAnchor = {
+      tmdbId: favorite.tmdbId,
+      title:  favorite.title,
+      kind:   'favorite',
+    }
+    for (const movie of result.value.results) addCandidate(movie, source)
+  })
 
   // Add genre-based candidates (no specific favorite attribution)
   for (const r of genreResults) {
     if (r.status !== 'fulfilled') continue
-    for (const m of r.value.results) {
-      if (seenIds.has(m.id) || !m.poster_path || m.vote_count < 80) continue
-      if (!allMovies.has(m.id)) allMovies.set(m.id, { movie: m, fromFavTitles: [] })
-    }
+    for (const movie of r.value.results) addCandidate(movie)
   }
 
   // Classic pool: merge top-rated pages 1-3, filter to pre-1990
@@ -263,12 +331,13 @@ export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> 
   // ── 4. Score every candidate ──────────────────────────────────────────────
   const scored: EnrichedRec[] = []
 
-  for (const [, { movie, fromFavTitles }] of allMovies) {
+  for (const [, { movie, sources }] of allMovies) {
     const enriched = scoreMovie({
       movie,
-      fromFavTitles,
+      sources,
       favorites,
       userDNA,
+      hasTasteProfile: Boolean(user.tasteProfile),
       userGenres,
       ratingGenreAffinity,
     })
@@ -280,9 +349,10 @@ export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> 
   for (const movie of classicPool) {
     const enriched = scoreMovie({
       movie,
-      fromFavTitles: [],
+      sources: [],
       favorites,
       userDNA,
+      hasTasteProfile: Boolean(user.tasteProfile),
       userGenres,
       ratingGenreAffinity,
     })
@@ -298,10 +368,9 @@ export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> 
   // ── 5. Partition into groups ──────────────────────────────────────────────
   const usedIds = new Set<number>()
 
-  // Group 1 — "We Think You'd Like": top overall
-  const weThinkYoudLike = scored
-    .filter(r => !usedIds.has(r.tmdbId))
-    .slice(0, 8)
+  // Group 1 — "We Think You'd Like": highest confidence, lightly reranked so
+  // the shelf is not filled by near-identical movies from a single genre.
+  const weThinkYoudLike = pickDiverseRecommendations(scored, 8)
     .map(r => { usedIds.add(r.tmdbId); return { ...r, group: 'we-think-youd-like' as RecGroup } })
 
   // Group 2 — "Similar To Favorites": best match per favorite (must have explicit attribution)
@@ -440,13 +509,16 @@ export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> 
 
 function scoreMovie(opts: {
   movie:               TMDbMovie
-  fromFavTitles:       string[]
+  sources:             RecommendationAnchor[]
   favorites:           { tmdbId: number; title: string; genreIds: number[] }[]
   userDNA:             DNAScores
+  hasTasteProfile:     boolean
   userGenres:          string[]
-  ratingGenreAffinity: Map<number, { total: number; count: number }>
+  ratingGenreAffinity: Map<number, GenreAffinity>
 }): EnrichedRec | null {
-  const { movie, fromFavTitles, favorites, userDNA, userGenres, ratingGenreAffinity } = opts
+  const {
+    movie, sources, favorites, userDNA, hasTasteProfile, userGenres, ratingGenreAffinity,
+  } = opts
 
   // Compute movie vibe
   const movieDNA = computeMovieVibe({
@@ -462,48 +534,76 @@ function scoreMovie(opts: {
 
   // ── Score components ───────────────────────────────────────────────────────
 
-  // 1. DNA compatibility (0-40)
+  // 1. DNA compatibility (0-34). A neutral fallback profile contributes much
+  // less, otherwise a new user's generic 5/10 profile looks falsely precise.
   const totalDiff = DNA_KEYS.reduce((sum, k) => sum + Math.abs(movieDNA[k] - userDNA[k]), 0)
   const avgDiff   = totalDiff / DNA_KEYS.length
-  const dnaPts    = Math.max(0, 40 - avgDiff * 5)
+  const dnaSimilarity = Math.max(0, 100 - (avgDiff / 9) * 100)
+  const dnaPts = dnaSimilarity * (hasTasteProfile ? 0.34 : 0.1)
 
-  // 2. Genre match (0-20)
+  // 2. Explicit genre preferences (0-14)
   const movieGenreNames = (movie.genre_ids ?? []).map(id => GENRE_ID_TO_NAME[id]?.toLowerCase()).filter(Boolean)
   const matchedGenres   = movieGenreNames.filter(g => userGenres.includes(g))
-  const genrePts        = Math.min(20, matchedGenres.length * 8)
+  const genrePts        = Math.min(14, matchedGenres.length * 7)
 
-  // 3. Quality (0-20)
-  const qualityPts = Math.min(
-    (movie.vote_average / 10) * 15 + (movie.vote_count > 500 ? 5 : 0),
-    20
-  )
+  // 3. Quality (0-12), with vote volume as confidence rather than a popularity
+  // jackpot. This keeps obscure good films viable without rewarding noise.
+  const qualityPts = Math.max(0, Math.min(
+    12,
+    (movie.vote_average - 5) * 2.4 + Math.min(2.4, Math.log10(movie.vote_count + 1) * 0.7),
+  ))
 
-  // 4. Favorite similarity (0-15)
+  // 4. Direct evidence from the source pools (0-24)
+  const sourceFavorites = sources.filter(source => source.kind === 'favorite')
+  const sourceRatings   = sources.filter(source => source.kind === 'rating')
+  const sourceLikedPicks = sources.filter(source => source.kind === 'liked-pick')
+
+  let sourcePts = 0
+  if (sourceFavorites.length > 0) sourcePts += 10 + Math.min(4, (sourceFavorites.length - 1) * 2)
+  if (sourceRatings.length > 0) {
+    const strongest = Math.max(...sourceRatings.map(source => source.affinity ?? 0))
+    sourcePts += 10 + Math.min(4, strongest * 3) + Math.min(3, (sourceRatings.length - 1) * 1.5)
+  }
+  if (sourceLikedPicks.length > 0) sourcePts += 11 + Math.min(2, sourceLikedPicks.length - 1)
+  const sourceKinds = [sourceFavorites, sourceRatings, sourceLikedPicks].filter(group => group.length > 0).length
+  if (sourceKinds > 1) sourcePts += 3
+  sourcePts = Math.min(24, sourcePts)
+
+  // Genre overlap is useful supporting context, but it is not treated as proof
+  // that two films are truly similar.
   const bestOverlapFavs: string[] = []
   for (const fav of favorites) {
     const overlap = (movie.genre_ids ?? []).filter(g => (fav.genreIds ?? []).includes(g)).length
     if (overlap >= 2) bestOverlapFavs.push(fav.title)
   }
-  // Also include fromFavTitles (TMDb-sourced)
-  const allMatchedFavs = [...new Set([...bestOverlapFavs, ...fromFavTitles])].slice(0, 3)
-  const favPts         = Math.min(15, allMatchedFavs.length * 6)
+  const allMatchedFavs = [...new Set([
+    ...sourceFavorites.map(source => source.title),
+    ...bestOverlapFavs,
+  ])].slice(0, 3)
+  if (sourceFavorites.length === 0 && bestOverlapFavs.length > 0) sourcePts += 3
 
-  // 5. Rating affinity (0-5)
-  let ratingPts   = 0
-  let ratingInsight: string | null = null
-  for (const gid of (movie.genre_ids ?? [])) {
-    const aff = ratingGenreAffinity.get(gid)
-    if (aff && aff.count >= 2) {
-      const avg = Math.round(aff.total / aff.count)
-      if (avg >= 70) {
-        ratingPts   = 5
-        ratingInsight = `You rate ${GENRE_ID_TO_NAME[gid] ?? 'similar'} films ${avg}/100 on average`
-        break
-      }
-    }
-  }
+  // 5. Rating affinity (-16 to +14). Repeated low ratings now actively lower a
+  // candidate instead of every genre overlap being treated as positive.
+  const affinityResult = scoreGenreAffinity(movie.genre_ids ?? [], ratingGenreAffinity)
+  const ratingPts = affinityResult.points
+  const ratingInsight = affinityResult.strongestPositive
+    ? (() => {
+        const [genreId, affinity] = affinityResult.strongestPositive!
+        const noun = affinity.count === 1 ? 'rating' : 'ratings'
+        return `You average ${Math.round(affinity.averageScore)}/100 on ${GENRE_ID_TO_NAME[genreId] ?? 'similar'} films across ${affinity.count} ${noun}`
+      })()
+    : null
 
-  const totalScore = Math.min(100, Math.round(dnaPts + genrePts + qualityPts + favPts + ratingPts))
+  const totalScore = Math.max(0, Math.min(98, Math.round(
+    dnaPts + genrePts + qualityPts + sourcePts + ratingPts,
+  )))
+
+  const matchedRatings: MatchedRating[] = sourceRatings
+    .filter((source): source is RecommendationAnchor & { score: number } => typeof source.score === 'number')
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(source => ({ title: source.title, score: source.score }))
+  const matchedLikedPicks = sourceLikedPicks.map(source => source.title).slice(0, 2)
 
   // ── Matched traits ─────────────────────────────────────────────────────────
   const matchedTraits: MatchedTrait[] = DNA_KEYS
@@ -519,12 +619,20 @@ function scoreMovie(opts: {
 
   // ── Explanation ────────────────────────────────────────────────────────────
   let explanation: string
-  if (allMatchedFavs.length > 0) {
+  if (matchedRatings.length > 0) {
+    const anchor = matchedRatings[0]
+    const trait = matchedTraits[0]?.trait.toLowerCase()
+    explanation = trait
+      ? `Because you rated ${anchor.title} ${anchor.score}/100, this ${trait}-forward pick should feel familiar without being a repeat.`
+      : `Because you rated ${anchor.title} ${anchor.score}/100, this is one of the strongest related matches for your taste.`
+  } else if (matchedLikedPicks.length > 0) {
+    explanation = `You liked our ${matchedLikedPicks[0]} recommendation, and this follows a closely related taste signal.`
+  } else if (allMatchedFavs.length > 0) {
     const fav = allMatchedFavs[0]
     const trait = matchedTraits[0]?.trait
     explanation = trait
-      ? `If you loved ${fav}, this shares its ${trait.toLowerCase()} and visual world.`
-      : `If you enjoyed ${fav}, this film occupies a very similar cinematic space.`
+      ? `If you loved ${fav}, this also lines up with your ${trait.toLowerCase()} preference.`
+      : `If you enjoyed ${fav}, this is a strong related pick for your broader taste.`
   } else if (matchedTraits.length > 0) {
     const traits = matchedTraits.slice(0, 2).map(t => t.trait.toLowerCase()).join(' and ')
     explanation = `Matches your DNA profile in ${traits}.`
@@ -545,6 +653,8 @@ function scoreMovie(opts: {
     group:            'we-think-youd-like',
     explanation,
     matchedFavorites: allMatchedFavs,
+    matchedRatings,
+    matchedLikedPicks,
     matchedGenres:    matchedGenres.map(g => g.charAt(0).toUpperCase() + g.slice(1)),
     matchedTraits,
     ratingInsight,
