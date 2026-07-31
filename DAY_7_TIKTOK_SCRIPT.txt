@@ -1,0 +1,35 @@
+DAY 7 OF CODING NOSPOILERS
+
+Today, I’m fixing a small dashboard problem that gets more annoying as NoSpoilers grows: there is a lot to explore, but getting from my watchlist to my Movie DNA or community activity takes way too much scrolling.
+
+So I’m building a dashboard section navigator.
+
+
+CHUNK 1 — DASHBOARD DESTINATIONS
+
+The first chunk maps the five places I visit most: Watchlist, Movie DNA, recommendations, Community, and Favorites.
+
+Each destination gets its own label, icon, and section anchor, so the component stays easy to update as the dashboard changes.
+
+
+CHUNK 2 — ACTIVE SECTION TRACKING
+
+The second chunk uses an intersection observer to detect which part of the dashboard is on screen.
+
+That means the navigator always highlights where I am without adding scroll listeners or making the page feel heavy.
+
+
+CHUNK 3 — THE STICKY NAVIGATOR
+
+The final chunk turns those destinations into a polished sticky rail with horizontal scrolling on mobile, clear hover states, and visible keyboard focus.
+
+It stays right below the main navigation, so every section is always one tap away.
+
+
+LET’S TEST IT
+
+I open the dashboard and the new rail locks into place as I scroll.
+
+I can jump straight to Movie DNA, move down to Community, or head all the way to Favorites. The active pill updates with me, and on mobile I can swipe through every destination without crowding the screen.
+
+Now the NoSpoilers dashboard can keep getting smarter without getting harder to navigate.
