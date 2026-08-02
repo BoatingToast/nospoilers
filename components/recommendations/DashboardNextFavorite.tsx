@@ -18,12 +18,16 @@ export default function DashboardNextFavorite() {
   const [sent,    setSent]    = useState<string | null>(null)
   const [saving,  setSaving]  = useState(false)
   const [saveError, setSaveError] = useState(false)
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     fetch('/api/curated-recs')
-      .then(r => r.json())
+      .then(response => {
+        if (!response.ok) throw new Error('Recommendation request failed')
+        return response.json()
+      })
       .then((data: CuratedRecGroups) => setRec(data.nextFavorite ?? null))
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false))
   }, [])
 
@@ -52,6 +56,23 @@ export default function DashboardNextFavorite() {
         <div className="h-3 bg-ns-border rounded w-32 mb-3" />
         <div className="h-5 bg-ns-border rounded w-2/3 mb-2" />
         <div className="h-3 bg-ns-border rounded w-full" />
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="bg-ns-surface border border-dashed border-ns-border rounded-2xl p-5 flex flex-col items-center justify-center h-40 text-center">
+        <p className="text-ns-muted font-body text-sm mb-2">
+          Could not load your Next Favorite.
+        </p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="text-ns-secondary text-xs font-body hover:text-amber-400"
+        >
+          Try again
+        </button>
       </div>
     )
   }

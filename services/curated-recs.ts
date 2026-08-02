@@ -31,6 +31,7 @@ import {
   selectPositiveRatingAnchors,
   type GenreAffinity,
 } from './recommendation-ranking'
+import { loadRecommendationRatingRows } from './recommendation-rating-evidence'
 import type { DNAScores, TMDbMovie } from '@/types'
 
 // ─── Public types ──────────────────────────────────────────────────────────────
@@ -145,10 +146,16 @@ export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> 
       },
     }),
     prisma.watchlistItem.findMany({ where: { userId }, select: { tmdbId: true, status: true, genreIds: true } }),
-    prisma.movieRating.findMany({
-      where:  { userId },
-      select: { tmdbId: true, title: true, score: true, genreIds: true },
-    }),
+    loadRecommendationRatingRows(
+      () => prisma.movieRating.findMany({
+        where:  { userId },
+        select: { tmdbId: true, title: true, score: true, genreIds: true },
+      }),
+      () => prisma.movieRating.findMany({
+        where:  { userId },
+        select: { tmdbId: true, title: true, score: true },
+      }),
+    ),
     // Spoiler Zone memberships — weak additional genre signal
     prisma.spoilerZoneMembership.findMany({
       where:  { userId },

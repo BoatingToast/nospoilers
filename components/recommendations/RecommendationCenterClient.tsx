@@ -157,6 +157,8 @@ export default function RecommendationCenterClient() {
   const [groups,   setGroups]   = useState<CuratedRecGroups | null>(null)
   const [personas, setPersonas] = useState<RecPersona[]>([])
   const [recLoading, setRecLoading] = useState(true)
+  const [recError, setRecError] = useState(false)
+  const [recRequest, setRecRequest] = useState(0)
   const [perLoading, setPerLoading] = useState(true)
   const [, startTransition] = useTransition()
 
@@ -164,13 +166,32 @@ export default function RecommendationCenterClient() {
   const [dnaLoading, setDnaLoading] = useState(true)
 
   useEffect(() => {
-    // Fetch curated recs
-    fetch('/api/curated-recs')
-      .then(r => r.json())
-      .then(data => setGroups(data))
-      .catch(() => {})
-      .finally(() => setRecLoading(false))
+    let cancelled = false
+    setRecLoading(true)
+    setRecError(false)
 
+    fetch('/api/curated-recs')
+      .then(async response => {
+        if (!response.ok) throw new Error('Recommendation request failed')
+        return response.json() as Promise<CuratedRecGroups>
+      })
+      .then(data => {
+        if (!cancelled) setGroups(data)
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setGroups(null)
+          setRecError(true)
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setRecLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [recRequest])
+
+  useEffect(() => {
     // Fetch personas (can be slow — non-blocking)
     startTransition(() => {
       fetch('/api/recommendations/personas')
@@ -221,6 +242,8 @@ export default function RecommendationCenterClient() {
           <p className="text-ns-muted font-body text-sm">
             {recLoading
               ? 'Loading your personalised picks…'
+              : recError
+                ? 'Your personalised picks could not be loaded'
               : `${totalPicks} personalised recommendations powered by your Movie DNA`
             }
           </p>
@@ -252,7 +275,21 @@ export default function RecommendationCenterClient() {
       <FriendRecs />
 
       {/* ─── 5 rec sections ────────────────────────────────────────────────── */}
-      {recLoading ? (
+      {recError ? (
+        <div className="bg-ns-surface border border-dashed border-ns-border rounded-2xl px-6 py-10 text-center">
+          <p className="text-white font-heading text-base mb-1">Recommendations couldn&apos;t load</p>
+          <p className="text-ns-muted font-body text-sm mb-4">
+            Your taste profile is safe. This is a temporary loading problem.
+          </p>
+          <button
+            type="button"
+            onClick={() => setRecRequest(request => request + 1)}
+            className="text-ns-secondary text-sm font-body hover:text-amber-400 transition-colors"
+          >
+            Try again
+          </button>
+        </div>
+      ) : recLoading ? (
         <div className="space-y-6">
           {SECTIONS.map(s => (
             <div key={s.key} className="bg-ns-surface border border-ns-border rounded-2xl p-5">

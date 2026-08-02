@@ -13,16 +13,8 @@ export async function GET() {
   } catch (err) {
     console.error('curated-recs error:', err)
     return NextResponse.json(
-      {
-        nextFavorite: null,
-        weThinkYoudLike: [],
-        similarToFavorites: [],
-        dnaBasedPicks: [],
-        expandYourTaste: [],
-        rediscoverClassics: [],
-        topTraits: [],
-      },
-      { status: 200 }
+      { error: 'Recommendations are temporarily unavailable.' },
+      { status: 503 },
     )
   }
 }
