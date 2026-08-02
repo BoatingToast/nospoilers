@@ -3,6 +3,8 @@ import test from 'node:test'
 // Node 22 runs this erasable TypeScript test directly.
 // @ts-expect-error explicit TypeScript extension is intentional for node:test
 import { buildGenreAffinities, pickDiverseRecommendations, scoreGenreAffinity, selectPositiveRatingAnchors } from '../services/recommendation-ranking.ts'
+// @ts-expect-error explicit TypeScript extension is intentional for node:test
+import { loadRecommendationRatingRows } from '../services/recommendation-rating-evidence.ts'
 
 test('genre affinities use actual rating metadata and penalize repeated dislikes', () => {
   const affinities = buildGenreAffinities([
@@ -37,4 +39,40 @@ test('diversity reranking breaks up near-identical results without hiding the be
   ], 3)
 
   assert.deepEqual(ranked.map(movie => movie.tmdbId), [1, 3, 2])
+})
+
+test('rating evidence falls back to legacy rows while the genre column migration rolls out', async () => {
+  let legacyQueryCalled = false
+
+  const rows = await loadRecommendationRatingRows(
+    async () => { throw { code: 'P2022' } },
+    async () => {
+      legacyQueryCalled = true
+      return [{ tmdbId: 1, title: 'Legacy favorite', score: 92 }]
+    },
+  )
+
+  assert.equal(legacyQueryCalled, true)
+  assert.deepEqual(rows, [
+    { tmdbId: 1, title: 'Legacy favorite', score: 92, genreIds: [] },
+  ])
+})
+
+test('rating evidence does not hide unrelated database failures', async () => {
+  let legacyQueryCalled = false
+
+  await assert.rejects(
+    loadRecommendationRatingRows(
+      async () => { throw { code: 'P1001' } },
+      async () => {
+        legacyQueryCalled = true
+        return []
+      },
+    ),
+    (error: unknown) => Boolean(
+      error && typeof error === 'object' && 'code' in error && error.code === 'P1001',
+    ),
+  )
+
+  assert.equal(legacyQueryCalled, false)
 })

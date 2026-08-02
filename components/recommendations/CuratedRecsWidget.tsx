@@ -106,7 +106,10 @@ export default function CuratedRecsWidget() {
 
   useEffect(() => {
     fetch('/api/curated-recs')
-      .then(r => r.json())
+      .then(response => {
+        if (!response.ok) throw new Error('Recommendation request failed')
+        return response.json()
+      })
       .then(data => setGroups(data))
       .catch(() => setError(true))
       .finally(() => setLoading(false))
