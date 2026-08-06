@@ -12,6 +12,7 @@ export interface TMDbMovie {
   genre_ids: number[]
   popularity: number
   original_language: string
+  runtime?: number | null
 }
 
 export interface TMDbMovieDetail {
@@ -136,6 +137,28 @@ export interface PreferencesInput {
   tone: string
   complexity: number
   plotTwists: number
+  pacingScale: number | null
+  endingClosure: number | null
+  storytellingScale: number | null
+  toneScale: number | null
+  escapism: number | null
+  emotionalIntensity: number | null
+  eraOpenness: number | null
+  runtimePreference: number | null
+  popularityPreference: number | null
+  discoveryPreference: number | null
+  subtitleOpenness: number | null
+  violenceTolerance: number | null
+  horrorTolerance: number | null
+  animationOpenness: number | null
+  documentaryOpenness: number | null
+  excludedGenres: string[]
+}
+
+export interface RecommendationMood {
+  intensity: number
+  runtime: number
+  adventure: number
 }
 
 export interface DNAScores {

@@ -22,6 +22,7 @@ import {
   getMovieSimilar,
   getMoviesByGenre,
   getTopRatedMovies,
+  getMovieById,
 } from './tmdb'
 import { computeMovieVibe } from './movie-vibe'
 import {
@@ -32,7 +33,13 @@ import {
   type GenreAffinity,
 } from './recommendation-ranking'
 import { loadRecommendationRatingRows } from './recommendation-rating-evidence'
-import type { DNAScores, TMDbMovie } from '@/types'
+import { getRecommendationPreferenceProfile } from './recommendation-preferences'
+import {
+  isCandidateAllowed,
+  preferenceScoreAdjustment,
+  type RecommendationPreferenceProfile,
+} from '@/lib/recommendation-preferences'
+import type { DNAScores, RecommendationMood, TMDbMovie } from '@/types'
 
 // ─── Public types ──────────────────────────────────────────────────────────────
 
@@ -131,9 +138,12 @@ type RecommendationAnchor = {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> {
+export async function getCuratedRecs(
+  userId: string,
+  mood?: RecommendationMood,
+): Promise<CuratedRecGroups> {
   // ── 1. Fetch all user signals ─────────────────────────────────────────────
-  const [user, watchlistRows, ratingRows, membershipRows, feedbackRows] = await Promise.all([
+  const [user, watchlistRows, ratingRows, membershipRows, feedbackRows, preferenceProfile] = await Promise.all([
     prisma.user.findUnique({
       where:  { id: userId },
       select: {
@@ -172,6 +182,7 @@ export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> 
         recommendation: { select: { tmdbId: true, title: true } },
       },
     }),
+    getRecommendationPreferenceProfile(userId),
   ])
 
   if (!user) return empty()
@@ -283,7 +294,10 @@ export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> 
   const allMovies = new Map<number, { movie: TMDbMovie; sources: RecommendationAnchor[] }>()
 
   function addCandidate(movie: TMDbMovie, source?: RecommendationAnchor) {
-    if (seenIds.has(movie.id) || !movie.poster_path || movie.vote_count < 80) return
+    if (
+      seenIds.has(movie.id) || !movie.poster_path || movie.vote_count < 80 ||
+      !isCandidateAllowed(movie, preferenceProfile)
+    ) return
     const existing = allMovies.get(movie.id)
     if (!existing) {
       allMovies.set(movie.id, { movie, sources: source ? [source] : [] })
@@ -332,8 +346,21 @@ export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> 
       m.vote_count >= 500 &&
       m.vote_average >= 7.5 &&
       m.release_date &&
-      parseInt(m.release_date.slice(0, 4), 10) < 1990
+      parseInt(m.release_date.slice(0, 4), 10) < 1990 &&
+      isCandidateAllowed(m, preferenceProfile, { allowClassics: true })
     )
+
+  // TMDb list responses omit runtime. Hydrate a bounded shortlist only when
+  // permanent taste or tonight's mood explicitly cares about movie length.
+  if (preferenceProfile.runtimePreference !== null || (mood && mood.runtime !== 5)) {
+    const runtimeCandidates = [
+      ...[...allMovies.values()]
+        .sort((a, b) => b.sources.length - a.sources.length || b.movie.popularity - a.movie.popularity)
+        .map(entry => entry.movie),
+      ...classicPool,
+    ].slice(0, 40)
+    await hydrateRuntimes(runtimeCandidates)
+  }
 
   // ── 4. Score every candidate ──────────────────────────────────────────────
   const scored: EnrichedRec[] = []
@@ -347,6 +374,8 @@ export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> 
       hasTasteProfile: Boolean(user.tasteProfile),
       userGenres,
       ratingGenreAffinity,
+      preferenceProfile,
+      mood,
     })
     if (enriched && enriched.matchScore > 10) scored.push(enriched)
   }
@@ -362,6 +391,10 @@ export async function getCuratedRecs(userId: string): Promise<CuratedRecGroups> 
       hasTasteProfile: Boolean(user.tasteProfile),
       userGenres,
       ratingGenreAffinity,
+      preferenceProfile,
+      mood,
+      sourceStrength: 0.25,
+      allowClassics: true,
     })
     if (enriched && enriched.matchScore > 10) {
       const year   = parseInt(movie.release_date.slice(0, 4), 10)
@@ -522,16 +555,21 @@ function scoreMovie(opts: {
   hasTasteProfile:     boolean
   userGenres:          string[]
   ratingGenreAffinity: Map<number, GenreAffinity>
+  preferenceProfile:   RecommendationPreferenceProfile
+  mood?:               RecommendationMood
+  sourceStrength?:     number
+  allowClassics?:      boolean
 }): EnrichedRec | null {
   const {
     movie, sources, favorites, userDNA, hasTasteProfile, userGenres, ratingGenreAffinity,
+    preferenceProfile, mood, sourceStrength, allowClassics,
   } = opts
 
   // Compute movie vibe
   const movieDNA = computeMovieVibe({
     id:                movie.id,
     genres:            (movie.genre_ids ?? []).map(id => ({ id, name: '' })),
-    runtime:           null,
+    runtime:           movie.runtime ?? null,
     vote_average:      movie.vote_average,
     vote_count:        movie.vote_count,
     popularity:        movie.popularity,
@@ -601,8 +639,16 @@ function scoreMovie(opts: {
       })()
     : null
 
+  const preferencePts = preferenceScoreAdjustment(movie, preferenceProfile, {
+    movieDNA,
+    mood,
+    sourceStrength: sourceStrength ?? (sources.length > 0 ? Math.min(1, 0.65 + sources.length * 0.1) : 0.35),
+    allowClassics,
+  })
+  if (preferencePts <= -1000) return null
+
   const totalScore = Math.max(0, Math.min(98, Math.round(
-    dnaPts + genrePts + qualityPts + sourcePts + ratingPts,
+    dnaPts + genrePts + qualityPts + sourcePts + ratingPts + preferencePts,
   )))
 
   const matchedRatings: MatchedRating[] = sourceRatings
@@ -701,4 +747,20 @@ function extractDNA(p: {
 function neutralDNA(): DNAScores {
   return { suspenseScore: 5, emotionalImpactScore: 5, complexityScore: 5,
            humorScore: 5, realismScore: 5, actionScore: 5, darknessScore: 5 }
+}
+
+async function hydrateRuntimes(movies: TMDbMovie[]): Promise<void> {
+  let nextIndex = 0
+  const workers = Array.from({ length: Math.min(6, movies.length) }, async () => {
+    while (nextIndex < movies.length) {
+      const movie = movies[nextIndex++]
+      try {
+        const detail = await getMovieById(movie.id)
+        movie.runtime = detail.runtime
+      } catch {
+        // Runtime is a soft preference signal; keep the candidate on failure.
+      }
+    }
+  })
+  await Promise.all(workers)
 }

@@ -368,6 +368,13 @@ async function performTasteProfileRecalc(userId: string): Promise<void> {
           select: {
             genres: true, pacing: true, endings: true, storytelling: true,
             tone: true, complexity: true, plotTwists: true,
+            pacingScale: true, endingClosure: true, storytellingScale: true,
+            toneScale: true, escapism: true, emotionalIntensity: true,
+            eraOpenness: true, runtimePreference: true, popularityPreference: true,
+            discoveryPreference: true, subtitleOpenness: true,
+            violenceTolerance: true, horrorTolerance: true,
+            animationOpenness: true, documentaryOpenness: true,
+            excludedGenres: true,
           },
         },
         onboardingMovies: {
@@ -568,26 +575,33 @@ async function performTasteProfileRecalc(userId: string): Promise<void> {
  * Also returns the set of already-rated tmdbIds to exclude or weight.
  */
 export async function getRatingSignalsForUser(userId: string): Promise<{
-  ratedIds:       Map<number, number>  // tmdbId → score
-  highRatedIds:   Set<number>           // score >= 75
-  lowRatedIds:    Set<number>           // score <= 35
+  ratedIds:     Map<number, number>  // tmdbId → score
+  genreAffinity: Map<number, { average: number; count: number }>
 }> {
   const ratings = await prisma.movieRating.findMany({
     where:   { userId },
-    select:  { tmdbId: true, score: true },
+    select:  { tmdbId: true, score: true, genreIds: true },
   })
 
-  const ratedIds     = new Map<number, number>()
-  const highRatedIds = new Set<number>()
-  const lowRatedIds  = new Set<number>()
+  const ratedIds = new Map<number, number>()
+  const genreTotals = new Map<number, { total: number; count: number }>()
 
   for (const r of ratings) {
     ratedIds.set(r.tmdbId, r.score)
-    if (r.score >= 75) highRatedIds.add(r.tmdbId)
-    if (r.score <= 35) lowRatedIds.add(r.tmdbId)
+    for (const genreId of r.genreIds) {
+      const current = genreTotals.get(genreId) ?? { total: 0, count: 0 }
+      genreTotals.set(genreId, { total: current.total + r.score, count: current.count + 1 })
+    }
   }
 
-  return { ratedIds, highRatedIds, lowRatedIds }
+  const genreAffinity = new Map(
+    [...genreTotals].map(([genreId, evidence]) => [
+      genreId,
+      { average: evidence.total / evidence.count, count: evidence.count },
+    ]),
+  )
+
+  return { ratedIds, genreAffinity }
 }
 
 // ─── Compatibility helper ─────────────────────────────────────────────────────

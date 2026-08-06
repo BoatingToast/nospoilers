@@ -151,8 +151,26 @@ model UserPreferences {
   tone         String
   complexity   Int
   plotTwists   Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  // Fine-grained recommendation controls. Values are 1-10; 5 is neutral.
+  // The legacy string fields above remain for compatibility with social matching.
+  pacingScale          Int?
+  endingClosure        Int?
+  storytellingScale    Int?
+  toneScale            Int?
+  escapism             Int?
+  emotionalIntensity   Int?
+  eraOpenness          Int?
+  runtimePreference    Int?
+  popularityPreference Int?
+  discoveryPreference  Int?
+  subtitleOpenness     Int?
+  violenceTolerance    Int?
+  horrorTolerance      Int?
+  animationOpenness    Int?
+  documentaryOpenness  Int?
+  excludedGenres       String[] @default([])
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model TasteProfile {

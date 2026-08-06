@@ -2,6 +2,12 @@ import { prisma } from '@/lib/db'
 import { getMovieRecommendations } from './tmdb'
 import { computeMovieVibe } from './movie-vibe'
 import { getRatingSignalsForUser } from './ratings'
+import { getRecommendationPreferenceProfile } from './recommendation-preferences'
+import {
+  isCandidateAllowed,
+  preferenceScoreAdjustment,
+  type RecommendationPreferenceProfile,
+} from '@/lib/recommendation-preferences'
 import type { DNAScores, TMDbMovie } from '@/types'
 
 // ─── Genre ID → display name ──────────────────────────────────────────────────
@@ -43,6 +49,17 @@ function findBestMatchingFavorite(
   return bestOverlap >= 1 ? bestTitle : null
 }
 
+function similarFavoriteSourceStrength(
+  candidate: TMDbMovie,
+  favorites: Array<{ genreIds: number[] }>,
+): number {
+  const maxOverlap = favorites.reduce((best, favorite) => {
+    const overlap = candidate.genre_ids.filter(id => favorite.genreIds.includes(id)).length
+    return Math.max(best, overlap)
+  }, 0)
+  return Math.min(1, 0.55 + maxOverlap * 0.15)
+}
+
 function getDNAReason(movieDNA: DNAScores, userDNA: DNAScores): string | null {
   const dimensions = Object.keys(DNA_LABELS) as (keyof DNAScores)[]
 
@@ -70,7 +87,11 @@ function scoreCandidate(
   userGenres: string[],
   userDNA: DNAScores,
   favorites: Array<{ tmdbId: number; title: string; genreIds: number[] }>,
-  ratingSignals: { ratedIds: Map<number, number>; highRatedIds: Set<number>; lowRatedIds: Set<number> },
+  ratingSignals: {
+    ratedIds: Map<number, number>
+    genreAffinity: Map<number, { average: number; count: number }>
+  },
+  preferenceProfile: RecommendationPreferenceProfile,
 ): { score: number; explanation: string } | null {
   // Exclude films already in favorites
   if (favoriteIds.has(movie.id)) return null
@@ -78,6 +99,7 @@ function scoreCandidate(
   if (!movie.poster_path) return null
   // Minimum quality bar
   if (movie.vote_count < 50) return null
+  if (!isCandidateAllowed(movie, preferenceProfile)) return null
 
   let score = 0
   const reasonParts: string[] = []
@@ -118,6 +140,12 @@ function scoreCandidate(
   const dnaReason = getDNAReason(movieDNA, userDNA)
   if (dnaReason) reasonParts.push(dnaReason)
 
+  // Explicit onboarding boundaries can outweigh generic popularity/quality.
+  score += preferenceScoreAdjustment(movie, preferenceProfile, {
+    movieDNA,
+    sourceStrength: similarFavoriteSourceStrength(movie, favorites),
+  })
+
   // ── 3. Quality (0–20) ─────────────────────────────────────────────────────
   const qualityScore = Math.min(
     (movie.vote_average / 10) * 15 + (movie.vote_count > 500 ? 5 : 0),
@@ -135,8 +163,12 @@ function scoreCandidate(
   // ── 5. Rating-pattern affinity (0–10) ─────────────────────────────────────
   // If the user has highly rated films in the same genres → boost
   // If the user has poorly rated films in the same genres → penalise
-  const highGenreOverlap = ratingSignals.highRatedIds.size > 0
-  const lowGenreOverlap  = ratingSignals.lowRatedIds.size  > 0
+  const matchedGenreEvidence = movie.genre_ids
+    .map(genreId => ratingSignals.genreAffinity.get(genreId))
+    .filter((evidence): evidence is { average: number; count: number } => Boolean(evidence))
+  const highGenreOverlap = matchedGenreEvidence.some(evidence => evidence.average >= 75)
+  const lowGenreOverlap  = matchedGenreEvidence.length > 0 &&
+    matchedGenreEvidence.every(evidence => evidence.average <= 40)
   if (highGenreOverlap && matchedGenres.length > 0) {
     score = Math.min(score + 7, 100)
     if (!reasonParts.some(r => r.includes('love of'))) {
@@ -188,9 +220,10 @@ export async function generateRecommendations(userId: string): Promise<void> {
   const userGenres  = user.preferences.genres
 
   // Fetch TMDb recommendations + rating signals in parallel
-  const [allCandidateArrays, ratingSignals] = await Promise.all([
+  const [allCandidateArrays, ratingSignals, preferenceProfile] = await Promise.all([
     Promise.allSettled(user.onboardingMovies.map(m => getMovieRecommendations(m.tmdbId))),
     getRatingSignalsForUser(userId),
+    getRecommendationPreferenceProfile(userId),
   ])
 
   // Merge + deduplicate candidates
@@ -209,7 +242,15 @@ export async function generateRecommendations(userId: string): Promise<void> {
   // Score each candidate
   const scored = candidates
     .map(movie => {
-      const result = scoreCandidate(movie, favoriteIds, userGenres, dna, user.onboardingMovies, ratingSignals)
+      const result = scoreCandidate(
+        movie,
+        favoriteIds,
+        userGenres,
+        dna,
+        user.onboardingMovies,
+        ratingSignals,
+        preferenceProfile,
+      )
       if (!result) return null
       return { movie, ...result }
     })

@@ -11,6 +11,8 @@
 import { prisma } from '@/lib/db'
 import { getMovieRecommendations, getMovieSimilar } from './tmdb'
 import { computeMovieVibe } from './movie-vibe'
+import { getRecommendationPreferenceProfile } from './recommendation-preferences'
+import { isCandidateAllowed, preferenceScoreAdjustment } from '@/lib/recommendation-preferences'
 import type { DNAScores, TMDbMovie, RecPersona, EnrichedRecForPersona } from '@/types'
 
 // ─── DNA trait display config ─────────────────────────────────────────────────
@@ -31,18 +33,21 @@ const DNA_TRAIT_PERSONAS: Record<
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export async function getRecPersonas(userId: string): Promise<RecPersona[]> {
-  const user = await prisma.user.findUnique({
-    where:  { id: userId },
-    select: {
-      onboardingMovies: {
-        select:  { tmdbId: true, title: true, genreIds: true },
-        orderBy: { addedAt: 'asc' },
+  const [user, preferenceProfile] = await Promise.all([
+    prisma.user.findUnique({
+      where:  { id: userId },
+      select: {
+        onboardingMovies: {
+          select:  { tmdbId: true, title: true, genreIds: true },
+          orderBy: { addedAt: 'asc' },
+        },
+        tasteProfile: true,
+        watchlistItems: { select: { tmdbId: true } },
+        movieRatings:   { select: { tmdbId: true } },
       },
-      tasteProfile: true,
-      watchlistItems: { select: { tmdbId: true } },
-      movieRatings:   { select: { tmdbId: true } },
-    },
-  })
+    }),
+    getRecommendationPreferenceProfile(userId),
+  ])
 
   if (!user || user.onboardingMovies.length === 0) return []
 
@@ -83,7 +88,10 @@ export async function getRecPersonas(userId: string): Promise<RecPersona[]> {
 
       const deduped = new Map<number, TMDbMovie>()
       for (const m of candidates) {
-        if (!seenIds.has(m.id) && m.poster_path && m.vote_count >= 80)
+        if (
+          !seenIds.has(m.id) && m.poster_path && m.vote_count >= 80 &&
+          isCandidateAllowed(m, preferenceProfile)
+        )
           deduped.set(m.id, m)
       }
 
@@ -99,7 +107,11 @@ export async function getRecPersonas(userId: string): Promise<RecPersona[]> {
           const diff  = Object.keys(favMovieDNA).reduce(
             (s, k) => s + Math.abs(movieDNA[k as keyof DNAScores] - favMovieDNA[k as keyof DNAScores]), 0
           )
-          const score = Math.max(0, Math.round(100 - diff * 7))
+          const preferencePts = preferenceScoreAdjustment(m, preferenceProfile, {
+            movieDNA,
+            sourceStrength: 0.9,
+          })
+          const score = Math.max(0, Math.min(100, Math.round(100 - diff * 7 + preferencePts)))
           return { m, score, movieDNA }
         })
         .filter(x => x.score >= 50)
@@ -142,7 +154,10 @@ export async function getRecPersonas(userId: string): Promise<RecPersona[]> {
       top3Favs.map(async fav => {
         const res = await getMovieRecommendations(fav.tmdbId).catch(() => ({ results: [] }))
         for (const m of res.results) {
-          if (seenIds.has(m.id) || !m.poster_path || m.vote_count < 80) continue
+          if (
+            seenIds.has(m.id) || !m.poster_path || m.vote_count < 80 ||
+            !isCandidateAllowed(m, preferenceProfile)
+          ) continue
           if (allCandidates.has(m.id)) continue
           const movieDNA = computeMovieVibe({
             id: m.id,
@@ -150,7 +165,14 @@ export async function getRecPersonas(userId: string): Promise<RecPersona[]> {
             runtime: null, vote_average: m.vote_average, vote_count: m.vote_count,
             popularity: m.popularity, release_date: m.release_date, original_language: m.original_language,
           })
-          allCandidates.set(m.id, { movie: m, traitScore: movieDNA[topTrait] })
+          const preferencePts = preferenceScoreAdjustment(m, preferenceProfile, {
+            movieDNA,
+            sourceStrength: 0.75,
+          })
+          allCandidates.set(m.id, {
+            movie: m,
+            traitScore: Math.max(0, Math.min(10, movieDNA[topTrait] + preferencePts / 10)),
+          })
         }
       })
     )
