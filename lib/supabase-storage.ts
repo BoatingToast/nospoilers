@@ -1,34 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { MAX_MOVIE_BYTES, MOVIE_MIME_TYPES, MOVIE_UPLOAD_BUCKET } from './movie-uploads'
 
-export const AVATAR_BUCKET = 'avatars'
-export const AVATAR_MAX_BYTES = 5 * 1024 * 1024
-export const AVATAR_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
-
-/**
- * Creates the public avatar bucket on first use. Keeping this server-side means
- * a new deployment does not depend on somebody remembering a dashboard step.
- */
-export async function ensureAvatarBucket() {
-  const supabase = getSupabaseAdmin()
-  const { data: bucket, error: lookupError } = await supabase.storage.getBucket(AVATAR_BUCKET)
-
-  if (lookupError && !/not found/i.test(lookupError.message)) throw lookupError
-
-  if (!bucket) {
-    const { error } = await supabase.storage.createBucket(AVATAR_BUCKET, {
-      public: true,
-      fileSizeLimit: AVATAR_MAX_BYTES,
-      allowedMimeTypes: [...AVATAR_MIME_TYPES],
-    })
-
-    // Another request may have created it between getBucket and createBucket.
-    if (error && !/already exists|duplicate/i.test(error.message)) throw error
-  }
-
-  return supabase
-}
-
 /**
  * Makes the creator-upload bucket self-configuring in new environments. Existing
  * projects keep their current bucket settings; new buckets are public so the
@@ -62,32 +34,9 @@ export function getSupabaseAdmin() {
 
   if (!url || !key) {
     throw new Error(
-      'Supabase not configured. Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to .env.local.\n' +
-      'See SETUP_GUIDE.md for Supabase Storage setup instructions.',
+      'Supabase not configured. Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to .env.local.',
     )
   }
 
   return createClient(url, key, { auth: { persistSession: false } })
-}
-
-/**
- * Constructs the full public URL for an object in the avatars bucket.
- * @param storagePath  The path inside the bucket, e.g. "abc123/1712345678.webp"
- */
-export function buildAvatarUrl(storagePath: string): string {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!url) throw new Error('NEXT_PUBLIC_SUPABASE_URL is not set')
-  return `${url}/storage/v1/object/public/${AVATAR_BUCKET}/${storagePath}`
-}
-
-/**
- * Extracts the storage path from a full Supabase public URL.
- * e.g. "https://xxx.supabase.co/storage/v1/object/public/avatars/uid/ts.webp"
- *   → "uid/ts.webp"
- */
-export function extractStoragePath(publicUrl: string): string | null {
-  const marker = `/storage/v1/object/public/${AVATAR_BUCKET}/`
-  const idx = publicUrl.indexOf(marker)
-  if (idx === -1) return null
-  return publicUrl.slice(idx + marker.length)
 }

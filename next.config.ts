@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
         hostname: 'image.tmdb.org',
         pathname: '/t/p/**',
       },
-      // Supabase Storage — avatars bucket
+      // Legacy Supabase-hosted avatars remain readable after the database move.
       {
         protocol: 'https',
         hostname: '*.supabase.co',

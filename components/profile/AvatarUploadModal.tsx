@@ -140,11 +140,15 @@ export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess
     setStage('uploading')
     setUploadProgress(50)
     try {
-      await fetch('/api/profile/avatar', { method: 'DELETE' })
+      const res = await fetch('/api/profile/avatar', { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null) as { error?: string } | null
+        throw new Error(data?.error ?? 'Failed to remove avatar')
+      }
       setUploadProgress(100)
       onSuccess('')
-    } catch {
-      setErrorMsg('Failed to remove avatar. Please try again.')
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to remove avatar. Please try again.')
       setStage('error')
     }
   }
