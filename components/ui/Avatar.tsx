@@ -88,7 +88,7 @@ function EditOverlay({ px }: { px: number }) {
 // ── Main Avatar component ─────────────────────────────────────────────────────
 
 export interface AvatarProps {
-  /** The user's avatar image URL (from Supabase Storage). */
+  /** The user's avatar image URL. */
   src?:       string | null
   /** Username — used as alt text and for building the profile link. */
   username?:  string
