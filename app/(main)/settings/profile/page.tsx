@@ -238,8 +238,17 @@ export default function EditProfilePage() {
               {profile.avatarUrl && (
                 <button
                   onClick={async () => {
-                    await fetch('/api/profile/avatar', { method: 'DELETE' })
-                    await handleAvatarSuccess('')
+                    setError('')
+                    try {
+                      const res = await fetch('/api/profile/avatar', { method: 'DELETE' })
+                      if (!res.ok) {
+                        const data = await res.json().catch(() => null) as { error?: string } | null
+                        throw new Error(data?.error ?? 'Failed to remove photo')
+                      }
+                      await handleAvatarSuccess('')
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Failed to remove photo')
+                    }
                   }}
                   className="block mt-2 text-xs font-body text-ns-muted/60 hover:text-red-400 transition-colors"
                 >
