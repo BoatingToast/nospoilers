@@ -1,16 +1,17 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect, useTransition, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import NextFavoriteHero from './NextFavoriteHero'
 import CuratedRecCard   from './CuratedRecCard'
 import RecPersonaSection from './RecPersonaSection'
 import RecAccuracyWidget from './RecAccuracyWidget'
 import BasedOnRatingsSection from './BasedOnRatingsSection'
+import MoodControls from './MoodControls'
 import FriendRecs from '@/components/friends/FriendRecs'
 import MovieDNACard from '@/components/dashboard/MovieDNACard'
 import type { CuratedRecGroups, EnrichedRec } from '@/services/curated-recs'
-import type { RecPersona, MovieDnaProfile } from '@/types'
+import type { RecPersona, MovieDnaProfile, RecommendationMood } from '@/types'
 import {
   RecsIcon, FilmIcon, MovieDnaIcon, TrendingIcon, CalendarIcon,
   type IconProps,
@@ -63,6 +64,12 @@ const SECTIONS: SectionConfig[] = [
     empty:   'No classics match your current DNA profile.',
   },
 ]
+
+const DEFAULT_RECOMMENDATION_MOOD: RecommendationMood = {
+  intensity: 5,
+  runtime: 5,
+  adventure: 5,
+}
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -159,6 +166,7 @@ export default function RecommendationCenterClient() {
   const [recLoading, setRecLoading] = useState(true)
   const [recError, setRecError] = useState(false)
   const [recRequest, setRecRequest] = useState(0)
+  const [activeMood, setActiveMood] = useState<RecommendationMood>(DEFAULT_RECOMMENDATION_MOOD)
   const [perLoading, setPerLoading] = useState(true)
   const [, startTransition] = useTransition()
 
@@ -170,7 +178,13 @@ export default function RecommendationCenterClient() {
     setRecLoading(true)
     setRecError(false)
 
-    fetch('/api/curated-recs')
+    const query = new URLSearchParams({
+      intensity: String(activeMood.intensity),
+      runtime: String(activeMood.runtime),
+      adventure: String(activeMood.adventure),
+    })
+
+    fetch(`/api/curated-recs?${query}`)
       .then(async response => {
         if (!response.ok) throw new Error('Recommendation request failed')
         return response.json() as Promise<CuratedRecGroups>
@@ -189,7 +203,11 @@ export default function RecommendationCenterClient() {
       })
 
     return () => { cancelled = true }
-  }, [recRequest])
+  }, [activeMood, recRequest])
+
+  const handleMoodApply = useCallback((mood: RecommendationMood) => {
+    setActiveMood(mood)
+  }, [])
 
   useEffect(() => {
     // Fetch personas (can be slow — non-blocking)
@@ -250,6 +268,8 @@ export default function RecommendationCenterClient() {
         </div>
         <RecAccuracyWidget />
       </div>
+
+      <MoodControls onApply={handleMoodApply} loading={recLoading} />
 
       {/* ─── Movie DNA teaser — same reusable card as Dashboard/profiles ───── */}
       {(dnaLoading || dnaProfile) && (
