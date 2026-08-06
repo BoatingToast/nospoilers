@@ -2,10 +2,28 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { getSupabaseAdmin, AVATAR_BUCKET, buildAvatarUrl, extractStoragePath } from '@/lib/supabase-storage'
+import {
+  AVATAR_BUCKET,
+  AVATAR_MAX_BYTES,
+  AVATAR_MIME_TYPES,
+  buildAvatarUrl,
+  ensureAvatarBucket,
+  extractStoragePath,
+  getSupabaseAdmin,
+} from '@/lib/supabase-storage'
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-const MAX_BYTES      = 5 * 1024 * 1024 // 5 MB
+function hasValidImageSignature(buffer: Buffer, mimeType: string): boolean {
+  if (mimeType === 'image/jpeg') {
+    return buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff
+  }
+  if (mimeType === 'image/png') {
+    return buffer.length >= 8 && buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+  }
+  if (mimeType === 'image/webp') {
+    return buffer.length >= 12 && buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP'
+  }
+  return false
+}
 
 // ── POST /api/profile/avatar ──────────────────────────────────────────────────
 // Body: FormData with field "file" (Blob/File)
@@ -30,7 +48,7 @@ export async function POST(req: Request) {
   }
 
   // Validate MIME type
-  if (!ALLOWED_TYPES.includes(file.type)) {
+  if (!AVATAR_MIME_TYPES.includes(file.type as (typeof AVATAR_MIME_TYPES)[number])) {
     return NextResponse.json(
       { error: 'Only JPG, PNG, and WEBP images are allowed' },
       { status: 400 },
@@ -38,7 +56,7 @@ export async function POST(req: Request) {
   }
 
   // Validate size
-  if (file.size > MAX_BYTES) {
+  if (file.size > AVATAR_MAX_BYTES) {
     return NextResponse.json(
       { error: 'File exceeds 5 MB limit' },
       { status: 400 },
@@ -48,25 +66,23 @@ export async function POST(req: Request) {
   const userId = session.user.id
 
   try {
-    const supabase = getSupabaseAdmin()
+    const supabase = await ensureAvatarBucket()
+    const buffer = Buffer.from(await file.arrayBuffer())
 
-    // Delete previous avatar if one exists
+    if (!hasValidImageSignature(buffer, file.type)) {
+      return NextResponse.json({ error: 'The selected file is not a valid image' }, { status: 400 })
+    }
+
     const existing = await prisma.user.findUnique({
       where:  { id: userId },
       select: { avatarUrl: true },
     })
-    if (existing?.avatarUrl) {
-      const oldPath = extractStoragePath(existing.avatarUrl)
-      if (oldPath) {
-        await supabase.storage.from(AVATAR_BUCKET).remove([oldPath])
-      }
-    }
 
-    // Upload new avatar — path: {userId}/{timestamp}.webp
-    const ext       = file.type === 'image/png' ? 'png' : 'webp'
+    // Upload the replacement before deleting the old image, so a failed upload
+    // never leaves the user's current profile picture pointing at a missing file.
+    const ext       = file.type === 'image/png' ? 'png' : file.type === 'image/jpeg' ? 'jpg' : 'webp'
     const timestamp = Date.now()
     const path      = `${userId}/${timestamp}.${ext}`
-    const buffer    = Buffer.from(await file.arrayBuffer())
 
     const { error: uploadError } = await supabase.storage
       .from(AVATAR_BUCKET)
@@ -89,6 +105,14 @@ export async function POST(req: Request) {
       where: { id: userId },
       data:  { avatarUrl: publicUrl },
     })
+
+    if (existing?.avatarUrl) {
+      const oldPath = extractStoragePath(existing.avatarUrl)
+      if (oldPath && oldPath !== path) {
+        // Cleanup is best-effort; the newly saved avatar should still succeed.
+        await supabase.storage.from(AVATAR_BUCKET).remove([oldPath]).catch(() => {})
+      }
+    }
 
     return NextResponse.json({ url: publicUrl })
   } catch (err: unknown) {

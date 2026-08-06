@@ -11,10 +11,10 @@
 
 import { useState }              from 'react'
 import Link                      from 'next/link'
-import Image                     from 'next/image'
 import { useRouter }             from 'next/navigation'
 import { useSession }            from 'next-auth/react'
 import { FriendsIcon, MovieDnaIcon } from '@/components/icons'
+import Avatar from '@/components/ui/Avatar'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -103,33 +103,6 @@ function InlineFollowBtn({
   )
 }
 
-// ── Avatar ───────────────────────────────────────────────────────────────────
-
-function Avatar({ user, size = 48 }: { user: SocialUser; size?: number }) {
-  const initial = (user.displayName ?? user.username).charAt(0).toUpperCase()
-  return (
-    <div
-      className="rounded-full overflow-hidden flex-shrink-0 ring-2 ring-ns-border/40"
-      style={{ width: size, height: size }}
-    >
-      {user.avatarUrl ? (
-        <Image
-          src={user.avatarUrl}
-          alt={user.username}
-          width={size} height={size}
-          className="object-cover"
-        />
-      ) : (
-        <div className="w-full h-full bg-gradient-to-br from-ns-secondary/25 to-ns-border flex items-center justify-center">
-          <span className="font-heading font-bold text-ns-secondary" style={{ fontSize: size * 0.35 }}>
-            {initial}
-          </span>
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ── Main card ─────────────────────────────────────────────────────────────────
 
 export default function UserSocialCard({
@@ -159,7 +132,12 @@ export default function UserSocialCard({
       <div className="flex items-center gap-4 p-4 relative">
         {/* Avatar */}
         <div className="relative flex-shrink-0">
-          <Avatar user={user} size={52} />
+          <Avatar
+            src={user.avatarUrl}
+            username={user.username}
+            size="md"
+            className="ring-2 ring-ns-border/40"
+          />
           {showFriendBadge && user.isFriend && (
             <span
               className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-ns-secondary
