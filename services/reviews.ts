@@ -15,6 +15,7 @@ export interface ReviewWithMeta {
   id:          string
   userId:      string
   username:    string
+  avatarUrl:   string | null
   tmdbId:      number
   movieTitle:  string
   title:       string | null
@@ -174,7 +175,7 @@ export async function getMovieReviews(
     take: fetchLimit,
     orderBy: sort === 'newest' ? { createdAt: 'desc' } : undefined,
     include: {
-      user:    { select: { id: true, username: true } },
+      user:    { select: { id: true, username: true, avatarUrl: true } },
       votes:   { select: { userId: true, type: true } },
       replies: { select: { id: true } },
     },
@@ -200,6 +201,7 @@ export async function getMovieReviews(
       id:          row.id,
       userId:      row.userId,
       username:    row.user.username,
+      avatarUrl:   row.user.avatarUrl ?? null,
       tmdbId:      row.tmdbId,
       movieTitle:  row.movieTitle,
       title:       row.title,
@@ -271,7 +273,7 @@ export async function getUserReviewForMovie(
   const row = await prisma.review.findUnique({
     where:   { userId_tmdbId: { userId, tmdbId } },
     include: {
-      user:    { select: { id: true, username: true } },
+      user:    { select: { id: true, username: true, avatarUrl: true } },
       votes:   { select: { userId: true, type: true } },
       replies: { select: { id: true } },
     },
@@ -282,6 +284,7 @@ export async function getUserReviewForMovie(
     id:          row.id,
     userId:      row.userId,
     username:    row.user.username,
+    avatarUrl:   row.user.avatarUrl ?? null,
     tmdbId:      row.tmdbId,
     movieTitle:  row.movieTitle,
     title:       row.title,
@@ -337,6 +340,7 @@ export interface ReplyWithUser {
   id:        string
   userId:    string
   username:  string
+  avatarUrl: string | null
   body:      string
   createdAt: string
 }
@@ -345,12 +349,13 @@ export async function getReviewReplies(reviewId: string): Promise<ReplyWithUser[
   const replies = await prisma.reviewReply.findMany({
     where:   { reviewId },
     orderBy: { createdAt: 'asc' },
-    include: { user: { select: { username: true } } },
+    include: { user: { select: { username: true, avatarUrl: true } } },
   })
   return replies.map(r => ({
     id:        r.id,
     userId:    r.userId,
     username:  r.user.username,
+    avatarUrl: r.user.avatarUrl ?? null,
     body:      r.body,
     createdAt: r.createdAt.toISOString(),
   }))
@@ -363,12 +368,13 @@ export async function createReviewReply(
 ): Promise<ReplyWithUser> {
   const reply = await prisma.reviewReply.create({
     data:    { reviewId, userId, body },
-    include: { user: { select: { username: true } } },
+    include: { user: { select: { username: true, avatarUrl: true } } },
   })
   return {
     id:        reply.id,
     userId:    reply.userId,
     username:  reply.user.username,
+    avatarUrl: reply.user.avatarUrl ?? null,
     body:      reply.body,
     createdAt: reply.createdAt.toISOString(),
   }

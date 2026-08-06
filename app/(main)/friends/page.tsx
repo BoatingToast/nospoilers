@@ -119,13 +119,13 @@ function FriendCard({ friend }: { friend: { id: string; username: string; avatar
   )
 }
 
-function PendingRequestRow({ req }: { req: { requestId: string; username: string; sentAt: string } }) {
+function PendingRequestRow({ req }: { req: { requestId: string; username: string; avatarUrl: string | null; sentAt: string } }) {
   // This is a server component — buttons need to be client-side
   // We'll render this as a link to avoid making the whole page client
   return (
     <div className="flex items-center justify-between gap-3">
       <Link href={`/profile/${req.username}`} className="flex items-center gap-2">
-        <Avatar src={null} username={req.username} size="sm" />
+        <Avatar src={req.avatarUrl} username={req.username} size="sm" />
         <span className="text-sm font-body text-white">@{req.username}</span>
       </Link>
       <PendingActions requestId={req.requestId} username={req.username} />

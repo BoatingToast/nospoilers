@@ -13,7 +13,7 @@ interface Props {
 
 type Stage = 'pick' | 'crop' | 'uploading' | 'error'
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_BYTES      = 5 * 1024 * 1024
 
 export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess }: Props) {
@@ -185,7 +185,7 @@ export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/jpg,image/png,image/webp"
+              accept="image/jpeg,image/png,image/webp"
               onChange={onFileInput}
               className="sr-only"
               aria-label="Choose image file"

@@ -490,6 +490,7 @@ export interface FriendSummary {
 export interface PendingRequest {
   id:        string
   username:  string
+  avatarUrl: string | null
   sentAt:    string
   requestId: string
 }

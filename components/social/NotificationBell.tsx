@@ -8,6 +8,7 @@ import {
   NotificationsIcon,
 } from '@/components/icons'
 import type { NotificationItem } from '@/services/notifications'
+import Avatar from '@/components/ui/Avatar'
 
 // ── Icon resolver ─────────────────────────────────────────────────────────────
 
@@ -86,11 +87,17 @@ function NotifRow({
           : 'bg-ns-secondary/[0.04] hover:bg-ns-secondary/[0.07] border-l-2 border-ns-secondary/40'
         }`}
     >
-      {/* Icon */}
-      <div className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0
-        ${n.read ? 'bg-ns-bg/50' : 'bg-ns-secondary/10'}`}>
-        <NotifIcon icon={n.icon} unread={!n.read} />
-      </div>
+      {/* Actor photo when available, otherwise the notification type icon. */}
+      {n.actorUsername ? (
+        <div className="mt-0.5">
+          <Avatar src={n.actorAvatarUrl} username={n.actorUsername} size="sm" />
+        </div>
+      ) : (
+        <div className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0
+          ${n.read ? 'bg-ns-bg/50' : 'bg-ns-secondary/10'}`}>
+          <NotifIcon icon={n.icon} unread={!n.read} />
+        </div>
+      )}
 
       {/* Text */}
       <div className="flex-1 min-w-0">

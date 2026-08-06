@@ -6,6 +6,7 @@ import type { ReviewWithMeta } from '@/services/reviews'
 import type { ReplyWithUser } from '@/services/reviews'
 import { WarningIcon } from '@/components/icons'
 import { passportLevelLabel } from '@/lib/plot-passport'
+import Avatar from '@/components/ui/Avatar'
 
 interface Props {
   review:      ReviewWithMeta
@@ -13,6 +14,8 @@ interface Props {
   onEdit?:     () => void
   onDeleted?:  (id: string) => void
   sessionId?:  string
+  sessionAvatarUrl?: string | null
+  sessionUsername?: string
 }
 
 function formatDate(iso: string): string {
@@ -34,10 +37,14 @@ function ReplyThread({
   reviewId,
   replyCount,
   sessionId,
+  sessionAvatarUrl,
+  sessionUsername,
 }: {
   reviewId:   string
   replyCount: number
   sessionId?: string
+  sessionAvatarUrl?: string | null
+  sessionUsername?: string
 }) {
   const [open,    setOpen]    = useState(false)
   const [replies, setReplies] = useState<ReplyWithUser[]>([])
@@ -95,11 +102,7 @@ function ReplyThread({
         <div className="mt-3 pl-4 border-l border-ns-border space-y-3">
           {replies.map(reply => (
             <div key={reply.id} className="flex gap-2.5">
-              <Link href={`/profile/${reply.username}`}
-                className="w-6 h-6 rounded-full bg-ns-secondary/20 border border-ns-secondary/30 flex-shrink-0
-                           flex items-center justify-center text-ns-secondary text-[10px] font-bold hover:bg-ns-secondary/30 transition-colors">
-                {reply.username[0]?.toUpperCase()}
-              </Link>
+              <Avatar src={reply.avatarUrl} username={reply.username} size="xs" href />
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2">
                   <Link href={`/profile/${reply.username}`}
@@ -116,11 +119,7 @@ function ReplyThread({
           {/* Reply input */}
           {sessionId && (
             <div className="flex gap-2 items-start pt-1">
-              <div className="w-6 h-6 rounded-full bg-ns-secondary/20 border border-ns-secondary/30 flex-shrink-0
-                              flex items-center justify-center text-ns-secondary text-[10px] font-bold">
-                {/* own initial */}
-                ✎
-              </div>
+              <Avatar src={sessionAvatarUrl} username={sessionUsername} size="xs" />
               <div className="flex-1 flex gap-2">
                 <input
                   value={draft}
@@ -149,7 +148,15 @@ function ReplyThread({
 
 // ─── Main card ────────────────────────────────────────────────────────────────
 
-export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId }: Props) {
+export default function ReviewCard({
+  review,
+  isOwn,
+  onEdit,
+  onDeleted,
+  sessionId,
+  sessionAvatarUrl,
+  sessionUsername,
+}: Props) {
   const [spoilerRevealed, setSpoilerRevealed] = useState(false)
   const [votes,           setVotes]           = useState({
     upvotes:     review.upvotes,
@@ -222,12 +229,7 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-3 min-w-0">
           {/* Avatar */}
-          <Link href={`/profile/${review.username}`}
-            className="w-9 h-9 rounded-full bg-ns-secondary/20 border border-ns-secondary/30 flex-shrink-0
-                       flex items-center justify-center text-ns-secondary text-sm font-bold
-                       hover:bg-ns-secondary/30 transition-colors">
-            {review.username[0]?.toUpperCase()}
-          </Link>
+          <Avatar src={review.avatarUrl} username={review.username} size="sm" href />
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
@@ -385,6 +387,8 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
           reviewId={review.id}
           replyCount={review.replyCount}
           sessionId={sessionId}
+          sessionAvatarUrl={sessionAvatarUrl}
+          sessionUsername={sessionUsername}
         />
       )}
     </article>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { FriendFeedItem } from '@/services/friends-feed'
+import Avatar from '@/components/ui/Avatar'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -137,14 +138,7 @@ function ActivityRow({ item }: { item: FeedItem }) {
   return (
     <div className="flex items-start gap-3 py-3 px-4 hover:bg-ns-bg/30 transition-colors group">
       {/* Avatar */}
-      <Link href={`/profile/${item.authorUsername}`} className="flex-shrink-0">
-        <div className="w-8 h-8 rounded-full bg-ns-border overflow-hidden flex items-center justify-center text-xs font-body text-ns-muted">
-          {item.authorAvatarUrl
-            ? <img src={item.authorAvatarUrl} alt="" className="w-full h-full object-cover" />
-            : item.authorUsername.charAt(0).toUpperCase()
-          }
-        </div>
-      </Link>
+      <Avatar src={item.authorAvatarUrl} username={item.authorUsername} size="sm" href />
       {/* Content */}
       <div className="flex-1 min-w-0">
         <p className="text-xs font-body text-ns-text leading-snug">
