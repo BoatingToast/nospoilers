@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { FriendsIcon } from '@/components/icons'
+import Avatar from '@/components/ui/Avatar'
 
 interface FriendRow {
   id:           string
@@ -16,22 +16,16 @@ interface FriendRow {
 
 function FriendItem({ f }: { f: FriendRow }) {
   const displayName = f.displayName ?? f.username
-  const initials    = displayName.charAt(0).toUpperCase()
-
   return (
     <div className="flex items-center gap-3 px-4 py-3 hover:bg-ns-bg/30 transition-colors group">
       {/* Avatar */}
-      <Link href={`/profile/${f.username}`} className="flex-shrink-0">
-        <div className="w-9 h-9 rounded-full overflow-hidden bg-ns-border ring-2 ring-ns-border/40 group-hover:ring-ns-secondary/30 transition-all">
-          {f.avatarUrl ? (
-            <Image src={f.avatarUrl} alt={displayName} width={36} height={36} className="object-cover" />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-ns-secondary/30 to-ns-border flex items-center justify-center">
-              <span className="text-xs font-heading font-bold text-ns-secondary">{initials}</span>
-            </div>
-          )}
-        </div>
-      </Link>
+      <Avatar
+        src={f.avatarUrl}
+        username={f.username}
+        size="sm"
+        href
+        className="ring-2 ring-ns-border/40 group-hover:ring-ns-secondary/30 transition-all"
+      />
 
       {/* Info */}
       <div className="flex-1 min-w-0">

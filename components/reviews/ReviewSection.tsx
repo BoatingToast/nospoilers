@@ -8,6 +8,7 @@ import WriteReview    from './WriteReview'
 import ReviewCard     from './ReviewCard'
 import type { ReviewWithMeta } from '@/services/reviews'
 import { FilmIcon, ArrowRightIcon } from '@/components/icons'
+import Avatar from '@/components/ui/Avatar'
 
 type SortMode = 'helpful' | 'popular' | 'top' | 'newest' | 'friends'
 
@@ -27,6 +28,8 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 export default function ReviewSection({ tmdbId, movieTitle }: Props) {
   const { data: session } = useSession()
   const sessionId         = (session?.user as { id?: string })?.id ?? undefined
+  const sessionAvatarUrl  = session?.user?.image ?? null
+  const sessionUsername   = session?.user?.name ?? undefined
 
   const [reviews,      setReviews]      = useState<ReviewWithMeta[]>([])
   const [userReview,   setUserReview]   = useState<ReviewWithMeta | null>(null)
@@ -135,6 +138,8 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
               onEdit={() => setEditingOwn(true)}
               onDeleted={handleDeleted}
               sessionId={sessionId}
+              sessionAvatarUrl={sessionAvatarUrl}
+              sessionUsername={sessionUsername}
             />
           )}
         </div>
@@ -154,9 +159,7 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-ns-secondary/10 border border-ns-secondary/20
                            hover:bg-ns-secondary/20 transition-colors"
               >
-                <span className="w-5 h-5 rounded-full bg-ns-secondary/30 flex items-center justify-center text-ns-secondary text-[10px] font-bold">
-                  {r.username[0]?.toUpperCase()}
-                </span>
+                <Avatar src={r.avatarUrl} username={r.username} size="xs" />
                 <span className="text-ns-secondary text-xs font-heading font-medium">@{r.username}</span>
                 {r.rating !== null && (
                   <span className="text-ns-muted text-[10px] font-body">{r.rating}/100</span>
@@ -230,6 +233,8 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
                   review={review}
                   isOwn={false}
                   sessionId={sessionId}
+                  sessionAvatarUrl={sessionAvatarUrl}
+                  sessionUsername={sessionUsername}
                 />
               ))}
               {otherReviews.filter(r => !r.isFriend).length > 0 && (
@@ -247,6 +252,8 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
               onEdit={review.userId === sessionId ? () => setEditingOwn(true) : undefined}
               onDeleted={review.userId === sessionId ? handleDeleted : undefined}
               sessionId={sessionId}
+              sessionAvatarUrl={sessionAvatarUrl}
+              sessionUsername={sessionUsername}
             />
           ))}
 

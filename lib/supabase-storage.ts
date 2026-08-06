@@ -2,6 +2,32 @@ import { createClient } from '@supabase/supabase-js'
 import { MAX_MOVIE_BYTES, MOVIE_MIME_TYPES, MOVIE_UPLOAD_BUCKET } from './movie-uploads'
 
 export const AVATAR_BUCKET = 'avatars'
+export const AVATAR_MAX_BYTES = 5 * 1024 * 1024
+export const AVATAR_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
+
+/**
+ * Creates the public avatar bucket on first use. Keeping this server-side means
+ * a new deployment does not depend on somebody remembering a dashboard step.
+ */
+export async function ensureAvatarBucket() {
+  const supabase = getSupabaseAdmin()
+  const { data: bucket, error: lookupError } = await supabase.storage.getBucket(AVATAR_BUCKET)
+
+  if (lookupError && !/not found/i.test(lookupError.message)) throw lookupError
+
+  if (!bucket) {
+    const { error } = await supabase.storage.createBucket(AVATAR_BUCKET, {
+      public: true,
+      fileSizeLimit: AVATAR_MAX_BYTES,
+      allowedMimeTypes: [...AVATAR_MIME_TYPES],
+    })
+
+    // Another request may have created it between getBucket and createBucket.
+    if (error && !/already exists|duplicate/i.test(error.message)) throw error
+  }
+
+  return supabase
+}
 
 /**
  * Makes the creator-upload bucket self-configuring in new environments. Existing

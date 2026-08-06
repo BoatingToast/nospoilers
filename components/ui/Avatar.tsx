@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 // ── Size map ──────────────────────────────────────────────────────────────────
 
@@ -122,6 +122,9 @@ export default function Avatar({
 }: AvatarProps) {
   const px  = SIZE_PX[size]
   const alt = username ? `${username}'s avatar` : 'User avatar'
+  const [imageFailed, setImageFailed] = useState(false)
+
+  useEffect(() => setImageFailed(false), [src])
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
@@ -142,7 +145,7 @@ export default function Avatar({
       role={editable ? 'button' : undefined}
       aria-label={editable ? 'Change profile picture' : undefined}
     >
-      {src ? (
+      {src && !imageFailed ? (
         <Image
           src={src}
           alt={alt}
@@ -151,6 +154,7 @@ export default function Avatar({
           className="w-full h-full object-cover"
           sizes={`${px}px`}
           priority={priority}
+          onError={() => setImageFailed(true)}
         />
       ) : (
         <DefaultAvatar px={px} />
