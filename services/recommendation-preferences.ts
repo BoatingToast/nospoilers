@@ -34,38 +34,68 @@ function yearOf(value: string | null): number | null {
 export async function getRecommendationPreferenceProfile(
   userId: string,
 ): Promise<RecommendationPreferenceProfile> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      preferences: {
-        select: {
-          pacingScale: true,
-          endingClosure: true,
-          storytellingScale: true,
-          toneScale: true,
-          complexity: true,
-          plotTwists: true,
-          escapism: true,
-          emotionalIntensity: true,
-          eraOpenness: true,
-          runtimePreference: true,
-          popularityPreference: true,
-          discoveryPreference: true,
-          subtitleOpenness: true,
-          violenceTolerance: true,
-          horrorTolerance: true,
-          animationOpenness: true,
-          documentaryOpenness: true,
-          excludedGenres: true,
+  let user
+  try {
+    user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        preferences: {
+          select: {
+            pacingScale: true,
+            endingClosure: true,
+            storytellingScale: true,
+            toneScale: true,
+            complexity: true,
+            plotTwists: true,
+            escapism: true,
+            emotionalIntensity: true,
+            eraOpenness: true,
+            runtimePreference: true,
+            popularityPreference: true,
+            discoveryPreference: true,
+            subtitleOpenness: true,
+            violenceTolerance: true,
+            horrorTolerance: true,
+            animationOpenness: true,
+            documentaryOpenness: true,
+            excludedGenres: true,
+          },
+        },
+        onboardingMovies: { select: { releaseDate: true } },
+        movieRatings: {
+          where: { score: { gte: 75 } },
+          select: { releaseDate: true },
         },
       },
-      onboardingMovies: { select: { releaseDate: true } },
-      movieRatings: {
-        where: { score: { gte: 75 } },
-        select: { releaseDate: true },
+    })
+  } catch (error) {
+    // Deployments can briefly run this code before the additive preference
+    // migration reaches the database. Keep recommendations available with the
+    // legacy signals during that window instead of failing the whole endpoint.
+    if (!isMissingColumnError(error)) throw error
+
+    const legacyUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        preferences: { select: { complexity: true, plotTwists: true } },
+        onboardingMovies: { select: { releaseDate: true } },
+        movieRatings: {
+          where: { score: { gte: 75 } },
+          select: { releaseDate: true },
+        },
       },
-    },
-  })
+    })
+
+    const legacyYears = [
+      ...(legacyUser?.onboardingMovies ?? []),
+      ...(legacyUser?.movieRatings ?? []),
+    ].map(movie => yearOf(movie.releaseDate)).filter((year): year is number => year !== null)
+
+    return buildRecommendationPreferenceProfile(
+      { ...EMPTY_VALUES, ...(legacyUser?.preferences ?? {}) },
+      legacyYears,
+    )
+  }
 
   const values: TastePreferenceValues = user?.preferences ?? EMPTY_VALUES
   const years = [
@@ -74,4 +104,9 @@ export async function getRecommendationPreferenceProfile(
   ].map(movie => yearOf(movie.releaseDate)).filter((year): year is number => year !== null)
 
   return buildRecommendationPreferenceProfile(values, years)
+}
+
+function isMissingColumnError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null &&
+    'code' in error && error.code === 'P2022'
 }
