@@ -143,9 +143,11 @@ export default function SearchModal() {
                   <div className="p-2 border-t border-ns-border">
                     <p className="text-ns-muted/60 text-[10px] tracking-widest uppercase font-body px-2 py-1.5">People</p>
                     {people.map(person => (
-                      <div
+                      <Link
                         key={person.id}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                        href={`/actor/${person.id}`}
+                        onClick={handleClose}
+                        className="group flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-ns-surface-2 transition-colors"
                       >
                         <div className="w-8 h-8 rounded-full overflow-hidden bg-ns-border flex-shrink-0">
                           <Image
@@ -156,10 +158,10 @@ export default function SearchModal() {
                           />
                         </div>
                         <div>
-                          <p className="text-ns-text text-sm font-body font-medium">{person.name}</p>
+                          <p className="text-ns-text text-sm font-body font-medium group-hover:text-ns-secondary transition-colors">{person.name}</p>
                           <p className="text-ns-muted text-xs font-body">{person.known_for_department}</p>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}

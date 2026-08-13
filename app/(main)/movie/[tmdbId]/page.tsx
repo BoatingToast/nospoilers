@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
 import type { Metadata } from 'next'
@@ -190,8 +191,16 @@ export default async function MoviePage({ params }: Props) {
           <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-4">Cast</p>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-6 px-6">
             {topCast.map(member => (
-              <div key={member.id} className="flex-shrink-0 text-center w-[80px]">
-                <div className="w-[80px] h-[80px] rounded-full overflow-hidden bg-ns-surface border border-ns-border mx-auto mb-2">
+              <Link
+                key={member.id}
+                href={`/actor/${member.id}`}
+                aria-label={`View ${member.name}'s movies`}
+                className="group flex-shrink-0 text-center w-[80px] rounded-xl focus-visible:outline-none
+                           focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-4
+                           focus-visible:ring-offset-ns-bg"
+              >
+                <div className="w-[80px] h-[80px] rounded-full overflow-hidden bg-ns-surface border border-ns-border mx-auto mb-2
+                                transition-all duration-200 group-hover:border-ns-secondary/60 group-hover:scale-105">
                   <Image
                     src={tmdbImageUrl(member.profile_path, 'w185')}
                     alt={member.name}
@@ -199,9 +208,10 @@ export default async function MoviePage({ params }: Props) {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <p className="text-ns-text text-[11px] font-body leading-tight font-medium">{member.name}</p>
+                <p className="text-ns-text text-[11px] font-body leading-tight font-medium transition-colors
+                              group-hover:text-ns-secondary">{member.name}</p>
                 <p className="text-ns-muted/60 text-[10px] font-body leading-tight truncate">{member.character}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
