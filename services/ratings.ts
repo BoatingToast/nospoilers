@@ -40,6 +40,32 @@ export interface UpsertRatingInput {
   review?:       string | null
 }
 
+// Keep the response projection limited to the original rating columns. This
+// lets reads continue to work while an additive metadata migration is rolling
+// out, and gives the write path a safe legacy retry below.
+const RATING_DATA_SELECT = {
+  id: true,
+  tmdbId: true,
+  title: true,
+  posterPath: true,
+  releaseDate: true,
+  score: true,
+  storytelling: true,
+  characters: true,
+  entertainment: true,
+  emotion: true,
+  complexity: true,
+  suspense: true,
+  review: true,
+  createdAt: true,
+  updatedAt: true,
+} as const
+
+function isMissingColumnError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null &&
+    'code' in error && error.code === 'P2022'
+}
+
 // ─── CRUD ─────────────────────────────────────────────────────────────────────
 
 export async function upsertRating(
@@ -70,16 +96,34 @@ export async function upsertRating(
     review:        input.review        ?? null,
   }
 
-  const rating = await prisma.movieRating.upsert({
-    where:  { userId_tmdbId: { userId, tmdbId: input.tmdbId } },
-    create: {
-      ...data,
-      ...(metadata ?? { genreIds: [], keywords: [], dnaMetadataVersion: 0 }),
-    },
-    // A temporary TMDb failure must not erase evidence already cached on an
-    // existing rating.
-    update: { ...data, ...(metadata ?? {}), updatedAt: new Date() },
-  })
+  let rating
+  try {
+    rating = await prisma.movieRating.upsert({
+      where:  { userId_tmdbId: { userId, tmdbId: input.tmdbId } },
+      create: {
+        ...data,
+        ...(metadata ?? { genreIds: [], keywords: [], dnaMetadataVersion: 0 }),
+      },
+      // A temporary TMDb failure must not erase evidence already cached on an
+      // existing rating.
+      update: { ...data, ...(metadata ?? {}), updatedAt: new Date() },
+      select: RATING_DATA_SELECT,
+    })
+  } catch (error) {
+    if (!isMissingColumnError(error)) throw error
+
+    // Some production environments historically deployed application code
+    // before running additive Prisma migrations. Save the user's rating using
+    // the legacy columns in that window; once the migration lands, the normal
+    // path above resumes caching metadata and later DNA recalculation hydrates
+    // legacy rows whose metadata version defaults to 0.
+    rating = await prisma.movieRating.upsert({
+      where:  { userId_tmdbId: { userId, tmdbId: input.tmdbId } },
+      create: data,
+      update: { ...data, updatedAt: new Date() },
+      select: RATING_DATA_SELECT,
+    })
+  }
 
   // Keep the request alive until the derived profile is consistent. A DNA
   // failure never rolls back the user's successfully saved rating.
@@ -108,6 +152,7 @@ export async function getRating(
 ): Promise<MovieRatingData | null> {
   const r = await prisma.movieRating.findUnique({
     where: { userId_tmdbId: { userId, tmdbId } },
+    select: RATING_DATA_SELECT,
   })
   return r ? toData(r) : null
 }
@@ -127,6 +172,7 @@ export async function getUserRatings(
       orderBy,
       skip:    (page - 1) * limit,
       take:    limit,
+      select:  RATING_DATA_SELECT,
     }),
     prisma.movieRating.count({ where: { userId } }),
   ])
