@@ -53,11 +53,26 @@ export default function QuickRatingModal({
           review:        existing?.review        ?? null,
         }),
       })
-      if (!res.ok) throw new Error('Failed to save')
+
+      if (!res.ok) {
+        let message = 'Could not save rating. Please try again.'
+        try {
+          const errorData = await res.json()
+          if (typeof errorData?.error === 'string' && errorData.error) {
+            message = `Could not save rating. ${errorData.error}`
+          }
+          if (res.status === 401) message = 'Please sign in to save ratings.'
+        } catch {
+          message = 'Could not save rating. Please try again.'
+        }
+        throw new Error(message)
+      }
+
       const data = await res.json()
       onSaved(data.rating)
-    } catch {
-      setError('Could not save rating. Try again.')
+    } catch (error) {
+      if (error instanceof Error) setError(error.message)
+      else setError('Could not save rating. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -65,11 +80,20 @@ export default function QuickRatingModal({
 
   async function handleDelete() {
     setDeleting(true)
+    setError(null)
     try {
-      await fetch(`/api/ratings/${movie.tmdbId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/ratings/${movie.tmdbId}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        const message = typeof errorData?.error === 'string' && errorData.error
+          ? `Could not delete rating. ${errorData.error}`
+          : 'Could not delete rating. Please try again.'
+        throw new Error(message)
+      }
       onDeleted()
-    } catch {
-      setError('Could not delete rating.')
+    } catch (error) {
+      if (error instanceof Error) setError(error.message)
+      else setError('Could not delete rating. Please try again.')
     } finally {
       setDeleting(false)
     }
