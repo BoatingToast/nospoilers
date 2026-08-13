@@ -5,6 +5,8 @@ import type {
   TMDbSearchResponse,
   TMDbMultiSearchResponse,
   TMDbWatchProvidersResponse,
+  TMDbPersonDetail,
+  TMDbPersonMovieCredits,
 } from '@/types'
 import type {
   MovieWatchAccessType,
@@ -97,6 +99,16 @@ export async function findMovieByImdbId(imdbId: string): Promise<TMDbMovie | nul
 
 export async function searchMulti(query: string): Promise<TMDbMultiSearchResponse> {
   return tmdbFetch('/search/multi', { query, include_adult: 'false' }, 60)
+}
+
+// ─── People ──────────────────────────────────────────────────────────────────
+
+export async function getPersonById(id: number): Promise<TMDbPersonDetail> {
+  return tmdbFetch(`/person/${id}`, {}, 86400)
+}
+
+export async function getPersonMovieCredits(id: number): Promise<TMDbPersonMovieCredits> {
+  return tmdbFetch(`/person/${id}/movie_credits`, {}, 86400)
 }
 
 // ─── Movie detail ─────────────────────────────────────────────────────────────

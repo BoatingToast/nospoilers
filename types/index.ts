@@ -68,6 +68,28 @@ export interface TMDbPerson {
   media_type: 'person'
 }
 
+export interface TMDbPersonDetail {
+  id: number
+  name: string
+  biography: string
+  birthday: string | null
+  deathday: string | null
+  place_of_birth: string | null
+  profile_path: string | null
+  known_for_department: string
+}
+
+export interface TMDbPersonMovieCredit extends TMDbMovie {
+  character: string
+  credit_id: string
+  order: number
+}
+
+export interface TMDbPersonMovieCredits {
+  id: number
+  cast: TMDbPersonMovieCredit[]
+}
+
 export interface TMDbSearchResponse {
   page: number
   results: TMDbMovie[]
