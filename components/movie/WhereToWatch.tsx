@@ -69,8 +69,13 @@ export default function WhereToWatch({ movieTitle, providers, region = 'US' }: P
       </button>
 
       {open && (
-        <Modal onClose={() => setOpen(false)} maxWidth="max-w-lg">
-          <div role="dialog" aria-modal="true" aria-labelledby="where-to-watch-title">
+        <Modal
+          onClose={() => setOpen(false)}
+          ariaLabelledBy="where-to-watch-title"
+          ariaDescribedBy="where-to-watch-region"
+          maxWidth="max-w-lg"
+        >
+          <div>
             <div className="border-b border-ns-border bg-gradient-to-r from-ns-secondary/10 to-transparent px-5 py-5 pr-14 sm:px-6 sm:py-6">
               <div className="mb-2 flex items-center gap-2 text-ns-secondary">
                 <WhereToWatchIcon size={18} />
@@ -79,7 +84,7 @@ export default function WhereToWatch({ movieTitle, providers, region = 'US' }: P
               <h2 id="where-to-watch-title" className="font-display text-2xl tracking-wider text-ns-text sm:text-3xl">
                 {movieTitle.toUpperCase()}
               </h2>
-              <p className="mt-1 text-xs font-body text-ns-muted">
+              <p id="where-to-watch-region" className="mt-1 text-xs font-body text-ns-muted">
                 Available in {regionName}
               </p>
             </div>
