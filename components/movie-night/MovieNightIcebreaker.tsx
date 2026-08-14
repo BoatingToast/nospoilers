@@ -10,7 +10,7 @@
 
 
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ClapperboardIcon, CloseIcon, FriendsIcon } from '@/components/icons'
 
 interface IcebreakerPlayer {
@@ -51,6 +51,8 @@ const QUESTIONS = [
 
 
 export default function MovieNightIcebreaker({ players }: Props) {
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [questionIndex, setQuestionIndex] = useState<number | null>(null)
   const [seenQuestionIndexes, setSeenQuestionIndexes] = useState<number[]>([])
@@ -63,6 +65,44 @@ export default function MovieNightIcebreaker({ players }: Props) {
   const allVotesIn = totalVotes === gamePlayers.length
   const highestVoteCount = Math.max(0, ...Object.values(votes))
   const winners = gamePlayers.filter(player => (votes[player.id] ?? 0) === highestVoteCount)
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const previousOverflow = document.body.style.overflow
+    const dialog = dialogRef.current
+    document.body.style.overflow = 'hidden'
+    dialog?.querySelector<HTMLElement>('button')?.focus()
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false)
+        return
+      }
+      if (event.key !== 'Tab' || !dialog) return
+
+      const focusable = [...dialog.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )]
+      if (focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+      triggerRef.current?.focus()
+    }
+  }, [isOpen])
 
   function drawQuestion() {
     const unseen = QUESTIONS
@@ -122,7 +162,7 @@ export default function MovieNightIcebreaker({ players }: Props) {
                 </span>
               </div>
               <p className="max-w-xl text-sm font-body leading-relaxed text-ns-muted">
-                Vote on who best fits each movie-night question, then reveal the group&apos;s pick.
+                Pass one screen around for a quick icebreaker before opening a live voting room.
               </p>
               {gamePlayers.length < 2 && (
                 <p className="mt-1 text-xs font-body text-ns-warning">
@@ -133,6 +173,7 @@ export default function MovieNightIcebreaker({ players }: Props) {
           </div>
 
           <button
+            ref={triggerRef}
             type="button"
             onClick={startGame}
             disabled={gamePlayers.length < 2}
@@ -149,10 +190,12 @@ export default function MovieNightIcebreaker({ players }: Props) {
           className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
-          aria-label="Movie Night Spotlight"
+          aria-labelledby="movie-night-spotlight-title"
           onClick={() => setIsOpen(false)}
         >
           <div
+            ref={dialogRef}
+            tabIndex={-1}
             className="relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-ns-warning/25 bg-ns-surface p-5 text-center shadow-2xl sm:p-8"
             onClick={event => event.stopPropagation()}
           >
@@ -170,7 +213,7 @@ export default function MovieNightIcebreaker({ players }: Props) {
             <p className="text-[10px] font-body font-semibold uppercase tracking-[0.24em] text-ns-warning">
               {revealed ? 'The group has spoken' : `Vote ${Math.min(totalVotes + 1, gamePlayers.length)} of ${gamePlayers.length}`}
             </p>
-            <h2 className="mx-auto mt-4 max-w-md text-2xl font-heading leading-snug text-white sm:text-3xl">
+            <h2 id="movie-night-spotlight-title" className="mx-auto mt-4 max-w-md text-2xl font-heading leading-snug text-white sm:text-3xl">
               {question}
             </h2>
 

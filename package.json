@@ -19,7 +19,8 @@
     "test:spoilers": "node --experimental-strip-types --test tests/spoiler-free.test.ts",
     "test:recommendations": "node --experimental-strip-types --test tests/recommendation-ranking.test.ts",
     "test:recommendation-preferences": "node --experimental-strip-types --test tests/recommendation-preferences.test.ts",
-    "test:uploads": "node --experimental-strip-types --test tests/movie-uploads.test.ts tests/movie-matching.test.ts"
+    "test:uploads": "node --experimental-strip-types --test tests/movie-uploads.test.ts tests/movie-matching.test.ts",
+    "test:movie-night": "node --experimental-strip-types --test tests/movie-night.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

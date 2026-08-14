@@ -643,7 +643,7 @@ export interface MovieNightLiveState {
   code:            string
   name:            string
   mood:            string
-  status:          'voting' | 'matched' | 'closed'
+  status:          'lobby' | 'voting' | 'matched' | 'no_match' | 'closed'
   expiresAt:       string
   participantId:   string | null
   participantCount: number

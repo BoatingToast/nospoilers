@@ -790,7 +790,7 @@ model MovieNightRoom {
   vetoGenres         Int[]
   unseenOnly         Boolean                     @default(true)
   avoidDivisive      Boolean                     @default(false)
-  status             String                      @default("voting") // voting | matched | closed
+  status             String                      @default("lobby") // lobby | voting | matched | no_match | closed
   matchedCandidateId String?
   matchedCandidate   MovieNightRoomCandidate?    @relation("MatchedCandidate", fields: [matchedCandidateId], references: [id], onDelete: SetNull)
   participants       MovieNightRoomParticipant[]

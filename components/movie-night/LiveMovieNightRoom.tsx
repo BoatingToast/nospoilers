@@ -14,6 +14,7 @@ import {
   ClapperboardIcon,
   CloseIcon,
   FilmIcon,
+  FriendsIcon,
   HeartIcon,
   LockIcon,
   ShareIcon,
@@ -100,6 +101,88 @@ function MatchReveal({ room, onShare }: { room: MovieNightLiveState; onShare: ()
   )
 }
 
+function NoMatchReveal({ room }: { room: MovieNightLiveState }) {
+  return (
+    <div className="max-w-2xl mx-auto">
+      <section className="rounded-3xl border border-ns-border bg-ns-surface px-6 py-10 sm:px-10 text-center">
+        <div className="w-16 h-16 rounded-full bg-ns-warning/10 border border-ns-warning/30 flex items-center justify-center mx-auto mb-5">
+          <CloseIcon size={29} className="text-ns-warning" />
+        </div>
+        <Badge variant="warning" size="md">No group match</Badge>
+        <h1 className="font-display text-4xl sm:text-5xl tracking-wider text-white mt-4">KEEP LOOKING</h1>
+        <p className="text-sm sm:text-base font-body text-ns-muted leading-relaxed mt-3 max-w-lg mx-auto">
+          Everyone passed on every pick in {room.name}. NoSpoilers won&apos;t force a winner the group rejected.
+        </p>
+        <div className="flex flex-wrap justify-center gap-3 mt-7">
+          <Button href="/movie-night" variant="primary">Adjust picks and try again</Button>
+          <Button href="/search" variant="outline">Explore movies</Button>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function MovieNightLobby({
+  room,
+  isHost,
+  starting,
+  onShare,
+  onStart,
+}: {
+  room: MovieNightLiveState
+  isHost: boolean
+  starting: boolean
+  onShare: () => void
+  onStart: () => void
+}) {
+  const readyToStart = room.participantCount >= 2
+
+  return (
+    <section className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
+      <div className="relative overflow-hidden rounded-3xl border border-ns-secondary/30 bg-ns-surface px-6 py-9 sm:px-10 sm:py-12">
+        <div className="absolute inset-0 bg-gradient-to-br from-ns-secondary/12 via-transparent to-ns-success/5 pointer-events-none" />
+        <div className="relative max-w-2xl">
+          <Badge variant="secondary" size="md">Lobby open</Badge>
+          <div className="w-16 h-16 rounded-2xl border border-ns-secondary/30 bg-ns-secondary/10 flex items-center justify-center mt-6">
+            <FriendsIcon size={30} className="text-ns-secondary" />
+          </div>
+          <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-white mt-5">GET EVERYONE IN</h2>
+          <p className="text-sm sm:text-base font-body text-ns-muted leading-relaxed mt-3 max-w-xl">
+            The roster locks when voting starts. Share the room code, make sure everyone is here, then let the host begin the ballot for the whole group.
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Button onClick={onShare} variant="secondary" size="lg">
+              <ShareIcon size={17} /> Share lobby
+            </Button>
+            {isHost ? (
+              <Button
+                onClick={onStart}
+                loading={starting}
+                disabled={!readyToStart}
+                size="lg"
+              >
+                <ArrowRightIcon size={17} /> Start voting
+              </Button>
+            ) : (
+              <div className="inline-flex items-center gap-2 rounded-xl border border-ns-border bg-ns-surface-2 px-4 py-3 text-sm font-body text-ns-muted" aria-live="polite">
+                <span className="w-2 h-2 rounded-full bg-ns-secondary animate-pulse" />
+                Waiting for the host to start
+              </div>
+            )}
+          </div>
+
+          {isHost && !readyToStart && (
+            <p className="text-xs font-body text-ns-muted mt-3">Invite at least one other voter to enable Start voting.</p>
+          )}
+        </div>
+      </div>
+
+      <ParticipantPanel room={room} />
+    </section>
+  )
+}
+
 export default function LiveMovieNightRoom({
   code,
   initialDisplayName,
@@ -108,15 +191,17 @@ export default function LiveMovieNightRoom({
   initialDisplayName: string
 }) {
   const tokenRef = useRef<string | null>(null)
+  const roomStatusRef = useRef<MovieNightLiveState['status'] | null>(null)
   const [room, setRoom] = useState<MovieNightLiveState | null>(null)
   const [displayName, setDisplayName] = useState(initialDisplayName)
   const [loading, setLoading] = useState(true)
   const [joining, setJoining] = useState(false)
+  const [starting, setStarting] = useState(false)
   const [voting, setVoting] = useState(false)
   const [error, setError] = useState('')
   const [shared, setShared] = useState(false)
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (): Promise<boolean> => {
     try {
       const response = await fetch(`/api/movie-night/rooms/${encodeURIComponent(code)}`, {
         headers: tokenRef.current ? { 'x-movie-night-token': tokenRef.current } : {},
@@ -124,10 +209,13 @@ export default function LiveMovieNightRoom({
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error ?? 'Could not load this room')
+      roomStatusRef.current = data.status
       setRoom(data)
       setError('')
+      return true
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not load this room')
+      return false
     } finally {
       setLoading(false)
     }
@@ -135,9 +223,41 @@ export default function LiveMovieNightRoom({
 
   useEffect(() => {
     tokenRef.current = window.localStorage.getItem(storageKey(code))
-    void refresh()
-    const interval = window.setInterval(() => { void refresh() }, 2500)
-    return () => window.clearInterval(interval)
+    let timeout: number | null = null
+    let stopped = false
+    let failures = 0
+
+    const schedule = (delay: number) => {
+      if (!stopped) timeout = window.setTimeout(() => { void poll() }, delay)
+    }
+    const poll = async () => {
+      if (stopped) return
+      if (document.visibilityState !== 'visible') {
+        schedule(10_000)
+        return
+      }
+
+      const ok = await refresh()
+      failures = ok ? 0 : Math.min(failures + 1, 3)
+      const status = roomStatusRef.current
+      if (status === 'matched' || status === 'no_match' || status === 'closed') return
+
+      const baseDelay = status === 'lobby' ? 2_000 : 5_000
+      schedule(Math.min(30_000, baseDelay * (2 ** failures)))
+    }
+    const handleVisibility = () => {
+      if (document.visibilityState !== 'visible') return
+      if (timeout) window.clearTimeout(timeout)
+      void poll()
+    }
+
+    void poll()
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      stopped = true
+      if (timeout) window.clearTimeout(timeout)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
   }, [code, refresh])
 
   async function joinRoom() {
@@ -189,6 +309,25 @@ export default function LiveMovieNightRoom({
     }
   }
 
+  async function startVoting() {
+    if (!tokenRef.current || starting) return
+    setStarting(true)
+    setError('')
+    try {
+      const response = await fetch(`/api/movie-night/rooms/${encodeURIComponent(code)}/start`, {
+        method: 'POST',
+        headers: { 'x-movie-night-token': tokenRef.current },
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error ?? 'Could not start voting')
+      await refresh()
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not start voting')
+    } finally {
+      setStarting(false)
+    }
+  }
+
   async function shareRoom(result = false) {
     const url = window.location.href
     const text = result && room?.matchedCandidate
@@ -236,6 +375,14 @@ export default function LiveMovieNightRoom({
     )
   }
 
+  if (room.status === 'no_match') {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        <NoMatchReveal room={room} />
+      </div>
+    )
+  }
+
   if (room.status === 'closed') {
     return (
       <div className="min-h-[65vh] flex items-center justify-center px-6">
@@ -253,6 +400,8 @@ export default function LiveMovieNightRoom({
   const votedCount = room.candidates.filter(candidate => candidate.myVote).length
   const currentCandidate = room.candidates.find(candidate => !candidate.myVote) ?? null
   const joined = Boolean(room.participantId)
+  const currentParticipant = room.participants.find(participant => participant.id === room.participantId) ?? null
+  const isHost = currentParticipant?.isHost === true
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
@@ -265,7 +414,9 @@ export default function LiveMovieNightRoom({
           </div>
           <h1 className="text-3xl sm:text-4xl font-heading text-white">{room.name}</h1>
           <p className="text-sm font-body text-ns-muted mt-2">
-            Votes stay private. The first unanimous pick wins.
+            {room.status === 'lobby'
+              ? 'Gather the whole group. The host starts the ballot when everyone is ready.'
+              : 'Votes stay private. The first unanimous pick wins.'}
           </p>
         </div>
 
@@ -290,7 +441,15 @@ export default function LiveMovieNightRoom({
         </div>
       )}
 
-      {!joined ? (
+      {room.status === 'lobby' && joined ? (
+        <MovieNightLobby
+          room={room}
+          isHost={isHost}
+          starting={starting}
+          onShare={() => void shareRoom()}
+          onStart={() => void startVoting()}
+        />
+      ) : room.status === 'lobby' ? (
         <section className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
           <div className="relative overflow-hidden bg-ns-surface border border-ns-secondary/25 rounded-3xl p-7 sm:p-10">
             <div className="absolute inset-0 bg-gradient-to-br from-ns-secondary/10 via-transparent to-transparent pointer-events-none" />
@@ -298,7 +457,7 @@ export default function LiveMovieNightRoom({
               <Badge variant="secondary" size="md">You&apos;re invited</Badge>
               <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-white mt-5">PICK TOGETHER</h2>
               <p className="text-sm sm:text-base font-body text-ns-muted leading-relaxed mt-3">
-                Rate {room.candidates.length} spoiler-free picks. Nobody sees individual votes—the room only reveals a match.
+                Join the lobby now. Once everyone is in, the host will start {room.candidates.length} private, spoiler-free picks for the whole group.
               </p>
 
               <div className="max-w-sm mt-8 space-y-3">
@@ -313,7 +472,7 @@ export default function LiveMovieNightRoom({
                   placeholder="How friends will see you"
                 />
                 <Button onClick={joinRoom} loading={joining} className="w-full" size="lg">
-                  Join the vote
+                  Join the lobby
                   <ArrowRightIcon size={17} />
                 </Button>
               </div>
@@ -325,6 +484,23 @@ export default function LiveMovieNightRoom({
             </div>
           </div>
 
+          <ParticipantPanel room={room} />
+        </section>
+      ) : !joined ? (
+        <section className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
+          <div className="min-h-[360px] rounded-3xl border border-ns-border bg-ns-surface flex items-center justify-center px-7 py-10 text-center">
+            <div className="max-w-md">
+              <div className="w-16 h-16 rounded-full border border-ns-warning/30 bg-ns-warning/10 flex items-center justify-center mx-auto mb-5">
+                <LockIcon size={27} className="text-ns-warning" />
+              </div>
+              <Badge variant="warning">Roster locked</Badge>
+              <h2 className="text-2xl sm:text-3xl font-heading text-white mt-4">Voting is already underway</h2>
+              <p className="text-sm font-body text-ns-muted leading-relaxed mt-3">
+                This room stopped accepting new voters when the host started the ballot. Ask the host to create a new room if you were missed.
+              </p>
+              <Button href="/movie-night" variant="primary" className="mt-6">Create or join another room</Button>
+            </div>
+          </div>
           <ParticipantPanel room={room} />
         </section>
       ) : (
@@ -412,7 +588,7 @@ export default function LiveMovieNightRoom({
                     Waiting for the rest of the room. This page will reveal the match automatically.
                   </p>
                   <Button onClick={() => void shareRoom()} variant="secondary" className="mt-6">
-                    <ShareIcon size={15} /> Invite another voter
+                    <ShareIcon size={15} /> Share room
                   </Button>
                 </div>
               </div>
@@ -427,6 +603,8 @@ export default function LiveMovieNightRoom({
 }
 
 function ParticipantPanel({ room }: { room: MovieNightLiveState }) {
+  const inLobby = room.status === 'lobby'
+
   return (
     <aside className="bg-ns-surface border border-ns-border rounded-2xl p-5 lg:sticky lg:top-24">
       <div className="flex items-center justify-between mb-4">
@@ -449,14 +627,16 @@ function ParticipantPanel({ room }: { room: MovieNightLiveState }) {
                     {participant.isHost && <Badge variant="secondary">Host</Badge>}
                   </div>
                   <p className="text-[11px] font-body text-ns-muted mt-0.5">
-                    {participant.finished ? 'Ballot complete' : `${participant.voteCount} of ${room.candidates.length}`}
+                    {inLobby ? 'Ready in lobby' : participant.finished ? 'Ballot complete' : `${participant.voteCount} of ${room.candidates.length}`}
                   </p>
                 </div>
-                {participant.finished && <CheckIcon size={16} className="text-ns-success flex-shrink-0" />}
+                {(inLobby || participant.finished) && <CheckIcon size={16} className="text-ns-success flex-shrink-0" />}
               </div>
-              <div className="h-1 rounded-full bg-ns-border/70 overflow-hidden mt-2.5">
-                <div className="h-full rounded-full bg-ns-secondary transition-all" style={{ width: `${progress}%` }} />
-              </div>
+              {!inLobby && (
+                <div className="h-1 rounded-full bg-ns-border/70 overflow-hidden mt-2.5">
+                  <div className="h-full rounded-full bg-ns-secondary transition-all" style={{ width: `${progress}%` }} />
+                </div>
+              )}
             </div>
           )
         })}
@@ -464,7 +644,9 @@ function ParticipantPanel({ room }: { room: MovieNightLiveState }) {
 
       <div className="mt-5 pt-4 border-t border-ns-border flex items-start gap-2 text-[11px] font-body text-ns-muted leading-relaxed">
         <LockIcon size={13} className="text-ns-secondary flex-shrink-0 mt-0.5" />
-        Ballot choices stay hidden—even from the host.
+        {inLobby
+          ? 'The roster locks when the host starts voting.'
+          : 'Ballot choices stay hidden—even from the host.'}
       </div>
     </aside>
   )
