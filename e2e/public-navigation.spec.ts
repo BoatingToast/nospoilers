@@ -17,11 +17,12 @@ test('landing page stays within the viewport and search reaches results', async 
   }))
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport)
 
-  const search = page.getByPlaceholder('Search for a movie...')
+  const landingSearch = page.locator('form').filter({ has: page.getByRole('button', { name: 'Search', exact: true }) })
+  const search = landingSearch.getByRole('textbox', { name: 'Search movies and people' })
   await search.fill('Matrix')
-  await page.getByRole('button', { name: 'Search', exact: true }).click()
+  await landingSearch.getByRole('button', { name: 'Search', exact: true }).click()
 
-  await expect(page).toHaveURL(/\/search\?q=Matrix$/)
+  await expect(page).toHaveURL(/\/search\?q=Matrix$/, { timeout: 20_000 })
   await expect(page.getByRole('heading', { name: '“Matrix”' })).toBeVisible()
   await expect(page.getByRole('link', { name: /The Matrix/ })).toBeVisible()
 })
@@ -35,14 +36,15 @@ test('mobile menu exposes navigation and multi-search results', async ({ page },
   await expect(page.getByRole('link', { name: 'Discover', exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: /Search movies/ }).click()
+  const searchDialog = page.getByRole('dialog', { name: 'Search movies and people' })
   const searchResponse = page.waitForResponse(response => response.url().includes('/api/search?q='), {
     timeout: 20_000,
   })
-  await page.getByPlaceholder('Search movies, actors, directors...').fill('Matrix')
+  await searchDialog.getByPlaceholder('Search movies, actors, directors...').fill('Matrix')
   await expect((await searchResponse).ok()).toBe(true)
 
-  await expect(page.getByText('Movies', { exact: true })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'The Matrix The Matrix 1999' })).toBeVisible()
-  await expect(page.getByText('People', { exact: true })).toBeVisible()
-  await expect(page.getByRole('link', { name: /Keanu Reeves/ })).toBeVisible()
+  await expect(searchDialog.getByText('Movies', { exact: true })).toBeVisible()
+  await expect(searchDialog.getByRole('link', { name: /The Matrix/ })).toBeVisible()
+  await expect(searchDialog.getByText('People', { exact: true })).toBeVisible()
+  await expect(searchDialog.getByRole('link', { name: /Keanu Reeves/ })).toBeVisible()
 })

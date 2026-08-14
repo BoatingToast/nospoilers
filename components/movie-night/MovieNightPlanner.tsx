@@ -242,7 +242,7 @@ function PickCard({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
             <FilmIcon size={14} />
             Movie
           </Button>
-          <Button href={`/movie/${pick.tmdbId}`} variant="outline" size="sm">
+          <Button href={`/movie/${pick.tmdbId}#spoiler-zone`} variant="outline" size="sm">
             <SpoilerZoneIcon size={14} />
             Zone
           </Button>
@@ -279,8 +279,9 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
       .filter((candidate): candidate is ScoredCandidate => {
         if (!candidate) return false
         if (unseenOnly && candidate.selectedSeenBy.length > 0) return false
-        if (avoidDivisive && candidate.voteAverage !== null && candidate.voteAverage < 6.4) return false
-        if (maxRuntime && candidate.runtime && candidate.runtime > maxRuntime) return false
+        if (avoidDivisive && (candidate.voteAverage === null || candidate.voteAverage < 6.4)) return false
+        if (maxRuntime && (!candidate.runtime || candidate.runtime > maxRuntime)) return false
+        if (vetoGenres.size > 0 && candidate.genreIds.length === 0) return false
         if (candidate.genreIds.some(id => vetoGenres.has(id))) return false
         return true
       })
@@ -419,7 +420,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                 <Badge variant="success">New</Badge>
               </div>
               <p className="text-sm font-body text-ns-muted leading-relaxed max-w-xl">
-                Share a room, let everyone vote privately, and reveal the first movie the whole group wants to watch.
+                Open a lobby, gather the group, then start one private ballot for everyone at the same time.
               </p>
             </div>
           </div>
@@ -444,7 +445,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
             </div>
             <Button onClick={startLiveRoom} loading={creatingRoom} disabled={ranked.length < 2} variant="primary">
               <ShareIcon size={16} />
-              Start live room
+              Open live lobby
             </Button>
           </div>
         </div>
@@ -482,6 +483,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                       key={participant.id}
                       type="button"
                       onClick={() => toggleParticipant(participant.id)}
+                      aria-pressed={selected}
                       className={[
                         'w-full flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors',
                         selected
@@ -518,6 +520,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                     key={option.key}
                     type="button"
                     onClick={() => setMood(option.key)}
+                    aria-pressed={mood === option.key}
                     className={[
                       'rounded-xl border px-3 py-2 text-xs font-body transition-colors',
                       mood === option.key
@@ -539,6 +542,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                     key={option.value}
                     type="button"
                     onClick={() => setRuntime(option.value)}
+                    aria-pressed={runtime === option.value}
                     className={[
                       'rounded-lg border px-2 py-2 text-xs font-body transition-colors',
                       runtime === option.value
@@ -562,6 +566,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                       key={id}
                       type="button"
                       onClick={() => toggleGenre(id)}
+                      aria-pressed={active}
                       className={[
                         'rounded-full border px-3 py-1.5 text-[11px] font-body transition-colors',
                         active
@@ -580,6 +585,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
               <button
                 type="button"
                 onClick={() => setUnseenOnly(v => !v)}
+                aria-pressed={unseenOnly}
                 className="w-full flex items-center justify-between gap-3 rounded-xl border border-ns-border bg-ns-surface-2 px-3 py-2.5"
               >
                 <span className="text-sm font-body text-white">No one selected has seen it</span>
@@ -597,6 +603,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
               <button
                 type="button"
                 onClick={() => setAvoidDivisive(v => !v)}
+                aria-pressed={avoidDivisive}
                 className="w-full flex items-center justify-between gap-3 rounded-xl border border-ns-border bg-ns-surface-2 px-3 py-2.5"
               >
                 <span className="text-sm font-body text-white">Avoid low consensus picks</span>

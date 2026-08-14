@@ -33,7 +33,7 @@ export default function SpoilerZone({ tmdbId, movieTitle, moviePoster = null, fr
   if (!hydrated) return null
 
   return (
-    <section className="mt-12">
+    <section id="spoiler-zone" className="mt-12 scroll-mt-24">
       {/* Section label */}
       <div className="flex items-center gap-3 mb-6">
         <div className="flex-1 h-px bg-ns-border" />

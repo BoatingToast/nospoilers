@@ -1,11 +1,24 @@
 import { createHash, randomBytes } from 'crypto'
 import { prisma } from '@/lib/db'
+import { decideMovieNightOutcome } from '@/lib/movie-night-outcome'
 import type { MovieNightLiveState, MovieNightVoteValue } from '@/types'
 
 const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 const MAX_CANDIDATES = 12
 const MAX_PARTICIPANTS = 12
 const ROOM_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000
+const VALID_MOODS = new Set(['crowd', 'tense', 'chill', 'deep', 'wildcard'])
+
+export class MovieNightRoomError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message)
+    this.name = 'MovieNightRoomError'
+  }
+}
+
+function roomError(message: string, status: number): never {
+  throw new MovieNightRoomError(message, status)
+}
 
 export interface LiveRoomCandidateInput {
   tmdbId:      number
@@ -68,6 +81,7 @@ function normalizeCandidates(candidates: LiveRoomCandidateInput[]) {
 
   return candidates
     .filter(candidate => {
+      if (!candidate || typeof candidate !== 'object') return false
       if (!Number.isInteger(candidate.tmdbId) || candidate.tmdbId <= 0 || seen.has(candidate.tmdbId)) return false
       if (typeof candidate.title !== 'string' || !candidate.title.trim()) return false
       seen.add(candidate.tmdbId)
@@ -80,13 +94,17 @@ function normalizeCandidates(candidates: LiveRoomCandidateInput[]) {
       posterPath:  typeof candidate.posterPath === 'string' ? candidate.posterPath.slice(0, 240) : null,
       releaseDate: typeof candidate.releaseDate === 'string' ? candidate.releaseDate.slice(0, 24) : null,
       genreIds:    Array.isArray(candidate.genreIds)
-        ? candidate.genreIds.filter(Number.isInteger).slice(0, 12)
+        ? [...new Set(candidate.genreIds.filter(id => Number.isInteger(id) && id > 0))].slice(0, 12)
         : [],
-      runtime:     Number.isInteger(candidate.runtime) ? candidate.runtime : null,
-      voteAverage: typeof candidate.voteAverage === 'number' && Number.isFinite(candidate.voteAverage)
-        ? candidate.voteAverage
+      runtime:     Number.isInteger(candidate.runtime) && candidate.runtime! > 0 && candidate.runtime! <= 600
+        ? candidate.runtime
         : null,
-      groupFit:    Math.max(1, Math.min(99, Math.round(candidate.groupFit || 1))),
+      voteAverage: typeof candidate.voteAverage === 'number' && Number.isFinite(candidate.voteAverage)
+        ? Math.max(0, Math.min(10, candidate.voteAverage))
+        : null,
+      groupFit:    typeof candidate.groupFit === 'number' && Number.isFinite(candidate.groupFit)
+        ? Math.max(1, Math.min(99, Math.round(candidate.groupFit)))
+        : 1,
       explanation: cleanText(candidate.explanation, 'A strong fit for this group.'),
       position,
     }))
@@ -101,22 +119,35 @@ export async function createLiveMovieNightRoom(hostId: string, input: CreateLive
     uniqueRoomCode(),
   ])
 
-  if (!host) throw new Error('Host not found')
+  if (!host) roomError('Host not found', 404)
 
-  const candidates = normalizeCandidates(input.candidates ?? [])
-  if (candidates.length < 2) throw new Error('At least two movie candidates are required')
+  const safeInput: Partial<CreateLiveRoomInput> = input && typeof input === 'object' ? input : {}
+  const mood = typeof safeInput.mood === 'string' && VALID_MOODS.has(safeInput.mood)
+    ? safeInput.mood
+    : 'crowd'
+  const maxRuntime = safeInput.maxRuntime === null
+    ? null
+    : Number.isInteger(safeInput.maxRuntime) && safeInput.maxRuntime! >= 60 && safeInput.maxRuntime! <= 360
+      ? safeInput.maxRuntime!
+      : null
+
+  const candidates = normalizeCandidates(Array.isArray(safeInput.candidates) ? safeInput.candidates : [])
+  if (candidates.length < 2) roomError('At least two movie candidates are required', 400)
 
   const token = makeParticipantToken()
   await prisma.movieNightRoom.create({
     data: {
       code,
       hostId,
-      name:          cleanName(input.name, 'Movie Night'),
-      mood:          cleanName(input.mood, 'crowd').toLowerCase().slice(0, 24),
-      maxRuntime:    Number.isInteger(input.maxRuntime) ? input.maxRuntime : null,
-      vetoGenres:    Array.isArray(input.vetoGenres) ? input.vetoGenres.filter(Number.isInteger).slice(0, 12) : [],
-      unseenOnly:    input.unseenOnly !== false,
-      avoidDivisive: input.avoidDivisive === true,
+      name:          cleanName(safeInput.name, 'Movie Night'),
+      mood,
+      maxRuntime,
+      vetoGenres:    Array.isArray(safeInput.vetoGenres)
+        ? [...new Set(safeInput.vetoGenres.filter(id => Number.isInteger(id) && id > 0))].slice(0, 12)
+        : [],
+      unseenOnly:    safeInput.unseenOnly !== false,
+      avoidDivisive: safeInput.avoidDivisive === true,
+      status:        'lobby',
       expiresAt:     new Date(Date.now() + ROOM_LIFETIME_MS),
       candidates: { create: candidates },
       participants: {
@@ -138,40 +169,108 @@ export async function joinLiveMovieNightRoom(
   codeInput: string,
   displayNameInput: unknown,
   user?: { id: string; username: string; avatarUrl: string | null } | null,
+  existingToken?: string | null,
 ) {
   const code = codeInput.trim().toUpperCase()
   const room = await prisma.movieNightRoom.findUnique({
     where: { code },
-    include: { participants: { select: { id: true, userId: true } } },
+    include: { participants: { select: { id: true, userId: true, tokenHash: true } } },
   })
 
-  if (!room || room.expiresAt <= new Date()) throw new Error('Room not found or expired')
-  if (room.status !== 'voting') throw new Error('Voting has already ended')
+  if (!room || room.expiresAt <= new Date()) roomError('Room not found or expired', 404)
+
+  const suppliedTokenHash = existingToken ? hashToken(existingToken) : null
+  const existing = room.participants.find(participant =>
+    (suppliedTokenHash && participant.tokenHash === suppliedTokenHash)
+      || (user && participant.userId === user.id),
+  )
+  const displayName = cleanName(displayNameInput, user?.username ?? 'Guest')
+
+  // Existing participants may reconnect after the host starts; they do not
+  // change the locked roster. A valid cookie/token also prevents an anonymous
+  // refresh from creating a duplicate seat.
+  if (existing) {
+    const token = suppliedTokenHash === existing.tokenHash && existingToken
+      ? existingToken
+      : makeParticipantToken()
+    const tokenHash = hashToken(token)
+
+    await prisma.movieNightRoomParticipant.update({
+      where: { id: existing.id },
+      data: {
+        tokenHash,
+        displayName,
+        avatarUrl: user?.avatarUrl ?? undefined,
+      },
+    })
+    return { token, participantId: existing.id }
+  }
+
+  if (room.status !== 'lobby') roomError('This room has already started', 409)
 
   const token = makeParticipantToken()
   const tokenHash = hashToken(token)
-  const displayName = cleanName(displayNameInput, user?.username ?? 'Guest')
-  const existing = user ? room.participants.find(participant => participant.userId === user.id) : null
-  if (!existing && room.participants.length >= MAX_PARTICIPANTS) throw new Error('This room is full')
+  const participant = await prisma.$transaction(async tx => {
+    // Updating the room inside the transaction takes a row lock. A concurrent
+    // host start therefore happens entirely before or after this seat is added.
+    const lobbyLock = await tx.movieNightRoom.updateMany({
+      where: { id: room.id, status: 'lobby', expiresAt: { gt: new Date() } },
+      data: { updatedAt: new Date() },
+    })
+    if (lobbyLock.count === 0) roomError('This room has already started', 409)
 
-  const participant = existing
-    ? await prisma.movieNightRoomParticipant.update({
-        where: { id: existing.id },
-        data: { tokenHash, displayName, avatarUrl: user?.avatarUrl ?? null },
-        select: { id: true },
-      })
-    : await prisma.movieNightRoomParticipant.create({
-        data: {
-          roomId: room.id,
-          userId: user?.id ?? null,
-          displayName,
-          avatarUrl: user?.avatarUrl ?? null,
-          tokenHash,
-        },
-        select: { id: true },
-      })
+    const participantCount = await tx.movieNightRoomParticipant.count({ where: { roomId: room.id } })
+    if (participantCount >= MAX_PARTICIPANTS) roomError('This room is full', 409)
+
+    return tx.movieNightRoomParticipant.create({
+      data: {
+        roomId: room.id,
+        userId: user?.id ?? null,
+        displayName,
+        avatarUrl: user?.avatarUrl ?? null,
+        tokenHash,
+      },
+      select: { id: true },
+    })
+  })
 
   return { token, participantId: participant.id }
+}
+
+export async function startLiveMovieNightRoom(codeInput: string, token: string) {
+  const code = codeInput.trim().toUpperCase()
+  const participant = await prisma.movieNightRoomParticipant.findUnique({
+    where: { tokenHash: hashToken(token) },
+    include: {
+      room: true,
+    },
+  })
+
+  if (!participant || participant.room.code !== code) roomError('Join this room before starting', 401)
+  if (!participant.isHost) roomError('Only the host can start voting', 403)
+  if (participant.room.expiresAt <= new Date()) roomError('Room not found or expired', 404)
+  if (participant.room.status === 'voting') return
+  if (participant.room.status !== 'lobby') roomError('This room has already ended', 409)
+
+  await prisma.$transaction(async tx => {
+    // Lock the room before counting so a join cannot slip between the roster
+    // check and the transition to voting.
+    const lobbyLock = await tx.movieNightRoom.updateMany({
+      where: { id: participant.room.id, status: 'lobby', expiresAt: { gt: new Date() } },
+      data: { updatedAt: new Date() },
+    })
+    if (lobbyLock.count === 0) roomError('This room has already started', 409)
+
+    const participantCount = await tx.movieNightRoomParticipant.count({
+      where: { roomId: participant.room.id },
+    })
+    if (participantCount < 2) roomError('Invite at least one other voter before starting', 409)
+
+    await tx.movieNightRoom.update({
+      where: { id: participant.room.id },
+      data: { status: 'voting' },
+    })
+  })
 }
 
 export async function getLiveMovieNightRoom(codeInput: string, token?: string | null): Promise<MovieNightLiveState | null> {
@@ -193,7 +292,7 @@ export async function getLiveMovieNightRoom(codeInput: string, token?: string | 
   if (!room) return null
 
   let status = room.status as MovieNightLiveState['status']
-  if (room.expiresAt <= new Date() && status === 'voting') {
+  if (room.expiresAt <= new Date() && (status === 'lobby' || status === 'voting')) {
     status = 'closed'
     await prisma.movieNightRoom.update({ where: { id: room.id }, data: { status } }).catch(() => undefined)
   }
@@ -270,36 +369,16 @@ async function updateRoomOutcome(roomId: string) {
 
   if (!room || room.status !== 'voting' || room.participants.length < 2) return
 
-  const unanimous = room.candidates.find(candidate =>
-    candidate.votes.filter(vote => vote.value === 'watch').length === room.participants.length,
-  )
+  const outcome = decideMovieNightOutcome(room.candidates, room.participants.length)
+  if (!outcome) return
 
-  if (unanimous) {
-    await prisma.movieNightRoom.update({
-      where: { id: room.id },
-      data: { status: 'matched', matchedCandidateId: unanimous.id },
-    })
-    return
-  }
-
-  const allFinished = room.candidates.every(candidate => candidate.votes.length === room.participants.length)
-  if (!allFinished) return
-
-  const best = [...room.candidates].sort((a, b) => {
-    const score = (candidate: typeof a) => candidate.votes.reduce((total, vote) => {
-      if (vote.value === 'watch') return total + 2
-      if (vote.value === 'maybe') return total + 1
-      return total
-    }, candidate.groupFit / 100)
-    return score(b) - score(a) || a.position - b.position
-  })[0]
-
-  if (best) {
-    await prisma.movieNightRoom.update({
-      where: { id: room.id },
-      data: { status: 'matched', matchedCandidateId: best.id },
-    })
-  }
+  await prisma.movieNightRoom.update({
+    where: { id: room.id },
+    data: {
+      status: outcome.status,
+      matchedCandidateId: outcome.matchedCandidateId,
+    },
+  })
 }
 
 export async function castLiveMovieNightVote(
@@ -308,7 +387,7 @@ export async function castLiveMovieNightVote(
   candidateId: string,
   value: MovieNightVoteValue,
 ) {
-  if (!['watch', 'maybe', 'pass'].includes(value)) throw new Error('Invalid vote')
+  if (!['watch', 'maybe', 'pass'].includes(value)) roomError('Invalid vote', 400)
 
   const code = codeInput.trim().toUpperCase()
   const participant = await prisma.movieNightRoomParticipant.findUnique({
@@ -316,16 +395,16 @@ export async function castLiveMovieNightVote(
     include: { room: { select: { id: true, code: true, status: true, expiresAt: true } } },
   })
 
-  if (!participant || participant.room.code !== code) throw new Error('Join this room before voting')
+  if (!participant || participant.room.code !== code) roomError('Join this room before voting', 401)
   if (participant.room.status !== 'voting' || participant.room.expiresAt <= new Date()) {
-    throw new Error('Voting has ended')
+    roomError(participant.room.status === 'lobby' ? 'Voting has not started yet' : 'Voting has ended', 409)
   }
 
   const candidate = await prisma.movieNightRoomCandidate.findFirst({
     where: { id: candidateId, roomId: participant.room.id },
     select: { id: true },
   })
-  if (!candidate) throw new Error('Movie is not in this room')
+  if (!candidate) roomError('Movie is not in this room', 400)
 
   await prisma.movieNightVote.upsert({
     where: {
