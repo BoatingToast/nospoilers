@@ -15,7 +15,9 @@ import type {
 } from '@/lib/movie-uploads'
 import { selectAutomaticMovieMatch } from '@/lib/movie-matching'
 
-const BASE_URL = 'https://api.themoviedb.org/3'
+// The override keeps browser tests hermetic by pointing them at a local TMDb
+// fixture server. Production continues to use TMDb unless explicitly configured.
+const BASE_URL = process.env.TMDB_BASE_URL ?? 'https://api.themoviedb.org/3'
 
 const PLACEHOLDER_TOKEN  = 'your-tmdb-read-access-token'
 const PLACEHOLDER_APIKEY = 'your-tmdb-api-key'

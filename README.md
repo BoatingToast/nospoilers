@@ -123,6 +123,8 @@ nospoilers/
 | `npm run db:migrate` | Create & run a migration |
 | `npm run db:studio` | Open Prisma Studio at localhost:5555 |
 | `npm run db:generate` | Regenerate Prisma client after schema changes |
+| `npm run test:e2e` | Run hermetic Playwright journeys in desktop and mobile Chromium |
+| `npm run test:e2e:ui` | Open Playwright's interactive test runner |
 | `npm run test:extension` | Run the extension classifier and manifest tests |
 | `npm run package:extension` | Validate and package the Chrome Web Store upload ZIP |
 
@@ -137,6 +139,13 @@ nospoilers/
 | `GET` | `/api/movies/[id]` | Movie detail by TMDb ID |
 | `POST` | `/api/auth/register` | Create new user |
 | `POST` | `/api/auth/[...nextauth]` | NextAuth sign in/out |
+
+### End-to-end tests
+
+Install Chromium once with `npx playwright install chromium`, then run
+`npm run test:e2e`. The suite starts NoSpoilers and a local TMDb fixture server,
+so it does not need a real TMDb key or database. Set `E2E_BASE_URL` to run the
+same journeys against an already-running environment instead.
 
 ---
 
