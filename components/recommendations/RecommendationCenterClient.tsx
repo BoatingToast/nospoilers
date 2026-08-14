@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useTransition, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 import NextFavoriteHero from './NextFavoriteHero'
 import CuratedRecCard   from './CuratedRecCard'
 import RecPersonaSection from './RecPersonaSection'
@@ -69,6 +70,27 @@ const DEFAULT_RECOMMENDATION_MOOD: RecommendationMood = {
   intensity: 5,
   runtime: 5,
   adventure: 5,
+}
+
+type RecommendationState =
+  | { status: 'loading' }
+  | { status: 'success'; groups: CuratedRecGroups }
+  | { status: 'error' }
+
+const RECOMMENDATION_ARRAY_KEYS = [
+  'weThinkYoudLike',
+  'similarToFavorites',
+  'dnaBasedPicks',
+  'expandYourTaste',
+  'rediscoverClassics',
+] as const
+
+function isCuratedRecGroups(value: unknown): value is CuratedRecGroups {
+  if (!value || typeof value !== 'object') return false
+  const candidate = value as Partial<CuratedRecGroups>
+  return RECOMMENDATION_ARRAY_KEYS.every(key => Array.isArray(candidate[key])) &&
+    Array.isArray(candidate.topTraits) &&
+    (candidate.nextFavorite === null || typeof candidate.nextFavorite === 'object')
 }
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
@@ -161,10 +183,8 @@ function SectionShelf({ items, section, topTraits }: ShelfProps) {
 
 export default function RecommendationCenterClient() {
   const { data: session } = useSession()
-  const [groups,   setGroups]   = useState<CuratedRecGroups | null>(null)
   const [personas, setPersonas] = useState<RecPersona[]>([])
-  const [recLoading, setRecLoading] = useState(true)
-  const [recError, setRecError] = useState(false)
+  const [recommendations, setRecommendations] = useState<RecommendationState>({ status: 'loading' })
   const [recRequest, setRecRequest] = useState(0)
   const [activeMood, setActiveMood] = useState<RecommendationMood>(DEFAULT_RECOMMENDATION_MOOD)
   const [perLoading, setPerLoading] = useState(true)
@@ -174,9 +194,8 @@ export default function RecommendationCenterClient() {
   const [dnaLoading, setDnaLoading] = useState(true)
 
   useEffect(() => {
-    let cancelled = false
-    setRecLoading(true)
-    setRecError(false)
+    const controller = new AbortController()
+    setRecommendations({ status: 'loading' })
 
     const query = new URLSearchParams({
       intensity: String(activeMood.intensity),
@@ -184,25 +203,22 @@ export default function RecommendationCenterClient() {
       adventure: String(activeMood.adventure),
     })
 
-    fetch(`/api/curated-recs?${query}`)
+    fetch(`/api/curated-recs?${query}`, { cache: 'no-store', signal: controller.signal })
       .then(async response => {
         if (!response.ok) throw new Error('Recommendation request failed')
-        return response.json() as Promise<CuratedRecGroups>
+        const data: unknown = await response.json()
+        if (!isCuratedRecGroups(data)) throw new Error('Recommendation response was invalid')
+        return data
       })
       .then(data => {
-        if (!cancelled) setGroups(data)
+        setRecommendations({ status: 'success', groups: data })
       })
-      .catch(() => {
-        if (!cancelled) {
-          setGroups(null)
-          setRecError(true)
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setRecLoading(false)
+      .catch(error => {
+        if (error instanceof DOMException && error.name === 'AbortError') return
+        setRecommendations({ status: 'error' })
       })
 
-    return () => { cancelled = true }
+    return () => controller.abort()
   }, [activeMood, recRequest])
 
   const handleMoodApply = useCallback((mood: RecommendationMood) => {
@@ -244,6 +260,8 @@ export default function RecommendationCenterClient() {
     }
   }
 
+  const groups = recommendations.status === 'success' ? recommendations.groups : null
+  const recLoading = recommendations.status === 'loading'
   const totalPicks = groups
     ? groups.weThinkYoudLike.length + groups.similarToFavorites.length +
       groups.dnaBasedPicks.length + groups.expandYourTaste.length + groups.rediscoverClassics.length
@@ -260,9 +278,11 @@ export default function RecommendationCenterClient() {
           <p className="text-ns-muted font-body text-sm">
             {recLoading
               ? 'Loading your personalised picks…'
-              : recError
+              : recommendations.status === 'error'
                 ? 'Your personalised picks could not be loaded'
-              : `${totalPicks} personalised recommendations powered by your Movie DNA`
+                : totalPicks === 0
+                  ? 'Your recommendation profile is ready for more movie signals'
+                  : `${totalPicks} personalised recommendations powered by your Movie DNA`
             }
           </p>
         </div>
@@ -295,28 +315,55 @@ export default function RecommendationCenterClient() {
       <FriendRecs />
 
       {/* ─── 5 rec sections ────────────────────────────────────────────────── */}
-      {recError ? (
-        <div className="bg-ns-surface border border-dashed border-ns-border rounded-2xl px-6 py-10 text-center">
-          <p className="text-white font-heading text-base mb-1">Recommendations couldn&apos;t load</p>
-          <p className="text-ns-muted font-body text-sm mb-4">
-            Your taste profile is safe. This is a temporary loading problem.
+      {recommendations.status === 'error' ? (
+        <div
+          className="rounded-2xl border border-dashed border-ns-danger/30 bg-ns-surface px-6 py-10 text-center"
+          role="alert"
+        >
+          <p className="mb-1 font-heading text-base text-white">Recommendations couldn&apos;t load</p>
+          <p className="mb-4 font-body text-sm text-ns-muted">
+            We could not reach the recommendation service. Your taste profile and ratings are safe.
           </p>
           <button
             type="button"
             onClick={() => setRecRequest(request => request + 1)}
-            className="text-ns-secondary text-sm font-body hover:text-amber-400 transition-colors"
+            className="rounded-lg bg-ns-secondary px-4 py-2 font-body text-sm font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-surface"
           >
             Try again
           </button>
         </div>
       ) : recLoading ? (
-        <div className="space-y-6">
+        <div className="space-y-6" aria-busy="true" aria-label="Loading recommendation shelves">
           {SECTIONS.map(s => (
             <div key={s.key} className="bg-ns-surface border border-ns-border rounded-2xl p-5">
               <div className="h-3 bg-ns-border rounded w-40 mb-4 animate-pulse" />
               <ShelfSkeleton />
             </div>
           ))}
+        </div>
+      ) : totalPicks === 0 ? (
+        <div
+          className="rounded-2xl border border-dashed border-ns-border bg-ns-surface px-6 py-10 text-center"
+          role="status"
+        >
+          <p className="mb-1 font-heading text-lg text-white">Your next picks need a little more signal</p>
+          <p className="mx-auto mb-5 max-w-lg font-body text-sm leading-relaxed text-ns-muted">
+            Nothing matched yet, but the recommendation service loaded successfully. Rate a few films or update your favorites to shape your Movie DNA.
+          </p>
+          <div className="flex flex-col justify-center gap-3 sm:flex-row">
+            <Link
+              href="/ratings"
+              className="rounded-lg bg-ns-secondary px-4 py-2 font-body text-sm font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-surface"
+            >
+              Rate films
+            </Link>
+            <Link
+              href="/onboarding"
+              className="rounded-lg border border-ns-border px-4 py-2 font-body text-sm text-ns-text transition-colors hover:border-ns-muted hover:bg-ns-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-surface"
+            >
+              Update favorites
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="space-y-6">
