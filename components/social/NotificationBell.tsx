@@ -266,8 +266,9 @@ export default function NotificationBell() {
       {/* Panel */}
       {open && (
         <div
-          className="absolute right-0 top-full mt-2 w-[340px] bg-ns-surface border border-ns-border
-                     rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-[520px]"
+          className="fixed left-4 right-4 top-[4.5rem] z-50 flex max-h-[calc(100svh-5.5rem)] w-auto flex-col overflow-hidden
+                     rounded-2xl border border-ns-border bg-ns-surface shadow-2xl
+                     sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:max-h-[520px] sm:w-[340px]"
           style={{ animation: 'szFadeIn 0.15s ease-out' }}
         >
           {/* Panel header */}

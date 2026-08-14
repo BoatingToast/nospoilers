@@ -61,9 +61,14 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    max-width: 100%;
+    overflow-x: clip;
   }
 
   body {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
     background-color: rgb(var(--ns-bg));
     color: rgb(var(--ns-text));
   }
@@ -94,6 +99,8 @@
 
 .discover-scene {
   --discover-progress: 0;
+  max-width: 100%;
+  overflow-x: clip;
   isolation: isolate;
 }
 

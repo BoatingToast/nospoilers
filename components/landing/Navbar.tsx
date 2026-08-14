@@ -241,7 +241,7 @@ export default function Navbar() {
           </nav>
 
           {/* Right — search + profile dropdown / auth */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          <div className="ml-auto flex flex-shrink-0 items-center gap-2 sm:gap-3">
 
             {/* Search */}
             <div className="hidden md:block">

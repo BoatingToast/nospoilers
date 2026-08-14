@@ -51,8 +51,8 @@ export default async function DiscoverPage() {
 
   return (
     <DiscoverScrollScene sectionCount={sections.length}>
-      <div className="mx-auto max-w-7xl px-6 pb-8 pt-12 sm:pt-16">
-        <header className="discover-hero discover-theater relative mb-24 overflow-hidden rounded-[2.5rem] border border-ns-border/90 bg-ns-bg px-3 pb-16 pt-14 shadow-[0_34px_110px_rgb(var(--ns-bg)/0.82)] sm:px-5 sm:pb-20 sm:pt-16 lg:mb-32 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 pb-8 pt-8 sm:px-6 sm:pt-16">
+        <header className="discover-hero discover-theater relative mb-20 overflow-hidden rounded-[1.75rem] border border-ns-border/90 bg-ns-bg px-2 pb-14 pt-14 shadow-[0_34px_110px_rgb(var(--ns-bg)/0.82)] sm:mb-24 sm:rounded-[2.5rem] sm:px-5 sm:pb-20 sm:pt-16 lg:mb-32 lg:px-8">
           <div className="discover-theater-fascia pointer-events-none absolute inset-x-0 top-0 z-30 h-14" aria-hidden="true">
             <div className="discover-theater-lights mx-auto flex h-full max-w-5xl items-center justify-between px-8 sm:px-16">
               {Array.from({ length: 11 }).map((_, lightIndex) => (
@@ -65,7 +65,7 @@ export default async function DiscoverPage() {
           <div className="discover-theater-curtain discover-theater-curtain-right pointer-events-none absolute bottom-14 right-0 top-10 z-20 hidden w-16 sm:block lg:w-24" aria-hidden="true" />
 
           <div className="discover-theater-frame relative z-10 rounded-[1.35rem] p-2 sm:p-3 lg:p-4">
-            <div className="discover-theater-screen relative min-h-[30rem] overflow-hidden rounded-xl border border-ns-text/10 px-5 py-8 sm:px-12 sm:py-10 lg:min-h-[34rem] lg:px-16 lg:py-12">
+            <div className="discover-theater-screen relative min-h-[30rem] overflow-hidden rounded-xl border border-ns-text/10 px-4 py-8 sm:px-12 sm:py-10 lg:min-h-[34rem] lg:px-16 lg:py-12">
               <div className="discover-hero-orbit pointer-events-none absolute -right-24 -top-28 h-[34rem] w-[34rem] rounded-full border border-ns-secondary/20" aria-hidden="true">
                 <span className="absolute inset-10 rounded-full border border-ns-secondary/10" />
                 <span className="absolute inset-24 rounded-full border border-ns-text/5" />
@@ -90,10 +90,10 @@ export default async function DiscoverPage() {
                   <p className="mb-3 font-body text-xs uppercase tracking-[0.28em] text-ns-muted/65">
                     Feature presentation
                   </p>
-                  <h1 className="font-display text-[clamp(4.1rem,13vw,10rem)] leading-[0.78] tracking-[0.055em] text-ns-text">
+                  <h1 className="font-display text-[clamp(2.65rem,14vw,10rem)] leading-[0.82] tracking-[0.04em] text-ns-text sm:tracking-[0.055em]">
                     DISCOVER
                   </h1>
-                  <p className="discover-outline-title mt-3 whitespace-nowrap font-display text-[clamp(1.55rem,5.5vw,4.8rem)] leading-none tracking-[0.08em]">
+                  <p className="discover-outline-title mt-3 whitespace-nowrap font-display text-[clamp(1.1rem,5.5vw,4.8rem)] leading-none tracking-[0.04em] sm:tracking-[0.08em]">
                     WITHOUT THE NOISE
                   </p>
                 </div>
