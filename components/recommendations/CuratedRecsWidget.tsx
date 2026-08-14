@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import CuratedRecCard from './CuratedRecCard'
 import type { EnrichedRec, CuratedRecGroups } from '@/services/curated-recs'
+import { useDashboardRecommendations } from './DashboardRecommendationsProvider'
 import {
   RecsIcon, FilmIcon, MovieDnaIcon, TrendingIcon, CalendarIcon, ArrowRightIcon,
   type IconProps,
@@ -99,21 +100,8 @@ function GroupShelf({ items, tab }: { items: EnrichedRec[]; tab: TabConfig }) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function CuratedRecsWidget() {
-  const [groups,  setGroups]  = useState<CuratedRecGroups | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState(false)
+  const { groups, loading, loadError, retry } = useDashboardRecommendations()
   const [activeTab, setActiveTab] = useState<RecArrayKey>('weThinkYoudLike')
-
-  useEffect(() => {
-    fetch('/api/curated-recs')
-      .then(response => {
-        if (!response.ok) throw new Error('Recommendation request failed')
-        return response.json()
-      })
-      .then(data => setGroups(data))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false))
-  }, [])
 
   const currentTab    = TABS.find(t => t.key === activeTab)!
   const currentItems  = groups?.[activeTab] ?? []
@@ -186,11 +174,11 @@ export default function CuratedRecsWidget() {
       {/* Content */}
       {loading ? (
         <Skeleton />
-      ) : error ? (
+      ) : loadError ? (
         <div className="border border-dashed border-ns-border rounded-xl p-8 text-center">
           <p className="text-ns-muted font-body text-sm">
             Could not load recommendations.{' '}
-            <button onClick={() => window.location.reload()}
+            <button onClick={retry}
               className="text-ns-secondary hover:text-amber-400 transition-colors">
               Try again
             </button>

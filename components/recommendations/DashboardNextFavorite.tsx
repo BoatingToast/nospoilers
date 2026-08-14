@@ -1,35 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { tmdbImageUrl } from '@/lib/utils'
-import type { CuratedRecGroups, EnrichedRec } from '@/services/curated-recs'
+import type { EnrichedRec } from '@/services/curated-recs'
 import RecBreakdownModal from './RecBreakdownModal'
+import { useDashboardRecommendations } from './DashboardRecommendationsProvider'
 import {
   RecsIcon, ThumbUpIcon, WatchlistIcon, EyeIcon, ThumbDownIcon,
   CheckIcon, ArrowRightIcon, type IconProps,
 } from '@/components/icons'
 
 export default function DashboardNextFavorite() {
-  const [rec,     setRec]     = useState<EnrichedRec | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { groups, loading, loadError, retry } = useDashboardRecommendations()
   const [showWhy, setShowWhy] = useState(false)
   const [sent,    setSent]    = useState<string | null>(null)
   const [saving,  setSaving]  = useState(false)
   const [saveError, setSaveError] = useState(false)
-  const [loadError, setLoadError] = useState(false)
-
-  useEffect(() => {
-    fetch('/api/curated-recs')
-      .then(response => {
-        if (!response.ok) throw new Error('Recommendation request failed')
-        return response.json()
-      })
-      .then((data: CuratedRecGroups) => setRec(data.nextFavorite ?? null))
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false))
-  }, [])
+  const rec: EnrichedRec | null = groups?.nextFavorite ?? null
 
   async function handleFeedback(type: string) {
     if (!rec) return
@@ -68,7 +57,7 @@ export default function DashboardNextFavorite() {
         </p>
         <button
           type="button"
-          onClick={() => window.location.reload()}
+          onClick={retry}
           className="text-ns-secondary text-xs font-body hover:text-amber-400"
         >
           Try again
