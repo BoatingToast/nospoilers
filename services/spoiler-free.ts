@@ -1,56 +1,101 @@
 import type { TMDbMovieDetail } from '@/types'
 
-// ─── Spoiler marker patterns ──────────────────────────────────────────────────
-const SPOILER_MARKERS = [
-  'reveals that', 'reveals ', 'discovers that', 'discovers ',
-  'turns out', 'in the end', 'ultimately,', 'but when ',
-  'only to find', 'only to discover', 'learns that', 'finds out',
-  'uncovers', 'plot twist', 'betrayal', 'is actually',
-  'who is actually', 'surprise ending', 'hidden identity',
-  'realizes that', 'finally understands',
+const SAFE_FALLBACK = 'A film worth discovering on your own terms.'
+const MAX_SAFE_SENTENCES = 2
+const MAX_SAFE_CHARACTERS = 220
+const MIN_SAFE_FRAGMENT = 48
+
+// These are deliberately conservative. NoSpoilers should occasionally show a
+// shorter premise rather than accidentally preserve an outcome or reveal.
+const REVEAL_PATTERNS = [
+  /\b(?:reveals?|discovers?|learns?|realizes?|uncovers?|finds? out)\b/i,
+  /\bturns? out\b/i,
+  /\b(?:is|was|are|were) actually\b/i,
+  /\bsecretly\b/i,
+  /\b(?:true|hidden|secret) identity\b/i,
+  /\b(?:plot )?twist\b/i,
+  /\bsurprise ending\b/i,
 ]
 
+const OUTCOME_PATTERNS = [
+  /\b(?:in the end|by the end|at the end|ultimately|eventually|finally)\b/i,
+  /\b(?:dies?|dead|death of|is killed|was killed|murdered|sacrifices? (?:himself|herself|themselves))\b/i,
+  /\b(?:defeats?|survives?|escapes?|wins?|loses?|returns? home|reunites?)\b/i,
+  /\b(?:final showdown|climax|ending)\b/i,
+]
+
+const LATE_STORY_PIVOTS = [
+  /\b(?:however|meanwhile|but then|only to|until|leading to)\b/i,
+  /\b(?:forcing|leaving) (?:him|her|them) to\b/i,
+]
+
+function earliestMatch(text: string, patterns: RegExp[]): number | null {
+  let earliest = Infinity
+  for (const pattern of patterns) {
+    const match = pattern.exec(text)
+    if (match?.index !== undefined) earliest = Math.min(earliest, match.index)
+  }
+  return earliest === Infinity ? null : earliest
+}
+
+function wordAlignedLimit(text: string, limit: number): string {
+  if (text.length <= limit) return text
+  const slice = text.slice(0, limit + 1)
+  const lastSpace = slice.lastIndexOf(' ')
+  const cutAt = lastSpace >= MIN_SAFE_FRAGMENT ? lastSpace : limit
+  return `${slice.slice(0, cutAt).replace(/[\s,;:–—-]+$/, '')}…`
+}
+
+function finishFragment(text: string, wasCut: boolean): string {
+  const clean = text.trim().replace(/[\s,;:–—-]+$/, '')
+  if (!clean) return ''
+  if (wasCut) return `${clean}…`
+  return /[.!?…]$/.test(clean) ? clean : `${clean}.`
+}
+
 /**
- * Trims a TMDb overview to a spoiler-free premise description.
- * Takes the first 1–2 sentences, then cuts before any spoiler phrase.
+ * Extracts a conservative premise from a third-party synopsis.
+ *
+ * It never falls back to copying an unsafe raw prefix: if reveal language
+ * appears before a useful premise can be formed, the generic fallback wins.
  */
 export function makeSpoilerFree(overview: string | null | undefined): string {
-  if (!overview?.trim()) return 'A film worth discovering on your own terms.'
+  const normalized = overview?.replace(/\s+/g, ' ').trim()
+  if (!normalized) return SAFE_FALLBACK
 
-  // Split on sentence boundaries
-  const sentences = overview.split(/(?<=[.!?])\s+/)
-  let safe = ''
+  const sentences = normalized.split(/(?<=[.!?])\s+/)
+  const safeParts: string[] = []
 
-  for (const sentence of sentences.slice(0, 3)) {
-    const lower = sentence.toLowerCase()
-    const hitIndex = SPOILER_MARKERS.reduce((min, marker) => {
-      const idx = lower.indexOf(marker)
-      return idx > -1 && idx < min ? idx : min
-    }, Infinity)
+  for (const [index, sentence] of sentences.slice(0, MAX_SAFE_SENTENCES).entries()) {
+    const revealAt = earliestMatch(sentence, [...REVEAL_PATTERNS, ...OUTCOME_PATTERNS])
+    const pivotAt = index > 0 ? earliestMatch(sentence, LATE_STORY_PIVOTS) : null
+    const riskAt = Math.min(revealAt ?? Infinity, pivotAt ?? Infinity)
 
-    if (hitIndex < Infinity && safe.length > 40) break // cut before spoiler if we already have content
-    if (hitIndex < Infinity) {
-      // Take the part before the spoiler phrase
-      const cut = sentence.slice(0, hitIndex).trim()
-      if (cut) safe += (safe ? ' ' : '') + cut
+    if (riskAt !== Infinity) {
+      // Once a complete safe sentence exists, do not borrow from a risky one.
+      if (safeParts.length > 0) break
+
+      const premise = sentence.slice(0, riskAt).trim()
+      if (premise.length >= MIN_SAFE_FRAGMENT) {
+        safeParts.push(finishFragment(premise, true))
+      }
       break
     }
 
-    safe += (safe ? ' ' : '') + sentence.trim()
-    if (safe.length > 200) break
+    const cleanSentence = finishFragment(sentence, false)
+    if (!cleanSentence) continue
+    const candidate = [...safeParts, cleanSentence].join(' ')
+
+    if (candidate.length > MAX_SAFE_CHARACTERS) {
+      if (safeParts.length === 0) safeParts.push(wordAlignedLimit(cleanSentence, MAX_SAFE_CHARACTERS))
+      break
+    }
+
+    safeParts.push(cleanSentence)
   }
 
-  if (!safe || safe.length < 20) {
-    // Absolute fallback: first 150 characters, word-aligned
-    const trimmed = overview.slice(0, 150)
-    const lastSpace = trimmed.lastIndexOf(' ')
-    safe = trimmed.slice(0, lastSpace > 40 ? lastSpace : 150).trim() + '...'
-  }
-
-  // Ensure it ends cleanly
-  if (!safe.match(/[.!?…]$/)) safe = safe.replace(/[,;]$/, '') + '.'
-
-  return safe
+  const safe = wordAlignedLimit(safeParts.join(' '), MAX_SAFE_CHARACTERS)
+  return safe.length >= MIN_SAFE_FRAGMENT ? safe : SAFE_FALLBACK
 }
 
 // ─── Audience profile ─────────────────────────────────────────────────────────
