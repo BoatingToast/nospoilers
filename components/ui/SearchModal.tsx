@@ -55,15 +55,15 @@ export default function SearchModal() {
       {/* Trigger button */}
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-3 px-4 py-2.5 bg-ns-surface border border-ns-border
+        className="flex w-full min-w-0 items-center gap-3 px-4 py-2.5 bg-ns-surface border border-ns-border
                    rounded-xl text-ns-muted text-sm font-body hover:border-ns-muted/40 transition-colors
-                   min-w-[200px]"
+                   sm:w-auto sm:min-w-[200px]"
       >
         <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
-        Search movies...
-        <span className="ml-auto text-[10px] bg-ns-border px-1.5 py-0.5 rounded text-ns-muted/60">⌘K</span>
+        <span className="min-w-0 truncate">Search movies...</span>
+        <span className="ml-auto hidden rounded bg-ns-border px-1.5 py-0.5 text-[10px] text-ns-muted/60 min-[360px]:block">⌘K</span>
       </button>
 
       {/* Modal overlay */}
@@ -97,7 +97,7 @@ export default function SearchModal() {
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Search movies, actors, directors..."
-                className="flex-1 bg-transparent text-ns-text placeholder:text-ns-muted/50 text-sm font-body focus:outline-none"
+                className="min-w-0 flex-1 bg-transparent text-ns-text placeholder:text-ns-muted/50 text-sm font-body focus:outline-none"
               />
               <button onClick={handleClose} className="text-ns-muted hover:text-ns-text text-xs font-body">
                 ESC
@@ -157,8 +157,8 @@ export default function SearchModal() {
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <div>
-                          <p className="text-ns-text text-sm font-body font-medium group-hover:text-ns-secondary transition-colors">{person.name}</p>
+                        <div className="min-w-0">
+                          <p className="truncate text-ns-text text-sm font-body font-medium group-hover:text-ns-secondary transition-colors">{person.name}</p>
                           <p className="text-ns-muted text-xs font-body">{person.known_for_department}</p>
                         </div>
                       </Link>

@@ -112,10 +112,10 @@ export default function DiscoverSection({
       </div>
 
       <div className="relative">
-        <div className="pointer-events-none absolute inset-y-0 right-[-1.5rem] z-20 w-20 bg-gradient-to-l from-ns-bg via-ns-bg/80 to-transparent sm:w-28" aria-hidden="true" />
+        <div className="pointer-events-none absolute inset-y-0 -right-4 z-20 w-20 bg-gradient-to-l from-ns-bg via-ns-bg/80 to-transparent sm:-right-6 sm:w-28" aria-hidden="true" />
         <div
           ref={rowRef}
-          className="discover-section-track scrollbar-hide -mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-6 pb-5 motion-reduce:scroll-auto sm:gap-5"
+          className="discover-section-track scrollbar-hide -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-5 motion-reduce:scroll-auto sm:-mx-6 sm:gap-5 sm:px-6"
           role="region"
           aria-label={`${title} films`}
         >
