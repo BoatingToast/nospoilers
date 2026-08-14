@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function SearchBar({ initialValue = '' }: { initialValue?: string }) {
   const [query, setQuery] = useState(initialValue)
   const [, startTransition] = useTransition()
   const router = useRouter()
+
+  useEffect(() => setQuery(initialValue), [initialValue])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -33,7 +35,9 @@ export default function SearchBar({ initialValue = '' }: { initialValue?: string
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Search for a movie..."
+          aria-label="Search movies and people"
+          placeholder="Search movies, actors, directors..."
+          autoComplete="off"
           className="w-0 min-w-0 flex-1 bg-transparent px-3 py-4 text-ns-text placeholder:text-ns-muted/50 sm:px-4
                      focus:outline-none text-sm font-body"
         />
