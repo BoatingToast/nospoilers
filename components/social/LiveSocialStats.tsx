@@ -85,9 +85,9 @@ export default function LiveSocialStats({
 
   return (
     <>
-      <Stat value={counts.followers} label="Followers" href="/social/followers" />
-      <Stat value={counts.following} label="Following" href="/social/following" />
-      <Stat value={counts.friends}   label="Friends"   href="/social/friends"   />
+      <Stat value={counts.followers} label="Followers" href="/friends/followers" />
+      <Stat value={counts.following} label="Following" href="/friends/following" />
+      <Stat value={counts.friends}   label="Friends"   href="/friends" />
     </>
   )
 }
