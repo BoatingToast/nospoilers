@@ -484,6 +484,8 @@ model MovieRating {
 
   // Overall score (1-100)
   score Int
+  // Legacy classifier value retained so reconciliation never drops production data.
+  confidence String @default("medium")
 
   // Dimension ratings (1-10 each, optional — descriptive metadata only, never affect score)
   storytelling  Int?
@@ -503,6 +505,17 @@ model MovieRating {
   @@index([userId, score(sort: Desc)])
   @@index([userId, createdAt(sort: Desc)])
   @@index([tmdbId])
+}
+
+// Shared, database-backed request budgets work across serverless instances.
+// Keys are SHA-256 digests; raw identifiers are never persisted.
+model RateLimitBucket {
+  key         String   @id @db.VarChar(128)
+  count       Int      @default(0)
+  windowStart DateTime
+  expiresAt   DateTime
+
+  @@index([expiresAt])
 }
 
 // ─── Phase 8: Friends & Social ───────────────────────────────────────────────

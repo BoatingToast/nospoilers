@@ -39,12 +39,14 @@ function ReplyThread({
   sessionId,
   sessionAvatarUrl,
   sessionUsername,
+  explicitlyRevealed,
 }: {
   reviewId:   string
   replyCount: number
   sessionId?: string
   sessionAvatarUrl?: string | null
   sessionUsername?: string
+  explicitlyRevealed?: boolean
 }) {
   const [open,    setOpen]    = useState(false)
   const [replies, setReplies] = useState<ReplyWithUser[]>([])
@@ -55,7 +57,8 @@ function ReplyThread({
   async function load() {
     if (open) { setOpen(false); return }
     setLoading(true)
-    const res = await fetch(`/api/reviews/${reviewId}/replies`)
+    const suffix = explicitlyRevealed ? '?reveal=1' : ''
+    const res = await fetch(`/api/reviews/${reviewId}/replies${suffix}`, { cache: 'no-store' })
     const data = await res.json()
     setReplies(data.replies ?? [])
     setLoading(false)
@@ -157,7 +160,9 @@ export default function ReviewCard({
   sessionAvatarUrl,
   sessionUsername,
 }: Props) {
-  const [spoilerRevealed, setSpoilerRevealed] = useState(false)
+  const [revealedReview, setRevealedReview] = useState<{ title: string | null; body: string } | null>(null)
+  const [revealLoading, setRevealLoading] = useState(false)
+  const [revealError, setRevealError] = useState(false)
   const [votes,           setVotes]           = useState({
     upvotes:     review.upvotes,
     downvotes:   review.downvotes,
@@ -166,7 +171,32 @@ export default function ReviewCard({
   const [viewerVotes, setViewerVotes] = useState<string[]>(review.viewerVotes)
   const [deleting,    setDeleting]    = useState(false)
   const [confirmDel,  setConfirmDel]  = useState(false)
-  const passportLocked = !isOwn && !review.viewerUnlocked && !spoilerRevealed
+  const passportLocked = !isOwn && !review.viewerUnlocked && revealedReview === null
+  const visibleTitle = review.viewerUnlocked || isOwn ? review.title : revealedReview?.title ?? null
+  const visibleBody = review.viewerUnlocked || isOwn ? review.body : revealedReview?.body ?? ''
+
+  async function revealSpoiler() {
+    if (revealLoading) return
+    setRevealLoading(true)
+    setRevealError(false)
+    try {
+      const response = await fetch(`/api/reviews/${review.id}/reveal`, {
+        method: 'POST',
+        cache: 'no-store',
+      })
+      if (!response.ok) throw new Error('Reveal failed')
+      const data = await response.json() as { title?: unknown; body?: unknown }
+      if (typeof data.body !== 'string') throw new Error('Invalid reveal response')
+      setRevealedReview({
+        title: typeof data.title === 'string' ? data.title : null,
+        body: data.body,
+      })
+    } catch {
+      setRevealError(true)
+    } finally {
+      setRevealLoading(false)
+    }
+  }
 
   async function vote(type: 'upvote' | 'downvote' | 'helpful') {
     if (!sessionId) return
@@ -210,7 +240,7 @@ export default function ReviewCard({
 
   const bodyContent = (
     <div className="prose prose-sm prose-invert max-w-none">
-      {review.body.split('\n').map((line, i) => (
+      {visibleBody.split('\n').map((line, i) => (
         <p key={i} className="text-sm font-body text-ns-text/85 leading-relaxed mb-2 last:mb-0">
           {line}
         </p>
@@ -286,8 +316,8 @@ export default function ReviewCard({
       </div>
 
       {/* Headline */}
-      {review.title && (
-        <p className="font-heading font-semibold text-white mb-2">{review.title}</p>
+      {visibleTitle && (
+        <p className="font-heading font-semibold text-white mb-2">{visibleTitle}</p>
       )}
 
       {/* Body — spoiler gate */}
@@ -310,12 +340,16 @@ export default function ReviewCard({
                 </Link>
               )}
               <button
-                onClick={() => setSpoilerRevealed(true)}
-                className="px-4 py-2 rounded-xl border border-amber-500/40 text-amber-400 text-xs font-heading font-medium hover:bg-amber-500/15 transition-colors"
+                onClick={revealSpoiler}
+                disabled={revealLoading}
+                className="px-4 py-2 rounded-xl border border-amber-500/40 text-amber-400 text-xs font-heading font-medium hover:bg-amber-500/15 transition-colors disabled:opacity-50"
               >
-                Reveal anyway
+                {revealLoading ? 'Revealing…' : 'Reveal anyway'}
               </button>
             </div>
+            {revealError && (
+              <p className="text-rose-400 text-xs font-body">Could not reveal this review. Try again.</p>
+            )}
           </div>
         </div>
       ) : (
@@ -389,6 +423,7 @@ export default function ReviewCard({
           sessionId={sessionId}
           sessionAvatarUrl={sessionAvatarUrl}
           sessionUsername={sessionUsername}
+          explicitlyRevealed={revealedReview !== null}
         />
       )}
     </article>

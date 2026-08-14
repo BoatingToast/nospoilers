@@ -8,6 +8,7 @@ import {
   requiredProgressForLevel,
   type PlotPassportLevel,
 } from '@/lib/plot-passport'
+import { redactLockedOptionalText, redactLockedText } from '@/lib/content-visibility'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -197,6 +198,9 @@ export async function getMovieReviews(
     const downvotes   = row.votes.filter(v => v.type === 'downvote').length
     const helpfulCount = row.votes.filter(v => v.type === 'helpful').length
 
+    const viewerUnlocked = row.userId === viewerId ||
+      canViewSpoilerLevel(row.spoilerLevel, viewerProgress)
+
     return {
       id:          row.id,
       userId:      row.userId,
@@ -204,12 +208,12 @@ export async function getMovieReviews(
       avatarUrl:   row.user.avatarUrl ?? null,
       tmdbId:      row.tmdbId,
       movieTitle:  row.movieTitle,
-      title:       row.title,
-      body:        row.body,
+      title:       redactLockedOptionalText(row.title, viewerUnlocked),
+      body:        redactLockedText(row.body, viewerUnlocked),
       rating:      row.rating,
       hasSpoilers: row.hasSpoilers,
       spoilerLevel: row.spoilerLevel as PlotPassportLevel,
-      viewerUnlocked: row.userId === viewerId || canViewSpoilerLevel(row.spoilerLevel, viewerProgress),
+      viewerUnlocked,
       unlockAtProgress: requiredProgressForLevel(row.spoilerLevel),
       viewerProgress,
       createdAt:   row.createdAt.toISOString(),

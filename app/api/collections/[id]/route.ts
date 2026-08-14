@@ -6,10 +6,13 @@ import { getCollection, updateCollection, deleteCollection } from '@/services/co
 type Ctx = { params: Promise<{ id: string }> }
 
 export async function GET(_: NextRequest, { params }: Ctx) {
+  const session = await getServerSession(authOptions)
   const { id } = await params
-  const col = await getCollection(id)
+  const col = await getCollection(id, session?.user?.id ?? null)
   if (!col) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json(col)
+  return NextResponse.json(col, {
+    headers: { 'Cache-Control': 'private, no-store, max-age=0' },
+  })
 }
 
 export async function PATCH(req: NextRequest, { params }: Ctx) {

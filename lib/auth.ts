@@ -2,6 +2,7 @@ import type { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { prisma } from './db'
+import { consumeRateLimit } from './rate-limit'
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -13,8 +14,21 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
+        const normalizedEmail = credentials.email.toLowerCase().trim()
+        try {
+          const budget = await consumeRateLimit({
+            scope: 'auth-login',
+            identifier: normalizedEmail,
+            limit: 10,
+            windowMs: 15 * 60 * 1000,
+          })
+          if (!budget.allowed) return null
+        } catch (error) {
+          console.error('[rate-limit:auth-login]', error)
+        }
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase() },
+          where: { email: normalizedEmail },
         })
 
         if (!user) return null

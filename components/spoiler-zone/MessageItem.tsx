@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Avatar from '@/components/ui/Avatar'
 import { PinIcon, TheoryIcon } from '@/components/icons'
@@ -28,7 +28,7 @@ function fullTime(iso: string): string {
 }
 
 /** Render content: highlight @mentions, linkify URLs */
-function renderContent(content: string, currentUser?: string) {
+function renderContent(content: string) {
   const parts = content.split(/(@\w+)/g)
   return parts.map((part, i) => {
     if (part.startsWith('@')) {
@@ -201,9 +201,34 @@ export default function MessageItem({
   const [showEmoji, setShowEmoji]     = useState(false)
   const [showActions, setShowActions] = useState(false)
   const [collapsed, setCollapsed]     = useState(message.voteScore <= -5)
-  const [passportRevealed, setPassportRevealed] = useState(false)
+  const [revealedContent, setRevealedContent] = useState<string | null>(null)
+  const [revealLoading, setRevealLoading] = useState(false)
+  const [revealError, setRevealError] = useState(false)
   const isOwn = message.userId === currentUser
-  const passportLocked = !isOwn && !message.viewerUnlocked && !passportRevealed
+  const passportLocked = !isOwn && !message.viewerUnlocked && revealedContent === null
+  const visibleContent = message.viewerUnlocked || isOwn
+    ? message.content
+    : revealedContent ?? ''
+
+  async function revealSpoiler() {
+    if (revealLoading) return
+    setRevealLoading(true)
+    setRevealError(false)
+    try {
+      const response = await fetch(
+        `/api/spoiler-zone/${message.tmdbId}/messages/${message.id}/reveal`,
+        { method: 'POST', cache: 'no-store' },
+      )
+      if (!response.ok) throw new Error('Reveal failed')
+      const data = await response.json() as { content?: unknown }
+      if (typeof data.content !== 'string') throw new Error('Invalid reveal response')
+      setRevealedContent(data.content)
+    } catch {
+      setRevealError(true)
+    } finally {
+      setRevealLoading(false)
+    }
+  }
 
   if (message.isDeleted) {
     return (
@@ -245,12 +270,16 @@ export default function MessageItem({
               </Link>
             )}
             <button
-              onClick={() => setPassportRevealed(true)}
-              className="rounded-lg border border-ns-secondary/30 px-3 py-1.5 text-[10px] font-heading font-semibold text-ns-secondary hover:bg-ns-secondary/10"
+              onClick={revealSpoiler}
+              disabled={revealLoading}
+              className="rounded-lg border border-ns-secondary/30 px-3 py-1.5 text-[10px] font-heading font-semibold text-ns-secondary hover:bg-ns-secondary/10 disabled:opacity-50"
             >
-              Reveal anyway
+              {revealLoading ? 'Revealing…' : 'Reveal anyway'}
             </button>
           </div>
+          {revealError && (
+            <p className="text-[10px] font-body text-red-400">Could not reveal this message. Try again.</p>
+          )}
         </div>
       </div>
     )
@@ -325,7 +354,7 @@ export default function MessageItem({
 
         {/* Message content */}
         <p className="text-sm font-body text-ns-text leading-relaxed whitespace-pre-wrap break-words">
-          {renderContent(message.content, currentUser ?? undefined)}
+          {renderContent(visibleContent)}
         </p>
 
         {/* Reactions row */}

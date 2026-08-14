@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { ensureAvatarImageTable } from '@/lib/avatar-storage'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,7 +14,6 @@ export async function GET(
   }
 
   try {
-    await ensureAvatarImageTable()
     const avatar = await prisma.avatarImage.findUnique({
       where:  { userId },
       select: { data: true, contentType: true },

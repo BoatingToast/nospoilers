@@ -2,20 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { joinLiveMovieNightRoom } from '@/services/movie-night-live'
-import { movieNightApiError, movieNightRateLimitResponse } from '@/lib/movie-night-api'
-import { checkRateLimit, requestClientKey } from '@/lib/rate-limit'
+import { movieNightApiError } from '@/lib/movie-night-api'
+import { enforceRateLimit } from '@/lib/rate-limit'
 import { getMovieNightToken, rememberMovieNightToken } from '@/lib/movie-night-session'
 
 type Params = { params: Promise<{ code: string }> }
 
 export async function POST(req: NextRequest, { params }: Params) {
   const { code } = await params
-  const rateLimit = checkRateLimit(
-    `movie-night:join:${code}:${requestClientKey(req)}`,
-    20,
-    10 * 60 * 1000,
-  )
-  if (!rateLimit.allowed) return movieNightRateLimitResponse(rateLimit)
+  const limited = await enforceRateLimit(req, {
+    scope: `movie-night-join:${code}`,
+    limit: 20,
+    windowMs: 10 * 60 * 1000,
+  })
+  if (limited) return limited
 
   const session = await getServerSession(authOptions)
 

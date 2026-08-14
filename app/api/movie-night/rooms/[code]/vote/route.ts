@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { castLiveMovieNightVote } from '@/services/movie-night-live'
 import type { MovieNightVoteValue } from '@/types'
-import { movieNightApiError, movieNightRateLimitResponse } from '@/lib/movie-night-api'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { movieNightApiError } from '@/lib/movie-night-api'
+import { enforceRateLimit } from '@/lib/rate-limit'
 import { getMovieNightToken } from '@/lib/movie-night-session'
 
 type Params = { params: Promise<{ code: string }> }
@@ -12,8 +12,13 @@ export async function POST(req: NextRequest, { params }: Params) {
   const token = getMovieNightToken(req, code)
   if (!token) return NextResponse.json({ error: 'Join this room before voting' }, { status: 401 })
 
-  const rateLimit = checkRateLimit(`movie-night:vote:${code}:${token.slice(0, 16)}`, 40, 60 * 1000)
-  if (!rateLimit.allowed) return movieNightRateLimitResponse(rateLimit)
+  const limited = await enforceRateLimit(req, {
+    scope: `movie-night-vote:${code}`,
+    identifier: `participant:${token.slice(0, 16)}`,
+    limit: 40,
+    windowMs: 60 * 1000,
+  })
+  if (limited) return limited
 
   try {
     const body = await req.json() as { candidateId?: string; value?: MovieNightVoteValue }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { searchMulti } from '@/services/tmdb'
 import type { SearchApiResponse, TMDbMovie, TMDbPerson } from '@/types'
+import { enforceRateLimit } from '@/lib/rate-limit'
 
 function resultLimit(value: string | null, fallback: number): number {
   if (!value) return fallback
@@ -10,6 +11,11 @@ function resultLimit(value: string | null, fallback: number): number {
 }
 
 export async function GET(req: Request) {
+  const limited = await enforceRateLimit(req, {
+    scope: 'unified-search', limit: 60, windowMs: 60 * 1000,
+  })
+  if (limited) return limited
+
   const { searchParams } = new URL(req.url)
   const query = searchParams.get('q')?.trim() ?? ''
   const requestedLimit = searchParams.get('limit')
