@@ -87,6 +87,23 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Keep card actions discoverable on touch devices, while retaining the
+     quieter hover-reveal treatment for precise pointing devices. */
+  .touch-action-reveal {
+    opacity: 1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .touch-action-reveal {
+      opacity: 0;
+    }
+
+    .touch-action-group:hover .touch-action-reveal,
+    .touch-action-group:focus-within .touch-action-reveal {
+      opacity: 1;
+    }
+  }
 }
 
 /* Spoiler Zone preview panel fade-in */

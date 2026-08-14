@@ -91,9 +91,11 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
         <div className="flex gap-2 flex-wrap">
           {STATUS_FILTERS.map(f => (
             <button
+              type="button"
               key={f.value}
               onClick={() => handleStatusChange(f.value)}
-              className={`px-4 py-1.5 rounded-full text-xs font-body transition-all
+              aria-pressed={status === f.value}
+              className={`min-h-11 rounded-full px-4 py-2 text-xs font-body transition-all
                 ${status === f.value
                   ? 'bg-ns-secondary text-ns-bg font-medium'
                   : 'border border-ns-border text-ns-muted hover:border-ns-muted/40'
@@ -107,7 +109,8 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
         <select
           value={sortBy}
           onChange={e => handleSortChange(e.target.value)}
-          className="bg-ns-surface border border-ns-border text-ns-muted text-xs font-body px-3 py-1.5 rounded-xl focus:outline-none focus:border-ns-secondary/40"
+          aria-label="Sort watchlist"
+          className="min-h-11 rounded-xl border border-ns-border bg-ns-surface px-3 py-2 text-xs font-body text-ns-muted focus:border-ns-secondary/40 focus:outline-none"
         >
           {SORT_OPTIONS.map(o => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -140,7 +143,7 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
             const badge = STATUS_BADGE[item.status]
             const isUpdating = updating === String(item.tmdbId)
             return (
-              <div key={item.tmdbId} className="group relative">
+              <div key={item.tmdbId} className="group touch-action-group relative">
                 <Link href={`/movie/${item.tmdbId}`}>
                   <div className="aspect-[2/3] rounded-xl overflow-hidden bg-ns-surface border border-ns-border relative">
                     <Image
@@ -170,14 +173,15 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
                   </div>
 
                   {/* Quick action */}
-                  <div className="flex gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="touch-action-reveal mt-2 flex gap-1 transition-opacity">
                     {item.status !== 'watched' && (
                       <button
+                        type="button"
                         onClick={() => updateStatus(item.tmdbId, 'watched')}
                         disabled={isUpdating}
-                        className="flex-1 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-body hover:bg-emerald-500/20 transition-colors"
+                        className="min-h-11 flex-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2 py-2 text-xs font-body text-emerald-400 transition-colors hover:bg-emerald-500/20 disabled:cursor-wait disabled:opacity-60"
                       >
-                        {isUpdating ? '...' : 'Watched'}
+                        {isUpdating ? 'Updating…' : 'Watched'}
                       </button>
                     )}
                     <AddToCollectionButton
@@ -190,10 +194,13 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
                       compact
                     />
                     <button
+                      type="button"
                       onClick={() => removeItem(item.tmdbId)}
-                      className="w-6 h-6 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center justify-center hover:bg-red-500/20 transition-colors"
+                      aria-label={`Remove ${item.title} from watchlist`}
+                      title="Remove from watchlist"
+                      className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 text-base text-red-400 transition-colors hover:bg-red-500/20"
                     >
-                      ×
+                      <span aria-hidden="true">×</span>
                     </button>
                   </div>
                 </div>
