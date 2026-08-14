@@ -2,6 +2,7 @@
 
 import { useState, Suspense, lazy, type ReactNode } from 'react'
 import type { MovieDnaProfile } from '@/types'
+import DashboardRecommendationsProvider from '@/components/recommendations/DashboardRecommendationsProvider'
 import {
   DashboardIcon,
   WatchlistIcon,
@@ -90,7 +91,11 @@ export default function DashboardTabs({ overview, dnaProfile, username }: Props)
       </div>
 
       {/* Tab content */}
-      {active === 'overview' && overview}
+      {active === 'overview' && (
+        <DashboardRecommendationsProvider>
+          {overview}
+        </DashboardRecommendationsProvider>
+      )}
 
       {active !== 'overview' && (
         <Suspense fallback={<TabSkeleton />}>

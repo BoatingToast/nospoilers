@@ -19,9 +19,9 @@ interface DashboardSection {
 // CHUNK 1 — DEFINE THE DASHBOARD DESTINATIONS
 
 const SECTIONS: DashboardSection[] = [
+  { id: 'dashboard-recommendations', label: 'For you', Icon: RecsIcon },
   { id: 'dashboard-watchlist', label: 'Watchlist', Icon: WatchlistIcon },
   { id: 'dashboard-dna', label: 'Movie DNA', Icon: MovieDnaIcon },
-  { id: 'dashboard-recommendations', label: 'For you', Icon: RecsIcon },
   { id: 'dashboard-community', label: 'Community', Icon: FriendsIcon },
   { id: 'dashboard-favorites', label: 'Favorites', Icon: TopFiveIcon },
 ]

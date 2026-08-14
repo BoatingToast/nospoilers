@@ -16,7 +16,7 @@ import RecAccuracyWidget    from '@/components/recommendations/RecAccuracyWidget
 import DnaEvolutionWidget   from '@/components/dashboard/DnaEvolutionWidget'
 import DashboardTabs        from '@/components/dashboard/DashboardTabs'
 import QuickActions         from '@/components/dashboard/QuickActions'
-import UploadMovieSection   from '@/components/dashboard/UploadMovieSection'
+import CreatorStudioLink    from '@/components/dashboard/CreatorStudioLink'
 import DashboardSectionNav  from '@/components/dashboard/DashboardSectionNav'
 import YourSpoilerZones        from '@/components/dashboard/YourSpoilerZones'
 import FriendsActivityWidget   from '@/components/dashboard/FriendsActivityWidget'
@@ -70,8 +70,6 @@ export default async function DashboardPage() {
   // ── Overview tab content (server-rendered) ────────────────────────────────
   const overview = (
     <div className="flex flex-col gap-8">
-      <UploadMovieSection />
-
       <WelcomeSection user={{ id: user.id, email: user.email, username: user.username, avatarUrl: user.avatarUrl ?? null, createdAt: user.createdAt }} />
 
       {/* Stats row */}
@@ -92,9 +90,14 @@ export default async function DashboardPage() {
           <p className="font-display text-3xl tracking-wider text-white">{user._count.watchlistItems}</p>
           <p className="text-ns-muted text-xs font-body mt-0.5">Watchlist</p>
         </div>
+        <CreatorStudioLink />
       </div>
 
-      <DashboardSectionNav />
+      <QuickActions
+        ratingsCount={user._count.movieRatings}
+        watchlistCount={user._count.watchlistItems}
+        friendCount={friendCount}
+      />
 
       {user._count.movieRatings < 5 && (
         <div className="rounded-2xl border border-ns-secondary/25 bg-gradient-to-r from-ns-secondary/10 to-transparent p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
@@ -113,11 +116,13 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <QuickActions
-        ratingsCount={user._count.movieRatings}
-        watchlistCount={user._count.watchlistItems}
-        friendCount={friendCount}
-      />
+      <DashboardSectionNav />
+
+      {/* Next Favorite is the first personalized dashboard destination. */}
+      <div id="dashboard-recommendations" className="scroll-mt-36 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2"><DashboardNextFavorite /></div>
+        <div className="lg:col-span-1"><RecAccuracyWidget /></div>
+      </div>
 
       {/* Watchlist preview */}
       <div id="dashboard-watchlist" className="scroll-mt-36">
@@ -132,12 +137,6 @@ export default async function DashboardPage() {
       {/* Movie DNA */}
       <div id="dashboard-dna" className="scroll-mt-36 bg-ns-surface border border-ns-border rounded-2xl p-6">
         <MovieDNACard profile={dnaProfile} compact username={user.username} />
-      </div>
-
-      {/* 🎯 Next Favorite hero + accuracy */}
-      <div id="dashboard-recommendations" className="scroll-mt-36 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2"><DashboardNextFavorite /></div>
-        <div className="lg:col-span-1"><RecAccuracyWidget /></div>
       </div>
 
       {/* Curated Recs */}
