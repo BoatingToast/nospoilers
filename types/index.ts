@@ -125,6 +125,13 @@ export interface TMDbMultiSearchResponse {
   total_results: number
 }
 
+export interface SearchApiResponse {
+  query: string
+  movies: TMDbMovie[]
+  people: TMDbPerson[]
+  totalResults: number
+}
+
 // ─── User / Profile ───────────────────────────────────────────────────────────
 
 export interface SafeUser {

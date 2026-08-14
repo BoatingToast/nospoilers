@@ -1,12 +1,30 @@
 import { NextResponse } from 'next/server'
 import { searchMulti } from '@/services/tmdb'
-import type { TMDbMovie, TMDbPerson } from '@/types'
+import type { SearchApiResponse, TMDbMovie, TMDbPerson } from '@/types'
+
+function resultLimit(value: string | null, fallback: number): number {
+  if (!value) return fallback
+  const parsed = Number.parseInt(value, 10)
+  if (!Number.isFinite(parsed)) return fallback
+  return Math.min(Math.max(parsed, 1), 20)
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
-  const query = searchParams.get('q')?.trim()
+  const query = searchParams.get('q')?.trim() ?? ''
+  const requestedLimit = searchParams.get('limit')
+  const movieLimit = resultLimit(requestedLimit, 6)
+  const peopleLimit = resultLimit(requestedLimit, 4)
 
-  if (!query) return NextResponse.json({ movies: [], people: [] })
+  if (!query) {
+    const emptyResponse: SearchApiResponse = {
+      query: '',
+      movies: [],
+      people: [],
+      totalResults: 0,
+    }
+    return NextResponse.json(emptyResponse)
+  }
 
   try {
     const data = await searchMulti(query)
@@ -14,7 +32,7 @@ export async function GET(req: Request) {
     const movies: TMDbMovie[] = []
     const people: TMDbPerson[] = []
 
-    for (const result of data.results.slice(0, 15)) {
+    for (const result of data.results) {
       if (result.media_type === 'movie') {
         movies.push(result as TMDbMovie & { media_type: 'movie' })
       } else if (result.media_type === 'person') {
@@ -22,10 +40,14 @@ export async function GET(req: Request) {
       }
     }
 
-    return NextResponse.json({
-      movies: movies.slice(0, 6),
-      people: people.slice(0, 4),
-    })
+    const response: SearchApiResponse = {
+      query,
+      movies: movies.slice(0, movieLimit),
+      people: people.slice(0, peopleLimit),
+      totalResults: data.total_results,
+    }
+
+    return NextResponse.json(response)
   } catch (error) {
     console.error('[search]', error)
     return NextResponse.json({ error: 'Search failed.' }, { status: 500 })
