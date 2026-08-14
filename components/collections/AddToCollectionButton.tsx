@@ -42,9 +42,11 @@ export default function AddToCollectionButton({ movie, compact = false }: Props)
     <>
       {compact ? (
         <button
+          type="button"
           onClick={() => setOpen(true)}
           title="Add to Collection"
-          className="flex items-center justify-center w-7 h-7 rounded-lg border border-ns-border
+          aria-label={`Add ${movie.title} to a collection`}
+          className="flex h-11 w-11 items-center justify-center rounded-lg border border-ns-border
                      text-ns-muted hover:border-ns-secondary/40 hover:text-ns-secondary
                      transition-all duration-200 group flex-shrink-0"
         >
@@ -52,6 +54,7 @@ export default function AddToCollectionButton({ movie, compact = false }: Props)
         </button>
       ) : (
         <button
+          type="button"
           onClick={() => setOpen(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-ns-border
                      text-ns-muted text-sm font-body hover:border-ns-secondary/40 hover:text-ns-secondary
