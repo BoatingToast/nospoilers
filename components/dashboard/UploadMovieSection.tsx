@@ -260,13 +260,11 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
   return (
     <Modal
       onClose={stage === 'uploading' ? () => {} : onClose}
+      ariaLabelledBy="upload-movie-dialog-title"
       showClose={stage !== 'uploading'}
       maxWidth="max-w-2xl"
     >
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="upload-movie-dialog-title"
         className="max-h-[calc(100vh-2rem)] overflow-y-auto"
         data-testid="upload-movie-dialog"
       >

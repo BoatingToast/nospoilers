@@ -78,7 +78,13 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
   }, [pct])
 
   return (
-    <Modal onClose={onClose} maxWidth="max-w-sm" className="overflow-hidden">
+    <Modal
+      onClose={onClose}
+      ariaLabelledBy="achievement-detail-title"
+      ariaDescribedBy="achievement-detail-description"
+      maxWidth="max-w-sm"
+      className="overflow-hidden"
+    >
         {/* ── Header strip — rarity colour ─────────────────────────────── */}
         <div className={`h-1 w-full ${
           achievement.rarity === 'legendary' ? 'bg-gradient-to-r from-ns-secondary via-ns-secondary/50 to-ns-secondary' :
@@ -122,7 +128,7 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
           </div>
 
           {/* Name */}
-          <h2 className="font-display text-2xl tracking-wider text-ns-text text-center mb-1">
+          <h2 id="achievement-detail-title" className="font-display text-2xl tracking-wider text-ns-text text-center mb-1">
             {achievement.name.toUpperCase()}
           </h2>
 
@@ -142,7 +148,7 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
           </div>
 
           {/* Description */}
-          <p className="text-ns-muted text-sm font-body text-center leading-relaxed mb-6">
+          <p id="achievement-detail-description" className="text-ns-muted text-sm font-body text-center leading-relaxed mb-6">
             {achievement.description}
           </p>
 
