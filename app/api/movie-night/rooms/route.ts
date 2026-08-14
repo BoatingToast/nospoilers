@@ -2,16 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { createLiveMovieNightRoom, type CreateLiveRoomInput } from '@/services/movie-night-live'
-import { movieNightApiError, movieNightRateLimitResponse } from '@/lib/movie-night-api'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { movieNightApiError } from '@/lib/movie-night-api'
+import { enforceRateLimit } from '@/lib/rate-limit'
 import { rememberMovieNightToken } from '@/lib/movie-night-session'
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const rateLimit = checkRateLimit(`movie-night:create:${session.user.id}`, 10, 10 * 60 * 1000)
-  if (!rateLimit.allowed) return movieNightRateLimitResponse(rateLimit)
+  const limited = await enforceRateLimit(req, {
+    scope: 'movie-night-create',
+    identifier: `user:${session.user.id}`,
+    limit: 10,
+    windowMs: 10 * 60 * 1000,
+  })
+  if (limited) return limited
 
   try {
     const input = await req.json() as CreateLiveRoomInput

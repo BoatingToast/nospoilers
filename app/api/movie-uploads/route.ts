@@ -6,9 +6,11 @@ import { prisma } from '@/lib/db'
 import {
   MAX_MOVIE_BYTES,
   MAX_MOVIE_DESCRIPTION_LENGTH,
+  MAX_PENDING_MOVIE_UPLOADS,
   MAX_MOVIE_TITLE_LENGTH,
   MOVIE_UPLOAD_BUCKET,
   isMovieWatchRegion,
+  hasValidMovieSignature,
   mergeMovieWatchProviders,
   movieExtensionForMimeType,
   normalizeMovieWatchProviders,
@@ -17,6 +19,7 @@ import {
 } from '@/lib/movie-uploads'
 import { ensureMovieUploadBucket } from '@/lib/supabase-storage'
 import { findAutomaticMovieMatch, getMovieWatchProviders } from '@/services/tmdb'
+import { enforceRateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
@@ -43,12 +46,34 @@ function storageUnavailable(error: unknown) {
   return error instanceof Error && error.message.includes('not configured')
 }
 
+async function readStoredMovieHeader(signedUrl: string): Promise<Uint8Array> {
+  const response = await fetch(signedUrl, {
+    headers: { Range: 'bytes=0-31' },
+    cache: 'no-store',
+  })
+  if (!response.ok || !response.body) {
+    throw new Error(`Storage header check failed with ${response.status}`)
+  }
+
+  const reader = response.body.getReader()
+  const { value } = await reader.read()
+  await reader.cancel()
+  return value?.slice(0, 32) ?? new Uint8Array()
+}
+
 // Start a direct-to-storage upload and return a short-lived, single-file token.
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  const limited = await enforceRateLimit(request, {
+    scope: 'movie-upload',
+    identifier: `user:${session.user.id}`,
+    limit: 5,
+    windowMs: 24 * 60 * 60 * 1000,
+  })
+  if (limited) return limited
 
   const body = await readJson<StartUploadBody>(request)
   if (!body) return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
@@ -93,6 +118,20 @@ export async function POST(request: Request) {
 
   const extension = movieExtensionForMimeType(mimeType)
   if (!extension) return NextResponse.json({ error: 'Unsupported movie format' }, { status: 400 })
+
+  const pendingUploads = await prisma.uploadedMovie.count({
+    where: {
+      userId: session.user.id,
+      status: 'uploading',
+      createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+    },
+  })
+  if (pendingUploads >= MAX_PENDING_MOVIE_UPLOADS) {
+    return NextResponse.json(
+      { error: 'Finish or cancel an existing upload before starting another' },
+      { status: 429, headers: { 'Retry-After': '3600' } },
+    )
+  }
 
   const movieId = randomUUID()
   const storagePath = `${session.user.id}/${movieId}/movie.${extension}`
@@ -209,6 +248,23 @@ export async function PATCH(request: Request) {
 
     if (Number(fileInfo.size) !== movie.fileSize) {
       return NextResponse.json({ error: 'The uploaded file size did not match' }, { status: 409 })
+    }
+
+    const { data: signedDownload, error: signedDownloadError } = await supabase.storage
+      .from(MOVIE_UPLOAD_BUCKET)
+      .createSignedUrl(movie.storagePath, 60)
+    if (signedDownloadError || !signedDownload?.signedUrl) {
+      throw signedDownloadError ?? new Error('Storage did not return a verification URL')
+    }
+
+    const header = await readStoredMovieHeader(signedDownload.signedUrl)
+    if (!hasValidMovieSignature(header, movie.mimeType)) {
+      await supabase.storage.from(MOVIE_UPLOAD_BUCKET).remove([movie.storagePath])
+      await prisma.uploadedMovie.delete({ where: { id: movie.id } })
+      return NextResponse.json(
+        { error: 'The uploaded file is not a valid supported movie' },
+        { status: 409 },
+      )
     }
 
     const readyMovie = await prisma.uploadedMovie.update({

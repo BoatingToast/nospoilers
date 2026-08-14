@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-// @ts-ignore explicit TypeScript extension is intentional for node:test
+// @ts-expect-error explicit TypeScript extension is intentional for node:test
 import { selectAutomaticMovieMatch } from '../lib/movie-matching.ts'
 
 const candidates = [

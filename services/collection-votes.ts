@@ -11,9 +11,10 @@ export async function castVote(
   // Verify collection exists + owner check
   const col = await prisma.collection.findUnique({
     where:  { id: collectionId },
-    select: { userId: true },
+    select: { userId: true, isPublic: true },
   })
   if (!col) throw new Error('Collection not found')
+  if (!col.isPublic) throw new Error('Collection not found')
   if (col.userId === userId) throw new Error('Cannot vote on your own collection')
 
   await prisma.collectionVote.upsert({
@@ -32,6 +33,11 @@ export async function removeVote(
   userId:       string,
   collectionId: string,
 ): Promise<VoteResult> {
+  const collection = await prisma.collection.findFirst({
+    where: { id: collectionId, isPublic: true },
+    select: { id: true },
+  })
+  if (!collection) throw new Error('Collection not found')
   await prisma.collectionVote.deleteMany({ where: { userId, collectionId } })
   const stats = await recalcAnalytics(collectionId)
   return { ...stats, userVote: null }

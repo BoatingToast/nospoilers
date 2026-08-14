@@ -9,7 +9,9 @@ test('landing page stays within the viewport and search reaches results', async 
   await gotoHydrated(page, '/')
 
   await expect(page.getByRole('heading', { name: 'DISCOVER' })).toBeVisible()
-  await expect(page.getByText('FEATURED FILMS')).toBeVisible()
+  // Next's dev transition can briefly retain a hidden copy of streamed server
+  // content; assert the user-visible heading instead of relying on strict text.
+  await expect(page.getByRole('heading', { name: 'FEATURED FILMS' }).filter({ visible: true })).toBeVisible()
 
   const dimensions = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
@@ -32,11 +34,12 @@ test('mobile menu exposes navigation and multi-search results', async ({ page },
   await gotoHydrated(page, '/')
 
   await page.getByRole('button', { name: 'Open menu' }).click()
-  await expect(page.getByLabel('Mobile navigation')).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Discover', exact: true })).toBeVisible()
+  const mobileNavigation = page.getByLabel('Mobile navigation').filter({ visible: true })
+  await expect(mobileNavigation).toBeVisible()
+  await expect(mobileNavigation.getByRole('link', { name: 'Discover', exact: true })).toBeVisible()
 
-  await page.getByRole('button', { name: /Search movies/ }).click()
-  const searchDialog = page.getByRole('dialog', { name: 'Search movies and people' })
+  await mobileNavigation.getByRole('button', { name: /Search movies/ }).click()
+  const searchDialog = page.getByRole('dialog', { name: 'Search movies and people' }).filter({ visible: true })
   const searchResponse = page.waitForResponse(response => response.url().includes('/api/search?q='), {
     timeout: 20_000,
   })

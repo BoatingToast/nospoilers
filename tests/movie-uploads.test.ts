@@ -2,8 +2,8 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 // Node 22 runs this erasable TypeScript test directly. The .ts suffix is
 // required at runtime even though the app bundler normally omits it.
-// @ts-ignore explicit TypeScript extension is intentional for node:test
-import { isMovieWatchRegion, MAX_MOVIE_WATCH_PROVIDERS, mergeMovieWatchProviders, normalizeMovieWatchProviders } from '../lib/movie-uploads.ts'
+// @ts-expect-error explicit TypeScript extension is intentional for node:test
+import { hasValidMovieSignature, isMovieWatchRegion, MAX_MOVIE_WATCH_PROVIDERS, mergeMovieWatchProviders, normalizeMovieWatchProviders } from '../lib/movie-uploads.ts'
 
 test('keeps multiple watch providers for one movie in their entered order', () => {
   const result = normalizeMovieWatchProviders([
@@ -67,4 +67,16 @@ test('creator links override automatic providers with the same name', () => {
   assert.equal(merged[0].source, 'creator')
   assert.equal(merged[0].url, 'https://netflix.com/title/1')
   assert.equal(merged[1].name, 'Hulu')
+})
+
+test('checks movie container signatures instead of trusting the file name', () => {
+  const mp4 = new Uint8Array([0, 0, 0, 24, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d])
+  const webm = new Uint8Array([0x1a, 0x45, 0xdf, 0xa3, 0x9f, 0x42, 0x86, 0x81])
+  const executable = new Uint8Array([0x4d, 0x5a, 0x90, 0, 3, 0, 0, 0])
+
+  assert.equal(hasValidMovieSignature(mp4, 'video/mp4'), true)
+  assert.equal(hasValidMovieSignature(mp4, 'video/quicktime'), true)
+  assert.equal(hasValidMovieSignature(webm, 'video/webm'), true)
+  assert.equal(hasValidMovieSignature(executable, 'video/mp4'), false)
+  assert.equal(hasValidMovieSignature(webm, 'application/octet-stream'), false)
 })

@@ -41,7 +41,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${bebasNeue.variable} ${spaceGrotesk.variable}`}>
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      className={`${inter.variable} ${bebasNeue.variable} ${spaceGrotesk.variable}`}
+    >
       <body className="font-body bg-ns-bg text-ns-text antialiased">
         <SessionProvider>
           {children}

@@ -19,14 +19,15 @@ interface Props { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
-  const col    = await getCollection(id)
+  const session = await getServerSession(authOptions)
+  const col    = await getCollection(id, session?.user?.id ?? null)
   return { title: col ? `${col.title} — NoSpoilers` : 'Collection' }
 }
 
 export default async function CollectionPage({ params }: Props) {
   const { id }  = await params
   const session = await getServerSession(authOptions)
-  const col     = await getCollection(id)
+  const col     = await getCollection(id, session?.user?.id ?? null)
   if (!col) notFound()
 
   const myId   = session?.user?.id ?? null

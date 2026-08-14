@@ -6,7 +6,6 @@ import {
   AVATAR_MAX_BYTES,
   AVATAR_MIME_TYPES,
   buildDatabaseAvatarUrl,
-  ensureAvatarImageTable,
   hasValidImageSignature,
 } from '@/lib/avatar-storage'
 
@@ -57,8 +56,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'The selected file is not a valid image' }, { status: 400 })
     }
 
-    await ensureAvatarImageTable()
-
     // The versioned URL gives every replacement a fresh immutable cache key.
     const publicUrl = buildDatabaseAvatarUrl(userId, Date.now())
     await prisma.$transaction([
@@ -92,7 +89,6 @@ export async function DELETE() {
   const userId = session.user.id
 
   try {
-    await ensureAvatarImageTable()
     await prisma.$transaction([
       prisma.avatarImage.deleteMany({ where: { userId } }),
       prisma.user.update({

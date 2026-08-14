@@ -3,7 +3,7 @@ import test from 'node:test'
 // @ts-expect-error explicit TypeScript extension is intentional for node:test
 import { decideMovieNightOutcome } from '../lib/movie-night-outcome.ts'
 // @ts-expect-error explicit TypeScript extension is intentional for node:test
-import { checkRateLimit, requestClientKey } from '../lib/rate-limit.ts'
+import { requestClientKey } from '../lib/rate-limit-key.ts'
 
 function candidate(
   id: string,
@@ -55,13 +55,6 @@ test('uses Watch and Maybe votes for a completed consensus result', () => {
     status: 'matched',
     matchedCandidateId: 'movie-2',
   })
-})
-
-test('throttles repeated Movie Night requests within the configured window', () => {
-  const key = `movie-night-test-${Date.now()}-${Math.random()}`
-  assert.equal(checkRateLimit(key, 2, 60_000).allowed, true)
-  assert.equal(checkRateLimit(key, 2, 60_000).allowed, true)
-  assert.equal(checkRateLimit(key, 2, 60_000).allowed, false)
 })
 
 test('uses the first forwarded address as the request client key', () => {

@@ -1,6 +1,7 @@
 export const MOVIE_UPLOAD_BUCKET = 'movie-uploads'
 
 export const MAX_MOVIE_BYTES = 1024 * 1024 * 1024 // 1 GB
+export const MAX_PENDING_MOVIE_UPLOADS = 2
 export const MAX_MOVIE_TITLE_LENGTH = 120
 export const MAX_MOVIE_DESCRIPTION_LENGTH = 1000
 export const MAX_MOVIE_WATCH_PROVIDERS = 8
@@ -68,6 +69,24 @@ export function normalizeMovieMimeType(mimeType: string, fileName: string) {
 
 export function movieExtensionForMimeType(mimeType: string) {
   return MIME_EXTENSION[mimeType as (typeof MOVIE_MIME_TYPES)[number]] ?? null
+}
+
+/**
+ * Browser-provided MIME types and extensions are untrusted. Check the file's
+ * container signature before moving an upload into the ready state.
+ */
+export function hasValidMovieSignature(bytes: Uint8Array, mimeType: string): boolean {
+  if (mimeType === 'video/webm') {
+    return bytes.length >= 4 &&
+      bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3
+  }
+
+  if (mimeType === 'video/mp4' || mimeType === 'video/quicktime' || mimeType === 'video/x-m4v') {
+    return bytes.length >= 8 &&
+      bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70
+  }
+
+  return false
 }
 
 export function formatMovieFileSize(bytes: number) {
