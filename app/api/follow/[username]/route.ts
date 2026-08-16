@@ -160,13 +160,13 @@ export async function POST(req: NextRequest, { params }: Params) {
     becameFriends = true
 
     // Both get a "you're now friends" notification
-    void Promise.all([
-      notifyNewFriend(targetId, myId, me.username, username),
+    await Promise.all([
+      notifyNewFriend(targetId, myId, username, me.username),
       logActivity(myId, 'followed_user', { targetUsername: username, becameFriends: true }),
     ])
   } else {
     // One-way follow
-    void Promise.all([
+    await Promise.all([
       notifyNewFollower(targetId, myId, me.username),
       logActivity(myId, 'followed_user', { targetUsername: username }),
     ])

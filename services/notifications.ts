@@ -199,8 +199,10 @@ async function createNotification(
         metadata: metadata as object,
       },
     })
-  } catch {
-    // Swallow — notifications are non-critical
+  } catch (error) {
+    // A notification failure should not break the feature that triggered it,
+    // but it must remain visible in server logs so delivery issues can be found.
+    console.error(`[notifications] Failed to create ${type} notification`, error)
   }
 }
 

@@ -18,8 +18,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const count = await generateRecommendations(myId)
-    // Notify user their recs have been refreshed (non-blocking)
-    void notifyRecsRefreshed(myId, typeof count === 'number' ? count : 0).catch(() => {})
+    await notifyRecsRefreshed(myId, typeof count === 'number' ? count : 0)
     return NextResponse.json({ ok: true, count: count ?? 0 })
   } catch (error) {
     console.error('[recommendations/refresh]', error)

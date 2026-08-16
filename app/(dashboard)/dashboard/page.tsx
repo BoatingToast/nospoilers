@@ -61,8 +61,9 @@ export default async function DashboardPage() {
   ])
   const friendCount    = user._count.friendshipsAsA + user._count.friendshipsAsB
 
-  // Background tasks
-  void Promise.all([
+  // Complete dependent writes before rendering; serverless runtimes may end
+  // fire-and-forget work as soon as the response is sent.
+  await Promise.all([
     upsertWrappedStats(user.id),
     dnaProfile ? checkAndUpdateAchievements(user.id, 'dna_updated') : null,
   ]).catch(() => {})
