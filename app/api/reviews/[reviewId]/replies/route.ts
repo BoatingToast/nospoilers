@@ -60,15 +60,15 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   const reply = await createReviewReply(reviewId, myId, body.trim())
 
-  // Notify the review author (non-blocking)
-  void prisma.review.findUnique({
+  // Finish saving the notification before the request ends. Fire-and-forget
+  // database work can be terminated early by serverless runtimes.
+  const review = await prisma.review.findUnique({
     where:  { id: reviewId },
     select: { userId: true, tmdbId: true, movieTitle: true },
-  }).then(review => {
-    if (review && review.userId !== myId) {
-      notifyReviewReply(review.userId, myId, review.tmdbId, review.movieTitle ?? 'a movie').catch(() => {})
-    }
   })
+  if (review && review.userId !== myId) {
+    await notifyReviewReply(review.userId, myId, review.tmdbId, review.movieTitle ?? 'a movie')
+  }
 
   return NextResponse.json(reply, { status: 201 })
 }

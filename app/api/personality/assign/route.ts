@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     const newType = result.primaryType.slug
     // Notify only if the type actually changed
     if (oldType && oldType !== newType) {
-      void notifyDnaEvolved(myId, oldType, newType).catch(() => {})
+      await notifyDnaEvolved(myId, oldType, newType)
     }
 
     return NextResponse.json(result)
