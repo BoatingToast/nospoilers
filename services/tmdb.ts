@@ -7,6 +7,7 @@ import type {
   TMDbWatchProvidersResponse,
   TMDbPersonDetail,
   TMDbPersonMovieCredits,
+  TMDbVideosResponse,
 } from '@/types'
 import type {
   MovieWatchAccessType,
@@ -121,6 +122,10 @@ export async function getMovieById(id: number): Promise<TMDbMovieDetail> {
 
 export async function getMovieCredits(id: number): Promise<TMDbCredits> {
   return tmdbFetch(`/movie/${id}/credits`)
+}
+
+export async function getMovieVideos(id: number): Promise<TMDbVideosResponse> {
+  return tmdbFetch(`/movie/${id}/videos`, {}, 21600)
 }
 
 export async function getMovieSimilar(id: number): Promise<TMDbSearchResponse> {

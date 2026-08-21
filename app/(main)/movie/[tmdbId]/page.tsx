@@ -6,6 +6,7 @@ import type { Metadata } from 'next'
 import {
   getMovieById,
   getMovieCredits,
+  getMovieVideos,
   getMovieSimilar,
   getMovieKeywords,
   getMovieWatchProviders,
@@ -17,11 +18,13 @@ import MovieVibeProfile from '@/components/movie/MovieVibeProfile'
 import WhoWouldEnjoy from '@/components/movie/WhoWouldEnjoy'
 import SimilarMovies from '@/components/movie/SimilarMovies'
 import WhereToWatch from '@/components/movie/WhereToWatch'
+import MovieTrailers from '@/components/movie/MovieTrailers'
 import AddToWatchlistButton from '@/components/watchlist/AddToWatchlistButton'
 import AddToCollectionButton from '@/components/collections/AddToCollectionButton'
 import RatingWidget from '@/components/ratings/RatingWidget'
 import ReviewSection from '@/components/reviews/ReviewSection'
 import SpoilerZone   from '@/components/spoiler-zone/SpoilerZone'
+import { selectMovieTrailers } from '@/lib/movie-trailers'
 
 interface Props {
   params: Promise<{ tmdbId: string }>
@@ -46,9 +49,10 @@ export default async function MoviePage({ params }: Props) {
   const detectedRegion = requestHeaders.get('x-vercel-ip-country')?.toUpperCase()
   const watchRegion = detectedRegion && /^[A-Z]{2}$/.test(detectedRegion) ? detectedRegion : 'US'
 
-  const [movie, credits, similar, keywords, watchAvailability] = await Promise.all([
+  const [movie, credits, videos, similar, keywords, watchAvailability] = await Promise.all([
     getMovieById(id).catch(() => null),
     getMovieCredits(id).catch(() => ({ id, cast: [], crew: [] })),
+    getMovieVideos(id).catch(() => ({ id, results: [] })),
     getMovieSimilar(id).catch(() => ({ results: [] })),
     getMovieKeywords(id).catch(() => [] as string[]),
     getMovieWatchProviders(id, watchRegion).catch(() => null),
@@ -58,6 +62,7 @@ export default async function MoviePage({ params }: Props) {
 
   const director     = credits.crew.find(c => c.job === 'Director')
   const topCast      = credits.cast.slice(0, 8)
+  const trailers     = selectMovieTrailers(videos.results)
   const safeOverview = makeSpoilerFree(movie.overview)
   const audience     = generateAudienceProfile(movie)
   // Use the full movie object — detail endpoint returns `genres`, not `genre_ids`
@@ -216,6 +221,9 @@ export default async function MoviePage({ params }: Props) {
           </div>
         </div>
       )}
+
+      {/* Trailers */}
+      <MovieTrailers movieTitle={movie.title} trailers={trailers} />
 
       {/* Vibe + Audience grid */}
       <div className="grid sm:grid-cols-2 gap-6 mb-10">
