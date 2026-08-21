@@ -118,6 +118,24 @@ export interface TMDbWatchProvidersResponse {
   results: Record<string, TMDbWatchProviderRegion>
 }
 
+export interface TMDbVideo {
+  id: string
+  iso_639_1: string
+  iso_3166_1: string
+  key: string
+  name: string
+  official: boolean
+  published_at: string
+  site: string
+  size: number
+  type: string
+}
+
+export interface TMDbVideosResponse {
+  id: number
+  results: TMDbVideo[]
+}
+
 export interface TMDbMultiSearchResponse {
   page: number
   results: Array<(TMDbMovie & { media_type: 'movie' }) | (TMDbPerson & { media_type: 'person' })>
