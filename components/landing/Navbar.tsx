@@ -286,7 +286,7 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link
-            href={session ? '/dashboard' : '/'}
+            href="/"
             className="font-display text-xl sm:text-2xl tracking-widest text-ns-text hover:text-ns-secondary-readable transition-colors flex-shrink-0"
           >
             NOSPOILERS
