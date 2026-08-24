@@ -40,6 +40,7 @@ const NAV_LINKS: NavLink[] = [
   { href: '/collections',        label: 'Collections', authRequired: false },
   { href: '/my-recommendations', label: 'Recs',        authRequired: true, highlight: true },
   { href: '/movie-night',        label: 'Movie Night', authRequired: true  },
+  { href: '/pro',                label: 'Pro',          authRequired: false },
 ]
 
 // ─── Profile dropdown items ───────────────────────────────────────────────────
@@ -280,7 +281,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-ns-bg/90 backdrop-blur-md border-b border-white/5">
+      <header className="fixed top-8 left-0 right-0 z-50 bg-ns-bg/90 backdrop-blur-md border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
 
           {/* Logo */}
@@ -293,7 +294,7 @@ export default function Navbar() {
 
           {/* Desktop nav — shares space with logo and right controls so it can't overlap them */}
           <nav
-            className="hidden md:flex items-center gap-8 flex-1 min-w-0 justify-center"
+            className="hidden md:flex items-center gap-4 xl:gap-8 flex-1 min-w-0 justify-center"
             aria-label="Main navigation"
           >
             {visibleLinks.map(link => {
@@ -388,7 +389,7 @@ export default function Navbar() {
         id="mobile-navigation"
         role="dialog"
         aria-modal="true"
-        className={`fixed top-0 right-0 bottom-0 z-50 w-72 max-w-[85vw] bg-ns-surface border-l border-ns-border
+        className={`fixed top-8 right-0 bottom-0 z-50 w-72 max-w-[85vw] bg-ns-surface border-l border-ns-border
                     flex flex-col md:hidden transition-transform duration-300 ease-in-out
                     ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}`}
         aria-label="Mobile navigation menu"
