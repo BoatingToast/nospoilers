@@ -71,7 +71,7 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
 
       {/* Page header */}
       <div className="mb-8">
-        <p className="text-ns-secondary text-[10px] tracking-widest uppercase font-body mb-1">Film Journal</p>
+        <p className="text-ns-secondary-readable text-[10px] tracking-widest uppercase font-body mb-1">Film Journal</p>
         <h1 className="font-display text-5xl tracking-wider text-ns-text">MY RATINGS</h1>
         <p className="text-ns-muted text-sm font-body mt-1">
           {total} {total === 1 ? 'film' : 'films'} rated
@@ -133,7 +133,7 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
               if (val === null) return null
               return (
                 <div key={key} className="flex items-center gap-2">
-                  <Icon size={14} className="text-ns-secondary/70 flex-shrink-0" />
+                  <Icon size={14} className="text-ns-secondary-readable/70 flex-shrink-0" />
                   <div className="flex-1">
                     <div className="flex justify-between mb-1">
                       <span className="text-ns-muted text-[10px] font-body">{label}</span>
@@ -160,7 +160,7 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
               <button key={f} onClick={() => setFilter(f)}
                 className={`px-3 py-1 rounded-full text-xs font-body transition-all ${
                   filter === f
-                    ? 'bg-ns-secondary text-ns-bg'
+                    ? 'bg-ns-secondary text-ns-secondary-foreground'
                     : 'bg-ns-surface border border-ns-border text-ns-muted hover:text-ns-text'
                 }`}>
                 {FILTER_LABELS[f]}
@@ -192,7 +192,7 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
       {/* Empty state */}
       {stats.totalRatings === 0 && (
         <div className="text-center py-20">
-          <RatingsIcon size={52} className="text-ns-secondary/40 mx-auto mb-4" />
+          <RatingsIcon size={52} className="text-ns-secondary-readable/40 mx-auto mb-4" />
           <h2 className="font-display text-3xl tracking-wider text-ns-text mb-2">NO RATINGS YET</h2>
           <p className="text-ns-muted font-body text-sm mb-6 max-w-xs mx-auto">
             Rate films you've seen to build your personal film journal and improve your recommendations.
@@ -227,7 +227,7 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
       {/* Perfects shelf */}
       {stats.perfectScores > 0 && (
         <div className="mt-12">
-          <p className="text-ns-secondary text-[10px] tracking-widest uppercase font-body mb-4">
+          <p className="text-ns-secondary-readable text-[10px] tracking-widest uppercase font-body mb-4">
             Perfect 100 Films
           </p>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
@@ -243,7 +243,7 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent" />
                   <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2
-                                   text-ns-secondary font-display text-lg tracking-wider">
+                                   text-ns-secondary-readable font-display text-lg tracking-wider">
                     100
                   </span>
                 </div>
@@ -264,7 +264,7 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
 function StatCard({ label, value, gold = false }: { label: string; value: string; gold?: boolean }) {
   return (
     <div className="bg-ns-surface border border-ns-border rounded-xl p-4 text-center">
-      <p className={`font-display text-3xl tracking-wider ${gold ? 'text-ns-secondary' : 'text-ns-text'}`}>
+      <p className={`font-display text-3xl tracking-wider ${gold ? 'text-ns-secondary-readable' : 'text-ns-text'}`}>
         {value}
       </p>
       <p className="text-ns-muted text-xs font-body mt-0.5">{label}</p>
@@ -322,7 +322,7 @@ function RatingRow({ rating }: { rating: MovieRatingData }) {
 
       {/* Title + meta */}
       <div className="flex-1 min-w-0">
-        <p className="text-ns-text text-sm font-body font-medium truncate group-hover:text-ns-secondary
+        <p className="text-ns-text text-sm font-body font-medium truncate group-hover:text-ns-secondary-readable
                       transition-colors">
           {rating.title}
         </p>

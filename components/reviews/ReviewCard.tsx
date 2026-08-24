@@ -25,7 +25,7 @@ function formatDate(iso: string): string {
 }
 
 function RatingBadge({ rating }: { rating: number }) {
-  const color = rating >= 80 ? 'text-emerald-400' : rating >= 60 ? 'text-ns-secondary' : 'text-rose-400'
+  const color = rating >= 80 ? 'text-emerald-400' : rating >= 60 ? 'text-ns-secondary-readable' : 'text-rose-400'
   return (
     <span className={`font-heading font-semibold text-sm ${color}`}>{rating}/100</span>
   )
@@ -109,7 +109,7 @@ function ReplyThread({
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2">
                   <Link href={`/profile/${reply.username}`}
-                    className="text-xs font-heading font-medium text-white hover:text-ns-secondary transition-colors">
+                    className="text-xs font-heading font-medium text-white hover:text-ns-secondary-readable transition-colors">
                     @{reply.username}
                   </Link>
                   <span className="text-[10px] font-body text-ns-muted">{formatDate(reply.createdAt)}</span>
@@ -135,7 +135,7 @@ function ReplyThread({
                 <button
                   onClick={postReply}
                   disabled={posting || !draft.trim()}
-                  className="px-3 py-1.5 rounded-lg bg-ns-secondary/15 text-ns-secondary text-xs font-heading font-medium
+                  className="px-3 py-1.5 rounded-lg bg-ns-secondary/15 text-ns-secondary-readable text-xs font-heading font-medium
                              hover:bg-ns-secondary/25 disabled:opacity-40 transition-colors whitespace-nowrap"
                 >
                   {posting ? '…' : 'Post'}
@@ -264,11 +264,11 @@ export default function ReviewCard({
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <Link href={`/profile/${review.username}`}
-                className="font-heading font-semibold text-sm text-white hover:text-ns-secondary transition-colors">
+                className="font-heading font-semibold text-sm text-white hover:text-ns-secondary-readable transition-colors">
                 @{review.username}
               </Link>
               {review.isFriend && (
-                <span className="px-2 py-0.5 rounded-full bg-ns-secondary/15 text-ns-secondary text-[10px] font-body">
+                <span className="px-2 py-0.5 rounded-full bg-ns-secondary/15 text-ns-secondary-readable text-[10px] font-body">
                   Friend
                 </span>
               )}
@@ -334,7 +334,7 @@ export default function ReviewCard({
               {sessionId && (
                 <Link
                   href="/plot-passport"
-                  className="px-4 py-2 rounded-xl bg-ns-secondary text-ns-bg text-xs font-heading font-semibold hover:bg-amber-400 transition-colors"
+                  className="px-4 py-2 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-xs font-heading font-semibold hover:bg-ns-secondary/90 transition-colors"
                 >
                   Update progress
                 </Link>
@@ -365,7 +365,7 @@ export default function ReviewCard({
           disabled={!sessionId}
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-body transition-colors ${
             viewerVotes.includes('helpful')
-              ? 'bg-ns-secondary/15 text-ns-secondary'
+              ? 'bg-ns-secondary/15 text-ns-secondary-readable'
               : 'text-ns-muted hover:text-white hover:bg-white/5'
           } disabled:opacity-50 disabled:cursor-default`}
         >

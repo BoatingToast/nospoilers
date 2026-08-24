@@ -98,7 +98,7 @@ function TopBanner({
       >
         <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-ns-secondary/12">
           {isSummary ? (
-            <NotificationsIcon size={18} className="text-ns-secondary" />
+            <NotificationsIcon size={18} className="text-ns-secondary-readable" />
           ) : (
             <NotificationTypeIcon icon={banner.notification.icon} unread size={18} />
           )}
@@ -107,7 +107,7 @@ function TopBanner({
           <p className="truncate text-sm font-body font-semibold text-ns-text">{title}</p>
           <p className="truncate text-xs font-body text-ns-muted/75">{body}</p>
         </div>
-        <span className="flex-shrink-0 text-sm text-ns-secondary" aria-hidden="true">→</span>
+        <span className="flex-shrink-0 text-sm text-ns-secondary-readable" aria-hidden="true">→</span>
         <span
           className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-ns-secondary"
           style={{ animation: 'notificationBannerTimer 2s linear both' }}
@@ -284,7 +284,7 @@ export default function NotificationBell() {
           aria-expanded={open}
           className={`relative rounded-xl p-2 transition-all duration-200
             ${open
-              ? 'bg-ns-secondary/10 text-ns-secondary shadow-[0_0_12px_rgb(var(--ns-secondary)/0.15)]'
+              ? 'bg-ns-secondary/10 text-ns-secondary-readable shadow-[0_0_12px_rgb(var(--ns-secondary)/0.15)]'
               : 'text-ns-muted hover:bg-ns-bg/50 hover:text-ns-text'
             }`}
         >
@@ -303,7 +303,7 @@ export default function NotificationBell() {
           >
             <div className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-ns-border px-4 py-3.5">
               <div className="flex min-w-0 items-center gap-2">
-                <NotificationsIcon size={15} className="text-ns-secondary/70" />
+                <NotificationsIcon size={15} className="text-ns-secondary-readable/70" />
                 <span className="text-xs font-body font-semibold uppercase tracking-wide text-ns-text">
                   Notifications
                 </span>
@@ -317,7 +317,7 @@ export default function NotificationBell() {
                 {unread > 0 && (
                   <button
                     onClick={markAllRead}
-                    className="text-[10px] font-body text-ns-secondary/80 transition-colors hover:text-ns-secondary"
+                    className="text-[10px] font-body text-ns-secondary-readable/80 transition-colors hover:text-ns-secondary-readable"
                   >
                     Mark all read
                   </button>
@@ -325,7 +325,7 @@ export default function NotificationBell() {
                 <Link
                   href="/settings/notifications"
                   onClick={() => setOpen(false)}
-                  className="text-[10px] font-body text-ns-muted/50 transition-colors hover:text-ns-secondary"
+                  className="text-[10px] font-body text-ns-muted/50 transition-colors hover:text-ns-secondary-readable"
                 >
                   Settings
                 </Link>
@@ -376,7 +376,7 @@ export default function NotificationBell() {
                 <Link
                   href="/notifications"
                   onClick={() => setOpen(false)}
-                  className="text-xs font-body text-ns-muted/50 transition-colors hover:text-ns-secondary"
+                  className="text-xs font-body text-ns-muted/50 transition-colors hover:text-ns-secondary-readable"
                 >
                   View all notifications →
                 </Link>

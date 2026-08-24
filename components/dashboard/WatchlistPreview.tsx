@@ -32,7 +32,7 @@ export default function WatchlistPreview() {
             <span className="text-emerald-400 font-body text-xs">{stats.watched} watched</span>
           </div>
         </div>
-        <Link href="/watchlist" className="text-ns-secondary text-xs font-body hover:text-ns-secondary/80 transition-colors">
+        <Link href="/watchlist" className="text-ns-secondary-readable text-xs font-body hover:text-ns-secondary-readable/80 transition-colors">
           View all →
         </Link>
       </div>
@@ -46,7 +46,7 @@ export default function WatchlistPreview() {
       ) : items.length === 0 ? (
         <div className="text-center py-4">
           <p className="text-ns-muted text-xs font-body mb-2">Your watchlist is empty.</p>
-          <Link href="/discover" className="text-ns-secondary text-xs font-body hover:underline">
+          <Link href="/discover" className="text-ns-secondary-readable text-xs font-body hover:underline">
             Discover movies →
           </Link>
         </div>

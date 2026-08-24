@@ -108,7 +108,7 @@ export default async function CompatibilityPage({ params }: Props) {
             <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">Shared Genres</p>
             <div className="flex flex-wrap gap-2">
               {result.sharedGenres.map(g => (
-                <span key={g} className="px-3 py-1.5 rounded-full bg-ns-secondary/10 border border-ns-secondary/30 text-ns-secondary text-xs font-body capitalize">
+                <span key={g} className="px-3 py-1.5 rounded-full bg-ns-secondary/10 border border-ns-secondary/30 text-ns-secondary-readable text-xs font-body capitalize">
                   {g}
                 </span>
               ))}

@@ -37,7 +37,7 @@ export default function Top5Display({ userId, isOwn, onEditClick }: Props) {
         {isOwn && (
           <button
             onClick={onEditClick}
-            className="text-xs font-heading font-medium text-ns-secondary hover:text-amber-400 transition-colors flex items-center gap-1.5"
+            className="text-xs font-heading font-medium text-ns-secondary-readable hover:text-amber-400 transition-colors flex items-center gap-1.5"
           >
             <EditIcon size={12} />
             Edit Top 5
@@ -53,7 +53,7 @@ export default function Top5Display({ userId, isOwn, onEditClick }: Props) {
         </div>
       ) : movies.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-ns-border p-10 text-center">
-          <FilmIcon size={44} className="text-ns-secondary/30 mx-auto mb-3" />
+          <FilmIcon size={44} className="text-ns-secondary-readable/30 mx-auto mb-3" />
           <p className="font-heading font-medium text-white mb-1">No Top 5 yet</p>
           <p className="text-ns-muted text-sm font-body mb-4">
             {isOwn
@@ -64,7 +64,7 @@ export default function Top5Display({ userId, isOwn, onEditClick }: Props) {
           {isOwn && (
             <button
               onClick={onEditClick}
-              className="px-5 py-2 rounded-xl bg-ns-secondary text-ns-bg text-sm font-heading font-semibold hover:bg-amber-400 transition-colors"
+              className="px-5 py-2 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold hover:bg-ns-secondary/90 transition-colors"
             >
               Choose Your Top 5
             </button>
@@ -81,7 +81,7 @@ export default function Top5Display({ userId, isOwn, onEditClick }: Props) {
               {/* Rank badge */}
               <div className="absolute -top-2 -left-1 z-10 w-7 h-7 rounded-full bg-ns-bg border-2 border-ns-secondary
                               flex items-center justify-center shadow-lg">
-                <span className="text-ns-secondary font-display text-[9px] leading-none tracking-wider">
+                <span className="text-ns-secondary-readable font-display text-[9px] leading-none tracking-wider">
                   {m.position}
                 </span>
               </div>

@@ -23,7 +23,7 @@ export default function SocialHubNav({ active }: { active: SocialHubSection }) {
               aria-current={isActive ? 'page' : undefined}
               className={`inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs font-body font-semibold transition-all sm:text-sm ${
                 isActive
-                  ? 'bg-ns-secondary text-black'
+                  ? 'bg-ns-secondary text-ns-secondary-foreground'
                   : 'text-ns-muted/70 hover:bg-white/5 hover:text-ns-text'
               }`}
             >

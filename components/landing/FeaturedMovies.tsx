@@ -27,7 +27,7 @@ export default async function FeaturedMovies() {
         {/* Section header */}
         <div className="flex items-end justify-between mb-10">
           <div>
-            <p className="text-ns-secondary text-xs tracking-[0.2em] uppercase font-body mb-2">
+            <p className="text-ns-secondary-readable text-xs tracking-[0.2em] uppercase font-body mb-2">
               Trending this week
             </p>
             <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-text">

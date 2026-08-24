@@ -26,7 +26,7 @@ function timeAgo(iso: string): string {
 }
 
 function ActivityIcon({ type }: { type: string }) {
-  const cls = 'text-ns-secondary/60'
+  const cls = 'text-ns-secondary-readable/60'
   const size = 14
   switch (type) {
     case 'rated_movie':        return <RatingsIcon     size={size} className={cls} />

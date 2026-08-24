@@ -83,7 +83,7 @@ function UserRow({ user }: { user: SimilarUserPreview }) {
       <Avatar src={user.avatarUrl} username={user.username} size="md" href />
 
       <div className="flex-1 min-w-0">
-        <Link href={`/profile/${user.username}`} className="hover:text-ns-secondary transition-colors">
+        <Link href={`/profile/${user.username}`} className="hover:text-ns-secondary-readable transition-colors">
           <p className="text-ns-text text-sm font-body font-medium truncate">@{user.username}</p>
         </Link>
         <p className="text-ns-muted text-xs font-body">
@@ -95,7 +95,7 @@ function UserRow({ user }: { user: SimilarUserPreview }) {
       <div className="flex items-center gap-2 flex-shrink-0">
         <Link
           href={`/compatibility/${user.username}`}
-          className="text-ns-secondary text-xs font-body hover:text-ns-secondary/80 transition-colors"
+          className="text-ns-secondary-readable text-xs font-body hover:text-ns-secondary-readable/80 transition-colors"
         >
           {user.compatScore}%
         </Link>
@@ -105,7 +105,7 @@ function UserRow({ user }: { user: SimilarUserPreview }) {
           className={`px-3 py-1 rounded-lg text-xs font-body transition-all
             ${following
               ? 'border border-ns-border text-ns-muted hover:text-red-400'
-              : 'bg-ns-secondary/10 border border-ns-secondary/30 text-ns-secondary hover:bg-ns-secondary/20'
+              : 'bg-ns-secondary/10 border border-ns-secondary/30 text-ns-secondary-readable hover:bg-ns-secondary/20'
             }
             ${loading ? 'opacity-50' : ''}
           `}

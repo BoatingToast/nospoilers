@@ -46,7 +46,7 @@ export default function MovieVibeProfile({ scores }: { scores: DNAScores }) {
               />
             </div>
             <span className="text-ns-muted text-[10px] font-body w-16">{label}</span>
-            <span className="text-ns-secondary text-[10px] font-body w-4 text-right">{scores[key]}</span>
+            <span className="text-ns-secondary-readable text-[10px] font-body w-4 text-right">{scores[key]}</span>
           </div>
         ))}
       </div>

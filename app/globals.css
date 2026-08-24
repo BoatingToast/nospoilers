@@ -26,6 +26,7 @@
   --ns-secondary:            104 13 209;   /* #680DD1 — highlights, interactive elements, CTAs */
   --ns-secondary-dim:        70 9 141;     /* muted/disabled accent state */
   --ns-secondary-foreground: 255 255 255;  /* text/icons on secondary-filled surfaces */
+  --ns-secondary-readable:   196 181 253;  /* #C4B5FD — AA text/icons on dark surfaces */
 
   /* Typography */
   --ns-text:  237 233 225;  /* primary copy */
@@ -76,6 +77,11 @@
   ::selection {
     background-color: rgb(var(--ns-secondary) / 0.3);
     color: rgb(var(--ns-text));
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--ns-secondary-readable));
+    outline-offset: 3px;
   }
 }
 

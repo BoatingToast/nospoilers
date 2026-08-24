@@ -29,12 +29,14 @@ interface NavLink {
   href:         string
   label:        string
   authRequired: boolean
+  signedOutOnly?: boolean
   highlight?:   boolean
 }
 
 const NAV_LINKS: NavLink[] = [
   { href: '/dashboard',          label: 'Dashboard',   authRequired: true  },
   { href: '/discover',           label: 'Discover',    authRequired: false },
+  { href: '/#shield',            label: 'Shield',      authRequired: false, signedOutOnly: true },
   { href: '/collections',        label: 'Collections', authRequired: false },
   { href: '/my-recommendations', label: 'Recs',        authRequired: true, highlight: true },
   { href: '/movie-night',        label: 'Movie Night', authRequired: true  },
@@ -68,11 +70,22 @@ function isActive(href: string, pathname: string): boolean {
   return pathname === href || pathname.startsWith(href + '/')
 }
 
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',')
+
 // ─── Profile dropdown ─────────────────────────────────────────────────────────
 
 function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl: string | null }) {
   const [open,    setOpen]    = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
 
   useEffect(() => { setOpen(false) }, [pathname])
@@ -86,12 +99,56 @@ function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl:
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
+  useEffect(() => {
+    if (!open) return
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus()
+    })
+
+    return () => window.cancelAnimationFrame(focusFrame)
+  }, [open])
+
+  function closeMenu(restoreFocus = false) {
+    setOpen(false)
+    if (restoreFocus) buttonRef.current?.focus()
+  }
+
+  function handleMenuKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      closeMenu(true)
+      return
+    }
+
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return
+    event.preventDefault()
+    const items = Array.from(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])
+    if (items.length === 0) return
+
+    const currentIndex = items.indexOf(document.activeElement as HTMLElement)
+    if (event.key === 'Home') items[0].focus()
+    else if (event.key === 'End') items[items.length - 1].focus()
+    else if (event.key === 'ArrowDown') items[(currentIndex + 1) % items.length].focus()
+    else items[(currentIndex - 1 + items.length) % items.length].focus()
+  }
+
   return (
     <div ref={ref} className="relative">
       <button
+        ref={buttonRef}
+        type="button"
         onClick={() => setOpen(v => !v)}
         aria-expanded={open}
+        aria-haspopup="menu"
+        aria-controls="profile-menu"
         aria-label="Profile menu"
+        onKeyDown={event => {
+          if (event.key === 'ArrowDown') {
+            event.preventDefault()
+            setOpen(true)
+          }
+        }}
         className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-white/5 transition-colors group"
       >
         <Avatar src={avatarUrl} username={username} size="xs" />
@@ -107,18 +164,22 @@ function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl:
       </button>
 
       {/* Dropdown panel */}
-      <div
-        className={`absolute right-0 top-full mt-2 w-52 bg-ns-surface border border-ns-border rounded-2xl shadow-2xl overflow-hidden
-                    transition-all duration-150 origin-top-right
-                    ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'}`}
+      {open && <div
+        ref={menuRef}
+        id="profile-menu"
+        role="menu"
+        aria-label="Profile menu"
+        onKeyDown={handleMenuKeyDown}
+        className="absolute right-0 top-full mt-2 w-52 bg-ns-surface border border-ns-border rounded-2xl shadow-2xl overflow-hidden animate-fade-in"
       >
         {/* User info header */}
         <div className="px-4 py-3 border-b border-ns-border">
           <p className="text-sm font-body text-white font-medium">@{username}</p>
           <Link
             href={`/profile/${username}`}
-            className="text-[11px] font-body text-ns-secondary hover:text-amber-400 transition-colors"
-            onClick={() => setOpen(false)}
+            role="menuitem"
+            className="text-[11px] font-body text-ns-secondary-readable hover:text-white transition-colors"
+            onClick={() => closeMenu()}
           >
             View Profile →
           </Link>
@@ -130,7 +191,8 @@ function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl:
             <Link
               key={href}
               href={href}
-              onClick={() => setOpen(false)}
+              role="menuitem"
+              onClick={() => closeMenu()}
               className="flex items-center gap-3 px-4 py-2 text-sm font-body text-ns-muted hover:text-white hover:bg-white/5 transition-colors"
             >
               <Icon size={15} className="flex-shrink-0 opacity-70" />
@@ -142,6 +204,8 @@ function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl:
         {/* Sign out */}
         <div className="border-t border-ns-border py-1.5">
           <button
+            type="button"
+            role="menuitem"
             onClick={() => signOut({ callbackUrl: '/' })}
             className="w-full flex items-center gap-3 px-4 py-2 text-sm font-body text-ns-muted hover:text-rose-400 hover:bg-white/5 transition-colors"
           >
@@ -149,7 +213,7 @@ function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl:
             Sign Out
           </button>
         </div>
-      </div>
+      </div>}
     </div>
   )
 }
@@ -161,6 +225,8 @@ export default function Navbar() {
   const pathname           = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const drawerRef = useRef<HTMLDivElement>(null)
+  const mobileTriggerRef = useRef<HTMLButtonElement>(null)
+  const mobileCloseRef = useRef<HTMLButtonElement>(null)
 
   const username  = session?.user?.name ?? ''
   const avatarUrl = session?.user?.image ?? null
@@ -169,19 +235,48 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!mobileOpen) return
-    function handler(e: MouseEvent) {
-      if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) setMobileOpen(false)
+
+    const previousOverflow = document.body.style.overflow
+    const mobileTrigger = mobileTriggerRef.current
+    document.body.style.overflow = 'hidden'
+    const focusFrame = window.requestAnimationFrame(() => mobileCloseRef.current?.focus())
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setMobileOpen(false)
+        return
+      }
+
+      if (event.key !== 'Tab' || !drawerRef.current) return
+      const focusable = Array.from(
+        drawerRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+      ).filter(element => !element.hidden && element.getAttribute('aria-hidden') !== 'true')
+      if (focusable.length === 0) return
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.cancelAnimationFrame(focusFrame)
+      window.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = previousOverflow
+      mobileTrigger?.focus()
+    }
   }, [mobileOpen])
 
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
-  }, [mobileOpen])
-
-  const visibleLinks = NAV_LINKS.filter(l => !l.authRequired || session)
+  const visibleLinks = NAV_LINKS.filter(link => (
+    (!link.authRequired || session) && (!link.signedOutOnly || !session)
+  ))
 
   return (
     <>
@@ -191,7 +286,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link
             href={session ? '/dashboard' : '/'}
-            className="font-display text-xl sm:text-2xl tracking-widest text-ns-text hover:text-ns-secondary transition-colors flex-shrink-0"
+            className="font-display text-xl sm:text-2xl tracking-widest text-ns-text hover:text-ns-secondary-readable transition-colors flex-shrink-0"
           >
             NOSPOILERS
           </Link>
@@ -213,9 +308,9 @@ export default function Navbar() {
                     link.highlight
                       ? active
                         ? 'text-amber-300'
-                        : 'text-ns-secondary hover:text-amber-300'
+                        : 'text-ns-secondary-readable hover:text-amber-300'
                       : active
-                        ? 'text-ns-secondary'
+                        ? 'text-ns-secondary-readable'
                         : 'text-white/50 hover:text-white/90',
                   ].join(' ')}
                 >
@@ -229,9 +324,9 @@ export default function Navbar() {
                       link.highlight
                         ? active
                           ? 'bg-amber-300 scale-x-100'
-                          : 'bg-ns-secondary scale-x-0 group-hover:scale-x-100'
+                          : 'bg-ns-secondary-readable scale-x-0 group-hover:scale-x-100'
                         : active
-                          ? 'bg-ns-secondary scale-x-100'
+                          ? 'bg-ns-secondary-readable scale-x-100'
                           : 'bg-white/25 scale-x-0 group-hover:scale-x-100',
                     ].join(' ')}
                   />
@@ -261,9 +356,13 @@ export default function Navbar() {
 
             {/* Mobile hamburger */}
             <button
+              ref={mobileTriggerRef}
+              type="button"
               onClick={() => setMobileOpen(v => !v)}
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
+              aria-haspopup="dialog"
+              aria-controls="mobile-navigation"
               className="md:hidden flex flex-col gap-[5px] items-center justify-center w-9 h-9 rounded-lg hover:bg-white/5 transition-colors"
             >
               <span className={`block w-5 h-0.5 bg-ns-text transition-all duration-200 ${mobileOpen ? 'translate-y-[7px] rotate-45'  : ''}`} />
@@ -275,6 +374,7 @@ export default function Navbar() {
       </header>
 
       {/* ── Mobile drawer ────────────────────────────────────────────────────── */}
+      {mobileOpen && <>
       <div
         className={`fixed inset-0 z-40 bg-black/60 md:hidden transition-opacity duration-200 ${
           mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
@@ -285,15 +385,20 @@ export default function Navbar() {
 
       <div
         ref={drawerRef}
+        id="mobile-navigation"
+        role="dialog"
+        aria-modal="true"
         className={`fixed top-0 right-0 bottom-0 z-50 w-72 max-w-[85vw] bg-ns-surface border-l border-ns-border
                     flex flex-col md:hidden transition-transform duration-300 ease-in-out
                     ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}`}
-        aria-label="Mobile navigation"
+        aria-label="Mobile navigation menu"
       >
         {/* Drawer header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-ns-border">
           <span className="font-display text-lg tracking-widest text-ns-text">NOSPOILERS</span>
           <button
+            ref={mobileCloseRef}
+            type="button"
             onClick={() => setMobileOpen(false)}
             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-ns-muted hover:text-white transition-colors"
             aria-label="Close menu"
@@ -319,8 +424,8 @@ export default function Navbar() {
                 className={[
                   'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-heading font-medium transition-all',
                   link.highlight
-                    ? active ? 'text-amber-300 bg-ns-secondary/15' : 'text-ns-secondary hover:text-amber-300 hover:bg-ns-secondary/10'
-                    : active ? 'text-ns-secondary bg-ns-secondary/8'    : 'text-white/60 hover:text-white hover:bg-white/5',
+                    ? active ? 'text-amber-300 bg-ns-secondary/15' : 'text-ns-secondary-readable hover:text-amber-300 hover:bg-ns-secondary/10'
+                    : active ? 'text-ns-secondary-readable bg-ns-secondary/8' : 'text-white/60 hover:text-white hover:bg-white/5',
                 ].join(' ')}
               >
                 {link.highlight && <RecsIcon size={14} />}
@@ -357,7 +462,7 @@ export default function Navbar() {
               >
                 <Avatar src={avatarUrl} username={username} size="sm" />
                 <div className="min-w-0">
-                  <p className="text-sm font-body text-white truncate group-hover:text-ns-secondary transition-colors">@{username}</p>
+                  <p className="text-sm font-body text-white truncate group-hover:text-ns-secondary-readable transition-colors">@{username}</p>
                   <p className="text-[11px] font-body text-ns-muted">View Profile</p>
                 </div>
               </Link>
@@ -376,6 +481,7 @@ export default function Navbar() {
           )}
         </div>
       </div>
+      </>}
     </>
   )
 }

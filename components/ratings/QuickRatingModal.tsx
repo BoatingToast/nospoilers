@@ -113,7 +113,7 @@ export default function QuickRatingModal({
           {/* Header */}
           <div className="flex items-start justify-between mb-6">
             <div>
-              <p className="text-ns-secondary text-[10px] tracking-widest uppercase font-body mb-1">
+              <p className="text-ns-secondary-readable text-[10px] tracking-widest uppercase font-body mb-1">
                 Rate this film
               </p>
               <h2 className="font-display text-2xl tracking-wider text-ns-text leading-tight">
@@ -147,7 +147,7 @@ export default function QuickRatingModal({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full py-3 rounded-xl bg-ns-secondary text-ns-bg font-body font-semibold
+              className="w-full py-3 rounded-xl bg-ns-secondary text-ns-secondary-foreground font-body font-semibold
                          text-sm tracking-wide hover:bg-amber-400 disabled:opacity-50
                          transition-colors"
             >

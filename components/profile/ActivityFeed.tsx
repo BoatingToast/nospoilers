@@ -39,7 +39,7 @@ export default function ActivityFeed({ events, username }: Props) {
       <div className="flex flex-col gap-3">
         {events.map(event => (
           <div key={event.id} className="flex items-start gap-3">
-            {(() => { const Ico = EVENT_ICONS[event.type] ?? FilmIcon; return <Ico size={14} className="text-ns-secondary/70 flex-shrink-0 mt-0.5" /> })()}
+            {(() => { const Ico = EVENT_ICONS[event.type] ?? FilmIcon; return <Ico size={14} className="text-ns-secondary-readable/70 flex-shrink-0 mt-0.5" /> })()}
             <div className="flex-1 min-w-0">
               <p className="text-ns-text text-xs font-body leading-snug">
                 {formatActivityEvent(event, username)}

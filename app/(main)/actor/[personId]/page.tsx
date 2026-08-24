@@ -63,7 +63,7 @@ export default async function ActorPage({ params }: Props) {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
       <Link
         href="/search"
-        className="inline-flex items-center gap-2 text-xs font-body text-ns-muted hover:text-ns-secondary transition-colors mb-8"
+        className="inline-flex items-center gap-2 text-xs font-body text-ns-muted hover:text-ns-secondary-readable transition-colors mb-8"
       >
         <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="m15 18-6-6 6-6" />
@@ -84,7 +84,7 @@ export default async function ActorPage({ params }: Props) {
         </div>
 
         <div className="text-center sm:text-left pt-1">
-          <p className="text-ns-secondary text-xs tracking-[0.22em] uppercase font-body mb-2">
+          <p className="text-ns-secondary-readable text-xs tracking-[0.22em] uppercase font-body mb-2">
             {person.known_for_department || 'Actor'}
           </p>
           <h1 className="font-display text-5xl sm:text-6xl tracking-wider text-ns-text leading-none">
@@ -108,7 +108,7 @@ export default async function ActorPage({ params }: Props) {
       <section aria-labelledby="filmography-heading">
         <div className="flex items-end justify-between gap-4 mb-5">
           <div>
-            <p className="text-ns-secondary text-xs tracking-[0.22em] uppercase font-body mb-1">Filmography</p>
+            <p className="text-ns-secondary-readable text-xs tracking-[0.22em] uppercase font-body mb-1">Filmography</p>
             <h2 id="filmography-heading" className="font-heading text-2xl sm:text-3xl font-semibold text-ns-text">
               Movies featuring {person.name}
             </h2>
@@ -139,12 +139,12 @@ export default async function ActorPage({ params }: Props) {
                   />
                   {movie.vote_average > 0 && (
                     <span className="absolute top-2 right-2 rounded-md border border-ns-secondary/20 bg-ns-bg/85 px-1.5 py-0.5
-                                     text-[10px] font-body font-semibold text-ns-secondary backdrop-blur-sm">
+                                     text-[10px] font-body font-semibold text-ns-secondary-readable backdrop-blur-sm">
                       {movie.vote_average.toFixed(1)}
                     </span>
                   )}
                 </div>
-                <p className="mt-2 truncate text-sm font-body font-medium text-ns-text transition-colors group-hover:text-ns-secondary">
+                <p className="mt-2 truncate text-sm font-body font-medium text-ns-text transition-colors group-hover:text-ns-secondary-readable">
                   {movie.title}
                 </p>
                 <p className="truncate text-xs font-body text-ns-muted">

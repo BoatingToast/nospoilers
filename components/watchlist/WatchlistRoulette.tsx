@@ -77,7 +77,7 @@ export default function WatchlistRoulette({ movies }: Props) {
         <button
           type="button"
           onClick={pickMovie}
-          className="inline-flex items-center gap-2 rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-body font-semibold text-ns-bg transition-all hover:-translate-y-0.5 hover:bg-amber-300"
+          className="inline-flex items-center gap-2 rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-body font-semibold text-ns-secondary-foreground transition-all hover:-translate-y-0.5 hover:bg-ns-secondary/90"
         >
           <FilmIcon size={16} />
           Pick for Me
@@ -109,7 +109,7 @@ export default function WatchlistRoulette({ movies }: Props) {
             {isPicking || !selectedMovie ? (
               <div className="flex min-h-[30rem] flex-col items-center justify-center">
                 <div className="flex h-20 w-20 items-center justify-center rounded-full border border-ns-secondary/30 bg-ns-secondary/10">
-                  <FilmIcon size={34} className="animate-spin text-ns-secondary" />
+                  <FilmIcon size={34} className="animate-spin text-ns-secondary-readable" />
                 </div>
                 <p className="mt-6 font-display text-2xl tracking-wider text-ns-text">
                   SHUFFLING…
@@ -131,7 +131,7 @@ export default function WatchlistRoulette({ movies }: Props) {
 
 
               <div className="animate-[fadeIn_250ms_ease-out]">
-                <p className="mb-3 text-[10px] font-body uppercase tracking-[0.25em] text-ns-secondary">
+                <p className="mb-3 text-[10px] font-body uppercase tracking-[0.25em] text-ns-secondary-readable">
                   Tonight&apos;s pick
                 </p>
 
@@ -163,7 +163,7 @@ export default function WatchlistRoulette({ movies }: Props) {
                   </button>
                   <Link
                     href={`/movie/${selectedMovie.tmdbId}`}
-                    className="rounded-xl bg-ns-secondary px-4 py-2.5 text-sm font-body font-semibold text-ns-bg transition-colors hover:bg-amber-300"
+                    className="rounded-xl bg-ns-secondary px-4 py-2.5 text-sm font-body font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/90"
                   >
                     View Movie
                   </Link>

@@ -10,6 +10,8 @@ import {
 import DiscoverSection from '@/components/discover/DiscoverSection'
 import DiscoverScrollScene from '@/components/discover/DiscoverScrollScene'
 import SearchModal from '@/components/ui/SearchModal'
+import { curateDistinctMovieShelf } from '@/lib/movie-quality'
+import type { TMDbMovie } from '@/types'
 
 export const metadata: Metadata = { title: 'Discover | NoSpoilers' }
 
@@ -32,22 +34,57 @@ export default async function DiscoverPage() {
       ...GENRE_ROWS.map(g => getMoviesByGenre(g.id)),
     ])
 
-  function movies(result: PromiseSettledResult<{ results: import('@/types').TMDbMovie[] }>) {
-    return result.status === 'fulfilled' ? result.value.results.slice(0, 16) : []
+  function movies(result: PromiseSettledResult<{ results: TMDbMovie[] }>) {
+    return result.status === 'fulfilled' ? result.value.results : []
   }
 
+  // A title gets one editorial home on this page. This prevents Trending,
+  // Popular, and genre rows from becoming minor reshuffles of the same films.
+  const seenMovieIds = new Set<number>()
+  const shelfLimit = 10
+  const trendingMovies = curateDistinctMovieShelf(movies(trending), seenMovieIds, {
+    limit: shelfLimit,
+    minVoteCount: 50,
+  })
+  const popularMovies = curateDistinctMovieShelf(movies(popular), seenMovieIds, {
+    limit: shelfLimit,
+    minVoteCount: 200,
+  })
+  const nowPlayingMovies = curateDistinctMovieShelf(movies(nowPlaying), seenMovieIds, {
+    limit: shelfLimit,
+    minVoteCount: 15,
+  })
+  const topRatedMovies = curateDistinctMovieShelf(movies(topRated), seenMovieIds, {
+    limit: shelfLimit,
+    minVoteCount: 2_000,
+    minRating: 7.2,
+  })
+  const hiddenGemMovies = curateDistinctMovieShelf(movies(hidden), seenMovieIds, {
+    limit: shelfLimit,
+    minVoteCount: 100,
+    maxVoteCount: 2_000,
+    minRating: 7,
+    minPopularity: 2,
+    maxPopularity: 35,
+  })
+  const genreMovies = GENRE_ROWS.map((_, index) => curateDistinctMovieShelf(
+    movies(genreResults[index]),
+    seenMovieIds,
+    { limit: shelfLimit, minVoteCount: 100, minRating: 5.5 },
+  ))
+
   const sections = [
-    { title: 'Trending This Week', eyebrow: 'Hot right now', movies: movies(trending) },
-    { title: 'Popular Now', eyebrow: "Everyone's watching", movies: movies(popular) },
-    { title: 'Now in Theatres', eyebrow: 'New releases', movies: movies(nowPlaying) },
-    { title: 'Top Rated All Time', eyebrow: 'Acclaimed', movies: movies(topRated) },
-    { title: 'Hidden Gems', eyebrow: 'Underrated', movies: movies(hidden) },
+    { title: 'Trending This Week', eyebrow: 'Hot right now', movies: trendingMovies },
+    { title: 'Popular Now', eyebrow: "Everyone's watching", movies: popularMovies },
+    { title: 'Now in Theatres', eyebrow: 'New releases', movies: nowPlayingMovies },
+    { title: 'Top Rated All Time', eyebrow: 'Acclaimed by thousands', movies: topRatedMovies },
+    { title: 'Hidden Gems', eyebrow: 'Highly rated, underseen', movies: hiddenGemMovies },
     ...GENRE_ROWS.map((genre, index) => ({
       title: genre.label,
       eyebrow: 'Genre',
-      movies: movies(genreResults[index]),
+      movies: genreMovies[index],
     })),
-  ].filter(section => section.movies.length > 0)
+  ].filter(section => section.movies.length >= 4)
 
   return (
     <DiscoverScrollScene sectionCount={sections.length}>
@@ -74,7 +111,7 @@ export default async function DiscoverPage() {
 
               <div className="relative flex min-h-[25rem] flex-col justify-between lg:min-h-[28rem]">
                 <div className="flex flex-wrap items-center justify-between gap-4">
-                  <p className="inline-flex items-center gap-2 font-body text-[10px] uppercase tracking-[0.24em] text-ns-secondary">
+                  <p className="inline-flex items-center gap-2 font-body text-[10px] uppercase tracking-[0.24em] text-ns-secondary-readable">
                     <span className="relative flex h-2 w-2">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ns-secondary opacity-50 motion-reduce:animate-none" />
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-ns-secondary" />
@@ -101,7 +138,7 @@ export default async function DiscoverPage() {
                 <div className="flex flex-col gap-6 border-t border-ns-border/70 pt-6 sm:flex-row sm:items-end sm:justify-between">
                   <p className="max-w-xl font-body text-sm leading-relaxed text-ns-muted sm:text-base">
                     Move through live trends, acclaimed classics, and hidden signals.
-                    Every film stays spoiler-free until you choose to go deeper.
+                    You control when synopsis, cast, and trailer details are revealed.
                   </p>
                   <div className="w-full flex-shrink-0 sm:w-auto">
                     <SearchModal />

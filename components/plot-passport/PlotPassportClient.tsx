@@ -17,7 +17,7 @@ function boundaryCopy(progress: number) {
   if (progress >= 100) return { label: 'Full story cleared', color: 'text-emerald-400' }
   if (progress >= 50) return { label: 'Mid-movie cleared', color: 'text-amber-300' }
   if (progress > 0) return { label: 'Spoiler shield active', color: 'text-violet-300' }
-  return { label: 'Everything protected', color: 'text-ns-secondary' }
+  return { label: 'Everything protected', color: 'text-ns-secondary-readable' }
 }
 
 export default function PlotPassportClient({ initialItems }: Props) {
@@ -100,7 +100,7 @@ export default function PlotPassportClient({ initialItems }: Props) {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_12%,rgba(124,58,237,0.22),transparent_34%),radial-gradient(circle_at_15%_70%,rgba(245,158,11,0.08),transparent_32%)]" />
         <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
           <div className="max-w-3xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-ns-secondary/30 bg-ns-secondary/10 px-3 py-1.5 text-[11px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-secondary">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-ns-secondary/30 bg-ns-secondary/10 px-3 py-1.5 text-[11px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-secondary-readable">
               <LockIcon size={13} /> Plot Passport
             </div>
             <h1 className="font-display text-5xl tracking-wide text-white sm:text-7xl">
@@ -113,7 +113,7 @@ export default function PlotPassportClient({ initialItems }: Props) {
 
           <div className="mt-10 grid max-w-2xl grid-cols-3 gap-3">
             {[
-              ['Protected', stats.protected, 'text-ns-secondary'],
+              ['Protected', stats.protected, 'text-ns-secondary-readable'],
               ['In progress', stats.inProgress, 'text-amber-300'],
               ['Cleared', stats.cleared, 'text-emerald-400'],
             ].map(([label, value, color]) => (
@@ -129,7 +129,7 @@ export default function PlotPassportClient({ initialItems }: Props) {
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <section className="mb-8 flex flex-col gap-5 rounded-2xl border border-ns-secondary/25 bg-gradient-to-r from-violet-950/50 to-ns-surface p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-heading font-semibold uppercase tracking-[0.16em] text-ns-secondary">Browser handoff</p>
+            <p className="text-xs font-heading font-semibold uppercase tracking-[0.16em] text-ns-secondary-readable">Browser handoff</p>
             <h2 className="mt-1 font-heading text-lg font-semibold text-white">Carry your Passport onto the web</h2>
             <p className="mt-1 text-xs leading-5 text-ns-muted">
               Send {protectedTitles.length} unfinished {protectedTitles.length === 1 ? 'title' : 'titles'} to the Chrome shield. Finished titles are removed automatically.
@@ -138,7 +138,7 @@ export default function PlotPassportClient({ initialItems }: Props) {
           <button
             onClick={syncChromeShield}
             disabled={syncState === 'syncing'}
-            className="flex-shrink-0 rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-heading font-semibold text-ns-bg transition-colors hover:bg-amber-400 disabled:opacity-60"
+            className="flex-shrink-0 rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-heading font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/90 disabled:opacity-60"
           >
             {syncState === 'syncing' ? 'Finding extension…'
               : syncState === 'success' ? 'Chrome Shield synced ✓'
@@ -164,17 +164,17 @@ export default function PlotPassportClient({ initialItems }: Props) {
             <p className="text-xs uppercase tracking-[0.18em] text-ns-muted">Your boundaries</p>
             <h2 className="mt-1 font-display text-3xl tracking-wide text-white">VIEWING PROGRESS</h2>
           </div>
-          <Link href="/discover" className="hidden items-center gap-1 text-xs text-ns-secondary hover:text-white sm:flex">
+          <Link href="/discover" className="hidden items-center gap-1 text-xs text-ns-secondary-readable hover:text-white sm:flex">
             Add movies <ArrowRightIcon size={13} />
           </Link>
         </div>
 
         {items.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-ns-border px-6 py-16 text-center">
-            <LockIcon size={42} className="mx-auto text-ns-secondary/40" />
+            <LockIcon size={42} className="mx-auto text-ns-secondary-readable/40" />
             <h3 className="mt-4 font-heading text-lg font-semibold text-white">Your Passport is empty</h3>
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ns-muted">Add a movie to your watchlist and it will become protected automatically.</p>
-            <Link href="/discover" className="mt-5 inline-flex items-center gap-1 rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-heading font-semibold text-ns-bg">
+            <Link href="/discover" className="mt-5 inline-flex items-center gap-1 rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-heading font-semibold text-ns-secondary-foreground">
               Discover movies <ArrowRightIcon size={14} />
             </Link>
           </div>
@@ -191,7 +191,7 @@ export default function PlotPassportClient({ initialItems }: Props) {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <Link href={`/movie/${item.tmdbId}`} className="line-clamp-1 font-heading text-sm font-semibold text-white hover:text-ns-secondary">{item.title}</Link>
+                        <Link href={`/movie/${item.tmdbId}`} className="line-clamp-1 font-heading text-sm font-semibold text-white hover:text-ns-secondary-readable">{item.title}</Link>
                         <p className="mt-0.5 text-[10px] text-ns-muted">{formatYear(item.releaseDate)}</p>
                       </div>
                       <span className={`whitespace-nowrap text-[10px] font-semibold ${boundary.color}`}>{boundary.label}</span>
@@ -227,7 +227,7 @@ export default function PlotPassportClient({ initialItems }: Props) {
                             disabled={updating === item.tmdbId}
                             className={`rounded-lg border px-2 py-1.5 text-[10px] transition-colors ${
                               progress === value
-                                ? 'border-ns-secondary/50 bg-ns-secondary/15 text-ns-secondary'
+                                ? 'border-ns-secondary/50 bg-ns-secondary/15 text-ns-secondary-readable'
                                 : 'border-ns-border text-ns-muted hover:border-white/20 hover:text-white'
                             }`}
                           >

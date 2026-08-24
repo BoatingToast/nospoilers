@@ -221,7 +221,7 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
         <button
           type="submit"
           disabled={saving || !body.trim()}
-          className="self-start px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-bg text-sm font-heading font-semibold
+          className="self-start px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold
                      hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Publish Review'}

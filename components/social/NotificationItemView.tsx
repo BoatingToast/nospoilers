@@ -24,7 +24,7 @@ export function NotificationTypeIcon({
   unread: boolean
   size?: number
 }) {
-  const className = `flex-shrink-0 ${unread ? 'text-ns-secondary' : 'text-ns-muted/50'}`
+  const className = `flex-shrink-0 ${unread ? 'text-ns-secondary-readable' : 'text-ns-muted/50'}`
 
   switch (icon) {
     case 'person':       return <PersonIcon size={size} className={className} />

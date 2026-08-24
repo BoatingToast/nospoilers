@@ -175,7 +175,7 @@ export default function SearchModal() {
                           <p className="text-ns-muted text-xs font-body">{formatYear(movie.release_date)}</p>
                         </div>
                         {movie.vote_average > 0 && (
-                          <span className="ml-auto text-ns-secondary text-xs font-body flex-shrink-0">
+                          <span className="ml-auto text-ns-secondary-readable text-xs font-body flex-shrink-0">
                             {movie.vote_average.toFixed(1)}
                           </span>
                         )}
@@ -207,7 +207,7 @@ export default function SearchModal() {
                           )}
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-ns-text text-sm font-body font-medium group-hover:text-ns-secondary transition-colors">{person.name}</p>
+                          <p className="truncate text-ns-text text-sm font-body font-medium group-hover:text-ns-secondary-readable transition-colors">{person.name}</p>
                           <p className="text-ns-muted text-xs font-body">{person.known_for_department}</p>
                         </div>
                       </Link>
@@ -253,7 +253,7 @@ export default function SearchModal() {
                 <Link
                   href={`/search?q=${encodeURIComponent(normalizedQuery)}`}
                   onClick={handleClose}
-                  className="flex min-h-11 items-center justify-center rounded-xl text-xs font-body font-semibold text-ns-secondary transition-colors hover:bg-ns-secondary/10"
+                  className="flex min-h-11 items-center justify-center rounded-xl text-xs font-body font-semibold text-ns-secondary-readable transition-colors hover:bg-ns-secondary/10"
                 >
                   View all results for &ldquo;{normalizedQuery}&rdquo;
                 </Link>

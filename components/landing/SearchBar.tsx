@@ -45,8 +45,8 @@ export default function SearchBar({ initialValue = '' }: { initialValue?: string
         <button
           type="submit"
           disabled={!query.trim()}
-          className="m-1.5 flex-shrink-0 rounded-xl bg-ns-secondary px-3 py-2.5 text-sm font-semibold text-ns-bg sm:px-5 font-body
-                     hover:bg-amber-400 transition-colors disabled:opacity-40
+          className="m-1.5 flex-shrink-0 rounded-xl bg-ns-secondary px-3 py-2.5 text-sm font-semibold text-ns-secondary-foreground sm:px-5 font-body
+                     hover:bg-amber-400 hover:text-ns-bg transition-colors disabled:opacity-40
                      disabled:cursor-not-allowed"
         >
           Search

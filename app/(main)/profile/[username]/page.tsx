@@ -182,7 +182,7 @@ export default async function ProfilePage({ params }: Props) {
                   />
                   <Link
                     href={`/compatibility/${user.username}`}
-                    className="px-4 py-2 rounded-xl text-sm font-body border border-ns-secondary/30 text-ns-secondary hover:border-ns-secondary/60 transition-colors flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl text-sm font-body border border-ns-secondary/30 text-ns-secondary-readable hover:border-ns-secondary/60 transition-colors flex items-center gap-1.5"
                   >
                     <RecsIcon size={14} /> Compare Taste
                   </Link>
@@ -209,7 +209,7 @@ export default async function ProfilePage({ params }: Props) {
               { label: 'Collections',    value: user._count.collections },
             ].map(s => (
               <div key={s.label}>
-                <p className="font-display text-3xl tracking-wider text-ns-secondary">{s.value}</p>
+                <p className="font-display text-3xl tracking-wider text-ns-secondary-readable">{s.value}</p>
                 <p className="text-ns-muted text-xs font-body mt-0.5">{s.label}</p>
               </div>
             ))}

@@ -49,7 +49,7 @@ export default function RecAccuracyWidget() {
 
   const accuracyColor =
     data.accuracyPct >= 75 ? 'text-emerald-400'
-    : data.accuracyPct >= 50 ? 'text-ns-secondary'
+    : data.accuracyPct >= 50 ? 'text-ns-secondary-readable'
     : 'text-red-400'
 
   const SEGMENTS = [
@@ -74,7 +74,7 @@ export default function RecAccuracyWidget() {
             {data.total} rated
           </p>
         </div>
-        <RecsIcon size={28} className="text-ns-secondary/25" />
+        <RecsIcon size={28} className="text-ns-secondary-readable/25" />
       </div>
 
       {/* Stacked bar */}

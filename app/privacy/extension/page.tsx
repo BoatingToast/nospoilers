@@ -15,7 +15,7 @@ export default function ExtensionPrivacyPage() {
       <div className="mx-auto max-w-3xl px-6 py-14 sm:py-20">
         <Link
           href="/"
-          className="text-xs font-heading font-semibold uppercase tracking-[0.22em] text-ns-secondary transition-colors hover:text-white"
+          className="text-xs font-heading font-semibold uppercase tracking-[0.22em] text-ns-secondary-readable transition-colors hover:text-white"
         >
           NoSpoilers
         </Link>
@@ -40,7 +40,7 @@ export default function ExtensionPrivacyPage() {
           </PolicySection>
 
           <PolicySection title="Information the extension handles">
-            <ul className="list-disc space-y-3 pl-5 marker:text-ns-secondary">
+            <ul className="list-disc space-y-3 pl-5 marker:text-ns-secondary-readable">
               <li>
                 <strong className="text-ns-text">Website content:</strong> Visible text and labels are inspected
                 temporarily in browser memory to decide whether a page element is likely to contain a spoiler.
@@ -83,7 +83,7 @@ export default function ExtensionPrivacyPage() {
           </PolicySection>
 
           <PolicySection title="Permissions">
-            <ul className="list-disc space-y-3 pl-5 marker:text-ns-secondary">
+            <ul className="list-disc space-y-3 pl-5 marker:text-ns-secondary-readable">
               <li><strong className="text-ns-text">Website access</strong> is required to identify and cover likely spoilers on webpages.</li>
               <li><strong className="text-ns-text">Storage</strong> saves and synchronizes your protection preferences.</li>
               <li><strong className="text-ns-text">Context menus</strong> let you protect selected titles or pause a site.</li>
@@ -108,7 +108,7 @@ export default function ExtensionPrivacyPage() {
           <PolicySection title="Contact">
             <p>
               Questions about this policy can be sent to{' '}
-              <a className="text-ns-secondary hover:text-white" href="mailto:nospoilers641@gmail.com">
+              <a className="text-ns-secondary-readable hover:text-white" href="mailto:nospoilers641@gmail.com">
                 nospoilers641@gmail.com
               </a>.
             </p>

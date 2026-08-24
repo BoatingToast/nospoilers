@@ -26,9 +26,14 @@ export default function MovieTrailers({ movieTitle, trailers }: Props) {
   return (
     <section aria-labelledby="movie-trailers-heading" className="mb-10">
       <div className="mb-4 flex items-center justify-between gap-4">
-        <p id="movie-trailers-heading" className="text-xs font-body uppercase tracking-widest text-ns-muted">
-          Trailers
-        </p>
+        <div>
+          <p id="movie-trailers-heading" className="text-xs font-body uppercase tracking-widest text-ns-muted">
+            Trailers
+          </p>
+          <p className="mt-1 text-[10px] font-body text-ns-muted/60">
+            Trailer footage can reveal plot details.
+          </p>
+        </div>
         <p className="text-[10px] font-body text-ns-muted/60">
           {trailers.length} {trailers.length === 1 ? 'video' : 'videos'}
         </p>
@@ -65,7 +70,7 @@ export default function MovieTrailers({ movieTitle, trailers }: Props) {
                 {trailer.official ? `Official ${trailer.type}` : trailer.type}
               </span>
             </span>
-            <span className="mt-2 block truncate text-sm font-body font-medium text-ns-text transition-colors group-hover:text-ns-secondary">
+            <span className="mt-2 block truncate text-sm font-body font-medium text-ns-text transition-colors group-hover:text-ns-secondary-readable">
               {trailer.name}
             </span>
           </button>
@@ -81,7 +86,7 @@ export default function MovieTrailers({ movieTitle, trailers }: Props) {
         >
           <div>
             <div className="border-b border-white/10 bg-ns-bg px-5 py-4 pr-14 sm:px-6">
-              <p className="text-[10px] font-body uppercase tracking-[0.2em] text-ns-secondary">
+              <p className="text-[10px] font-body uppercase tracking-[0.2em] text-ns-secondary-readable">
                 {selected.official ? `Official ${selected.type}` : selected.type}
               </p>
               <h2 id="movie-trailer-title" className="mt-1 truncate font-heading text-lg font-semibold text-ns-text sm:text-xl">

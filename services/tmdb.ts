@@ -212,7 +212,14 @@ export async function getPopularMovies(page = 1): Promise<TMDbSearchResponse> {
 }
 
 export async function getTopRatedMovies(page = 1): Promise<TMDbSearchResponse> {
-  return tmdbFetch('/movie/top_rated', { page: String(page) })
+  return tmdbFetch('/discover/movie', {
+    sort_by: 'vote_average.desc',
+    page: String(page),
+    include_adult: 'false',
+    include_video: 'false',
+    'vote_average.gte': '7.2',
+    'vote_count.gte': '2000',
+  })
 }
 
 export async function getNowPlaying(): Promise<TMDbSearchResponse> {
@@ -233,12 +240,18 @@ export async function getMoviesByGenre(
 }
 
 export async function getHiddenGems(): Promise<TMDbSearchResponse> {
+  const today = new Date().toISOString().slice(0, 10)
+
   return tmdbFetch('/discover/movie', {
     sort_by:              'vote_average.desc',
-    'vote_average.gte':   '7.5',
-    'vote_count.gte':     '200',
-    'popularity.lte':     '40',
+    'vote_average.gte':   '7.0',
+    'vote_count.gte':     '100',
+    'vote_count.lte':     '2000',
+    'popularity.gte':     '2',
+    'popularity.lte':     '35',
+    'primary_release_date.lte': today,
     include_adult:        'false',
+    include_video:        'false',
   })
 }
 

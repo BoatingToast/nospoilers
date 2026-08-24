@@ -23,7 +23,7 @@ const CollectionIcon = ({ size }: { size: number }) => (
   <svg
     width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8"
     viewBox="0 0 24 24"
-    className="text-ns-muted group-hover:text-ns-secondary transition-colors flex-shrink-0"
+    className="text-ns-muted group-hover:text-ns-secondary-readable transition-colors flex-shrink-0"
   >
     <rect x="3" y="3" width="7" height="18" rx="1"/>
     <rect x="13" y="3" width="8" height="11" rx="1"/>
@@ -47,7 +47,7 @@ export default function AddToCollectionButton({ movie, compact = false }: Props)
           title="Add to Collection"
           aria-label={`Add ${movie.title} to a collection`}
           className="flex h-11 w-11 items-center justify-center rounded-lg border border-ns-border
-                     text-ns-muted hover:border-ns-secondary/40 hover:text-ns-secondary
+                     text-ns-muted hover:border-ns-secondary/40 hover:text-ns-secondary-readable
                      transition-all duration-200 group flex-shrink-0"
         >
           <CollectionIcon size={13} />
@@ -57,7 +57,7 @@ export default function AddToCollectionButton({ movie, compact = false }: Props)
           type="button"
           onClick={() => setOpen(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-ns-border
-                     text-ns-muted text-sm font-body hover:border-ns-secondary/40 hover:text-ns-secondary
+                     text-ns-muted text-sm font-body hover:border-ns-secondary/40 hover:text-ns-secondary-readable
                      transition-all duration-200 group"
         >
           <CollectionIcon size={15} />

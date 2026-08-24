@@ -51,7 +51,7 @@ export default function MoodControls({ onApply, loading }: {
           <label key={control.key} className="block">
             <span className="flex items-center justify-between gap-2 text-xs font-body">
               <span className="text-ns-text">{control.label}</span>
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-ns-secondary">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-ns-secondary-readable">
                 {moodLabel(mood[control.key], control.left, control.right)}
               </span>
             </span>

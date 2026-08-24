@@ -38,7 +38,7 @@ export interface SocialUser {
 // ── Taste match ring ─────────────────────────────────────────────────────────
 
 function TasteMatchBadge({ pct }: { pct: number }) {
-  const color = pct >= 80 ? 'text-ns-secondary' : pct >= 60 ? 'text-amber-400' : 'text-ns-muted/60'
+  const color = pct >= 80 ? 'text-ns-secondary-readable' : pct >= 60 ? 'text-amber-400' : 'text-ns-muted/60'
   return (
     <span className={`text-[10px] font-body font-semibold ${color} whitespace-nowrap`}>
       {pct}% match
@@ -92,7 +92,7 @@ function InlineFollowBtn({
       className={`px-3 py-1.5 rounded-xl text-xs font-body font-semibold transition-all duration-200 whitespace-nowrap
         ${following
           ? 'bg-ns-border/60 text-ns-muted hover:bg-red-900/30 hover:text-red-400 hover:border-red-500/30 border border-transparent'
-          : 'bg-ns-secondary text-black hover:bg-amber-400 border border-transparent'
+          : 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary/90 border border-transparent'
         }
         ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
@@ -166,8 +166,8 @@ export default function UserSocialCard({
           {user.personality && (
             <div className="flex items-center gap-1.5 mt-1.5">
               <div className="flex items-center gap-1 bg-ns-secondary/10 border border-ns-secondary/25 rounded-full px-2 py-0.5">
-                <MovieDnaIcon size={10} className="text-ns-secondary/70 flex-shrink-0" />
-                <span className="text-[10px] font-body text-ns-secondary/80 font-medium whitespace-nowrap">
+                <MovieDnaIcon size={10} className="text-ns-secondary-readable/70 flex-shrink-0" />
+                <span className="text-[10px] font-body text-ns-secondary-readable/80 font-medium whitespace-nowrap">
                   {user.personality}
                 </span>
               </div>
@@ -209,7 +209,7 @@ export default function UserSocialCard({
           <Link
             href={`/profile/${user.username}`}
             onClick={e => e.stopPropagation()}
-            className="text-[10px] font-body text-ns-muted/50 hover:text-ns-secondary transition-colors whitespace-nowrap"
+            className="text-[10px] font-body text-ns-muted/50 hover:text-ns-secondary-readable transition-colors whitespace-nowrap"
           >
             View Profile →
           </Link>
