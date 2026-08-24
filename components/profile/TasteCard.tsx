@@ -46,10 +46,10 @@ export default function TasteCard({ username, personality, dnaScores, topMovies 
     : []
 
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-ns-border bg-ns-surface">
       {/* Card preview */}
       <div
-        className="relative p-5 pb-4 overflow-hidden"
+        className="relative flex-1 overflow-hidden p-5 pb-4"
         style={{ background: 'linear-gradient(135deg, rgb(var(--ns-bg)) 0%, rgb(var(--ns-surface)) 100%)' }}
       >
         {/* Accent glow */}
