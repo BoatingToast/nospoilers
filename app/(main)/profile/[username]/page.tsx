@@ -116,7 +116,7 @@ export default async function ProfilePage({ params }: Props) {
 
   return (
     <div className="min-h-screen pb-20">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div className="border-b border-ns-border pb-8 pt-2">
@@ -221,54 +221,87 @@ export default async function ProfilePage({ params }: Props) {
           <ProfileTop5Section userId={user.id} isOwn={isOwnProfile} />
         </div>
 
-        {/* ── Main layout ─────────────────────────────────────────────────── */}
-        <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-          {/* Left — taste passport */}
-          <div className="lg:col-span-1 flex flex-col gap-6">
-
-            {primaryPersonality && (
-              <PersonalityBadge primary={primaryPersonality} secondary={secondaryPersonality} />
-            )}
-
-            <TasteCard
-              username={user.username}
-              personality={primaryPersonality}
-              dnaScores={dnaScores}
-              topMovies={user.onboardingMovies.slice(0, 3).map(m => m.title)}
-            />
-
-            {(user.preferences?.genres ?? []).length > 0 && (
-              <div className="bg-ns-surface border border-ns-border rounded-2xl p-5">
-                <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-3">Favorite Genres</p>
-                <div className="flex flex-wrap gap-2">
-                  {(user.preferences?.genres ?? []).map(genre => (
-                    <span key={genre} className="px-3 py-1 rounded-full border border-ns-border text-ns-muted text-xs font-body capitalize">
-                      {genre}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {dnaProfile && (
-              <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
-                <MovieDNACard profile={dnaProfile} compact username={user.username} />
-              </div>
-            )}
-
-            <SpoilerZoneMemberships userId={user.id} />
+        {/* ── Taste profile ───────────────────────────────────────────────── */}
+        <section className="mt-12">
+          <div className="mb-6 flex items-end justify-between gap-6">
+            <div>
+              <p className="mb-2 text-[10px] font-body uppercase tracking-[0.24em] text-ns-secondary-readable">
+                Taste profile
+              </p>
+              <h2 className="font-display text-3xl tracking-wider text-ns-text sm:text-4xl">
+                YOUR MOVIE IDENTITY
+              </h2>
+            </div>
+            <p className="hidden max-w-md text-right text-xs leading-relaxed text-ns-muted sm:block">
+              The personalities, genres, and story traits that shape what you love to watch.
+            </p>
           </div>
 
-          {/* Right — tabbed content */}
-          <div className="lg:col-span-2">
+          <div className={`grid grid-cols-1 items-stretch gap-6 ${primaryPersonality ? 'lg:grid-cols-12' : ''}`}>
+            {primaryPersonality && (
+              <div className="lg:col-span-5">
+                <PersonalityBadge primary={primaryPersonality} secondary={secondaryPersonality} />
+              </div>
+            )}
+
+            <div className={primaryPersonality ? 'lg:col-span-7' : ''}>
+              <TasteCard
+                username={user.username}
+                personality={primaryPersonality}
+                dnaScores={dnaScores}
+                topMovies={user.onboardingMovies.slice(0, 3).map(m => m.title)}
+              />
+            </div>
+          </div>
+
+          {(user.preferences?.genres ?? []).length > 0 && (
+            <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-ns-border bg-ns-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <div className="sm:max-w-xs">
+                <p className="text-[10px] font-body uppercase tracking-widest text-ns-muted">Favorite Genres</p>
+                <p className="mt-1 text-xs leading-relaxed text-ns-muted/60">
+                  The lanes this taste profile returns to most.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 sm:justify-end">
+                {(user.preferences?.genres ?? []).map(genre => (
+                  <span key={genre} className="rounded-full border border-ns-border bg-ns-bg/30 px-3 py-1.5 text-xs font-body capitalize text-ns-muted">
+                    {genre}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {dnaProfile && (
+            <div className="mt-6 rounded-3xl border border-ns-border bg-ns-surface p-5 sm:p-7 lg:p-8">
+              <MovieDNACard profile={dnaProfile} username={user.username} />
+            </div>
+          )}
+
+          <div className="mt-6">
+            <SpoilerZoneMemberships userId={user.id} />
+          </div>
+        </section>
+
+        {/* ── Movie library ───────────────────────────────────────────────── */}
+        <section className="mt-14">
+          <div className="mb-6">
+            <p className="mb-2 text-[10px] font-body uppercase tracking-[0.24em] text-ns-secondary-readable">
+              Movie library
+            </p>
+            <h2 className="font-display text-3xl tracking-wider text-ns-text sm:text-4xl">
+              WATCHED, SAVED &amp; COLLECTED
+            </h2>
+          </div>
+
+          <div className="rounded-3xl border border-ns-border bg-ns-surface/30 p-4 sm:p-6 lg:p-8">
             <ProfileTabs
               username={user.username}
               ratingCount={user._count.movieRatings}
               watchlistCount={user._count.watchlistItems}
             />
           </div>
-        </div>
+        </section>
       </div>
     </div>
   )
