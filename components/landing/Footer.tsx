@@ -90,6 +90,9 @@ export default function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col gap-2 border-t border-ns-border py-4 text-xs text-ns-muted/60 sm:flex-row sm:items-center sm:justify-between">
         <p>&copy; {year} NoSpoilers. All rights reserved.</p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Link href="/pro" className="transition-colors hover:text-ns-text">
+            NoSpoilers Pro
+          </Link>
           <Link href="/#shield" className="transition-colors hover:text-ns-text">
             NoSpoilers Shield
           </Link>

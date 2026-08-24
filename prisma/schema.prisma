@@ -99,6 +99,9 @@ model User {
   // Creator uploads
   uploadedMovies UploadedMovie[]
 
+  // NoSpoilers Pro launch waitlist
+  proWaitlistEntry ProWaitlistEntry?
+
   @@index([email])
   @@index([username])
 }
@@ -110,6 +113,16 @@ model AvatarImage {
   updatedAt   DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ProWaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
 }
 
 model FavoriteMovie {
