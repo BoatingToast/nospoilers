@@ -252,7 +252,7 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
         {/* Pin indicator */}
         {m.pinned && (
           <div className="absolute top-3 left-3 z-10">
-            <PinIcon size={10} className="text-ns-secondary/70" strokeWidth={2} />
+            <PinIcon size={10} className="text-ns-secondary-readable/70" strokeWidth={2} />
           </div>
         )}
 
@@ -268,7 +268,7 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
         {hasUnread && (
           <div className="absolute top-2.5 left-3 z-10">
             <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
-                             rounded-full bg-ns-secondary text-black text-[9px] font-bold tabular-nums
+                             rounded-full bg-ns-secondary text-ns-secondary-foreground text-[9px] font-bold tabular-nums
                              animate-pulse shadow-sm shadow-ns-secondary/30">
               {m.unreadCount > 99 ? '99+' : m.unreadCount}
             </span>
@@ -301,7 +301,7 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ns-secondary opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-ns-secondary" />
               </span>
-              <span className="text-[10px] font-body text-ns-secondary font-medium tracking-wide">
+              <span className="text-[10px] font-body text-ns-secondary-readable font-medium tracking-wide">
                 Active
               </span>
             </div>
@@ -331,8 +331,8 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
             href={`/movie/${m.tmdbId}`}
             onClick={e => e.stopPropagation()}
             className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-body font-semibold
-                       bg-ns-secondary/10 text-ns-secondary border border-ns-secondary/30
-                       hover:bg-ns-secondary hover:text-black hover:border-ns-secondary
+                       bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/30
+                       hover:bg-ns-secondary hover:text-ns-secondary-foreground hover:border-ns-secondary
                        active:scale-[0.98] transition-all duration-200"
           >
             <SpoilerZoneIcon size={12} strokeWidth={2} />

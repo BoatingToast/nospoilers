@@ -23,6 +23,7 @@ const config: Config = {
           secondary:             'rgb(var(--ns-secondary) / <alpha-value>)',
           'secondary-dim':       'rgb(var(--ns-secondary-dim) / <alpha-value>)',
           'secondary-foreground':'rgb(var(--ns-secondary-foreground) / <alpha-value>)',
+          'secondary-readable':  'rgb(var(--ns-secondary-readable) / <alpha-value>)',
 
           text:                  'rgb(var(--ns-text) / <alpha-value>)',
           muted:                 'rgb(var(--ns-muted) / <alpha-value>)',

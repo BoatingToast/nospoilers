@@ -168,7 +168,7 @@ export default function TasteImport({ compact = false, onImported }: Props) {
                 href="https://www.youtube.com/watch?v=Vj90ijGE6tQ"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 inline-flex items-center gap-1.5 text-xs font-body font-medium text-ns-secondary transition-colors hover:text-amber-300"
+                className="mt-2 inline-flex items-center gap-1.5 text-xs font-body font-medium text-ns-secondary-readable transition-colors hover:text-amber-300"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <circle cx="12" cy="12" r="9" />
@@ -211,7 +211,7 @@ export default function TasteImport({ compact = false, onImported }: Props) {
                 type="button"
                 onClick={createPreview}
                 disabled={!file || busy !== null}
-                className="rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-body font-semibold text-ns-bg transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-45"
+                className="rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-body font-semibold text-ns-secondary-foreground transition-colors hover:bg-amber-300 hover:text-ns-bg disabled:cursor-not-allowed disabled:opacity-45"
               >
                 {busy === 'preview' ? 'Matching movies…' : 'Preview import'}
               </button>
@@ -221,7 +221,7 @@ export default function TasteImport({ compact = false, onImported }: Props) {
           <div className="space-y-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] font-body uppercase tracking-widest text-ns-secondary">Preview</p>
+                <p className="text-[10px] font-body uppercase tracking-widest text-ns-secondary-readable">Preview</p>
                 <h2 className="mt-1 text-lg font-heading font-semibold text-ns-text">{preview.fileName}</h2>
                 <p className="mt-1 text-xs font-body text-ns-muted">
                   {preview.matchedRows} exact · {preview.conflictRows} need review · {preview.unmatchedRows} unmatched
@@ -242,7 +242,7 @@ export default function TasteImport({ compact = false, onImported }: Props) {
                 type="button"
                 onClick={commitImport}
                 disabled={selectedCount === 0 || busy !== null}
-                className="rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-body font-semibold text-ns-bg transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-45"
+                className="rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-body font-semibold text-ns-secondary-foreground transition-colors hover:bg-amber-300 hover:text-ns-bg disabled:cursor-not-allowed disabled:opacity-45"
               >
                 {busy === 'commit' ? 'Importing and rebuilding DNA…' : `Import ${selectedCount} movies`}
               </button>

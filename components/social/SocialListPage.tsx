@@ -94,7 +94,7 @@ function EmptyState({ mode, hasSearch }: { mode: Mode; hasSearch: boolean }) {
       <Link
         href={cta.href}
         className="px-5 py-2.5 rounded-xl text-sm font-body font-semibold
-                   bg-ns-secondary text-black hover:bg-amber-400 transition-colors"
+                   bg-ns-secondary text-ns-secondary-foreground hover:bg-amber-400 hover:text-ns-bg transition-colors"
       >
         {cta.label}
       </Link>
@@ -156,7 +156,7 @@ function Toolbar({
           onClick={() => onOnlyFriends(!onlyFriends)}
           className={`px-3 py-2.5 rounded-xl text-xs font-body font-semibold border transition-all
             ${onlyFriends
-              ? 'bg-ns-secondary/15 text-ns-secondary border-ns-secondary/40'
+              ? 'bg-ns-secondary/15 text-ns-secondary-readable border-ns-secondary/40'
               : 'bg-ns-surface text-ns-muted/60 border-ns-border/60 hover:border-ns-secondary/30'
             }`}
         >
@@ -265,7 +265,7 @@ export default function SocialListPage({
         <p className="text-[10px] font-body uppercase tracking-[0.18em] text-ns-muted">
           {loading ? 'Loading connections…' : `${total.toLocaleString()} ${countLabel}`}
         </p>
-        <Link href="/friends/find" className="text-xs font-body text-ns-secondary transition-colors hover:text-amber-400">
+        <Link href="/friends/find" className="text-xs font-body text-ns-secondary-readable transition-colors hover:text-amber-400">
           Find people →
         </Link>
       </div>
@@ -307,7 +307,7 @@ export default function SocialListPage({
                 disabled={loadingMore}
                 className="px-6 py-2.5 rounded-xl text-sm font-body font-semibold
                            bg-ns-surface border border-ns-border/60
-                           text-ns-muted/70 hover:text-ns-secondary hover:border-ns-secondary/40
+                           text-ns-muted/70 hover:text-ns-secondary-readable hover:border-ns-secondary/40
                            transition-all disabled:opacity-40"
               >
                 {loadingMore ? (

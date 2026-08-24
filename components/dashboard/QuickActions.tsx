@@ -85,12 +85,12 @@ function QuickActionCard({ href, label, description, status, Icon }: QuickAction
       className="group relative min-h-40 overflow-hidden rounded-2xl border border-ns-border bg-ns-surface p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-ns-secondary/45 hover:bg-ns-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-bg sm:min-h-36"
     >
       <div className="flex items-start justify-between gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-ns-secondary/20 bg-ns-secondary/10 text-ns-secondary transition-colors group-hover:border-ns-secondary/35 group-hover:bg-ns-secondary/15">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-ns-secondary/20 bg-ns-secondary/10 text-ns-secondary-readable transition-colors group-hover:border-ns-secondary/35 group-hover:bg-ns-secondary/15">
           <Icon size={17} />
         </span>
         <ArrowRightIcon
           size={15}
-          className="mt-1 text-ns-muted/50 transition-all group-hover:translate-x-0.5 group-hover:text-ns-secondary"
+          className="mt-1 text-ns-muted/50 transition-all group-hover:translate-x-0.5 group-hover:text-ns-secondary-readable"
         />
       </div>
 
@@ -123,7 +123,7 @@ export default function QuickActions(props: QuickActionsProps) {
     <section aria-labelledby="quick-actions-title">
       <div className="mb-3 flex items-end justify-between gap-4">
         <div>
-          <p className="text-[10px] font-body uppercase tracking-[0.2em] text-ns-secondary">
+          <p className="text-[10px] font-body uppercase tracking-[0.2em] text-ns-secondary-readable">
             Jump back in
           </p>
           <h2 id="quick-actions-title" className="mt-1 font-heading text-base font-semibold text-ns-text">

@@ -141,7 +141,7 @@ function SectionShelf({ items, section, topTraits }: ShelfProps) {
       {/* Header */}
       <div className="px-5 py-4 border-b border-ns-border">
         <div className="flex items-center gap-2 mb-0.5">
-          <section.Icon size={16} className="text-ns-secondary flex-shrink-0" />
+          <section.Icon size={16} className="text-ns-secondary-readable flex-shrink-0" />
           <h2 className="text-sm font-heading text-white">{section.title}</h2>
         </div>
         <p className="text-[11px] font-body text-ns-muted">{section.tagline}</p>
@@ -152,7 +152,7 @@ function SectionShelf({ items, section, topTraits }: ShelfProps) {
             {topTraits.map(t => (
               <span
                 key={t.label}
-                className="text-[9px] font-body text-ns-secondary bg-ns-secondary/10 border border-ns-secondary/20 px-2 py-0.5 rounded-full"
+                className="text-[9px] font-body text-ns-secondary-readable bg-ns-secondary/10 border border-ns-secondary/20 px-2 py-0.5 rounded-full"
               >
                 {t.label} {t.score.toFixed(1)}
               </span>

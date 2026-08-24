@@ -39,7 +39,7 @@ function CandidateMeta({ candidate }: { candidate: MovieNightLiveCandidate }) {
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-body text-ns-muted">
       <span>{formatYear(candidate.releaseDate)}</span>
       <span>{candidate.runtime ? `${candidate.runtime} min` : 'Runtime open'}</span>
-      <span className="text-ns-secondary font-semibold">{candidate.groupFit}% group fit</span>
+      <span className="text-ns-secondary-readable font-semibold">{candidate.groupFit}% group fit</span>
     </div>
   )
 }
@@ -78,7 +78,7 @@ function MatchReveal({ room, onShare }: { room: MovieNightLiveState; onShare: ()
           </Link>
 
           <div className="flex flex-col justify-center min-w-0">
-            <p className="text-xs uppercase tracking-[0.2em] text-ns-secondary font-body mb-2">Tonight&apos;s movie</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-ns-secondary-readable font-body mb-2">Tonight&apos;s movie</p>
             <h2 className="text-3xl sm:text-4xl font-heading text-white leading-tight">{match.title}</h2>
             <div className="mt-3"><CandidateMeta candidate={match} /></div>
             <p className="text-sm font-body text-ns-muted leading-relaxed mt-5">{match.explanation}</p>
@@ -144,7 +144,7 @@ function MovieNightLobby({
         <div className="relative max-w-2xl">
           <Badge variant="secondary" size="md">Lobby open</Badge>
           <div className="w-16 h-16 rounded-2xl border border-ns-secondary/30 bg-ns-secondary/10 flex items-center justify-center mt-6">
-            <FriendsIcon size={30} className="text-ns-secondary" />
+            <FriendsIcon size={30} className="text-ns-secondary-readable" />
           </div>
           <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-white mt-5">GET EVERYONE IN</h2>
           <p className="text-sm sm:text-base font-body text-ns-muted leading-relaxed mt-3 max-w-xl">
@@ -408,7 +408,7 @@ export default function LiveMovieNightRoom({
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-7">
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            <ClapperboardIcon size={20} className="text-ns-secondary" />
+            <ClapperboardIcon size={20} className="text-ns-secondary-readable" />
             <Badge variant="secondary">Movie Night Live</Badge>
             <Badge variant="outline">{MOOD_LABELS[room.mood] ?? room.mood}</Badge>
           </div>
@@ -430,7 +430,7 @@ export default function LiveMovieNightRoom({
               <span className="block text-[10px] uppercase tracking-widest font-body text-ns-muted">Room code</span>
               <span className="block font-display tracking-[0.18em] text-lg text-white">{room.code}</span>
             </span>
-            {shared ? <CheckIcon size={17} className="text-ns-success" /> : <ShareIcon size={17} className="text-ns-secondary" />}
+            {shared ? <CheckIcon size={17} className="text-ns-success" /> : <ShareIcon size={17} className="text-ns-secondary-readable" />}
           </button>
         </div>
       </header>
@@ -478,7 +478,7 @@ export default function LiveMovieNightRoom({
               </div>
 
               <div className="flex items-center gap-2 text-xs font-body text-ns-muted mt-5">
-                <LockIcon size={14} className="text-ns-secondary" />
+                <LockIcon size={14} className="text-ns-secondary-readable" />
                 No account required. Your ballot is private.
               </div>
             </div>
@@ -581,7 +581,7 @@ export default function LiveMovieNightRoom({
               <div className="min-h-[470px] bg-ns-surface border border-ns-border rounded-3xl flex items-center justify-center p-8 text-center">
                 <div>
                   <div className="w-16 h-16 rounded-full border border-ns-secondary/30 bg-ns-secondary/10 flex items-center justify-center mx-auto mb-5">
-                    <CheckIcon size={28} className="text-ns-secondary" />
+                    <CheckIcon size={28} className="text-ns-secondary-readable" />
                   </div>
                   <h2 className="text-2xl font-heading text-white">Ballot complete</h2>
                   <p className="text-sm font-body text-ns-muted mt-2 max-w-sm">
@@ -643,7 +643,7 @@ function ParticipantPanel({ room }: { room: MovieNightLiveState }) {
       </div>
 
       <div className="mt-5 pt-4 border-t border-ns-border flex items-start gap-2 text-[11px] font-body text-ns-muted leading-relaxed">
-        <LockIcon size={13} className="text-ns-secondary flex-shrink-0 mt-0.5" />
+        <LockIcon size={13} className="text-ns-secondary-readable flex-shrink-0 mt-0.5" />
         {inLobby
           ? 'The roster locks when the host starts voting.'
           : 'Ballot choices stay hidden—even from the host.'}

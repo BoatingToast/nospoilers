@@ -98,6 +98,10 @@ export function makeSpoilerFree(overview: string | null | undefined): string {
   return safe.length >= MIN_SAFE_FRAGMENT ? safe : SAFE_FALLBACK
 }
 
+// Movie pages label this result as an automated condensed premise rather than
+// promising that a third-party synopsis can be made completely spoiler-free.
+export const makeCondensedPremise = makeSpoilerFree
+
 // ─── Audience profile ─────────────────────────────────────────────────────────
 
 export function generateAudienceProfile(movie: TMDbMovieDetail): {

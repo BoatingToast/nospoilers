@@ -70,6 +70,22 @@ const COMFORT_SCALES: ScaleConfig[] = [
   { key: 'documentaryOpenness', label: 'Documentaries', sublabel: 'How often should nonfiction appear?', leftLabel: 'Rarely', rightLabel: 'Often', optional: true },
 ]
 
+const CORE_SCALES: ScaleConfig[] = [
+  FEELING_SCALES.find(scale => scale.key === 'emotionalIntensity')!,
+  DISCOVERY_SCALES.find(scale => scale.key === 'runtimePreference')!,
+  DISCOVERY_SCALES.find(scale => scale.key === 'discoveryPreference')!,
+  COMFORT_SCALES.find(scale => scale.key === 'subtitleOpenness')!,
+  COMFORT_SCALES.find(scale => scale.key === 'horrorTolerance')!,
+]
+
+const CORE_KEYS = new Set<ScaleKey>(CORE_SCALES.map(scale => scale.key))
+const FINE_TUNE_SCALES = [
+  ...STORY_SCALES,
+  ...FEELING_SCALES,
+  ...DISCOVERY_SCALES,
+  ...COMFORT_SCALES,
+].filter(scale => !CORE_KEYS.has(scale.key))
+
 const AVOIDABLE_GENRES = [
   'action', 'animation', 'comedy', 'crime', 'documentary', 'drama', 'fantasy',
   'history', 'horror', 'mystery', 'romance', 'sci-fi', 'thriller', 'war', 'western',
@@ -96,7 +112,7 @@ function SliderQuestion({ config, value, onChange }: {
           <p className="text-sm font-body font-medium text-ns-text">{config.label}</p>
           <p className="mt-0.5 text-xs font-body text-ns-muted">{config.sublabel}</p>
         </div>
-        <span className="max-w-28 text-right text-[10px] font-body font-semibold uppercase tracking-wide text-ns-secondary">
+        <span className="max-w-28 text-right text-[10px] font-body font-semibold uppercase tracking-wide text-ns-secondary-readable">
           {selectionLabel(value, config.leftLabel, config.rightLabel)}
         </span>
       </div>
@@ -106,6 +122,7 @@ function SliderQuestion({ config, value, onChange }: {
         max={10}
         value={value ?? 5}
         aria-label={config.label}
+        aria-valuetext={selectionLabel(value, config.leftLabel, config.rightLabel)}
         onChange={event => onChange(Number(event.target.value))}
         className="w-full cursor-pointer accent-ns-secondary"
       />
@@ -154,6 +171,7 @@ function ScaleSection({ title, description, scales, answers, setAnswer }: {
 }
 
 export default function StepPreferences({ onSubmit, onBack, loading }: StepPreferencesProps) {
+  const [showFineTune, setShowFineTune] = useState(false)
   const [answers, setAnswers] = useState<PreferenceAnswers>({
     pacingScale: null,
     endingClosure: null,
@@ -195,42 +213,83 @@ export default function StepPreferences({ onSubmit, onBack, loading }: StepPrefe
           YOUR PREFERENCES
         </h2>
         <p className="text-ns-muted font-body text-sm">
-          Shape your recommendations with as much—or as little—detail as you want.
+          Five quick choices give us the strongest signals. You can skip any that do not matter to you.
         </p>
       </div>
 
-      <div className="mb-10 flex flex-col gap-8">
-        <ScaleSection title="Story" description="The way you like movies to unfold." scales={STORY_SCALES} answers={answers} setAnswer={setAnswer} />
-        <ScaleSection title="Feeling" description="The atmosphere and emotional weight you enjoy." scales={FEELING_SCALES} answers={answers} setAnswer={setAnswer} />
-        <ScaleSection title="Discovery" description="How broad and adventurous recommendations should be." scales={DISCOVERY_SCALES} answers={answers} setAnswer={setAnswer} />
-        <ScaleSection title="Comfort" description="Optional boundaries that keep unsuitable picks out." scales={COMFORT_SCALES} answers={answers} setAnswer={setAnswer} />
+      <div className="mb-10 flex flex-col gap-6">
+        <ScaleSection
+          title="The essentials"
+          description="Your time, comfort, and appetite for discovery."
+          scales={CORE_SCALES}
+          answers={answers}
+          setAnswer={setAnswer}
+        />
 
-        <section>
-          <div className="mb-3">
-            <h3 className="text-sm font-heading text-white">Genres to avoid</h3>
-            <p className="mt-0.5 text-xs font-body text-ns-muted">Optional hard exclusions. You can change these later.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {AVOIDABLE_GENRES.map(genre => {
-              const selected = answers.excludedGenres.includes(genre)
-              return (
-                <button
-                  type="button"
-                  key={genre}
-                  aria-pressed={selected}
-                  onClick={() => toggleExcludedGenre(genre)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-body capitalize transition-colors ${
-                    selected
-                      ? 'border-red-400/60 bg-red-500/10 text-red-300'
-                      : 'border-ns-border bg-ns-surface text-ns-muted hover:border-ns-muted/50 hover:text-ns-text'
-                  }`}
-                >
-                  {selected ? '× ' : ''}{genre}
-                </button>
-              )
-            })}
-          </div>
+        <section className="overflow-hidden rounded-2xl border border-ns-border bg-ns-surface/45">
+          <button
+            type="button"
+            aria-expanded={showFineTune}
+            aria-controls="fine-tune-preferences"
+            onClick={() => setShowFineTune(open => !open)}
+            className="flex w-full items-center justify-between gap-4 p-4 text-left transition-colors hover:bg-ns-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ns-secondary-readable sm:p-5"
+          >
+            <span>
+              <span className="block text-sm font-heading font-semibold text-ns-text">Fine-tune my taste</span>
+              <span className="mt-1 block text-xs font-body leading-relaxed text-ns-muted">
+                Optional story, tone, era, and content controls — plus genres to avoid.
+              </span>
+            </span>
+            <span aria-hidden="true" className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-ns-border text-ns-secondary-readable transition-transform ${showFineTune ? 'rotate-180' : ''}`}>
+              ↓
+            </span>
+          </button>
+
+          {showFineTune && (
+            <div id="fine-tune-preferences" className="space-y-8 border-t border-ns-border p-4 sm:p-5">
+              <ScaleSection
+                title="More taste signals"
+                description="These start neutral and can be adjusted now or later in settings."
+                scales={FINE_TUNE_SCALES}
+                answers={answers}
+                setAnswer={setAnswer}
+              />
+
+              <section>
+                <div className="mb-3">
+                  <h3 className="text-sm font-heading text-white">Genres to avoid</h3>
+                  <p className="mt-0.5 text-xs font-body text-ns-muted">Optional hard exclusions. You can change these later.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {AVOIDABLE_GENRES.map(genre => {
+                    const selected = answers.excludedGenres.includes(genre)
+                    return (
+                      <button
+                        type="button"
+                        key={genre}
+                        aria-pressed={selected}
+                        onClick={() => toggleExcludedGenre(genre)}
+                        className={`rounded-full border px-3 py-1.5 text-xs font-body capitalize transition-colors ${
+                          selected
+                            ? 'border-red-400/60 bg-red-500/10 text-red-300'
+                            : 'border-ns-border bg-ns-surface text-ns-muted hover:border-ns-muted/50 hover:text-ns-text'
+                        }`}
+                      >
+                        {selected ? '× ' : ''}{genre}
+                      </button>
+                    )
+                  })}
+                </div>
+              </section>
+            </div>
+          )}
         </section>
+
+        {!showFineTune && (
+          <p className="text-center text-xs font-body text-ns-muted">
+            The rest stays neutral for now and can be changed in settings at any time.
+          </p>
+        )}
       </div>
 
       <div className="flex items-center justify-between">

@@ -34,7 +34,7 @@ export default function ImportPreview({ items, choices, onChoice }: Props) {
               }
             }
           }}
-          className="flex-shrink-0 text-xs font-body text-ns-secondary hover:text-amber-300 transition-colors"
+          className="flex-shrink-0 text-xs font-body text-ns-secondary-readable hover:text-amber-300 transition-colors"
         >
           Select all
         </button>

@@ -19,7 +19,7 @@ export default function XPBar({ level }: Props) {
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="font-display text-xl tracking-wider text-ns-secondary">LVL {level.level}</span>
+          <span className="font-display text-xl tracking-wider text-ns-secondary-readable">LVL {level.level}</span>
           <span className="text-ns-muted text-xs font-body">{level.title}</span>
         </div>
         <span className="text-ns-muted/50 text-[10px] font-body">{level.totalXP} XP</span>

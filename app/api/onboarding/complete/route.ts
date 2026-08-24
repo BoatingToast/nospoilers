@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { generateDNA } from '@/services/dna'
 import { ensureTopFiveFromOnboarding } from '@/services/top-five'
 import { recalcTasteProfile } from '@/services/ratings'
+import { checkAndUpdateAchievements } from '@/services/achievements'
 import type { PreferencesInput } from '@/types'
 
 const SCALE_KEYS = [
@@ -129,6 +130,9 @@ export async function POST(req: Request) {
   })
   await recalcTasteProfile(session.user.id).catch(error => {
     console.error('Failed to refresh Movie DNA during onboarding completion:', error)
+  })
+  await checkAndUpdateAchievements(session.user.id, 'dna_updated').catch(error => {
+    console.error('Failed to update Movie DNA achievement during onboarding completion:', error)
   })
 
   const finalProfile = await prisma.tasteProfile.findUnique({

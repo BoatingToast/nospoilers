@@ -90,7 +90,7 @@ export default function DashboardSectionNav() {
               >
                 <Icon
                   size={14}
-                  className={isActive ? 'text-ns-secondary' : 'text-ns-muted group-hover:text-ns-secondary'}
+                  className={isActive ? 'text-ns-secondary-readable' : 'text-ns-muted group-hover:text-ns-secondary-readable'}
                 />
                 {label}
               </a>

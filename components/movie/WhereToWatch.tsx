@@ -77,7 +77,7 @@ export default function WhereToWatch({ movieTitle, providers, region = 'US' }: P
         >
           <div>
             <div className="border-b border-ns-border bg-gradient-to-r from-ns-secondary/10 to-transparent px-5 py-5 pr-14 sm:px-6 sm:py-6">
-              <div className="mb-2 flex items-center gap-2 text-ns-secondary">
+              <div className="mb-2 flex items-center gap-2 text-ns-secondary-readable">
                 <WhereToWatchIcon size={18} />
                 <span className="text-[10px] font-body uppercase tracking-[0.2em]">Where to watch</span>
               </div>
@@ -109,7 +109,7 @@ export default function WhereToWatch({ movieTitle, providers, region = 'US' }: P
                         className="h-10 w-10 flex-shrink-0 rounded-xl object-cover"
                       />
                     ) : (
-                      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-ns-secondary/10 font-display text-sm text-ns-secondary">
+                      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-ns-secondary/10 font-display text-sm text-ns-secondary-readable">
                         {provider.name.charAt(0).toUpperCase()}
                       </span>
                     )}
@@ -123,7 +123,7 @@ export default function WhereToWatch({ movieTitle, providers, region = 'US' }: P
                           : 'Open direct watch link'}
                       </span>
                     </span>
-                    <ArrowRightIcon size={14} className="flex-shrink-0 text-ns-muted transition-transform group-hover:translate-x-0.5 group-hover:text-ns-secondary" />
+                    <ArrowRightIcon size={14} className="flex-shrink-0 text-ns-muted transition-transform group-hover:translate-x-0.5 group-hover:text-ns-secondary-readable" />
                   </a>
                 ))}
               </div>

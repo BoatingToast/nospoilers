@@ -33,7 +33,7 @@ function FriendItem({ f }: { f: FriendRow }) {
           {displayName}
         </p>
         {f.personality ? (
-          <p className="text-[10px] font-body text-ns-secondary/60 truncate mt-0.5">{f.personality}</p>
+          <p className="text-[10px] font-body text-ns-secondary-readable/60 truncate mt-0.5">{f.personality}</p>
         ) : (
           <p className="text-[10px] font-body text-ns-muted/40 truncate mt-0.5">@{f.username}</p>
         )}
@@ -42,7 +42,7 @@ function FriendItem({ f }: { f: FriendRow }) {
       {/* View Profile button */}
       <Link
         href={`/profile/${f.username}`}
-        className="flex-shrink-0 text-[10px] font-body text-ns-muted/50 hover:text-ns-secondary
+        className="flex-shrink-0 text-[10px] font-body text-ns-muted/50 hover:text-ns-secondary-readable
                    border border-ns-border/50 hover:border-ns-secondary/40
                    px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap"
       >
@@ -98,14 +98,14 @@ export default function DashboardFriendsCard() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3.5 border-b border-ns-border/50">
         <div className="flex items-center gap-2">
-          <FriendsIcon size={15} className="text-ns-secondary/70" />
+          <FriendsIcon size={15} className="text-ns-secondary-readable/70" />
           <span className="text-xs font-body font-semibold text-ns-text uppercase tracking-wide">
             Friends
           </span>
         </div>
         <Link
           href="/friends/find"
-          className="text-[10px] font-body text-ns-muted/50 hover:text-ns-secondary transition-colors"
+          className="text-[10px] font-body text-ns-muted/50 hover:text-ns-secondary-readable transition-colors"
         >
           Find more →
         </Link>
@@ -125,7 +125,7 @@ export default function DashboardFriendsCard() {
           </p>
           <Link
             href="/friends/find"
-            className="text-xs font-body text-ns-secondary/80 hover:text-ns-secondary
+            className="text-xs font-body text-ns-secondary-readable/80 hover:text-ns-secondary-readable
                        border border-ns-secondary/30 hover:border-ns-secondary/60
                        px-4 py-1.5 rounded-full transition-colors"
           >
@@ -143,7 +143,7 @@ export default function DashboardFriendsCard() {
         <div className="border-t border-ns-border/40 px-4 py-2.5">
           <Link
             href="/friends"
-            className="text-xs font-body text-ns-muted/50 hover:text-ns-secondary transition-colors"
+            className="text-xs font-body text-ns-muted/50 hover:text-ns-secondary-readable transition-colors"
           >
             View all friends →
           </Link>

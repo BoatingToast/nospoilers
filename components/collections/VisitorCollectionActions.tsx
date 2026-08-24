@@ -79,7 +79,7 @@ export default function VisitorCollectionActions({
       <button
         onClick={handleShare}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-ns-border
-                   text-ns-muted text-xs font-body hover:border-ns-secondary/40 hover:text-ns-secondary transition-colors"
+                   text-ns-muted text-xs font-body hover:border-ns-secondary/40 hover:text-ns-secondary-readable transition-colors"
       >
         {copied ? (
           <>

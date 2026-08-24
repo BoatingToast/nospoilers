@@ -142,7 +142,7 @@ function scoreCandidate(
 function EmptyState({ hasFriends }: { hasFriends: boolean }) {
   return (
     <div className="border border-ns-border bg-ns-surface rounded-2xl p-8 text-center">
-      <ClapperboardIcon size={34} className="mx-auto text-ns-secondary mb-3" />
+      <ClapperboardIcon size={34} className="mx-auto text-ns-secondary-readable mb-3" />
       <h2 className="text-lg font-heading text-white mb-2">No group picks yet</h2>
       <p className="text-sm font-body text-ns-muted max-w-md mx-auto leading-relaxed">
         Add films to watchlists, rate a few movies, or generate recommendations to build a better shared pool.
@@ -166,7 +166,7 @@ function EmptyState({ hasFriends }: { hasFriends: boolean }) {
 function PickCard({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
   const scoreTone =
     pick.displayScore >= 85 ? 'text-ns-success' :
-    pick.displayScore >= 72 ? 'text-ns-secondary' :
+    pick.displayScore >= 72 ? 'text-ns-secondary-readable' :
     'text-ns-muted'
   const labels = genreLabels(pick.genreIds)
 
@@ -198,7 +198,7 @@ function PickCard({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
           </div>
 
           <Link href={`/movie/${pick.tmdbId}`} className="group">
-            <h3 className="text-base sm:text-lg font-heading text-white leading-tight group-hover:text-ns-secondary transition-colors line-clamp-2">
+            <h3 className="text-base sm:text-lg font-heading text-white leading-tight group-hover:text-ns-secondary-readable transition-colors line-clamp-2">
               {pick.title}
             </h3>
           </Link>
@@ -230,7 +230,7 @@ function PickCard({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
                 key={`${support.userId}-${support.type}`}
                 className="inline-flex items-center gap-1.5 text-[11px] font-body text-ns-muted bg-ns-surface-2 border border-ns-border rounded-full px-2 py-1"
               >
-                <Icon size={12} className="text-ns-secondary" />
+                <Icon size={12} className="text-ns-secondary-readable" />
                 {support.username}
               </span>
             )
@@ -373,7 +373,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
       <div className="mb-8 flex flex-col lg:flex-row lg:items-end justify-between gap-5">
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <ClapperboardIcon size={22} className="text-ns-secondary" />
+            <ClapperboardIcon size={22} className="text-ns-secondary-readable" />
             <Badge variant="secondary" className="uppercase tracking-wider">Group Picker</Badge>
           </div>
           <h1 className="text-3xl sm:text-4xl font-heading text-white">Movie Night Picker</h1>
@@ -412,7 +412,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
         <div className="relative p-5 sm:p-7 flex flex-col xl:flex-row xl:items-center justify-between gap-5">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-2xl bg-ns-secondary/10 border border-ns-secondary/30 flex items-center justify-center flex-shrink-0">
-              <FriendsIcon size={23} className="text-ns-secondary" />
+              <FriendsIcon size={23} className="text-ns-secondary-readable" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-1.5">
@@ -524,7 +524,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                     className={[
                       'rounded-xl border px-3 py-2 text-xs font-body transition-colors',
                       mood === option.key
-                        ? 'border-ns-secondary/45 bg-ns-secondary/10 text-ns-secondary'
+                        ? 'border-ns-secondary/45 bg-ns-secondary/10 text-ns-secondary-readable'
                         : 'border-ns-border bg-ns-surface-2 text-ns-muted hover:text-white',
                     ].join(' ')}
                   >
@@ -546,7 +546,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                     className={[
                       'rounded-lg border px-2 py-2 text-xs font-body transition-colors',
                       runtime === option.value
-                        ? 'border-ns-secondary/45 bg-ns-secondary/10 text-ns-secondary'
+                        ? 'border-ns-secondary/45 bg-ns-secondary/10 text-ns-secondary-readable'
                         : 'border-ns-border bg-ns-surface-2 text-ns-muted hover:text-white',
                     ].join(' ')}
                   >
@@ -689,7 +689,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                       const Icon = supportIcon(support.type)
                       return (
                         <div key={`${support.userId}-${support.type}`} className="flex items-start gap-2 text-sm font-body text-ns-muted">
-                          <Icon size={15} className="text-ns-secondary mt-0.5 flex-shrink-0" />
+                          <Icon size={15} className="text-ns-secondary-readable mt-0.5 flex-shrink-0" />
                           <span>{support.note}</span>
                         </div>
                       )
@@ -702,7 +702,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
             <EmptyState hasFriends={hasFriends} />
           ) : (
             <div className="border border-ns-border bg-ns-surface rounded-2xl p-8 text-center">
-              <RecsIcon size={32} className="mx-auto text-ns-secondary mb-3" />
+              <RecsIcon size={32} className="mx-auto text-ns-secondary-readable mb-3" />
               <h2 className="text-lg font-heading text-white mb-2">No matches under these filters</h2>
               <p className="text-sm font-body text-ns-muted">Relax the runtime, veto, or unseen filters to reopen the pool.</p>
             </div>

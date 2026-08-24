@@ -315,10 +315,10 @@ export default function WatchlistKnockout({ movies }: Props) {
               </div>
             ) : champion ? (
               <div className="mx-auto max-w-sm py-4 text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-ns-secondary/30 bg-ns-secondary/10 text-ns-secondary">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-ns-secondary/30 bg-ns-secondary/10 text-ns-secondary-readable">
                   <AchievementsIcon size={27} />
                 </div>
-                <p className="mt-4 text-[10px] font-body uppercase tracking-[0.25em] text-ns-secondary">
+                <p className="mt-4 text-[10px] font-body uppercase tracking-[0.25em] text-ns-secondary-readable">
                   Tonight&apos;s champion
                 </p>
 
@@ -357,7 +357,7 @@ export default function WatchlistKnockout({ movies }: Props) {
                   </button>
                   <Link
                     href={`/movie/${champion.tmdbId}`}
-                    className="rounded-xl bg-ns-secondary px-2 py-2.5 text-xs font-body font-semibold text-ns-bg transition-colors hover:bg-amber-300 sm:px-4 sm:text-sm"
+                    className="rounded-xl bg-ns-secondary px-2 py-2.5 text-xs font-body font-semibold text-ns-secondary-foreground transition-colors hover:bg-amber-300 hover:text-ns-bg sm:px-4 sm:text-sm"
                   >
                     View Movie
                   </Link>
@@ -398,7 +398,7 @@ export default function WatchlistKnockout({ movies }: Props) {
                           sizes="(max-width: 640px) 45vw, 340px"
                         />
                         {movie.matchScore !== null && (
-                          <span className="absolute right-2 top-2 rounded-full border border-ns-secondary/25 bg-ns-bg/85 px-2 py-1 text-[10px] font-body font-bold text-ns-secondary backdrop-blur-sm">
+                          <span className="absolute right-2 top-2 rounded-full border border-ns-secondary/25 bg-ns-bg/85 px-2 py-1 text-[10px] font-body font-bold text-ns-secondary-readable backdrop-blur-sm">
                             {movie.matchScore}% match
                           </span>
                         )}
@@ -416,7 +416,7 @@ export default function WatchlistKnockout({ movies }: Props) {
                     </button>
                   ))}
 
-                  <div className="pointer-events-none absolute left-1/2 top-[38%] z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full border border-ns-border bg-ns-surface font-display text-sm tracking-wider text-ns-secondary shadow-lg sm:h-12 sm:w-12 sm:text-base">
+                  <div className="pointer-events-none absolute left-1/2 top-[38%] z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full border border-ns-border bg-ns-surface font-display text-sm tracking-wider text-ns-secondary-readable shadow-lg sm:h-12 sm:w-12 sm:text-base">
                     VS
                   </div>
                 </div>

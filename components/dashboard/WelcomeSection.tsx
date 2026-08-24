@@ -18,7 +18,7 @@ export default function WelcomeSection({ user }: WelcomeSectionProps) {
   }).format(new Date(user.createdAt))
 
   return (
-    <div className="flex items-start gap-5 border-b border-ns-border pb-8 mb-8">
+    <div className="flex items-start gap-4 border-b border-ns-border pb-6 sm:gap-5">
       <Avatar
         src={user.avatarUrl}
         username={user.username}
@@ -31,7 +31,7 @@ export default function WelcomeSection({ user }: WelcomeSectionProps) {
         <p className="text-ns-muted text-sm tracking-widest uppercase font-body mb-2">
           {greeting}
         </p>
-        <h1 className="font-display text-4xl sm:text-6xl tracking-wider text-ns-text mb-4 break-words">
+        <h1 className="mb-3 break-words font-display text-4xl tracking-wider text-ns-text sm:text-5xl">
           {user.username.toUpperCase()}
         </h1>
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-body text-ns-muted">

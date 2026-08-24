@@ -12,8 +12,8 @@ export default function OnboardingProgress({ currentStep }: { currentStep: numbe
             <div key={step} className="flex flex-col items-center gap-1.5 flex-1">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold font-body
                               transition-all duration-300
-                              ${done   ? 'bg-ns-secondary text-ns-bg' :
-                                active ? 'bg-ns-secondary/20 border-2 border-ns-secondary text-ns-secondary' :
+                              ${done   ? 'bg-ns-secondary text-ns-secondary-foreground' :
+                                active ? 'bg-ns-secondary/20 border-2 border-ns-secondary text-ns-secondary-readable' :
                                          'bg-ns-surface border border-ns-border text-ns-muted'}`}>
                 {done ? (
                   <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -22,7 +22,7 @@ export default function OnboardingProgress({ currentStep }: { currentStep: numbe
                 ) : step}
               </div>
               <span className={`text-[10px] tracking-wider uppercase font-body transition-colors
-                               ${active ? 'text-ns-secondary' : done ? 'text-ns-muted' : 'text-ns-muted/40'}`}>
+                               ${active ? 'text-ns-secondary-readable' : done ? 'text-ns-muted' : 'text-ns-muted/40'}`}>
                 {label}
               </span>
             </div>

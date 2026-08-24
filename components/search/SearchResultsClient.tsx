@@ -57,7 +57,7 @@ export default function SearchResultsClient({ query }: { query: string }) {
   if (status === 'idle') {
     return (
       <div className="rounded-2xl border border-dashed border-ns-border py-16 text-center">
-        <SearchIcon size={48} className="mx-auto mb-4 text-ns-secondary/40" />
+        <SearchIcon size={48} className="mx-auto mb-4 text-ns-secondary-readable/40" />
         <p className="text-sm font-body text-ns-muted">Search for a movie, actor, or director to get started.</p>
       </div>
     )
@@ -87,7 +87,7 @@ export default function SearchResultsClient({ query }: { query: string }) {
   if (!hasMovies && !hasPeople) {
     return (
       <div className="rounded-2xl border border-dashed border-ns-border py-16 text-center" aria-live="polite">
-        <FilmIcon size={44} className="mx-auto mb-4 text-ns-secondary/40" />
+        <FilmIcon size={44} className="mx-auto mb-4 text-ns-secondary-readable/40" />
         <p className="font-heading font-semibold text-ns-text">No results for &ldquo;{query}&rdquo;</p>
         <p className="mt-1 text-sm font-body text-ns-muted">Check the spelling or try another title or name.</p>
       </div>
@@ -109,7 +109,7 @@ export default function SearchResultsClient({ query }: { query: string }) {
       {hasMovies && (
         <section aria-labelledby="movie-search-results">
           <div className="mb-4 flex items-center gap-2">
-            <FilmIcon size={18} className="text-ns-secondary" />
+            <FilmIcon size={18} className="text-ns-secondary-readable" />
             <h3 id="movie-search-results" className="font-display text-2xl tracking-wider text-ns-text">MOVIES</h3>
             <span className="text-xs font-body text-ns-muted">{results.movies.length}</span>
           </div>
@@ -131,13 +131,13 @@ export default function SearchResultsClient({ query }: { query: string }) {
                   />
                   {movie.vote_average > 0 && (
                     <div className="absolute right-2 top-2 rounded-full bg-ns-bg/80 px-2 py-0.5 backdrop-blur-sm">
-                      <span className="text-[10px] font-body font-bold text-ns-secondary">
+                      <span className="text-[10px] font-body font-bold text-ns-secondary-readable">
                         <StarIcon size={9} className="mr-0.5 inline-block" />{movie.vote_average.toFixed(1)}
                       </span>
                     </div>
                   )}
                 </div>
-                <p className="mt-2 truncate text-xs font-body font-medium text-ns-text transition-colors group-hover:text-ns-secondary">
+                <p className="mt-2 truncate text-xs font-body font-medium text-ns-text transition-colors group-hover:text-ns-secondary-readable">
                   {movie.title}
                 </p>
                 <p className="text-[11px] font-body text-ns-muted/60">{formatYear(movie.release_date)}</p>
@@ -150,7 +150,7 @@ export default function SearchResultsClient({ query }: { query: string }) {
       {hasPeople && (
         <section aria-labelledby="people-search-results" className={hasMovies ? 'mt-12 border-t border-ns-border pt-10' : ''}>
           <div className="mb-4 flex items-center gap-2">
-            <PersonIcon size={18} className="text-ns-secondary" />
+            <PersonIcon size={18} className="text-ns-secondary-readable" />
             <h3 id="people-search-results" className="font-display text-2xl tracking-wider text-ns-text">PEOPLE</h3>
             <span className="text-xs font-body text-ns-muted">{results.people.length}</span>
           </div>
@@ -175,7 +175,7 @@ export default function SearchResultsClient({ query }: { query: string }) {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-body font-semibold text-ns-text transition-colors group-hover:text-ns-secondary">{person.name}</p>
+                  <p className="truncate text-sm font-body font-semibold text-ns-text transition-colors group-hover:text-ns-secondary-readable">{person.name}</p>
                   <p className="mt-0.5 text-xs font-body text-ns-muted">{person.known_for_department || 'Film and television'}</p>
                 </div>
               </Link>

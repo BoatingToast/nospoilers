@@ -57,7 +57,7 @@ function UserCard({ user }: { user: UserResult }) {
           <div className="min-w-0">
             <Link
               href={`/profile/${user.username}`}
-              className="text-sm font-body font-semibold text-ns-text hover:text-ns-secondary transition-colors"
+              className="text-sm font-body font-semibold text-ns-text hover:text-ns-secondary-readable transition-colors"
             >
               @{user.username}
             </Link>
@@ -78,7 +78,7 @@ function UserCard({ user }: { user: UserResult }) {
         {/* Meta row */}
         <div className="flex items-center flex-wrap gap-x-3 gap-y-0.5 mt-1.5">
           {user.personality && (
-            <span className="text-[11px] font-body text-ns-secondary/70 font-medium">
+            <span className="text-[11px] font-body text-ns-secondary-readable/70 font-medium">
               {PERSONALITY_LABELS[user.personality] ?? user.personality}
             </span>
           )}

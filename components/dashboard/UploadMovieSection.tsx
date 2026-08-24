@@ -257,6 +257,15 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
     }
   }
 
+
+
+
+
+
+
+
+
+
   return (
     <Modal
       onClose={stage === 'uploading' ? () => {} : onClose}
@@ -271,7 +280,7 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
         {stage === 'details' && (
           <form onSubmit={handleSubmit}>
             <div className="border-b border-ns-border px-5 py-5 pr-14 sm:px-7 sm:py-6 sm:pr-16">
-              <p className="text-[10px] font-body uppercase tracking-[0.22em] text-ns-secondary">Creator upload</p>
+              <p className="text-[10px] font-body uppercase tracking-[0.22em] text-ns-secondary-readable">Creator upload</p>
               <h2 id="upload-movie-dialog-title" className="mt-1 font-display text-3xl tracking-wider text-ns-text">
                 UPLOAD YOUR MOVIE
               </h2>
@@ -315,7 +324,7 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
                       </p>
                       <label
                         htmlFor="movie-file-upload"
-                        className="mt-2 inline-block cursor-pointer text-xs font-body font-semibold text-ns-secondary hover:text-ns-secondary/80"
+                        className="mt-2 inline-block cursor-pointer text-xs font-body font-semibold text-ns-secondary-readable hover:text-ns-secondary-readable/80"
                       >
                         Choose a different file
                       </label>
@@ -334,12 +343,12 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
                     htmlFor="movie-file-upload"
                     className="flex min-h-44 cursor-pointer flex-col items-center justify-center px-6 py-8 text-center"
                   >
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-ns-secondary/25 bg-ns-secondary/10 text-ns-secondary">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-ns-secondary/25 bg-ns-secondary/10 text-ns-secondary-readable">
                       <UploadMovieIcon size={23} />
                     </span>
                     <span className="mt-4 font-heading text-sm font-semibold text-ns-text">Drop your movie here</span>
                     <span className="mt-1 text-xs font-body text-ns-muted">
-                      or <span className="font-semibold text-ns-secondary">browse your files</span>
+                      or <span className="font-semibold text-ns-secondary-readable">browse your files</span>
                     </span>
                     <span className="mt-3 text-[10px] font-body uppercase tracking-wider text-ns-muted/70">
                       MP4, MOV, M4V, WEBM · Up to 1 GB
@@ -433,7 +442,7 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
                     type="button"
                     onClick={addWatchProvider}
                     disabled={watchProviders.length >= MAX_MOVIE_WATCH_PROVIDERS}
-                    className="flex-shrink-0 rounded-lg border border-ns-secondary/35 px-3 py-1.5 text-xs font-body font-semibold text-ns-secondary transition-colors hover:bg-ns-secondary/10 disabled:pointer-events-none disabled:opacity-40"
+                    className="flex-shrink-0 rounded-lg border border-ns-secondary/35 px-3 py-1.5 text-xs font-body font-semibold text-ns-secondary-readable transition-colors hover:bg-ns-secondary/10 disabled:pointer-events-none disabled:opacity-40"
                   >
                     + Add link
                   </button>
@@ -443,7 +452,7 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
                   <button
                     type="button"
                     onClick={addWatchProvider}
-                    className="mt-4 flex w-full items-center justify-center rounded-xl border border-dashed border-ns-border px-4 py-4 text-xs font-body text-ns-muted transition-colors hover:border-ns-secondary/40 hover:text-ns-secondary"
+                    className="mt-4 flex w-full items-center justify-center rounded-xl border border-dashed border-ns-border px-4 py-4 text-xs font-body text-ns-muted transition-colors hover:border-ns-secondary/40 hover:text-ns-secondary-readable"
                   >
                     Add a direct link only if you want to override or supplement the automatic results
                   </button>
@@ -539,7 +548,7 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
 
         {stage === 'uploading' && (
           <div className="px-6 py-12 text-center sm:px-12 sm:py-16">
-            <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-ns-secondary/25 bg-ns-secondary/10 text-ns-secondary">
+            <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-ns-secondary/25 bg-ns-secondary/10 text-ns-secondary-readable">
               <UploadMovieIcon size={28} className="animate-pulse" />
             </span>
             <h2 id="upload-movie-dialog-title" className="mt-5 font-display text-3xl tracking-wider text-ns-text">UPLOADING &amp; MATCHING</h2>
@@ -613,6 +622,15 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
   )
 }
 
+
+
+
+
+
+
+
+
+
 export default function UploadMovieSection() {
   const [isOpen, setIsOpen] = useState(false)
   const [uploadedMovie, setUploadedMovie] = useState<UploadedMovieSummary | null>(null)
@@ -631,11 +649,11 @@ export default function UploadMovieSection() {
 
         <span className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <span className="flex min-w-0 items-start gap-4 sm:items-center sm:gap-5">
-            <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl border border-ns-secondary/30 bg-ns-secondary/15 text-ns-secondary transition-transform duration-300 group-hover:scale-105 sm:h-16 sm:w-16">
+            <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl border border-ns-secondary/30 bg-ns-secondary/15 text-ns-secondary-readable transition-transform duration-300 group-hover:scale-105 sm:h-16 sm:w-16">
               <UploadMovieIcon size={28} />
             </span>
             <span className="min-w-0">
-              <span className="text-[10px] font-body uppercase tracking-[0.24em] text-ns-secondary">
+              <span className="text-[10px] font-body uppercase tracking-[0.24em] text-ns-secondary-readable">
                 Creator studio · New
               </span>
               <span id="upload-movie-section-title" className="mt-1 block font-display text-3xl tracking-wider text-ns-text sm:text-4xl">

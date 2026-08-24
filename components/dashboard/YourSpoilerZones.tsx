@@ -52,7 +52,7 @@ function EmptyState() {
           <SpoilerZoneIcon size={36} className="text-ns-muted/30" />
         </div>
         <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-ns-secondary/10 border border-ns-secondary/20 flex items-center justify-center">
-          <span className="text-ns-secondary text-xs font-bold">+</span>
+          <span className="text-ns-secondary-readable text-xs font-bold">+</span>
         </div>
       </div>
       <h3 className="font-body font-semibold text-ns-text mb-2">
@@ -64,7 +64,7 @@ function EmptyState() {
       <Link
         href="/spoiler-zones"
         className="inline-flex items-center gap-2.5 px-6 py-3 rounded-xl font-body font-bold text-sm
-                   bg-ns-secondary text-black hover:bg-amber-400 active:scale-[0.97]
+                   bg-ns-secondary text-ns-secondary-foreground hover:bg-amber-400 hover:text-ns-bg active:scale-[0.97]
                    transition-all duration-200 shadow-lg shadow-ns-secondary/20"
       >
         <SpoilerZoneIcon size={16} strokeWidth={2.5} />
@@ -193,11 +193,11 @@ export default function YourSpoilerZones() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <SpoilerZoneIcon size={20} className="text-ns-secondary" />
-            <h2 className="font-display text-xl tracking-widest text-ns-secondary">YOUR SPOILER ZONES</h2>
+            <SpoilerZoneIcon size={20} className="text-ns-secondary-readable" />
+            <h2 className="font-display text-xl tracking-widest text-ns-secondary-readable">YOUR SPOILER ZONES</h2>
             {totalUnread > 0 && (
               <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5
-                               rounded-full bg-ns-secondary text-black text-[10px] font-bold tabular-nums
+                               rounded-full bg-ns-secondary text-ns-secondary-foreground text-[10px] font-bold tabular-nums
                                shadow-sm shadow-ns-secondary/30">
                 {totalUnread > 99 ? '99+' : totalUnread}
               </span>
@@ -213,7 +213,7 @@ export default function YourSpoilerZones() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ns-secondary opacity-60" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-ns-secondary" />
               </span>
-              <span className="text-[11px] font-body text-ns-secondary/80">
+              <span className="text-[11px] font-body text-ns-secondary-readable/80">
                 {activeCount} active
               </span>
             </div>
@@ -225,7 +225,7 @@ export default function YourSpoilerZones() {
           )}
           <Link
             href="/spoiler-zones"
-            className="text-xs font-body text-ns-muted/60 hover:text-ns-secondary transition-colors"
+            className="text-xs font-body text-ns-muted/60 hover:text-ns-secondary-readable transition-colors"
           >
             Browse all →
           </Link>
@@ -280,7 +280,7 @@ export default function YourSpoilerZones() {
             <Link
               href="/spoiler-zones"
               className="inline-flex items-center gap-2 text-xs font-body text-ns-muted/50
-                         hover:text-ns-secondary transition-colors"
+                         hover:text-ns-secondary-readable transition-colors"
             >
               <SpoilerZoneIcon size={12} />
               Browse popular discussions

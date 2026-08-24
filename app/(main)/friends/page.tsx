@@ -41,7 +41,7 @@ export default async function FriendsPage() {
         </div>
         <Link
           href="/friends/find"
-          className="px-5 py-2.5 rounded-xl bg-ns-secondary text-ns-bg text-sm font-body font-medium hover:bg-amber-400 transition-colors flex-shrink-0"
+          className="px-5 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium hover:bg-amber-400 hover:text-ns-bg transition-colors flex-shrink-0"
         >
           Find people
         </Link>
@@ -52,7 +52,7 @@ export default async function FriendsPage() {
       {/* Pending requests */}
       {pending.received.length > 0 && (
         <div className="mb-8 bg-ns-surface border border-ns-secondary/20 rounded-2xl p-5">
-          <p className="text-ns-secondary text-xs tracking-widest uppercase font-body mb-4">
+          <p className="text-ns-secondary-readable text-xs tracking-widest uppercase font-body mb-4">
             Friend Requests · {pending.received.length}
           </p>
           <div className="space-y-3">

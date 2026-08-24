@@ -17,7 +17,7 @@ interface Props {
 
 function matchColor(score: number): string {
   if (score >= 85) return 'text-emerald-400'
-  if (score >= 70) return 'text-ns-secondary'
+  if (score >= 70) return 'text-ns-secondary-readable'
   if (score >= 55) return 'text-blue-400'
   return 'text-ns-muted'
 }
@@ -64,7 +64,7 @@ export default function WhyModal({ rec, onClose }: Props) {
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-ns-secondary text-[9px] tracking-widest uppercase font-body mb-1">
+              <p className="text-ns-secondary-readable text-[9px] tracking-widest uppercase font-body mb-1">
                 Why this recommendation?
               </p>
               <h2 className="font-display text-xl tracking-wider text-ns-text leading-tight line-clamp-2">
@@ -94,7 +94,7 @@ export default function WhyModal({ rec, onClose }: Props) {
               {rec.matchScore}% Match
             </div>
             <Link href={`/movie/${rec.tmdbId}`}
-              className="text-ns-secondary text-xs font-body hover:text-amber-400 transition-colors">
+              className="text-ns-secondary-readable text-xs font-body hover:text-amber-400 transition-colors">
               View film <ArrowRightIcon size={11} className="inline-block" />
             </Link>
           </div>
@@ -129,7 +129,7 @@ export default function WhyModal({ rec, onClose }: Props) {
                 {rec.matchedRatings.map(rating => (
                   <div key={`${rating.title}-${rating.score}`} className="flex items-center justify-between gap-3">
                     <span className="text-ns-text font-body text-sm">{rating.title}</span>
-                    <span className="text-ns-secondary font-mono text-xs flex-shrink-0">{rating.score}/100</span>
+                    <span className="text-ns-secondary-readable font-mono text-xs flex-shrink-0">{rating.score}/100</span>
                   </div>
                 ))}
               </div>
@@ -174,12 +174,12 @@ export default function WhyModal({ rec, onClose }: Props) {
                     {/* Two independent bars — one per score */}
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-body text-ns-secondary w-6 flex-shrink-0">You</span>
+                        <span className="text-[9px] font-body text-ns-secondary-readable w-6 flex-shrink-0">You</span>
                         <div className="flex-1 h-1.5 bg-ns-bg rounded-full overflow-hidden">
                           <div className="h-full rounded-full bg-ns-secondary transition-all duration-500"
                             style={{ width: `${t.yourScore * 10}%` }} />
                         </div>
-                        <span className="text-[9px] font-body text-ns-secondary w-5 text-right">{t.yourScore}</span>
+                        <span className="text-[9px] font-body text-ns-secondary-readable w-5 text-right">{t.yourScore}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-[9px] font-body text-ns-muted w-6 flex-shrink-0">Film</span>

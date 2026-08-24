@@ -7,7 +7,7 @@ import SearchBar from './SearchBar'
 
 export default function Hero() {
   const [revealed, setRevealed] = useState(false)
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const loggedIn = status === 'authenticated'
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function Hero() {
         {/* Eyebrow badge */}
         <div
           className="mx-auto inline-flex max-w-full items-center gap-2 rounded-full border border-ns-secondary/25 px-3 py-1
-                     text-ns-secondary text-xs tracking-[0.2em] uppercase mb-10 font-body
+                     text-ns-secondary-readable text-xs tracking-[0.2em] uppercase mb-10 font-body
                      opacity-0 animate-fade-up"
           style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}
         >
@@ -61,7 +61,7 @@ export default function Hero() {
           style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}
         >
           <h2 className="font-display text-[9vw] sm:text-[7vw] md:text-[6vw] leading-none
-                         tracking-wider text-ns-secondary select-none">
+                         tracking-wider text-ns-secondary-readable select-none">
             WITHOUT SPOILERS
           </h2>
 
@@ -108,7 +108,7 @@ export default function Hero() {
           ) : (
             <>
               <Button variant="primary" size="lg" href="/register" className="w-full sm:w-auto">
-                Get Started Free
+                Build My Movie DNA
               </Button>
               <Button variant="secondary" size="lg" href="/login" className="w-full sm:w-auto">
                 Sign In

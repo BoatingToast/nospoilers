@@ -20,7 +20,7 @@ function StatCard({ label, value, sub, color }: {
   const val =
     color === 'green' ? 'text-emerald-400' :
     color === 'red'   ? 'text-red-400'     :
-    color === 'gold'  ? 'text-ns-secondary'     :
+    color === 'gold'  ? 'text-ns-secondary-readable'     :
     'text-ns-text'
 
   return (
@@ -110,7 +110,7 @@ export default function AnalyticsDashboard({ collectionId }: Props) {
                     className={`${i > 0 ? 'border-t border-ns-border/50' : ''} hover:bg-ns-surface/50 transition-colors`}>
                     <td className="px-5 py-3">
                       <Link href={`/collections/${c.id}`}
-                        className="text-ns-text hover:text-ns-secondary transition-colors font-medium truncate block max-w-[180px]">
+                        className="text-ns-text hover:text-ns-secondary-readable transition-colors font-medium truncate block max-w-[180px]">
                         {c.title}
                       </Link>
                     </td>
@@ -156,7 +156,7 @@ export default function AnalyticsDashboard({ collectionId }: Props) {
                 )}
                 <div>
                   <p className="text-ns-text text-xs font-body font-medium leading-tight truncate max-w-[120px]
-                                group-hover:text-ns-secondary transition-colors">
+                                group-hover:text-ns-secondary-readable transition-colors">
                     {m.title}
                   </p>
                   <p className="text-ns-muted/60 text-[10px] font-body">

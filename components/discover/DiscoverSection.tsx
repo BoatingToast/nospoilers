@@ -72,12 +72,12 @@ export default function DiscoverSection({
       data-direction={index % 2 === 0 ? 'left' : 'right'}
     >
       <div className="discover-section-heading mb-7 flex items-end gap-4 border-b border-ns-border/55 pb-5 sm:gap-6">
-        <span className="font-display text-4xl leading-none tracking-wider text-ns-secondary/45 sm:text-5xl">
+        <span className="font-display text-4xl leading-none tracking-wider text-ns-secondary-readable/45 sm:text-5xl">
           {sectionNumber(index + 1)}
         </span>
         <div className="min-w-0 flex-1">
           {eyebrow && (
-            <p className="mb-1 font-body text-[10px] uppercase tracking-[0.24em] text-ns-secondary">
+            <p className="mb-1 font-body text-[10px] uppercase tracking-[0.24em] text-ns-secondary-readable">
               {eyebrow}
             </p>
           )}
@@ -137,7 +137,7 @@ export default function DiscoverSection({
                 />
                 <div className="discover-card-grid pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" aria-hidden="true" />
                 <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ns-bg via-ns-bg/10 to-transparent p-3 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                  <span className="mb-1 font-body text-[9px] uppercase tracking-[0.18em] text-ns-secondary">
+                  <span className="mb-1 font-body text-[9px] uppercase tracking-[0.18em] text-ns-secondary-readable">
                     Open signal
                   </span>
                   <p className="line-clamp-2 font-body text-xs font-medium text-ns-text">
@@ -145,7 +145,7 @@ export default function DiscoverSection({
                   </p>
                 </div>
                 {movie.vote_average > 0 && (
-                  <div className="absolute right-2 top-2 rounded-full border border-ns-secondary/25 bg-ns-bg/80 px-2 py-1 font-body text-[10px] font-semibold text-ns-secondary backdrop-blur-md">
+                  <div className="absolute right-2 top-2 rounded-full border border-ns-secondary/25 bg-ns-bg/80 px-2 py-1 font-body text-[10px] font-semibold text-ns-secondary-readable backdrop-blur-md">
                     {movie.vote_average.toFixed(1)}
                   </div>
                 )}

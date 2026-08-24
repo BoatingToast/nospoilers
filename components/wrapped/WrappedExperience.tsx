@@ -23,7 +23,7 @@ function Slide({ children, className = '' }: { children: React.ReactNode; classN
   )
 }
 
-function StatNumber({ value, label, color = 'text-ns-secondary' }: { value: string | number; label: string; color?: string }) {
+function StatNumber({ value, label, color = 'text-ns-secondary-readable' }: { value: string | number; label: string; color?: string }) {
   return (
     <div className="text-center">
       <p className={`font-display text-8xl sm:text-9xl tracking-wider ${color} leading-none`}>{value}</p>
@@ -81,7 +81,7 @@ export default function WrappedExperience({ data, username, year }: Props) {
           ← Dashboard
         </Link>
         <p className="text-ns-muted text-xs font-body tracking-widest">{year} WRAPPED</p>
-        <button onClick={share} className="text-ns-secondary text-sm font-body hover:text-ns-secondary/80 transition-colors">
+        <button onClick={share} className="text-ns-secondary-readable text-sm font-body hover:text-ns-secondary-readable/80 transition-colors">
           {copied ? 'Copied!' : 'Share'}
         </button>
       </div>
@@ -115,14 +115,14 @@ export default function WrappedExperience({ data, username, year }: Props) {
         {current < total - 1 ? (
           <button
             onClick={next}
-            className="px-5 py-2.5 rounded-xl bg-ns-secondary text-ns-bg text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
+            className="px-5 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
           >
             Next →
           </button>
         ) : (
           <Link
             href="/dashboard"
-            className="px-5 py-2.5 rounded-xl bg-ns-secondary text-ns-bg text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
+            className="px-5 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
           >
             Done
           </Link>
@@ -151,7 +151,7 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
         <h1 className="font-display text-7xl sm:text-9xl tracking-wider text-ns-text leading-none mb-4">
           {year}
         </h1>
-        <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-secondary mb-6">
+        <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-secondary-readable mb-6">
           WRAPPED
         </h2>
         <p className="text-ns-muted font-body text-sm">
@@ -233,7 +233,7 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
                     sizes="100px"
                   />
                   <div className="absolute bottom-1.5 right-1.5 w-5 h-5 rounded-full bg-ns-bg/80 flex items-center justify-center">
-                    <span className="text-ns-secondary text-[9px] font-body font-bold">{i + 1}</span>
+                    <span className="text-ns-secondary-readable text-[9px] font-body font-bold">{i + 1}</span>
                   </div>
                 </div>
                 <p className="text-ns-muted text-[9px] font-body mt-1.5 max-w-[80px] text-center leading-tight truncate">
@@ -254,8 +254,8 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
       content: (
         <div className="text-center">
           <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-8">Your defining trait</p>
-          <MovieDnaIcon size={60} className="text-ns-secondary mx-auto mb-6" />
-          <p className="font-display text-5xl sm:text-6xl tracking-wider text-ns-secondary mb-4">{data.topTrait.toUpperCase()}</p>
+          <MovieDnaIcon size={60} className="text-ns-secondary-readable mx-auto mb-6" />
+          <p className="font-display text-5xl sm:text-6xl tracking-wider text-ns-secondary-readable mb-4">{data.topTrait.toUpperCase()}</p>
           <p className="text-ns-muted font-body text-sm max-w-xs mx-auto">
             This dimension dominates your Movie DNA — it defines what you look for in every film.
           </p>
@@ -308,7 +308,7 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
           NoSpoilers · {year} Wrapped
         </p>
         <div className="bg-ns-surface border border-ns-border rounded-2xl p-8 mb-8">
-          <p className="font-display text-3xl tracking-wider text-ns-secondary mb-4">@{username}</p>
+          <p className="font-display text-3xl tracking-wider text-ns-secondary-readable mb-4">@{username}</p>
           <div className="flex justify-center gap-8 text-center">
             <div>
               <p className="font-display text-3xl tracking-wider text-ns-text">{data.moviesWatched}</p>
@@ -320,7 +320,7 @@ function buildSlides(data: WrappedData, username: string, year: number): SlideDa
             </div>
             {data.personalityType && (
               <div>
-                <p className="font-display text-xl tracking-wider text-ns-secondary">{data.personalityType.split(' ').pop()}</p>
+                <p className="font-display text-xl tracking-wider text-ns-secondary-readable">{data.personalityType.split(' ').pop()}</p>
                 <p className="text-ns-muted text-xs font-body">Personality</p>
               </div>
             )}

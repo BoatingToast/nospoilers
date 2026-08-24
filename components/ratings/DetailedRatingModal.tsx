@@ -142,7 +142,7 @@ export default function DetailedRatingModal({
           {/* Header */}
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-ns-secondary text-[10px] tracking-widest uppercase font-body mb-1">
+              <p className="text-ns-secondary-readable text-[10px] tracking-widest uppercase font-body mb-1">
                 Detailed Rating
               </p>
               <h2 className="font-display text-2xl tracking-wider text-ns-text leading-tight">
@@ -234,7 +234,7 @@ export default function DetailedRatingModal({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex-1 py-3 rounded-xl bg-ns-secondary text-ns-bg font-body font-semibold
+              className="flex-1 py-3 rounded-xl bg-ns-secondary text-ns-secondary-foreground font-body font-semibold
                          text-sm tracking-wide hover:bg-amber-400 disabled:opacity-50
                          transition-colors"
             >

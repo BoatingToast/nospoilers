@@ -37,7 +37,7 @@ export default async function HistoryPage() {
           </h1>
           <div className="flex gap-6">
             <div>
-              <p className="font-display text-3xl tracking-wider text-ns-secondary">{watched.length}</p>
+              <p className="font-display text-3xl tracking-wider text-ns-secondary-readable">{watched.length}</p>
               <p className="text-ns-muted text-xs font-body">Films Watched</p>
             </div>
             {avgRating > 0 && (
@@ -51,7 +51,7 @@ export default async function HistoryPage() {
 
         {watched.length === 0 ? (
           <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-            <FilmIcon size={52} className="text-ns-secondary/40 mx-auto mb-4" />
+            <FilmIcon size={52} className="text-ns-secondary-readable/40 mx-auto mb-4" />
             <p className="text-ns-muted font-body text-sm">
               No watched movies yet. Mark movies as watched from your watchlist.
             </p>

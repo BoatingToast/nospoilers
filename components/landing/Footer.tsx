@@ -42,7 +42,7 @@ export default function Footer() {
         <div className="max-w-xl">
           <Link
             href="/"
-            className="font-display text-2xl tracking-widest text-ns-text transition-colors hover:text-ns-secondary"
+            className="font-display text-2xl tracking-widest text-ns-text transition-colors hover:text-ns-secondary-readable"
           >
             NOSPOILERS
           </Link>
@@ -90,8 +90,11 @@ export default function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col gap-2 border-t border-ns-border py-4 text-xs text-ns-muted/60 sm:flex-row sm:items-center sm:justify-between">
         <p>&copy; {year} NoSpoilers. All rights reserved.</p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Link href="/#shield" className="transition-colors hover:text-ns-text">
+            NoSpoilers Shield
+          </Link>
           <Link href="/privacy/extension" className="transition-colors hover:text-ns-text">
-            Extension privacy
+            Shield privacy
           </Link>
           <a href={EMAIL_HREF} className="transition-colors hover:text-ns-text">
             Contact: {CONTACT_EMAIL}

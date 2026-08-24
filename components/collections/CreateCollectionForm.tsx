@@ -77,7 +77,7 @@ export default function CreateCollectionForm() {
       <button
         type="submit"
         disabled={loading || !title.trim()}
-        className="w-full py-3 bg-ns-secondary text-ns-bg rounded-xl font-body font-medium text-sm hover:bg-ns-secondary/90 transition-colors disabled:opacity-50"
+        className="w-full py-3 bg-ns-secondary text-ns-secondary-foreground rounded-xl font-body font-medium text-sm hover:bg-ns-secondary/90 transition-colors disabled:opacity-50"
       >
         {loading ? 'Creating...' : 'Create Collection'}
       </button>

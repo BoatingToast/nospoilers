@@ -1,7 +1,22 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { updateWatchlistItem, removeFromWatchlist } from '@/services/watchlist'
+import { getWatchlistItem, updateWatchlistItem, removeFromWatchlist } from '@/services/watchlist'
+
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ tmdbId: string }> },
+) {
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { tmdbId: raw } = await params
+  const tmdbId = parseInt(raw, 10)
+  if (isNaN(tmdbId)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
+
+  const item = await getWatchlistItem(session.user.id, tmdbId)
+  return NextResponse.json({ status: item?.status ?? null })
+}
 
 export async function PATCH(
   req: Request,

@@ -209,7 +209,7 @@ export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess
             >
               {/* Upload icon */}
               <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                strokeWidth="1.5" className="text-ns-secondary/40 mx-auto mb-4">
+                strokeWidth="1.5" className="text-ns-secondary-readable/40 mx-auto mb-4">
                 <path strokeLinecap="round" strokeLinejoin="round"
                   d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
               </svg>
@@ -217,7 +217,7 @@ export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess
                 Drop a photo here
               </p>
               <p className="text-ns-muted font-body text-xs">
-                or <span className="text-ns-secondary underline-offset-2 hover:underline">browse files</span>
+                or <span className="text-ns-secondary-readable underline-offset-2 hover:underline">browse files</span>
               </p>
               <p className="text-ns-muted/50 font-body text-[10px] mt-3">
                 JPG, PNG, WEBP · Max 5 MB
@@ -292,7 +292,7 @@ export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess
               </button>
               <button
                 onClick={handleUpload}
-                className="flex-1 py-2.5 rounded-xl bg-ns-secondary text-ns-bg text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
+                className="flex-1 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
               >
                 Save Photo
               </button>
@@ -327,7 +327,7 @@ export default function AvatarUploadModal({ currentAvatarUrl, onClose, onSuccess
             <p className="text-ns-muted font-body text-xs mb-5">{errorMsg}</p>
             <button
               onClick={() => { setStage('pick'); setImageSrc(null); setErrorMsg('') }}
-              className="px-6 py-2.5 bg-ns-secondary text-ns-bg rounded-xl text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
+              className="px-6 py-2.5 bg-ns-secondary text-ns-secondary-foreground rounded-xl text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
             >
               Try Again
             </button>

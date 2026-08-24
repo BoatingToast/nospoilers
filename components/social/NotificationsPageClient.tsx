@@ -101,7 +101,7 @@ export default function NotificationsPageClient() {
       <div className="mb-7 flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-ns-secondary/20 bg-ns-secondary/10">
-            <NotificationsIcon size={20} className="text-ns-secondary" />
+            <NotificationsIcon size={20} className="text-ns-secondary-readable" />
           </div>
           <div>
             <h1 className="text-2xl font-heading font-bold text-ns-text">Notifications</h1>
@@ -117,7 +117,7 @@ export default function NotificationsPageClient() {
           {unreadCount > 0 && (
             <button
               onClick={() => void markAllRead()}
-              className="rounded-xl border border-ns-secondary/25 bg-ns-secondary/10 px-3 py-2 text-xs font-body font-semibold text-ns-secondary transition-colors hover:bg-ns-secondary/15"
+              className="rounded-xl border border-ns-secondary/25 bg-ns-secondary/10 px-3 py-2 text-xs font-body font-semibold text-ns-secondary-readable transition-colors hover:bg-ns-secondary/15"
             >
               Mark all read
             </button>
@@ -125,7 +125,7 @@ export default function NotificationsPageClient() {
           <Link
             href="/settings/notifications"
             aria-label="Notification settings"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-ns-border bg-ns-surface text-ns-muted transition-colors hover:border-ns-secondary/30 hover:text-ns-secondary"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-ns-border bg-ns-surface text-ns-muted transition-colors hover:border-ns-secondary/30 hover:text-ns-secondary-readable"
           >
             <SettingsIcon size={16} />
           </Link>
@@ -139,7 +139,7 @@ export default function NotificationsPageClient() {
             onClick={() => setFilter(value)}
             className={`flex-1 rounded-lg px-3 py-2 text-xs font-body font-semibold capitalize transition-colors
               ${filter === value
-                ? 'bg-ns-secondary/15 text-ns-secondary'
+                ? 'bg-ns-secondary/15 text-ns-secondary-readable'
                 : 'text-ns-muted/60 hover:bg-white/[0.03] hover:text-ns-text'
               }`}
           >
@@ -170,7 +170,7 @@ export default function NotificationsPageClient() {
                 setLoading(true)
                 void loadNotifications()
               }}
-              className="mt-3 text-xs font-body font-semibold text-ns-secondary hover:underline"
+              className="mt-3 text-xs font-body font-semibold text-ns-secondary-readable hover:underline"
             >
               Try again
             </button>
