@@ -17,7 +17,16 @@ export async function GET(
       username:         true,
       personality:      { select: { primaryType: true } },
       tasteProfile:     true,
-      onboardingMovies: { select: { title: true }, take: 3 },
+      onboardingMovies: {
+        select:  { title: true },
+        orderBy: { addedAt: 'asc' },
+        take:    3,
+      },
+      topFiveMovies: {
+        select:  { title: true },
+        orderBy: { position: 'asc' },
+        take:    3,
+      },
     },
   })
 
@@ -28,6 +37,9 @@ export async function GET(
   const personality = user.personality
     ? getPersonalityBySlug(user.personality.primaryType)
     : null
+  const favoriteMovies = user.topFiveMovies.length > 0
+    ? user.topFiveMovies
+    : user.onboardingMovies
 
   const tp = user.tasteProfile
   const topTraits: { label: string; value: number }[] = tp
@@ -115,12 +127,12 @@ export async function GET(
           {/* Right: stats */}
           <div style={{ display: 'flex', flexDirection: 'column', width: '320px', gap: '20px' }}>
             {/* Top movies */}
-            {user.onboardingMovies.length > 0 && (
+            {favoriteMovies.length > 0 && (
               <div style={{ background: THEME.surface, border: `1px solid ${THEME.border}`, borderRadius: '16px', padding: '20px' }}>
                 <div style={{ fontSize: '11px', color: THEME.muted, letterSpacing: '0.2em', marginBottom: '12px' }}>
                   FAVORITE FILMS
                 </div>
-                {user.onboardingMovies.map((m, i) => (
+                {favoriteMovies.map((m, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <span style={{ color: THEME.secondary, fontSize: '12px', width: '14px' }}>{i + 1}</span>
                     <span style={{ color: THEME.text, fontSize: '14px' }}>{m.title}</span>
