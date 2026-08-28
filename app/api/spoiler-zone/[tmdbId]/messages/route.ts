@@ -3,6 +3,8 @@ import { getServerSession }                                   from 'next-auth'
 import { authOptions }                                        from '@/lib/auth'
 import { prisma }                                             from '@/lib/db'
 import { formatMessage, MSG_INCLUDE, VALID_SPOILER_LEVELS }   from '@/lib/spoiler-zone-helpers'
+import { canViewSpoilerLevel, classifySpoilerBoundary }     from '@/lib/plot-passport'
+import { enforceRateLimit }                                 from '@/lib/rate-limit'
 
 type Params = { params: Promise<{ tmdbId: string }> }
 
@@ -23,6 +25,13 @@ export async function GET(req: Request, { params }: Params) {
 
   const session     = await getServerSession(authOptions)
   const currentUser = session?.user?.id ?? null
+  const viewerPassport = currentUser
+    ? await prisma.watchlistItem.findUnique({
+        where: { userId_tmdbId: { userId: currentUser, tmdbId } },
+        select: { progressPercent: true },
+      })
+    : null
+  const viewerProgress = viewerPassport?.progressPercent ?? 0
 
   const url         = new URL(req.url)
   const cursor      = url.searchParams.get('cursor')
@@ -41,13 +50,16 @@ export async function GET(req: Request, { params }: Params) {
 
   // Base where clause: top-level messages only (no replies in main feed)
   const validLevel = VALID_SPOILER_LEVELS.includes(level as never) ? level : 'safe'
+  const canSearchLevel = canViewSpoilerLevel(validLevel, viewerProgress)
   const baseWhere = {
     tmdbId,
     parentId:    null,
     isDeleted:   false,
     spoilerLevel: validLevel,
     ...(filter === 'theories' ? { isTheory: true } : {}),
-    ...(q ? { content: { contains: q, mode: 'insensitive' as const } } : {}),
+    // Searching a locked level by candidate keywords would leak whether those
+    // words occur even when the matching message body is redacted.
+    ...(q && canSearchLevel ? { content: { contains: q, mode: 'insensitive' as const } } : {}),
   }
 
   // Date filter for "top_*" modes
@@ -96,7 +108,7 @@ export async function GET(req: Request, { params }: Params) {
   // For live (asc) initial load with no cursor: we only want the LAST `limit` rows.
   // Since they're ordered ASC, if no cursor and more rows exist we need the tail.
   // We handle this by fetching with a DESC order first and reversing:
-  let messages = page
+  const messages = page
 
   if (!isTopMode && !cursor) {
     // Re-fetch most-recent `limit` messages in DESC, then reverse for ASC display
@@ -111,12 +123,15 @@ export async function GET(req: Request, { params }: Params) {
     const olderExist = totalCount > limit
 
     const pinnedSet = new Set(pinnedRows.map(p => p.id))
-    return NextResponse.json({
-      messages:    recent.filter(m => !pinnedSet.has(m.id)).map(m => formatMessage(m, currentUser)),
-      pinned:      pinnedRows.map(p => formatMessage(p, currentUser)),
-      nextCursor:  recent.length > 0 ? recent[0].id : null,   // oldest in current page
-      hasMore:     olderExist,
-    })
+    return NextResponse.json(
+      {
+        messages: recent.filter(m => !pinnedSet.has(m.id)).map(m => formatMessage(m, currentUser, viewerProgress)),
+        pinned: pinnedRows.map(p => formatMessage(p, currentUser, viewerProgress)),
+        nextCursor: recent.length > 0 ? recent[0].id : null,   // oldest in current page
+        hasMore: olderExist,
+      },
+      { headers: { 'Cache-Control': 'private, no-store, max-age=0' } },
+    )
   }
 
   // For load-earlier (cursor set) or top modes:
@@ -127,12 +142,15 @@ export async function GET(req: Request, { params }: Params) {
     ? (isTopMode ? messages[messages.length - 1].id : messages[0].id)
     : null
 
-  return NextResponse.json({
-    messages:   messages.filter(m => !pinnedSet.has(m.id)).map(m => formatMessage(m, currentUser)),
-    pinned:     pinnedRows.map(p => formatMessage(p, currentUser)),
-    nextCursor,
-    hasMore,
-  })
+  return NextResponse.json(
+    {
+      messages: messages.filter(m => !pinnedSet.has(m.id)).map(m => formatMessage(m, currentUser, viewerProgress)),
+      pinned: pinnedRows.map(p => formatMessage(p, currentUser, viewerProgress)),
+      nextCursor,
+      hasMore,
+    },
+    { headers: { 'Cache-Control': 'private, no-store, max-age=0' } },
+  )
 }
 
 async function getCursorDate(cursor: string): Promise<Date> {
@@ -147,6 +165,13 @@ async function getCursorDate(cursor: string): Promise<Date> {
 export async function POST(req: Request, { params }: Params) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const limited = await enforceRateLimit(req, {
+    scope: 'spoiler-zone-post',
+    identifier: `user:${session.user.id}`,
+    limit: 30,
+    windowMs: 60 * 1000,
+  })
+  if (limited) return limited
 
   const { tmdbId: tmdbRaw } = await params
   const tmdbId = parseInt(tmdbRaw, 10)
@@ -163,11 +188,15 @@ export async function POST(req: Request, { params }: Params) {
 
   const content      = body.content?.trim()
   const movieTitle   = body.movieTitle?.trim() ?? ''
-  const spoilerLevel = (VALID_SPOILER_LEVELS.includes(body.spoilerLevel as never)
+  const requestedLevel = (VALID_SPOILER_LEVELS.includes(body.spoilerLevel as never)
     ? body.spoilerLevel : 'safe') as string
 
   if (!content || content.length === 0) return NextResponse.json({ error: 'Message cannot be empty' }, { status: 400 })
   if (content.length > 2000)            return NextResponse.json({ error: 'Message too long (max 2000 chars)' }, { status: 400 })
+
+  const spoilerLevel = requestedLevel === 'theory' || requestedLevel === 'behind'
+    ? requestedLevel
+    : classifySpoilerBoundary(content, requestedLevel)
 
   if (body.parentId) {
     const parent = await prisma.spoilerZoneMessage.findUnique({ where: { id: body.parentId } })

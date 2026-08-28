@@ -38,7 +38,7 @@ const RARITY_CONFIG: Record<AchievementRarity, {
   },
   legendary: {
     label:       'Legendary',
-    textClass:   'text-ns-secondary',
+    textClass:   'text-ns-secondary-readable',
     borderClass: 'border-ns-secondary/40',
     bgClass:     'bg-ns-secondary/10',
     glowStyle:   '0 0 24px rgb(var(--ns-secondary)/0.35)',
@@ -78,7 +78,13 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
   }, [pct])
 
   return (
-    <Modal onClose={onClose} maxWidth="max-w-sm" className="overflow-hidden">
+    <Modal
+      onClose={onClose}
+      ariaLabelledBy="achievement-detail-title"
+      ariaDescribedBy="achievement-detail-description"
+      maxWidth="max-w-sm"
+      className="overflow-hidden"
+    >
         {/* ── Header strip — rarity colour ─────────────────────────────── */}
         <div className={`h-1 w-full ${
           achievement.rarity === 'legendary' ? 'bg-gradient-to-r from-ns-secondary via-ns-secondary/50 to-ns-secondary' :
@@ -122,7 +128,7 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
           </div>
 
           {/* Name */}
-          <h2 className="font-display text-2xl tracking-wider text-ns-text text-center mb-1">
+          <h2 id="achievement-detail-title" className="font-display text-2xl tracking-wider text-ns-text text-center mb-1">
             {achievement.name.toUpperCase()}
           </h2>
 
@@ -142,7 +148,7 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
           </div>
 
           {/* Description */}
-          <p className="text-ns-muted text-sm font-body text-center leading-relaxed mb-6">
+          <p id="achievement-detail-description" className="text-ns-muted text-sm font-body text-center leading-relaxed mb-6">
             {achievement.description}
           </p>
 
@@ -150,7 +156,7 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
               <span className="text-ns-muted text-xs font-body">Progress</span>
-              <span className={`text-xs font-body font-medium ${achievement.earned ? 'text-ns-secondary' : 'text-ns-muted'}`}>
+              <span className={`text-xs font-body font-medium ${achievement.earned ? 'text-ns-secondary-readable' : 'text-ns-muted'}`}>
                 {achievement.progress} / {achievement.goal}
               </span>
             </div>
@@ -182,8 +188,8 @@ export default function AchievementDetailModal({ achievement, onClose, isNew = f
           }`}>
             <span className="text-ns-muted text-xs font-body">XP Reward</span>
             <div className="flex items-center gap-1.5">
-              <SuspenseIcon size={16} className={achievement.earned ? 'text-ns-secondary' : 'text-ns-muted'} />
-              <span className={`font-body font-semibold text-sm ${achievement.earned ? 'text-ns-secondary' : 'text-ns-muted'}`}>
+              <SuspenseIcon size={16} className={achievement.earned ? 'text-ns-secondary-readable' : 'text-ns-muted'} />
+              <span className={`font-body font-semibold text-sm ${achievement.earned ? 'text-ns-secondary-readable' : 'text-ns-muted'}`}>
                 {achievement.xpReward} XP
               </span>
               {achievement.earned && (

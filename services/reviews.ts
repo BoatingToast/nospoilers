@@ -1,5 +1,14 @@
 import { prisma } from '@/lib/db'
+import { recalcTasteProfile } from './ratings'
+import { analyzeReviewTraits } from './dna-v2'
 import type { DNAScores } from '@/types'
+import {
+  canViewSpoilerLevel,
+  classifySpoilerBoundary,
+  requiredProgressForLevel,
+  type PlotPassportLevel,
+} from '@/lib/plot-passport'
+import { redactLockedOptionalText, redactLockedText } from '@/lib/content-visibility'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -7,12 +16,17 @@ export interface ReviewWithMeta {
   id:          string
   userId:      string
   username:    string
+  avatarUrl:   string | null
   tmdbId:      number
   movieTitle:  string
   title:       string | null
   body:        string
   rating:      number | null
   hasSpoilers: boolean
+  spoilerLevel: PlotPassportLevel
+  viewerUnlocked: boolean
+  unlockAtProgress: number
+  viewerProgress: number
   createdAt:   string
   updatedAt:   string
   upvotes:     number
@@ -33,103 +47,16 @@ export interface ReviewStats {
 
 export type SortMode = 'helpful' | 'popular' | 'top' | 'newest' | 'friends'
 
-// ─── Sentiment keyword map → DNA dimension ────────────────────────────────────
-
-const SENTIMENT_MAP: { key: keyof DNAScores; terms: string[] }[] = [
-  {
-    key: 'complexityScore',
-    terms: ['complex', 'layered', 'nuanced', 'deep', 'intricate', 'thought-provoking',
-            'cerebral', 'philosophical', 'multi-layered', 'dense', 'sophisticated',
-            'intelligent', 'profound', 'rich narrative', 'subtlety', 'subtext'],
-  },
-  {
-    key: 'emotionalImpactScore',
-    terms: ['emotional', 'moving', 'heartbreaking', 'tears', 'cried', 'powerful',
-            'touching', 'poignant', 'devastating', 'beautiful', 'stirring',
-            'gut-wrenching', 'uplifting', 'resonant', 'deeply felt', 'haunting'],
-  },
-  {
-    key: 'actionScore',
-    terms: ['action', 'exciting', 'fast-paced', 'adrenaline', 'explosive', 'spectacle',
-            'thrilling action', 'chase', 'fight scene', 'intense sequences', 'kinetic'],
-  },
-  {
-    key: 'humorScore',
-    terms: ['funny', 'hilarious', 'witty', 'comedy', 'laugh', 'clever humor', 'charming',
-            'delightful', 'quirky', 'playful', 'light-hearted', 'amusing', 'comedic'],
-  },
-  {
-    key: 'suspenseScore',
-    terms: ['tense', 'suspense', 'edge of my seat', 'gripping', 'nail-biting',
-            "couldn't stop", 'unpredictable', 'mystery', 'kept me guessing',
-            'twist', 'dread', 'mounting tension', 'anticipation'],
-  },
-  {
-    key: 'darknessScore',
-    terms: ['dark', 'gritty', 'disturbing', 'bleak', 'unsettling', 'brutal',
-            'harrowing', 'nihilistic', 'oppressive', 'visceral', 'hard to watch',
-            'trauma', 'heavy', 'pitch black'],
-  },
-  {
-    key: 'realismScore',
-    terms: ['realistic', 'authentic', 'genuine', 'true to life', 'believable',
-            'grounded', 'naturalistic', 'documentary-like', 'raw', 'honest',
-            'real performances', 'lifelike'],
-  },
-]
-
-// ─── Sentiment analysis ───────────────────────────────────────────────────────
-
-export function analyzeReviewSentiment(body: string): Partial<Record<keyof DNAScores, number>> {
-  const text   = body.toLowerCase()
-  const result: Partial<Record<keyof DNAScores, number>> = {}
-
-  for (const { key, terms } of SENTIMENT_MAP) {
-    const hits = terms.filter(t => text.includes(t)).length
-    if (hits > 0) {
-      // Each hit adds up to 20 points, capped at 60
-      result[key] = Math.min(hits * 20, 60)
-    }
-  }
-
-  return result
-}
-
-// ─── Apply review sentiment to user's DNA ─────────────────────────────────────
+// Backward-compatible name for callers that used the old review analyzer. DNA
+// v2 returns traits on the correct 1–10 scale and applies them only during a
+// complete deterministic rebuild.
+export const analyzeReviewSentiment = analyzeReviewTraits
 
 export async function applyReviewSentimentToDNA(
   userId: string,
-  sentiment: Partial<Record<keyof DNAScores, number>>,
+  _sentiment: Partial<Record<keyof DNAScores, number>>,
 ): Promise<void> {
-  if (Object.keys(sentiment).length === 0) return
-
-  const profile = await prisma.tasteProfile.findUnique({ where: { userId } })
-  if (!profile) return
-
-  // Small blend: each review contributes 8% weight toward the signalled dimensions
-  const REVIEW_WEIGHT = 0.08
-
-  const updates: Partial<Record<keyof DNAScores, number>> = {}
-
-  const dims: (keyof DNAScores)[] = [
-    'complexityScore', 'emotionalImpactScore', 'actionScore',
-    'humorScore', 'suspenseScore', 'darknessScore', 'realismScore',
-  ]
-
-  for (const dim of dims) {
-    const signal = sentiment[dim]
-    if (signal === undefined) continue
-    const current = profile[dim] as number
-    // Blend: pull slightly toward the signalled strength
-    updates[dim] = current * (1 - REVIEW_WEIGHT) + signal * REVIEW_WEIGHT
-  }
-
-  if (Object.keys(updates).length > 0) {
-    await prisma.tasteProfile.update({
-      where: { userId },
-      data:  updates as Record<string, number>,
-    })
-  }
+  await recalcTasteProfile(userId)
 }
 
 // ─── Create review ────────────────────────────────────────────────────────────
@@ -143,8 +70,14 @@ export async function createReview(
     title?:      string
     rating?:     number
     hasSpoilers?: boolean
+    spoilerLevel?: PlotPassportLevel | 'auto'
   } = {},
 ): Promise<{ id: string }> {
+  const spoilerLevel = classifySpoilerBoundary(
+    `${opts.title ?? ''} ${body}`,
+    opts.spoilerLevel === 'auto' ? undefined : opts.spoilerLevel,
+    opts.hasSpoilers,
+  )
   const review = await prisma.review.create({
     data: {
       userId,
@@ -153,13 +86,12 @@ export async function createReview(
       body,
       title:       opts.title      ?? null,
       rating:      opts.rating     ?? null,
-      hasSpoilers: opts.hasSpoilers ?? false,
+      hasSpoilers: spoilerLevel !== 'safe',
+      spoilerLevel,
     },
   })
 
-  // Async DNA update — fire and forget
-  const sentiment = analyzeReviewSentiment(body)
-  void applyReviewSentimentToDNA(userId, sentiment).catch(() => {})
+  await recalcTasteProfile(userId).catch(() => {})
 
   return { id: review.id }
 }
@@ -174,22 +106,31 @@ export async function updateReview(
     body?:       string
     rating?:     number | null
     hasSpoilers?: boolean
+    spoilerLevel?: PlotPassportLevel | 'auto'
   },
 ): Promise<void> {
+  const existing = await prisma.review.findFirst({ where: { id: reviewId, userId } })
+  if (!existing) return
+  const nextBody = updates.body ?? existing.body
+  const nextTitle = updates.title === undefined ? existing.title : updates.title
+  const spoilerLevel = classifySpoilerBoundary(
+    `${nextTitle ?? ''} ${nextBody}`,
+    updates.spoilerLevel === 'auto' ? undefined : updates.spoilerLevel ?? existing.spoilerLevel,
+    updates.hasSpoilers ?? existing.hasSpoilers,
+  )
   await prisma.review.updateMany({
     where: { id: reviewId, userId },
     data:  {
       ...(updates.title      !== undefined && { title:       updates.title }),
       ...(updates.body       !== undefined && { body:        updates.body }),
       ...(updates.rating     !== undefined && { rating:      updates.rating }),
-      ...(updates.hasSpoilers !== undefined && { hasSpoilers: updates.hasSpoilers }),
+      hasSpoilers: spoilerLevel !== 'safe',
+      spoilerLevel,
     },
   })
 
-  // Re-analyze if body changed
-  if (updates.body) {
-    const sentiment = analyzeReviewSentiment(updates.body)
-    void applyReviewSentimentToDNA(userId, sentiment).catch(() => {})
+  if (updates.body !== undefined || updates.rating !== undefined) {
+    await recalcTasteProfile(userId).catch(() => {})
   }
 }
 
@@ -197,6 +138,7 @@ export async function updateReview(
 
 export async function deleteReview(reviewId: string, userId: string): Promise<void> {
   await prisma.review.deleteMany({ where: { id: reviewId, userId } })
+  await recalcTasteProfile(userId).catch(() => {})
 }
 
 // ─── Get reviews for a movie ──────────────────────────────────────────────────
@@ -209,6 +151,14 @@ export async function getMovieReviews(
   limit        = 20,
   cursor?:     string,
 ): Promise<ReviewWithMeta[]> {
+  const viewerPassport = viewerId
+    ? await prisma.watchlistItem.findUnique({
+        where: { userId_tmdbId: { userId: viewerId, tmdbId } },
+        select: { progressPercent: true },
+      })
+    : null
+  const viewerProgress = viewerPassport?.progressPercent ?? 0
+
   // Build orderBy based on sort mode
   // For computed sorts we'll fetch more and sort in memory
   const isComputedSort = sort === 'helpful' || sort === 'popular' || sort === 'top' || sort === 'friends'
@@ -226,7 +176,7 @@ export async function getMovieReviews(
     take: fetchLimit,
     orderBy: sort === 'newest' ? { createdAt: 'desc' } : undefined,
     include: {
-      user:    { select: { id: true, username: true } },
+      user:    { select: { id: true, username: true, avatarUrl: true } },
       votes:   { select: { userId: true, type: true } },
       replies: { select: { id: true } },
     },
@@ -248,16 +198,24 @@ export async function getMovieReviews(
     const downvotes   = row.votes.filter(v => v.type === 'downvote').length
     const helpfulCount = row.votes.filter(v => v.type === 'helpful').length
 
+    const viewerUnlocked = row.userId === viewerId ||
+      canViewSpoilerLevel(row.spoilerLevel, viewerProgress)
+
     return {
       id:          row.id,
       userId:      row.userId,
       username:    row.user.username,
+      avatarUrl:   row.user.avatarUrl ?? null,
       tmdbId:      row.tmdbId,
       movieTitle:  row.movieTitle,
-      title:       row.title,
-      body:        row.body,
+      title:       redactLockedOptionalText(row.title, viewerUnlocked),
+      body:        redactLockedText(row.body, viewerUnlocked),
       rating:      row.rating,
       hasSpoilers: row.hasSpoilers,
+      spoilerLevel: row.spoilerLevel as PlotPassportLevel,
+      viewerUnlocked,
+      unlockAtProgress: requiredProgressForLevel(row.spoilerLevel),
+      viewerProgress,
       createdAt:   row.createdAt.toISOString(),
       updatedAt:   row.updatedAt.toISOString(),
       upvotes,
@@ -319,7 +277,7 @@ export async function getUserReviewForMovie(
   const row = await prisma.review.findUnique({
     where:   { userId_tmdbId: { userId, tmdbId } },
     include: {
-      user:    { select: { id: true, username: true } },
+      user:    { select: { id: true, username: true, avatarUrl: true } },
       votes:   { select: { userId: true, type: true } },
       replies: { select: { id: true } },
     },
@@ -330,12 +288,17 @@ export async function getUserReviewForMovie(
     id:          row.id,
     userId:      row.userId,
     username:    row.user.username,
+    avatarUrl:   row.user.avatarUrl ?? null,
     tmdbId:      row.tmdbId,
     movieTitle:  row.movieTitle,
     title:       row.title,
     body:        row.body,
     rating:      row.rating,
     hasSpoilers: row.hasSpoilers,
+    spoilerLevel: row.spoilerLevel as PlotPassportLevel,
+    viewerUnlocked: true,
+    unlockAtProgress: requiredProgressForLevel(row.spoilerLevel),
+    viewerProgress: 100,
     createdAt:   row.createdAt.toISOString(),
     updatedAt:   row.updatedAt.toISOString(),
     upvotes:     row.votes.filter(v => v.type === 'upvote').length,
@@ -381,6 +344,7 @@ export interface ReplyWithUser {
   id:        string
   userId:    string
   username:  string
+  avatarUrl: string | null
   body:      string
   createdAt: string
 }
@@ -389,12 +353,13 @@ export async function getReviewReplies(reviewId: string): Promise<ReplyWithUser[
   const replies = await prisma.reviewReply.findMany({
     where:   { reviewId },
     orderBy: { createdAt: 'asc' },
-    include: { user: { select: { username: true } } },
+    include: { user: { select: { username: true, avatarUrl: true } } },
   })
   return replies.map(r => ({
     id:        r.id,
     userId:    r.userId,
     username:  r.user.username,
+    avatarUrl: r.user.avatarUrl ?? null,
     body:      r.body,
     createdAt: r.createdAt.toISOString(),
   }))
@@ -407,12 +372,13 @@ export async function createReviewReply(
 ): Promise<ReplyWithUser> {
   const reply = await prisma.reviewReply.create({
     data:    { reviewId, userId, body },
-    include: { user: { select: { username: true } } },
+    include: { user: { select: { username: true, avatarUrl: true } } },
   })
   return {
     id:        reply.id,
     userId:    reply.userId,
     username:  reply.user.username,
+    avatarUrl: reply.user.avatarUrl ?? null,
     body:      reply.body,
     createdAt: reply.createdAt.toISOString(),
   }

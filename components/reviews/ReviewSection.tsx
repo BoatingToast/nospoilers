@@ -8,6 +8,7 @@ import WriteReview    from './WriteReview'
 import ReviewCard     from './ReviewCard'
 import type { ReviewWithMeta } from '@/services/reviews'
 import { FilmIcon, ArrowRightIcon } from '@/components/icons'
+import Avatar from '@/components/ui/Avatar'
 
 type SortMode = 'helpful' | 'popular' | 'top' | 'newest' | 'friends'
 
@@ -27,6 +28,8 @@ const SORT_OPTIONS: { value: SortMode; label: string }[] = [
 export default function ReviewSection({ tmdbId, movieTitle }: Props) {
   const { data: session } = useSession()
   const sessionId         = (session?.user as { id?: string })?.id ?? undefined
+  const sessionAvatarUrl  = session?.user?.image ?? null
+  const sessionUsername   = session?.user?.name ?? undefined
 
   const [reviews,      setReviews]      = useState<ReviewWithMeta[]>([])
   const [userReview,   setUserReview]   = useState<ReviewWithMeta | null>(null)
@@ -93,7 +96,7 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
         {session && !userReview && !showForm && (
           <button
             onClick={() => setShowForm(true)}
-            className="text-sm font-heading font-medium text-ns-secondary hover:text-amber-400 transition-colors"
+            className="text-sm font-heading font-medium text-ns-secondary-readable hover:text-amber-400 transition-colors"
           >
             + Write a Review
           </button>
@@ -135,6 +138,8 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
               onEdit={() => setEditingOwn(true)}
               onDeleted={handleDeleted}
               sessionId={sessionId}
+              sessionAvatarUrl={sessionAvatarUrl}
+              sessionUsername={sessionUsername}
             />
           )}
         </div>
@@ -154,10 +159,8 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-ns-secondary/10 border border-ns-secondary/20
                            hover:bg-ns-secondary/20 transition-colors"
               >
-                <span className="w-5 h-5 rounded-full bg-ns-secondary/30 flex items-center justify-center text-ns-secondary text-[10px] font-bold">
-                  {r.username[0]?.toUpperCase()}
-                </span>
-                <span className="text-ns-secondary text-xs font-heading font-medium">@{r.username}</span>
+                <Avatar src={r.avatarUrl} username={r.username} size="xs" />
+                <span className="text-ns-secondary-readable text-xs font-heading font-medium">@{r.username}</span>
                 {r.rating !== null && (
                   <span className="text-ns-muted text-[10px] font-body">{r.rating}/100</span>
                 )}
@@ -176,7 +179,7 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
               onClick={() => setSort(opt.value)}
               className={`px-3 py-1.5 rounded-full text-xs font-heading font-medium whitespace-nowrap border transition-all ${
                 sort === opt.value
-                  ? 'bg-ns-secondary/15 border-ns-secondary/40 text-ns-secondary'
+                  ? 'bg-ns-secondary/15 border-ns-secondary/40 text-ns-secondary-readable'
                   : 'border-ns-border text-ns-muted hover:text-white hover:border-white/20'
               }`}
             >
@@ -196,7 +199,7 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
         </div>
       ) : otherReviews.length === 0 && !userReview ? (
         <div className="text-center py-16">
-          <FilmIcon size={44} className="text-ns-secondary/30 mx-auto mb-4" />
+          <FilmIcon size={44} className="text-ns-secondary-readable/30 mx-auto mb-4" />
           <p className="font-heading text-lg text-white mb-2">No reviews yet</p>
           <p className="text-ns-muted text-sm font-body mb-6">
             Be the first to share your thoughts on {movieTitle}.
@@ -204,7 +207,7 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
           {session ? (
             <button
               onClick={() => setShowForm(true)}
-              className="px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-bg text-sm font-heading font-semibold
+              className="px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold
                          hover:bg-amber-400 transition-colors"
             >
               Write the First Review
@@ -212,7 +215,7 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
           ) : (
             <Link
               href="/login"
-              className="px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-bg text-sm font-heading font-semibold
+              className="px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold
                          hover:bg-amber-400 transition-colors"
             >
               Sign In to Review
@@ -230,6 +233,8 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
                   review={review}
                   isOwn={false}
                   sessionId={sessionId}
+                  sessionAvatarUrl={sessionAvatarUrl}
+                  sessionUsername={sessionUsername}
                 />
               ))}
               {otherReviews.filter(r => !r.isFriend).length > 0 && (
@@ -247,6 +252,8 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
               onEdit={review.userId === sessionId ? () => setEditingOwn(true) : undefined}
               onDeleted={review.userId === sessionId ? handleDeleted : undefined}
               sessionId={sessionId}
+              sessionAvatarUrl={sessionAvatarUrl}
+              sessionUsername={sessionUsername}
             />
           ))}
 
@@ -255,7 +262,7 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
             <div className="pt-2 text-center">
               <button
                 onClick={() => setShowForm(true)}
-                className="px-5 py-2 rounded-xl border border-ns-secondary/40 text-ns-secondary text-sm font-heading font-medium
+                className="px-5 py-2 rounded-xl border border-ns-secondary/40 text-ns-secondary-readable text-sm font-heading font-medium
                            hover:bg-ns-secondary/10 transition-colors"
               >
                 Add Your Review
@@ -273,7 +280,7 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
           </p>
           <Link
             href="/login"
-            className="text-ns-secondary text-sm font-heading font-medium hover:text-amber-400 transition-colors"
+            className="text-ns-secondary-readable text-sm font-heading font-medium hover:text-amber-400 transition-colors"
           >
             Sign In <ArrowRightIcon size={12} className="inline-block ml-0.5" />
           </Link>

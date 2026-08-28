@@ -8,7 +8,7 @@ interface Props {
 
 export default function PersonalityBadge({ primary, secondary, compact = false }: Props) {
   return (
-    <div className={`bg-ns-surface border border-ns-border rounded-2xl overflow-hidden`}>
+    <div className="h-full overflow-hidden rounded-2xl border border-ns-border bg-ns-surface">
       {/* Primary type */}
       <div className={`${primary.color} border-b border-ns-border ${compact ? 'p-4' : 'p-6'}`}>
         <div className={`${compact ? 'text-3xl mb-2' : 'text-4xl mb-3'}`}>{primary.icon}</div>

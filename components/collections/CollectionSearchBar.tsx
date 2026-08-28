@@ -95,7 +95,7 @@ export default function CollectionSearchBar({
             </button>
           )}
           <button type="submit"
-            className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-ns-secondary text-ns-bg
+            className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-ns-secondary text-ns-secondary-foreground
                        rounded-lg text-xs font-body font-medium hover:bg-ns-secondary/90 transition-colors">
             Go
           </button>
@@ -113,7 +113,7 @@ export default function CollectionSearchBar({
               onClick={() => setShowDropdown(false)}
               className={`flex items-center gap-3 px-4 py-3 transition-colors
                 ${i === activeIdx
-                  ? 'bg-ns-secondary/10 text-ns-secondary'
+                  ? 'bg-ns-secondary/10 text-ns-secondary-readable'
                   : 'text-ns-muted hover:bg-ns-surface/80 hover:text-ns-text'
                 } ${i > 0 ? 'border-t border-ns-border/50' : ''}`}
             >

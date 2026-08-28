@@ -10,6 +10,14 @@ interface Props {
     title:       string
     posterPath:  string | null
     releaseDate: string | null
+    genreIds:    number[]
+    runtime:     number | null
+    voteAverage: number
+    voteCount:   number
+    popularity:  number
+    originalLanguage: string
+    budget:      number
+    keywords:    string[]
   }
   existing:     MovieRatingData | null
   onSaved:      (rating: MovieRatingData) => void
@@ -33,10 +41,7 @@ export default function QuickRatingModal({
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
-          tmdbId:      movie.tmdbId,
-          title:       movie.title,
-          posterPath:  movie.posterPath,
-          releaseDate: movie.releaseDate,
+          ...movie,
           score,
           // Preserve existing sub-ratings if user is just updating the overall score
           storytelling:  existing?.storytelling  ?? null,
@@ -48,11 +53,26 @@ export default function QuickRatingModal({
           review:        existing?.review        ?? null,
         }),
       })
-      if (!res.ok) throw new Error('Failed to save')
+
+      if (!res.ok) {
+        let message = 'Could not save rating. Please try again.'
+        try {
+          const errorData = await res.json()
+          if (typeof errorData?.error === 'string' && errorData.error) {
+            message = `Could not save rating. ${errorData.error}`
+          }
+          if (res.status === 401) message = 'Please sign in to save ratings.'
+        } catch {
+          message = 'Could not save rating. Please try again.'
+        }
+        throw new Error(message)
+      }
+
       const data = await res.json()
       onSaved(data.rating)
-    } catch {
-      setError('Could not save rating. Try again.')
+    } catch (error) {
+      if (error instanceof Error) setError(error.message)
+      else setError('Could not save rating. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -60,11 +80,20 @@ export default function QuickRatingModal({
 
   async function handleDelete() {
     setDeleting(true)
+    setError(null)
     try {
-      await fetch(`/api/ratings/${movie.tmdbId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/ratings/${movie.tmdbId}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        const message = typeof errorData?.error === 'string' && errorData.error
+          ? `Could not delete rating. ${errorData.error}`
+          : 'Could not delete rating. Please try again.'
+        throw new Error(message)
+      }
       onDeleted()
-    } catch {
-      setError('Could not delete rating.')
+    } catch (error) {
+      if (error instanceof Error) setError(error.message)
+      else setError('Could not delete rating. Please try again.')
     } finally {
       setDeleting(false)
     }
@@ -84,7 +113,7 @@ export default function QuickRatingModal({
           {/* Header */}
           <div className="flex items-start justify-between mb-6">
             <div>
-              <p className="text-ns-secondary text-[10px] tracking-widest uppercase font-body mb-1">
+              <p className="text-ns-secondary-readable text-[10px] tracking-widest uppercase font-body mb-1">
                 Rate this film
               </p>
               <h2 className="font-display text-2xl tracking-wider text-ns-text leading-tight">
@@ -118,7 +147,7 @@ export default function QuickRatingModal({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full py-3 rounded-xl bg-ns-secondary text-ns-bg font-body font-semibold
+              className="w-full py-3 rounded-xl bg-ns-secondary text-ns-secondary-foreground font-body font-semibold
                          text-sm tracking-wide hover:bg-amber-400 disabled:opacity-50
                          transition-colors"
             >

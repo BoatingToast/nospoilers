@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import CuratedRecCard from './CuratedRecCard'
 import type { EnrichedRec, CuratedRecGroups } from '@/services/curated-recs'
+import { useDashboardRecommendations } from './DashboardRecommendationsProvider'
 import {
   RecsIcon, FilmIcon, MovieDnaIcon, TrendingIcon, CalendarIcon, ArrowRightIcon,
   type IconProps,
@@ -99,18 +100,8 @@ function GroupShelf({ items, tab }: { items: EnrichedRec[]; tab: TabConfig }) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function CuratedRecsWidget() {
-  const [groups,  setGroups]  = useState<CuratedRecGroups | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState(false)
+  const { groups, loading, loadError, retry } = useDashboardRecommendations()
   const [activeTab, setActiveTab] = useState<RecArrayKey>('weThinkYoudLike')
-
-  useEffect(() => {
-    fetch('/api/curated-recs')
-      .then(r => r.json())
-      .then(data => setGroups(data))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false))
-  }, [])
 
   const currentTab    = TABS.find(t => t.key === activeTab)!
   const currentItems  = groups?.[activeTab] ?? []
@@ -125,7 +116,7 @@ export default function CuratedRecsWidget() {
       {/* Widget header */}
       <div className="flex items-start justify-between mb-5">
         <div>
-          <p className="text-ns-secondary text-[10px] tracking-widest uppercase font-body mb-1 flex items-center gap-1.5">
+          <p className="text-ns-secondary-readable text-[10px] tracking-widest uppercase font-body mb-1 flex items-center gap-1.5">
             <RecsIcon size={11} /> Curated For You
           </p>
           <h2 className="font-display text-2xl tracking-wider text-ns-text">
@@ -136,7 +127,7 @@ export default function CuratedRecsWidget() {
           </p>
         </div>
         <Link href="/my-recommendations"
-          className="text-ns-secondary text-xs font-body hover:text-amber-400 transition-colors flex-shrink-0">
+          className="text-ns-secondary-readable text-xs font-body hover:text-amber-400 transition-colors flex-shrink-0">
           Full center <ArrowRightIcon size={11} className="inline-block" />
         </Link>
       </div>
@@ -154,7 +145,7 @@ export default function CuratedRecsWidget() {
                 className={`flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-body whitespace-nowrap
                             border-b-2 -mb-px transition-all duration-150 flex-shrink-0
                             ${isActive
-                              ? 'border-ns-secondary text-ns-secondary'
+                              ? 'border-ns-secondary text-ns-secondary-readable'
                               : 'border-transparent text-ns-muted hover:text-ns-text'
                             }`}
               >
@@ -163,7 +154,7 @@ export default function CuratedRecsWidget() {
                 <span className="inline sm:hidden">{tab.label.split(' ')[0]}</span>
                 {!loading && count > 0 && (
                   <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-body
-                                    ${isActive ? 'bg-ns-secondary/20 text-ns-secondary' : 'bg-ns-border text-ns-muted/60'}`}>
+                                    ${isActive ? 'bg-ns-secondary/20 text-ns-secondary-readable' : 'bg-ns-border text-ns-muted/60'}`}>
                     {count}
                   </span>
                 )}
@@ -183,12 +174,12 @@ export default function CuratedRecsWidget() {
       {/* Content */}
       {loading ? (
         <Skeleton />
-      ) : error ? (
+      ) : loadError ? (
         <div className="border border-dashed border-ns-border rounded-xl p-8 text-center">
           <p className="text-ns-muted font-body text-sm">
             Could not load recommendations.{' '}
-            <button onClick={() => window.location.reload()}
-              className="text-ns-secondary hover:text-amber-400 transition-colors">
+            <button onClick={retry}
+              className="text-ns-secondary-readable hover:text-amber-400 transition-colors">
               Try again
             </button>
           </p>

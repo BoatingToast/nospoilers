@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { SearchIcon } from '@/components/icons'
 import FollowButton from '@/components/social/FollowButton'
+import Avatar from '@/components/ui/Avatar'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -39,18 +40,15 @@ function UserCard({ user }: { user: UserResult }) {
     <div className="bg-ns-surface border border-ns-border rounded-2xl p-4 flex items-start gap-4
                     hover:border-ns-border/70 transition-all">
       {/* Avatar */}
-      <Link href={`/profile/${user.username}`} className="flex-shrink-0 mt-0.5">
-        <div className="w-11 h-11 rounded-full overflow-hidden bg-ns-border ring-2 ring-transparent hover:ring-ns-secondary/30 transition-all">
-          {user.avatarUrl
-            ? <img src={user.avatarUrl} alt={user.username} className="w-full h-full object-cover" />
-            : (
-              <div className="w-full h-full flex items-center justify-center text-sm font-body font-semibold text-ns-muted bg-ns-bg">
-                {user.username.charAt(0).toUpperCase()}
-              </div>
-            )
-          }
-        </div>
-      </Link>
+      <div className="flex-shrink-0 mt-0.5">
+        <Avatar
+          src={user.avatarUrl}
+          username={user.username}
+          size="md"
+          href
+          className="ring-2 ring-transparent hover:ring-ns-secondary/30 transition-all"
+        />
+      </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
@@ -59,7 +57,7 @@ function UserCard({ user }: { user: UserResult }) {
           <div className="min-w-0">
             <Link
               href={`/profile/${user.username}`}
-              className="text-sm font-body font-semibold text-ns-text hover:text-ns-secondary transition-colors"
+              className="text-sm font-body font-semibold text-ns-text hover:text-ns-secondary-readable transition-colors"
             >
               @{user.username}
             </Link>
@@ -80,7 +78,7 @@ function UserCard({ user }: { user: UserResult }) {
         {/* Meta row */}
         <div className="flex items-center flex-wrap gap-x-3 gap-y-0.5 mt-1.5">
           {user.personality && (
-            <span className="text-[11px] font-body text-ns-secondary/70 font-medium">
+            <span className="text-[11px] font-body text-ns-secondary-readable/70 font-medium">
               {PERSONALITY_LABELS[user.personality] ?? user.personality}
             </span>
           )}

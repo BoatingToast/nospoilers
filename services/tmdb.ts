@@ -4,9 +4,21 @@ import type {
   TMDbCredits,
   TMDbSearchResponse,
   TMDbMultiSearchResponse,
+  TMDbWatchProvidersResponse,
+  TMDbPersonDetail,
+  TMDbPersonMovieCredits,
+  TMDbVideosResponse,
 } from '@/types'
+import type {
+  MovieWatchAccessType,
+  MovieWatchAvailability,
+  MovieWatchProvider,
+} from '@/lib/movie-uploads'
+import { selectAutomaticMovieMatch } from '@/lib/movie-matching'
 
-const BASE_URL = 'https://api.themoviedb.org/3'
+// The override keeps browser tests hermetic by pointing them at a local TMDb
+// fixture server. Production continues to use TMDb unless explicitly configured.
+const BASE_URL = process.env.TMDB_BASE_URL ?? 'https://api.themoviedb.org/3'
 
 const PLACEHOLDER_TOKEN  = 'your-tmdb-read-access-token'
 const PLACEHOLDER_APIKEY = 'your-tmdb-api-key'
@@ -74,8 +86,32 @@ export async function searchMovies(query: string, page = 1): Promise<TMDbSearchR
   return tmdbFetch('/search/movie', { query, page: String(page), include_adult: 'false' })
 }
 
+export async function findAutomaticMovieMatch(title: string, releaseYear: number | null) {
+  const search = await searchMovies(title)
+  return selectAutomaticMovieMatch(title, releaseYear, search.results)
+}
+
+export async function findMovieByImdbId(imdbId: string): Promise<TMDbMovie | null> {
+  const data = await tmdbFetch<{ movie_results?: TMDbMovie[] }>(
+    `/find/${encodeURIComponent(imdbId)}`,
+    { external_source: 'imdb_id' },
+    86400,
+  )
+  return data.movie_results?.[0] ?? null
+}
+
 export async function searchMulti(query: string): Promise<TMDbMultiSearchResponse> {
   return tmdbFetch('/search/multi', { query, include_adult: 'false' }, 60)
+}
+
+// ─── People ──────────────────────────────────────────────────────────────────
+
+export async function getPersonById(id: number): Promise<TMDbPersonDetail> {
+  return tmdbFetch(`/person/${id}`, {}, 86400)
+}
+
+export async function getPersonMovieCredits(id: number): Promise<TMDbPersonMovieCredits> {
+  return tmdbFetch(`/person/${id}/movie_credits`, {}, 86400)
 }
 
 // ─── Movie detail ─────────────────────────────────────────────────────────────
@@ -86,6 +122,10 @@ export async function getMovieById(id: number): Promise<TMDbMovieDetail> {
 
 export async function getMovieCredits(id: number): Promise<TMDbCredits> {
   return tmdbFetch(`/movie/${id}/credits`)
+}
+
+export async function getMovieVideos(id: number): Promise<TMDbVideosResponse> {
+  return tmdbFetch(`/movie/${id}/videos`, {}, 21600)
 }
 
 export async function getMovieSimilar(id: number): Promise<TMDbSearchResponse> {
@@ -109,6 +149,58 @@ export async function getMovieRecommendations(id: number): Promise<TMDbSearchRes
   return tmdbFetch(`/movie/${id}/recommendations`)
 }
 
+export async function getMovieWatchProviders(
+  id: number,
+  region = 'US',
+): Promise<MovieWatchAvailability | null> {
+  const data = await tmdbFetch<TMDbWatchProvidersResponse>(
+    `/movie/${id}/watch/providers`,
+    {},
+    21600,
+  )
+  const regionCode = region.toUpperCase()
+  const availability = data.results?.[regionCode]
+  if (!availability) return null
+
+  const providerMap = new Map<number, MovieWatchProvider & { displayPriority: number }>()
+  const groups: Array<[
+    keyof Pick<typeof availability, 'flatrate' | 'free' | 'ads' | 'rent' | 'buy'>,
+    MovieWatchAccessType,
+  ]> = [
+    ['flatrate', 'stream'],
+    ['free', 'free'],
+    ['ads', 'ads'],
+    ['rent', 'rent'],
+    ['buy', 'buy'],
+  ]
+
+  for (const [key, accessType] of groups) {
+    for (const provider of availability[key] ?? []) {
+      const existing = providerMap.get(provider.provider_id)
+      if (existing) {
+        if (!existing.accessTypes?.includes(accessType)) existing.accessTypes?.push(accessType)
+        continue
+      }
+
+      providerMap.set(provider.provider_id, {
+        name: provider.provider_name,
+        url: availability.link,
+        source: 'tmdb',
+        providerId: provider.provider_id,
+        logoPath: provider.logo_path,
+        accessTypes: [accessType],
+        displayPriority: provider.display_priority,
+      })
+    }
+  }
+
+  const providers = [...providerMap.values()]
+    .sort((a, b) => a.displayPriority - b.displayPriority)
+    .map(({ displayPriority: _displayPriority, ...provider }) => provider)
+
+  return { region: regionCode, link: availability.link, providers }
+}
+
 // ─── Discovery ───────────────────────────────────────────────────────────────
 
 export async function getTrendingMovies(timeWindow: 'day' | 'week' = 'week'): Promise<TMDbSearchResponse> {
@@ -120,7 +212,14 @@ export async function getPopularMovies(page = 1): Promise<TMDbSearchResponse> {
 }
 
 export async function getTopRatedMovies(page = 1): Promise<TMDbSearchResponse> {
-  return tmdbFetch('/movie/top_rated', { page: String(page) })
+  return tmdbFetch('/discover/movie', {
+    sort_by: 'vote_average.desc',
+    page: String(page),
+    include_adult: 'false',
+    include_video: 'false',
+    'vote_average.gte': '7.2',
+    'vote_count.gte': '2000',
+  })
 }
 
 export async function getNowPlaying(): Promise<TMDbSearchResponse> {
@@ -141,12 +240,18 @@ export async function getMoviesByGenre(
 }
 
 export async function getHiddenGems(): Promise<TMDbSearchResponse> {
+  const today = new Date().toISOString().slice(0, 10)
+
   return tmdbFetch('/discover/movie', {
     sort_by:              'vote_average.desc',
-    'vote_average.gte':   '7.5',
-    'vote_count.gte':     '200',
-    'popularity.lte':     '40',
+    'vote_average.gte':   '7.0',
+    'vote_count.gte':     '100',
+    'vote_count.lte':     '2000',
+    'popularity.gte':     '2',
+    'popularity.lte':     '35',
+    'primary_release_date.lte': today,
     include_adult:        'false',
+    include_video:        'false',
   })
 }
 

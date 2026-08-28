@@ -2,15 +2,16 @@
 
 Movie discovery platform — find films you'll love without spoilers.
 
-**Stack:** Next.js 15 · TypeScript · Tailwind CSS · Prisma · PostgreSQL · NextAuth · TMDb API
+**Stack:** Next.js 16 · TypeScript · Tailwind CSS · Prisma · PostgreSQL · NextAuth · TMDb API
 
 ---
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 20.9+
 - PostgreSQL running locally (or a connection string from Neon, Supabase, Railway, etc.)
 - TMDb API key — free at https://www.themoviedb.org/settings/api
+- Supabase project for creator movie uploads
 
 ---
 
@@ -38,15 +39,23 @@ Open `.env` and fill in:
 | `NEXTAUTH_SECRET` | Run `openssl rand -base64 32` to generate |
 | `TMDB_API_KEY` | From your TMDb account settings |
 | `TMDB_ACCESS_TOKEN` | Read Access Token from TMDb (preferred over API key) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase public anon key used for direct movie uploads |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only key used to issue secure upload tokens |
+| `CRON_SECRET` | Separate random secret used to authenticate scheduled cleanup |
+
+Profile pictures are stored in the existing PostgreSQL database. The app creates
+the private Supabase `movie-uploads` bucket automatically when a creator starts
+their first movie upload; access to video bytes must use signed URLs.
 
 ### 3. Set up the database
 
 ```bash
-# Push schema to your database
-npm run db:push
-
-# Or use migrations (recommended for production)
+# Create a development migration after changing the Prisma schema
 npm run db:migrate
+
+# Apply committed migrations in production
+npm run db:deploy
 ```
 
 ### 4. Run locally
@@ -56,6 +65,15 @@ npm run dev
 ```
 
 Open http://localhost:3000
+
+### Chrome extension
+
+The standalone NoSpoilers Shield extension lives in [`extension/`](extension/README.md).
+It classifies page content on-device and hides likely spoilers for a user-managed
+movie/show list. No NoSpoilers backend or API key is required.
+
+To try it locally, open `chrome://extensions`, enable **Developer mode**, choose
+**Load unpacked**, and select the `extension` directory.
 
 ---
 
@@ -101,11 +119,20 @@ nospoilers/
 |---|---|
 | `npm run dev` | Start dev server at localhost:3000 |
 | `npm run build` | Production build |
+| `npm run lint` | Run the Next.js and TypeScript ESLint rules |
+| `npm run typecheck` | Check TypeScript without emitting files |
+| `npm run check` | Run lint, typecheck, unit tests, and a production build |
 | `npm run start` | Start production server |
 | `npm run db:push` | Sync Prisma schema to database (no migration file) |
 | `npm run db:migrate` | Create & run a migration |
+| `npm run db:deploy` | Apply committed migrations without creating new ones |
 | `npm run db:studio` | Open Prisma Studio at localhost:5555 |
 | `npm run db:generate` | Regenerate Prisma client after schema changes |
+| `npm run test:e2e` | Run hermetic Playwright journeys in desktop and mobile Chromium |
+| `npm run test:e2e:ui` | Open Playwright's interactive test runner |
+| `npm run test:extension` | Run the extension classifier and manifest tests |
+| `npm run test:unit` | Run all application and extension unit tests |
+| `npm run package:extension` | Validate and package the Chrome Web Store upload ZIP |
 
 ---
 
@@ -118,6 +145,13 @@ nospoilers/
 | `GET` | `/api/movies/[id]` | Movie detail by TMDb ID |
 | `POST` | `/api/auth/register` | Create new user |
 | `POST` | `/api/auth/[...nextauth]` | NextAuth sign in/out |
+
+### End-to-end tests
+
+Install Chromium once with `npx playwright install chromium`, then run
+`npm run test:e2e`. The suite starts NoSpoilers and a local TMDb fixture server,
+so it does not need a real TMDb key or database. Set `E2E_BASE_URL` to run the
+same journeys against an already-running environment instead.
 
 ---
 

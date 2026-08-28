@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Bebas_Neue, Space_Grotesk } from 'next/font/google'
 import SessionProvider from '@/components/providers/SessionProvider'
 import AchievementNotificationProvider from '@/components/achievements/AchievementNotificationProvider'
+import ProLaunchBanner from '@/components/pro/ProLaunchBanner'
 import './globals.css'
 
 const inter = Inter({
@@ -41,10 +42,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${bebasNeue.variable} ${spaceGrotesk.variable}`}>
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      className={`${inter.variable} ${bebasNeue.variable} ${spaceGrotesk.variable}`}
+    >
       <body className="font-body bg-ns-bg text-ns-text antialiased">
         <SessionProvider>
-          {children}
+          <ProLaunchBanner />
+          <div className="pt-8">{children}</div>
           <AchievementNotificationProvider />
         </SessionProvider>
       </body>

@@ -39,7 +39,7 @@ export default async function CollectionsPage() {
             <Link
               href="/collections/search"
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-ns-border
-                         text-ns-muted text-sm font-body hover:border-ns-secondary/40 hover:text-ns-secondary
+                         text-ns-muted text-sm font-body hover:border-ns-secondary/40 hover:text-ns-secondary-readable
                          transition-all duration-200"
             >
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -50,7 +50,7 @@ export default async function CollectionsPage() {
             {session && (
               <Link
                 href="/collections/new"
-                className="px-5 py-2.5 bg-ns-secondary text-ns-bg rounded-xl text-sm font-body font-medium
+                className="px-5 py-2.5 bg-ns-secondary text-ns-secondary-foreground rounded-xl text-sm font-body font-medium
                            hover:bg-ns-secondary/90 transition-colors"
               >
                 + New Collection
@@ -70,7 +70,7 @@ export default async function CollectionsPage() {
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-display text-2xl tracking-wider text-ns-text">MY COLLECTIONS</h2>
               <Link href="/collections/new"
-                className="text-ns-secondary text-xs font-body hover:text-amber-400 transition-colors">
+                className="text-ns-secondary-readable text-xs font-body hover:text-amber-400 transition-colors">
                 + New
               </Link>
             </div>
@@ -87,7 +87,7 @@ export default async function CollectionsPage() {
           <div className="flex items-center justify-between mb-0">
             <h2 className="font-display text-2xl tracking-wider text-ns-text mb-0">COMMUNITY</h2>
             <Link href="/collections/trending"
-              className="text-ns-secondary text-xs font-body hover:text-amber-400 transition-colors">
+              className="text-ns-secondary-readable text-xs font-body hover:text-amber-400 transition-colors">
               View trending →
             </Link>
           </div>

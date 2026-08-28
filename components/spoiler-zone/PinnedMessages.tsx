@@ -15,7 +15,7 @@ export default function PinnedMessages({ pinned, onJump }: Props) {
       <div className="flex items-start gap-2">
         {/* Pin icon */}
         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"
-          className="text-ns-secondary/60 flex-shrink-0 mt-0.5">
+          className="text-ns-secondary-readable/60 flex-shrink-0 mt-0.5">
           <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/>
         </svg>
         <div className="flex-1 min-w-0">
@@ -30,10 +30,10 @@ export default function PinnedMessages({ pinned, onJump }: Props) {
                 {pinned.length > 1 && <span className="ml-1 text-ns-muted/40">#{i + 1}</span>}
               </p>
               <p className="text-xs font-body text-ns-muted group-hover:text-ns-text transition-colors truncate">
-                <span className="text-ns-secondary font-medium">@{msg.username}</span>
+                <span className="text-ns-secondary-readable font-medium">@{msg.username}</span>
                 {': '}
-                {msg.content.slice(0, 100)}
-                {msg.content.length > 100 && '…'}
+                {msg.viewerUnlocked ? msg.content.slice(0, 100) : 'Locked by your Plot Passport'}
+                {msg.viewerUnlocked && msg.content.length > 100 && '…'}
               </p>
             </button>
           ))}

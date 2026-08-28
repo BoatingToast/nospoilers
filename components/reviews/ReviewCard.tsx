@@ -5,6 +5,8 @@ import Link from 'next/link'
 import type { ReviewWithMeta } from '@/services/reviews'
 import type { ReplyWithUser } from '@/services/reviews'
 import { WarningIcon } from '@/components/icons'
+import { passportLevelLabel } from '@/lib/plot-passport'
+import Avatar from '@/components/ui/Avatar'
 
 interface Props {
   review:      ReviewWithMeta
@@ -12,6 +14,8 @@ interface Props {
   onEdit?:     () => void
   onDeleted?:  (id: string) => void
   sessionId?:  string
+  sessionAvatarUrl?: string | null
+  sessionUsername?: string
 }
 
 function formatDate(iso: string): string {
@@ -21,7 +25,7 @@ function formatDate(iso: string): string {
 }
 
 function RatingBadge({ rating }: { rating: number }) {
-  const color = rating >= 80 ? 'text-emerald-400' : rating >= 60 ? 'text-ns-secondary' : 'text-rose-400'
+  const color = rating >= 80 ? 'text-emerald-400' : rating >= 60 ? 'text-ns-secondary-readable' : 'text-rose-400'
   return (
     <span className={`font-heading font-semibold text-sm ${color}`}>{rating}/100</span>
   )
@@ -33,10 +37,16 @@ function ReplyThread({
   reviewId,
   replyCount,
   sessionId,
+  sessionAvatarUrl,
+  sessionUsername,
+  explicitlyRevealed,
 }: {
   reviewId:   string
   replyCount: number
   sessionId?: string
+  sessionAvatarUrl?: string | null
+  sessionUsername?: string
+  explicitlyRevealed?: boolean
 }) {
   const [open,    setOpen]    = useState(false)
   const [replies, setReplies] = useState<ReplyWithUser[]>([])
@@ -47,7 +57,8 @@ function ReplyThread({
   async function load() {
     if (open) { setOpen(false); return }
     setLoading(true)
-    const res = await fetch(`/api/reviews/${reviewId}/replies`)
+    const suffix = explicitlyRevealed ? '?reveal=1' : ''
+    const res = await fetch(`/api/reviews/${reviewId}/replies${suffix}`, { cache: 'no-store' })
     const data = await res.json()
     setReplies(data.replies ?? [])
     setLoading(false)
@@ -94,15 +105,11 @@ function ReplyThread({
         <div className="mt-3 pl-4 border-l border-ns-border space-y-3">
           {replies.map(reply => (
             <div key={reply.id} className="flex gap-2.5">
-              <Link href={`/profile/${reply.username}`}
-                className="w-6 h-6 rounded-full bg-ns-secondary/20 border border-ns-secondary/30 flex-shrink-0
-                           flex items-center justify-center text-ns-secondary text-[10px] font-bold hover:bg-ns-secondary/30 transition-colors">
-                {reply.username[0]?.toUpperCase()}
-              </Link>
+              <Avatar src={reply.avatarUrl} username={reply.username} size="xs" href />
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2">
                   <Link href={`/profile/${reply.username}`}
-                    className="text-xs font-heading font-medium text-white hover:text-ns-secondary transition-colors">
+                    className="text-xs font-heading font-medium text-white hover:text-ns-secondary-readable transition-colors">
                     @{reply.username}
                   </Link>
                   <span className="text-[10px] font-body text-ns-muted">{formatDate(reply.createdAt)}</span>
@@ -115,11 +122,7 @@ function ReplyThread({
           {/* Reply input */}
           {sessionId && (
             <div className="flex gap-2 items-start pt-1">
-              <div className="w-6 h-6 rounded-full bg-ns-secondary/20 border border-ns-secondary/30 flex-shrink-0
-                              flex items-center justify-center text-ns-secondary text-[10px] font-bold">
-                {/* own initial */}
-                ✎
-              </div>
+              <Avatar src={sessionAvatarUrl} username={sessionUsername} size="xs" />
               <div className="flex-1 flex gap-2">
                 <input
                   value={draft}
@@ -132,7 +135,7 @@ function ReplyThread({
                 <button
                   onClick={postReply}
                   disabled={posting || !draft.trim()}
-                  className="px-3 py-1.5 rounded-lg bg-ns-secondary/15 text-ns-secondary text-xs font-heading font-medium
+                  className="px-3 py-1.5 rounded-lg bg-ns-secondary/15 text-ns-secondary-readable text-xs font-heading font-medium
                              hover:bg-ns-secondary/25 disabled:opacity-40 transition-colors whitespace-nowrap"
                 >
                   {posting ? '…' : 'Post'}
@@ -148,8 +151,18 @@ function ReplyThread({
 
 // ─── Main card ────────────────────────────────────────────────────────────────
 
-export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId }: Props) {
-  const [spoilerRevealed, setSpoilerRevealed] = useState(false)
+export default function ReviewCard({
+  review,
+  isOwn,
+  onEdit,
+  onDeleted,
+  sessionId,
+  sessionAvatarUrl,
+  sessionUsername,
+}: Props) {
+  const [revealedReview, setRevealedReview] = useState<{ title: string | null; body: string } | null>(null)
+  const [revealLoading, setRevealLoading] = useState(false)
+  const [revealError, setRevealError] = useState(false)
   const [votes,           setVotes]           = useState({
     upvotes:     review.upvotes,
     downvotes:   review.downvotes,
@@ -158,6 +171,32 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
   const [viewerVotes, setViewerVotes] = useState<string[]>(review.viewerVotes)
   const [deleting,    setDeleting]    = useState(false)
   const [confirmDel,  setConfirmDel]  = useState(false)
+  const passportLocked = !isOwn && !review.viewerUnlocked && revealedReview === null
+  const visibleTitle = review.viewerUnlocked || isOwn ? review.title : revealedReview?.title ?? null
+  const visibleBody = review.viewerUnlocked || isOwn ? review.body : revealedReview?.body ?? ''
+
+  async function revealSpoiler() {
+    if (revealLoading) return
+    setRevealLoading(true)
+    setRevealError(false)
+    try {
+      const response = await fetch(`/api/reviews/${review.id}/reveal`, {
+        method: 'POST',
+        cache: 'no-store',
+      })
+      if (!response.ok) throw new Error('Reveal failed')
+      const data = await response.json() as { title?: unknown; body?: unknown }
+      if (typeof data.body !== 'string') throw new Error('Invalid reveal response')
+      setRevealedReview({
+        title: typeof data.title === 'string' ? data.title : null,
+        body: data.body,
+      })
+    } catch {
+      setRevealError(true)
+    } finally {
+      setRevealLoading(false)
+    }
+  }
 
   async function vote(type: 'upvote' | 'downvote' | 'helpful') {
     if (!sessionId) return
@@ -201,7 +240,7 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
 
   const bodyContent = (
     <div className="prose prose-sm prose-invert max-w-none">
-      {review.body.split('\n').map((line, i) => (
+      {visibleBody.split('\n').map((line, i) => (
         <p key={i} className="text-sm font-body text-ns-text/85 leading-relaxed mb-2 last:mb-0">
           {line}
         </p>
@@ -220,21 +259,16 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-3 min-w-0">
           {/* Avatar */}
-          <Link href={`/profile/${review.username}`}
-            className="w-9 h-9 rounded-full bg-ns-secondary/20 border border-ns-secondary/30 flex-shrink-0
-                       flex items-center justify-center text-ns-secondary text-sm font-bold
-                       hover:bg-ns-secondary/30 transition-colors">
-            {review.username[0]?.toUpperCase()}
-          </Link>
+          <Avatar src={review.avatarUrl} username={review.username} size="sm" href />
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <Link href={`/profile/${review.username}`}
-                className="font-heading font-semibold text-sm text-white hover:text-ns-secondary transition-colors">
+                className="font-heading font-semibold text-sm text-white hover:text-ns-secondary-readable transition-colors">
                 @{review.username}
               </Link>
               {review.isFriend && (
-                <span className="px-2 py-0.5 rounded-full bg-ns-secondary/15 text-ns-secondary text-[10px] font-body">
+                <span className="px-2 py-0.5 rounded-full bg-ns-secondary/15 text-ns-secondary-readable text-[10px] font-body">
                   Friend
                 </span>
               )}
@@ -252,9 +286,9 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
           {review.rating !== null && <RatingBadge rating={review.rating} />}
 
           {/* Spoiler badge */}
-          {review.hasSpoilers && (
+          {review.spoilerLevel !== 'safe' && (
             <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-400 text-[10px] font-body whitespace-nowrap">
-              <WarningIcon size={10} className="inline-block mr-1" />Spoilers
+              <WarningIcon size={10} className="inline-block mr-1" />{passportLevelLabel(review.spoilerLevel)}
             </span>
           )}
 
@@ -282,27 +316,40 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
       </div>
 
       {/* Headline */}
-      {review.title && (
-        <p className="font-heading font-semibold text-white mb-2">{review.title}</p>
+      {visibleTitle && (
+        <p className="font-heading font-semibold text-white mb-2">{visibleTitle}</p>
       )}
 
       {/* Body — spoiler gate */}
-      {review.hasSpoilers && !spoilerRevealed ? (
+      {passportLocked ? (
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mb-3">
           <div className="flex flex-col items-center gap-3 py-2">
             <p className="text-amber-400 text-sm font-heading font-medium flex items-center gap-1.5">
-              <WarningIcon size={14} />Contains Spoilers
+              <WarningIcon size={14} />Locked by your Plot Passport
             </p>
             <p className="text-ns-muted text-xs font-body text-center max-w-xs">
-              This review reveals plot details. Only read if you've already seen the film.
+              You are at {review.viewerProgress}%. This review unlocks automatically at {review.unlockAtProgress}%.
             </p>
-            <button
-              onClick={() => setSpoilerRevealed(true)}
-              className="px-4 py-2 rounded-xl border border-amber-500/40 text-amber-400 text-sm font-heading font-medium
-                         hover:bg-amber-500/15 transition-colors"
-            >
-              Show Review
-            </button>
+            <div className="flex flex-wrap justify-center gap-2">
+              {sessionId && (
+                <Link
+                  href="/plot-passport"
+                  className="px-4 py-2 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-xs font-heading font-semibold hover:bg-ns-secondary/90 transition-colors"
+                >
+                  Update progress
+                </Link>
+              )}
+              <button
+                onClick={revealSpoiler}
+                disabled={revealLoading}
+                className="px-4 py-2 rounded-xl border border-amber-500/40 text-amber-400 text-xs font-heading font-medium hover:bg-amber-500/15 transition-colors disabled:opacity-50"
+              >
+                {revealLoading ? 'Revealing…' : 'Reveal anyway'}
+              </button>
+            </div>
+            {revealError && (
+              <p className="text-rose-400 text-xs font-body">Could not reveal this review. Try again.</p>
+            )}
           </div>
         </div>
       ) : (
@@ -318,7 +365,7 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
           disabled={!sessionId}
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-body transition-colors ${
             viewerVotes.includes('helpful')
-              ? 'bg-ns-secondary/15 text-ns-secondary'
+              ? 'bg-ns-secondary/15 text-ns-secondary-readable'
               : 'text-ns-muted hover:text-white hover:bg-white/5'
           } disabled:opacity-50 disabled:cursor-default`}
         >
@@ -369,11 +416,16 @@ export default function ReviewCard({ review, isOwn, onEdit, onDeleted, sessionId
       </div>
 
       {/* Reply thread */}
-      <ReplyThread
-        reviewId={review.id}
-        replyCount={review.replyCount}
-        sessionId={sessionId}
-      />
+      {!passportLocked && (
+        <ReplyThread
+          reviewId={review.id}
+          replyCount={review.replyCount}
+          sessionId={sessionId}
+          sessionAvatarUrl={sessionAvatarUrl}
+          sessionUsername={sessionUsername}
+          explicitlyRevealed={revealedReview !== null}
+        />
+      )}
     </article>
   )
 }

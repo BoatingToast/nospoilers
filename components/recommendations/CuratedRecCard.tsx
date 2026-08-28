@@ -18,7 +18,7 @@ interface Props {
 
 function matchColor(score: number) {
   if (score >= 85) return { text: 'text-ns-success',   dot: 'bg-ns-success' }
-  if (score >= 70) return { text: 'text-ns-secondary', dot: 'bg-ns-secondary' }
+  if (score >= 70) return { text: 'text-ns-secondary-readable', dot: 'bg-ns-secondary' }
   if (score >= 55) return { text: 'text-ns-info',      dot: 'bg-ns-info' }
   return               { text: 'text-ns-muted',        dot: 'bg-ns-muted' }
 }
@@ -26,6 +26,9 @@ function matchColor(score: number) {
 export default function CuratedRecCard({ rec }: Props) {
   const [showWhy, setShowWhy] = useState(false)
   const colors = matchColor(rec.matchScore)
+  const strongestRating = rec.matchedRatings?.[0]
+  const strongestFavorite = rec.similarToTitle ?? rec.matchedFavorites?.[0]
+  const likedPick = rec.matchedLikedPicks?.[0]
 
   return (
     <>
@@ -58,7 +61,7 @@ export default function CuratedRecCard({ rec }: Props) {
         {/* Title */}
         <Link href={`/movie/${rec.tmdbId}`}>
           <h3 className="text-ns-text text-[12px] font-body font-semibold leading-tight line-clamp-2
-                         group-hover:text-ns-secondary transition-colors mb-1">
+                         group-hover:text-ns-secondary-readable transition-colors mb-1">
             {rec.title}
           </h3>
         </Link>
@@ -69,13 +72,25 @@ export default function CuratedRecCard({ rec }: Props) {
           </p>
         )}
 
-        {/* "Because you liked" — show the specific attribution if available */}
-        {(rec.similarToTitle ?? rec.matchedFavorites[0]) && (
+        {/* Show the strongest concrete reason directly on the card. */}
+        {(strongestRating || likedPick || strongestFavorite) && (
           <p className="text-ns-muted text-[10px] font-body leading-tight line-clamp-2 mb-1.5">
-            <span className="text-ns-muted/50">Like </span>
-            <span className="text-ns-muted">
-              {rec.similarToTitle ?? rec.matchedFavorites.slice(0, 2).join(' & ')}
-            </span>
+            {strongestRating ? (
+              <>
+                <span className="text-ns-muted/50">You rated </span>
+                <span className="text-ns-muted">{strongestRating.title} {strongestRating.score}</span>
+              </>
+            ) : likedPick ? (
+              <>
+                <span className="text-ns-muted/50">You liked </span>
+                <span className="text-ns-muted">{likedPick}</span>
+              </>
+            ) : (
+              <>
+                <span className="text-ns-muted/50">Like </span>
+                <span className="text-ns-muted">{strongestFavorite}</span>
+              </>
+            )}
           </p>
         )}
 
@@ -120,7 +135,7 @@ export default function CuratedRecCard({ rec }: Props) {
             className="flex-shrink-0 flex items-center gap-1 px-2 py-1.5 rounded-lg
                        border border-ns-border bg-ns-surface
                        text-ns-muted text-[10px] font-body
-                       hover:border-ns-secondary/40 hover:text-ns-secondary
+                       hover:border-ns-secondary/40 hover:text-ns-secondary-readable
                        transition-all duration-150"
           >
             <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

@@ -8,7 +8,7 @@ import type { RecommendationItem } from '@/types'
 export default function RecommendationCard({ rec }: { rec: RecommendationItem }) {
   const scoreColor =
     rec.matchScore >= 85 ? 'text-emerald-400' :
-    rec.matchScore >= 70 ? 'text-ns-secondary' :
+    rec.matchScore >= 70 ? 'text-ns-secondary-readable' :
                            'text-ns-muted'
 
   const isDismissed    = rec.feedback === 'dismissed' || rec.feedback === 'not_interested'
@@ -42,7 +42,7 @@ export default function RecommendationCard({ rec }: { rec: RecommendationItem })
           </div>
 
           <h3 className="text-ns-text font-body font-semibold text-sm leading-tight line-clamp-2
-                         group-hover:text-ns-secondary transition-colors">
+                         group-hover:text-ns-secondary-readable transition-colors">
             {rec.title}
           </h3>
 

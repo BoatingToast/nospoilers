@@ -37,7 +37,7 @@ const RARITY_CONFIG: Record<AchievementRarity, {
   },
   legendary: {
     label:       'Legendary',
-    textClass:   'text-ns-secondary',
+    textClass:   'text-ns-secondary-readable',
     borderClass: 'border-ns-secondary/30',
     bgClass:     'bg-ns-secondary/5',
     glowStyle:   'rgb(var(--ns-secondary)/0.2)',
@@ -156,7 +156,7 @@ export default function AchievementCard({ achievement }: Props) {
           {/* XP badge */}
           <div className="flex-shrink-0 flex flex-col items-end gap-1">
             <span className={`text-[10px] font-body font-semibold flex items-center gap-0.5 ${
-              achievement.earned ? 'text-ns-secondary' : 'text-ns-muted/50'
+              achievement.earned ? 'text-ns-secondary-readable' : 'text-ns-muted/50'
             }`}>
               <SuspenseIcon size={10} />
               {achievement.xpReward}

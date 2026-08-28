@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { SearchIcon, FriendsIcon, PersonIcon } from '@/components/icons'
 import UserSocialCard, { type SocialUser }     from './UserSocialCard'
+import SocialHubNav from './SocialHubNav'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -76,7 +77,7 @@ function EmptyState({ mode, hasSearch }: { mode: Mode; hasSearch: boolean }) {
     friends: {
       icon:    <FriendsIcon size={28} className="text-ns-muted/25" />,
       heading: 'No movie friends yet',
-      sub:     'When you and another user follow each other, you become friends automatically.',
+      sub:     'Accepted friend requests and movie connections will show up here.',
       cta:     { label: 'Find users with similar Movie DNA', href: '/friends/find' },
     },
   }
@@ -93,43 +94,10 @@ function EmptyState({ mode, hasSearch }: { mode: Mode; hasSearch: boolean }) {
       <Link
         href={cta.href}
         className="px-5 py-2.5 rounded-xl text-sm font-body font-semibold
-                   bg-ns-secondary text-black hover:bg-amber-400 transition-colors"
+                   bg-ns-secondary text-ns-secondary-foreground hover:bg-amber-400 hover:text-ns-bg transition-colors"
       >
         {cta.label}
       </Link>
-    </div>
-  )
-}
-
-// ── Page header ───────────────────────────────────────────────────────────────
-
-function PageHeader({ mode, total }: { mode: Mode; total: number }) {
-  const tabs: { key: Mode; label: string; href: string }[] = [
-    { key: 'followers', label: 'Followers', href: '/social/followers' },
-    { key: 'following', label: 'Following', href: '/social/following' },
-    { key: 'friends',   label: 'Friends',   href: '/social/friends'   },
-  ]
-
-  return (
-    <div className="mb-6">
-      <div className="flex items-center gap-1 bg-ns-surface border border-ns-border/60 rounded-2xl p-1 w-fit">
-        {tabs.map(t => (
-          <Link
-            key={t.key}
-            href={t.href}
-            className={`px-4 py-2 rounded-xl text-sm font-body font-semibold transition-all
-              ${t.key === mode
-                ? 'bg-ns-secondary text-black'
-                : 'text-ns-muted/70 hover:text-ns-text'
-              }`}
-          >
-            {t.label}
-            {t.key === mode && total > 0 && (
-              <span className="ml-1.5 text-[10px] font-body opacity-70">{total.toLocaleString()}</span>
-            )}
-          </Link>
-        ))}
-      </div>
     </div>
   )
 }
@@ -188,7 +156,7 @@ function Toolbar({
           onClick={() => onOnlyFriends(!onlyFriends)}
           className={`px-3 py-2.5 rounded-xl text-xs font-body font-semibold border transition-all
             ${onlyFriends
-              ? 'bg-ns-secondary/15 text-ns-secondary border-ns-secondary/40'
+              ? 'bg-ns-secondary/15 text-ns-secondary-readable border-ns-secondary/40'
               : 'bg-ns-surface text-ns-muted/60 border-ns-border/60 hover:border-ns-secondary/30'
             }`}
         >
@@ -204,9 +172,15 @@ function Toolbar({
 
 interface SocialListPageProps {
   mode: Mode
+  embedded?: boolean
+  showNavigation?: boolean
 }
 
-export default function SocialListPage({ mode }: SocialListPageProps) {
+export default function SocialListPage({
+  mode,
+  embedded = false,
+  showNavigation = true,
+}: SocialListPageProps) {
   const [users,       setUsers]       = useState<SocialUser[]>([])
   const [total,       setTotal]       = useState(0)
   const [loading,     setLoading]     = useState(true)
@@ -277,9 +251,24 @@ export default function SocialListPage({ mode }: SocialListPageProps) {
       .finally(() => setLoadingMore(false))
   }
 
+  const countLabel = mode === 'friends'
+    ? `friend${total === 1 ? '' : 's'}`
+    : mode === 'followers'
+      ? `follower${total === 1 ? '' : 's'}`
+      : 'following'
+
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <PageHeader mode={mode} total={total} />
+    <div className={embedded ? '' : 'max-w-2xl mx-auto px-4 sm:px-6 py-8'}>
+      {showNavigation && <SocialHubNav active={mode} />}
+
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <p className="text-[10px] font-body uppercase tracking-[0.18em] text-ns-muted">
+          {loading ? 'Loading connections…' : `${total.toLocaleString()} ${countLabel}`}
+        </p>
+        <Link href="/friends/find" className="text-xs font-body text-ns-secondary-readable transition-colors hover:text-amber-400">
+          Find people →
+        </Link>
+      </div>
 
       <Toolbar
         mode={mode}
@@ -318,7 +307,7 @@ export default function SocialListPage({ mode }: SocialListPageProps) {
                 disabled={loadingMore}
                 className="px-6 py-2.5 rounded-xl text-sm font-body font-semibold
                            bg-ns-surface border border-ns-border/60
-                           text-ns-muted/70 hover:text-ns-secondary hover:border-ns-secondary/40
+                           text-ns-muted/70 hover:text-ns-secondary-readable hover:border-ns-secondary/40
                            transition-all disabled:opacity-40"
               >
                 {loadingMore ? (

@@ -1,5 +1,16 @@
 import { prisma } from '@/lib/db'
 import { logActivity } from './activity'
+import { generateDNA } from './dna'
+import { getMovieById, getMovieKeywords } from './tmdb'
+import {
+  analyzeReviewTraits,
+  applyTraitEvidence,
+  computeDeterministicDNA,
+  DNA_DIMENSIONS,
+  NEUTRAL_DNA,
+  type RatingDnaEvidence,
+} from './dna-v2'
+import { computeMovieVibe, type MovieVibeInput } from './movie-vibe'
 import type { MovieRatingData, RatingStats, DNAScores } from '@/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -9,6 +20,14 @@ export interface UpsertRatingInput {
   title:         string
   posterPath:    string | null
   releaseDate:   string | null
+  genreIds?:     number[]
+  runtime?:      number | null
+  voteAverage?:  number | null
+  voteCount?:    number | null
+  popularity?:   number | null
+  originalLanguage?: string | null
+  budget?:       number | null
+  keywords?:     string[]
   /** Overall score 1–100. Always the user's explicit choice — never derived from dimensions. */
   score:         number
   /** Dimension metadata 1–10 — descriptive only, never affect score. */
@@ -21,12 +40,46 @@ export interface UpsertRatingInput {
   review?:       string | null
 }
 
+// Keep the response projection limited to the original rating columns. This
+// lets reads continue to work while an additive metadata migration is rolling
+// out, and gives the write path a safe legacy retry below.
+const RATING_DATA_SELECT = {
+  id: true,
+  tmdbId: true,
+  title: true,
+  posterPath: true,
+  releaseDate: true,
+  score: true,
+  storytelling: true,
+  characters: true,
+  entertainment: true,
+  emotion: true,
+  complexity: true,
+  suspense: true,
+  review: true,
+  createdAt: true,
+  updatedAt: true,
+} as const
+
+function isMissingColumnError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null &&
+    'code' in error && error.code === 'P2022'
+}
+
 // ─── CRUD ─────────────────────────────────────────────────────────────────────
 
 export async function upsertRating(
   userId: string,
   input: UpsertRatingInput,
 ): Promise<MovieRatingData> {
+  // Movie pages send this evidence with the rating. API consumers that do not
+  // are hydrated once from TMDb, then the evidence is persisted for every
+  // future deterministic recalculation.
+  const suppliedMetadata = input.genreIds !== undefined
+    ? normalizeMetadata(input)
+    : null
+  const metadata = suppliedMetadata ?? await fetchMovieMetadata(input.tmdbId)
+
   const data = {
     userId,
     tmdbId:        input.tmdbId,
@@ -43,14 +96,38 @@ export async function upsertRating(
     review:        input.review        ?? null,
   }
 
-  const rating = await prisma.movieRating.upsert({
-    where:  { userId_tmdbId: { userId, tmdbId: input.tmdbId } },
-    create: data,
-    update: { ...data, updatedAt: new Date() },
-  })
+  let rating
+  try {
+    rating = await prisma.movieRating.upsert({
+      where:  { userId_tmdbId: { userId, tmdbId: input.tmdbId } },
+      create: {
+        ...data,
+        ...(metadata ?? { genreIds: [], keywords: [], dnaMetadataVersion: 0 }),
+      },
+      // A temporary TMDb failure must not erase evidence already cached on an
+      // existing rating.
+      update: { ...data, ...(metadata ?? {}), updatedAt: new Date() },
+      select: RATING_DATA_SELECT,
+    })
+  } catch (error) {
+    if (!isMissingColumnError(error)) throw error
 
-  // Re-derive the user's taste profile from all their ratings
-  void recalcTasteProfile(userId).catch(() => {})
+    // Some production environments historically deployed application code
+    // before running additive Prisma migrations. Save the user's rating using
+    // the legacy columns in that window; once the migration lands, the normal
+    // path above resumes caching metadata and later DNA recalculation hydrates
+    // legacy rows whose metadata version defaults to 0.
+    rating = await prisma.movieRating.upsert({
+      where:  { userId_tmdbId: { userId, tmdbId: input.tmdbId } },
+      create: data,
+      update: { ...data, updatedAt: new Date() },
+      select: RATING_DATA_SELECT,
+    })
+  }
+
+  // Keep the request alive until the derived profile is consistent. A DNA
+  // failure never rolls back the user's successfully saved rating.
+  await recalcTasteProfile(userId).catch(() => {})
   // Log for friends feed
   void logActivity(userId, 'rated_movie', {
     tmdbId:     input.tmdbId,
@@ -66,7 +143,7 @@ export async function deleteRating(userId: string, tmdbId: number): Promise<void
     where: { userId_tmdbId: { userId, tmdbId } },
   }).catch(() => {}) // swallow if not found
 
-  void recalcTasteProfile(userId).catch(() => {})
+  await recalcTasteProfile(userId).catch(() => {})
 }
 
 export async function getRating(
@@ -75,6 +152,7 @@ export async function getRating(
 ): Promise<MovieRatingData | null> {
   const r = await prisma.movieRating.findUnique({
     where: { userId_tmdbId: { userId, tmdbId } },
+    select: RATING_DATA_SELECT,
   })
   return r ? toData(r) : null
 }
@@ -94,6 +172,7 @@ export async function getUserRatings(
       orderBy,
       skip:    (page - 1) * limit,
       take:    limit,
+      select:  RATING_DATA_SELECT,
     }),
     prisma.movieRating.count({ where: { userId } }),
   ])
@@ -167,243 +246,360 @@ export async function getRatingStats(userId: string): Promise<RatingStats> {
   }
 }
 
-// ─── Taste profile recalculation ──────────────────────────────────────────────
-// Re-derives the user's Movie DNA from all their ratings using:
-//   • Exponential score weighting  (100 → 4×, 95 → 2.5×, 80 → 1.5×, 70 → 0.8×, 60 → 0.4×, <60 → 0.15×)
-//   • Correct sub-rating → DNA dimension mapping
-//   • Watchlist genre IDs so computeMovieVibe gets real signals
-//   • Adaptive blend ratio (more ratings = more weight on ratings-derived DNA)
-//   • Snapshot of old DNA saved before update (for "Your Taste Is Evolving" widget)
+// ─── Taste profile recalculation (DNA v2) ────────────────────────────────────
 
-/** Exponential weighting: highly-rated films matter far more than middling ones */
-function scoreToWeight(score: number): number {
-  if (score >= 95) return 4.0
-  if (score >= 90) return 2.5
-  if (score >= 80) return 1.5
-  if (score >= 70) return 0.8
-  if (score >= 60) return 0.4
-  return 0.15
+interface CachedMovieMetadata {
+  genreIds: number[]
+  runtime: number | null
+  voteAverage: number | null
+  voteCount: number | null
+  popularity: number | null
+  originalLanguage: string | null
+  budget: number | null
+  keywords: string[]
+  dnaMetadataVersion: number
 }
 
-// Re-exported for use in top-five.ts and other services
-export { ratingBlendRatio } from './ratings-helpers'
-import { ratingBlendRatio } from './ratings-helpers'
+function normalizeMetadata(input: Pick<UpsertRatingInput,
+  'genreIds' | 'runtime' | 'voteAverage' | 'voteCount' | 'popularity' |
+  'originalLanguage' | 'budget' | 'keywords'
+>): CachedMovieMetadata {
+  return {
+    genreIds: (input.genreIds ?? []).filter(Number.isInteger),
+    runtime: input.runtime ?? null,
+    voteAverage: input.voteAverage ?? null,
+    voteCount: input.voteCount ?? null,
+    popularity: input.popularity ?? null,
+    originalLanguage: input.originalLanguage ?? null,
+    budget: input.budget ?? null,
+    keywords: (input.keywords ?? []).map(keyword => keyword.toLowerCase()),
+    dnaMetadataVersion: 1,
+  }
+}
 
-export async function recalcTasteProfile(userId: string): Promise<void> {
-  const { computeMovieVibe } = await import('./movie-vibe')
-  const { TOP5_WEIGHTS }     = await import('./top-five')
+async function fetchMovieMetadata(tmdbId: number): Promise<CachedMovieMetadata | null> {
+  try {
+    const [movie, keywords] = await Promise.all([
+      getMovieById(tmdbId),
+      getMovieKeywords(tmdbId),
+    ])
+    return normalizeMetadata({
+      genreIds: movie.genres.map(genre => genre.id),
+      runtime: movie.runtime,
+      voteAverage: movie.vote_average,
+      voteCount: movie.vote_count,
+      popularity: movie.popularity,
+      originalLanguage: movie.original_language,
+      budget: movie.budget,
+      keywords,
+    })
+  } catch {
+    return null
+  }
+}
 
-  // Fetch everything needed: profile, ratings, watchlist metadata, and Top 5
-  const [user, ratings, watchlistItems, top5Movies] = await Promise.all([
+async function mapWithConcurrency<T, R>(
+  values: T[],
+  limit: number,
+  work: (value: T) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(values.length)
+  let cursor = 0
+  const workers = Array.from({ length: Math.min(limit, values.length) }, async () => {
+    while (cursor < values.length) {
+      const index = cursor++
+      results[index] = await work(values[index])
+    }
+  })
+  await Promise.all(workers)
+  return results
+}
+
+function clampDna(value: number): number {
+  return Math.max(1, Math.min(10, value))
+}
+
+function refineVibeWithSubratings(vibe: DNAScores, rating: {
+  storytelling: number | null
+  characters: number | null
+  entertainment: number | null
+  emotion: number | null
+  complexity: number | null
+  suspense: number | null
+}): DNAScores {
+  const refined = { ...vibe }
+
+  if (rating.storytelling !== null) {
+    refined.complexityScore = refined.complexityScore * 0.3 + rating.storytelling * 0.7
+    refined.emotionalImpactScore = refined.emotionalImpactScore * 0.6 + rating.storytelling * 0.4
+  }
+  if (rating.characters !== null) {
+    refined.emotionalImpactScore = refined.emotionalImpactScore * 0.4 + rating.characters * 0.6
+    refined.realismScore = refined.realismScore * 0.8 + rating.characters * 0.2
+    refined.complexityScore = refined.complexityScore * 0.8 + rating.characters * 0.2
+  }
+  if (rating.entertainment !== null) {
+    refined.actionScore = refined.actionScore * 0.4 + rating.entertainment * 0.6
+    refined.humorScore = refined.humorScore * 0.6 + rating.entertainment * 0.4
+  }
+  if (rating.emotion !== null) refined.emotionalImpactScore = rating.emotion
+  if (rating.complexity !== null) refined.complexityScore = rating.complexity
+  if (rating.suspense !== null) refined.suspenseScore = rating.suspense
+
+  for (const dim of DNA_DIMENSIONS) refined[dim] = clampDna(refined[dim])
+  return refined
+}
+
+interface FallbackMetadata {
+  genreIds: number[]
+  releaseDate: string | null
+  runtime: number | null
+  voteAverage: number | null
+}
+
+function toMovieVibeInput(
+  tmdbId: number,
+  metadata: CachedMovieMetadata,
+  releaseDate: string | null,
+  fallback?: FallbackMetadata,
+): MovieVibeInput {
+  const genreIds = metadata.genreIds.length > 0 ? metadata.genreIds : fallback?.genreIds ?? []
+  return {
+    id: tmdbId,
+    genres: genreIds.map(id => ({ id, name: '' })),
+    runtime: metadata.runtime ?? fallback?.runtime ?? null,
+    vote_average: metadata.voteAverage ?? fallback?.voteAverage ?? 7,
+    vote_count: metadata.voteCount ?? 0,
+    popularity: metadata.popularity ?? 50,
+    release_date: releaseDate ?? fallback?.releaseDate ?? '',
+    original_language: metadata.originalLanguage ?? 'en',
+    budget: metadata.budget ?? 0,
+  }
+}
+
+type RecalcJob = { queued: boolean; promise: Promise<void> }
+const recalcJobs = new Map<string, RecalcJob>()
+
+/**
+ * Coalesce overlapping edits for one user. A change that arrives during a
+ * rebuild guarantees one final pass over the newest evidence.
+ */
+export function recalcTasteProfile(userId: string): Promise<void> {
+  const active = recalcJobs.get(userId)
+  if (active) {
+    active.queued = true
+    return active.promise
+  }
+
+  const job: RecalcJob = { queued: false, promise: Promise.resolve() }
+  recalcJobs.set(userId, job)
+  job.promise = (async () => {
+    do {
+      job.queued = false
+      await performTasteProfileRecalc(userId)
+    } while (job.queued)
+  })().finally(() => {
+    if (recalcJobs.get(userId) === job) recalcJobs.delete(userId)
+  })
+  return job.promise
+}
+
+async function performTasteProfileRecalc(userId: string): Promise<void> {
+  const [user, rawRatings, watchlistItems, topFiveMovies, reviews] = await Promise.all([
     prisma.user.findUnique({
-      where:  { id: userId },
-      select: { tasteProfile: true },
+      where: { id: userId },
+      select: {
+        tasteProfile: true,
+        preferences: {
+          select: {
+            genres: true, pacing: true, endings: true, storytelling: true,
+            tone: true, complexity: true, plotTwists: true,
+            pacingScale: true, endingClosure: true, storytellingScale: true,
+            toneScale: true, escapism: true, emotionalIntensity: true,
+            eraOpenness: true, runtimePreference: true, popularityPreference: true,
+            discoveryPreference: true, subtitleOpenness: true,
+            violenceTolerance: true, horrorTolerance: true,
+            animationOpenness: true, documentaryOpenness: true,
+            excludedGenres: true,
+          },
+        },
+        onboardingMovies: {
+          select: {
+            tmdbId: true, title: true, posterPath: true,
+            releaseDate: true, genreIds: true,
+          },
+        },
+      },
     }),
     prisma.movieRating.findMany({
-      where:  { userId },
+      where: { userId },
+      orderBy: [{ tmdbId: 'asc' }],
       select: {
-        tmdbId: true, score: true,
+        id: true, tmdbId: true, releaseDate: true, score: true, review: true,
         storytelling: true, characters: true, entertainment: true,
         emotion: true, complexity: true, suspense: true,
+        genreIds: true, runtime: true, voteAverage: true, voteCount: true,
+        popularity: true, originalLanguage: true, budget: true, keywords: true,
+        dnaMetadataVersion: true,
       },
     }),
     prisma.watchlistItem.findMany({
-      where:  { userId },
-      select: { tmdbId: true, genreIds: true, runtime: true, voteAverage: true },
+      where: { userId },
+      select: {
+        tmdbId: true, genreIds: true, releaseDate: true,
+        runtime: true, voteAverage: true,
+      },
     }),
     prisma.topFiveMovie.findMany({
-      where:   { userId },
+      where: { userId },
       orderBy: { position: 'asc' },
-      select:  { tmdbId: true, genreIds: true, releaseDate: true, position: true },
+      select: { tmdbId: true, genreIds: true, releaseDate: true, position: true },
+    }),
+    prisma.review.findMany({
+      where: { userId },
+      select: { tmdbId: true, rating: true, body: true },
     }),
   ])
 
   if (!user) return
-  // Need at least ratings OR top 5 to do anything meaningful
-  if (ratings.length === 0 && top5Movies.length === 0) return
-  // A TasteProfile row may not exist yet (e.g. the user rated/curated a Top 5
-  // without ever finishing onboarding) — we still derive full DNA from real
-  // ratings/Top-5 data below and upsert it, we just have no prior DNA to
-  // blend against in that case (handled via `hasExisting` below).
-  const hasExisting = !!user.tasteProfile
 
-  // Build a quick lookup: tmdbId → watchlist metadata
-  const watchlistMap = new Map(watchlistItems.map(w => [w.tmdbId, w]))
+  // Backfill legacy rating rows once. Failures retain version 0 so a later
+  // recalculation can retry without sacrificing the rating itself.
+  const ratings = await mapWithConcurrency(rawRatings, 4, async rating => {
+    if (rating.dnaMetadataVersion > 0) return rating
+    const metadata = await fetchMovieMetadata(rating.tmdbId)
+    if (!metadata) return rating
+    await prisma.movieRating.update({ where: { id: rating.id }, data: metadata })
+    return { ...rating, ...metadata }
+  })
 
-  const dims: (keyof DNAScores)[] = [
-    'suspenseScore', 'emotionalImpactScore', 'complexityScore',
-    'humorScore', 'realismScore', 'actionScore', 'darknessScore',
-  ]
-
-  // Weighted accumulators per DNA dimension
-  const sums:    Record<keyof DNAScores, number> = Object.fromEntries(dims.map(d => [d, 0])) as Record<keyof DNAScores, number>
-  const weights: Record<keyof DNAScores, number> = Object.fromEntries(dims.map(d => [d, 0])) as Record<keyof DNAScores, number>
-
-  for (const r of ratings) {
-    const meta = watchlistMap.get(r.tmdbId)
-
-    // Use real genre IDs from watchlist when available — this is the main fix vs. the old `genres: []`
-    const movieVibe = computeMovieVibe({
-      id:                r.tmdbId,
-      genres:            meta?.genreIds?.map(id => ({ id, name: '' })) ?? [],
-      runtime:           meta?.runtime ?? null,
-      vote_average:      meta?.voteAverage ?? 7,
-      vote_count:        200,
-      popularity:        50,
-      release_date:      '',
-      original_language: 'en',
+  const fallbackMap = new Map<number, FallbackMetadata>()
+  for (const movie of user.onboardingMovies) {
+    fallbackMap.set(movie.tmdbId, {
+      genreIds: movie.genreIds,
+      releaseDate: movie.releaseDate,
+      runtime: null,
+      voteAverage: null,
     })
-
-    // ── Sub-rating → DNA dimension mapping ──────────────────────────────────
-    // Each sub-rating blends into one or more DNA dimensions with specific weights.
-    // These mappings reflect what each dimension actually measures:
-    //   storytelling: cognitive complexity + narrative emotional pull
-    //   characters:   empathy (emotion) + realism of people + narrative depth
-    //   entertainment:action energy + some humor
-    //   emotion:      pure emotional impact
-    //   complexity:   pure cognitive complexity
-    //   suspense:     pure suspense
-
-    if (r.storytelling !== null) {
-      const v = r.storytelling * 1.0  // already 1-10 scale
-      movieVibe.complexityScore      = movieVibe.complexityScore      * 0.3 + v * 0.7
-      movieVibe.emotionalImpactScore = movieVibe.emotionalImpactScore * 0.6 + v * 0.4
-    }
-    if (r.characters !== null) {
-      const v = r.characters * 1.0
-      movieVibe.emotionalImpactScore = movieVibe.emotionalImpactScore * 0.4 + v * 0.6
-      movieVibe.realismScore         = movieVibe.realismScore         * 0.8 + v * 0.2
-      movieVibe.complexityScore      = movieVibe.complexityScore      * 0.8 + v * 0.2
-    }
-    if (r.entertainment !== null) {
-      const v = r.entertainment * 1.0
-      movieVibe.actionScore = movieVibe.actionScore * 0.4 + v * 0.6
-      movieVibe.humorScore  = movieVibe.humorScore  * 0.6 + v * 0.4
-    }
-    if (r.emotion !== null) {
-      movieVibe.emotionalImpactScore = r.emotion * 1.0
-    }
-    if (r.complexity !== null) {
-      movieVibe.complexityScore = r.complexity * 1.0
-    }
-    if (r.suspense !== null) {
-      movieVibe.suspenseScore = r.suspense * 1.0
-    }
-
-    // Exponential weight: highly-rated films pull the DNA far more than mediocre ones
-    const w = scoreToWeight(r.score)
-
-    // Direction: high score → pull DNA toward this film's vibe
-    //            low score  → pull DNA away (use mirror: 10 - dim)
-    const positive = r.score >= 60  // neutral-ish threshold
-
-    for (const dim of dims) {
-      const target = positive
-        ? movieVibe[dim]          // like this film → want more of this
-        : 10 - movieVibe[dim]     // dislike this film → want the opposite
-      sums[dim]    += target * w
-      weights[dim] += w
-    }
   }
-
-  // ── Compute Top 5 signal ──────────────────────────────────────────────────
-  // Each Top 5 film contributes a genre-based vibe, weighted by rank position.
-  // #1 = 1.0×, #2 = 0.9×, ..., #5 = 0.6×
-  const t5Sums:    Record<keyof DNAScores, number> = Object.fromEntries(dims.map(d => [d, 0])) as Record<keyof DNAScores, number>
-  const t5Weights: Record<keyof DNAScores, number> = Object.fromEntries(dims.map(d => [d, 0])) as Record<keyof DNAScores, number>
-
-  for (const m of top5Movies) {
-    const vibe = computeMovieVibe({
-      id:                m.tmdbId,
-      genres:            m.genreIds.map(id => ({ id, name: '' })),
-      runtime:           null,
-      vote_average:      7.5,   // neutral quality assumption
-      vote_count:        500,
-      popularity:        60,
-      release_date:      m.releaseDate ?? '',
-      original_language: 'en',
+  for (const movie of topFiveMovies) {
+    const current = fallbackMap.get(movie.tmdbId)
+    fallbackMap.set(movie.tmdbId, {
+      genreIds: movie.genreIds.length > 0 ? movie.genreIds : current?.genreIds ?? [],
+      releaseDate: movie.releaseDate ?? current?.releaseDate ?? null,
+      runtime: current?.runtime ?? null,
+      voteAverage: current?.voteAverage ?? null,
     })
-    const w = TOP5_WEIGHTS[m.position] ?? 0.5
-    for (const dim of dims) {
-      t5Sums[dim]    += vibe[dim] * w
-      t5Weights[dim] += w
+  }
+  for (const movie of watchlistItems) {
+    const current = fallbackMap.get(movie.tmdbId)
+    fallbackMap.set(movie.tmdbId, {
+      genreIds: movie.genreIds.length > 0 ? movie.genreIds : current?.genreIds ?? [],
+      releaseDate: movie.releaseDate ?? current?.releaseDate ?? null,
+      runtime: movie.runtime ?? current?.runtime ?? null,
+      voteAverage: movie.voteAverage ?? current?.voteAverage ?? null,
+    })
+  }
+
+  const reviewsByMovie = new Map(reviews.map(review => [review.tmdbId, review]))
+  const evidence: RatingDnaEvidence[] = ratings.map(rating => {
+    const metadata: CachedMovieMetadata = {
+      genreIds: rating.genreIds,
+      runtime: rating.runtime,
+      voteAverage: rating.voteAverage,
+      voteCount: rating.voteCount,
+      popularity: rating.popularity,
+      originalLanguage: rating.originalLanguage,
+      budget: rating.budget,
+      keywords: rating.keywords,
+      dnaMetadataVersion: rating.dnaMetadataVersion,
     }
+    let vibe = computeMovieVibe(
+      toMovieVibeInput(rating.tmdbId, metadata, rating.releaseDate, fallbackMap.get(rating.tmdbId)),
+      metadata.keywords,
+    )
+    vibe = refineVibeWithSubratings(vibe, rating)
+
+    const prose = [rating.review, reviewsByMovie.get(rating.tmdbId)?.body]
+      .filter((value): value is string => Boolean(value))
+      .join(' ')
+    if (prose) vibe = applyTraitEvidence(vibe, analyzeReviewTraits(prose), 0.35)
+
+    return { vibe, score: rating.score, confidence: 1 }
+  })
+
+  const ratedIds = new Set(ratings.map(rating => rating.tmdbId))
+  for (const review of reviews) {
+    if (review.rating === null || ratedIds.has(review.tmdbId)) continue
+    const traits = analyzeReviewTraits(review.body)
+    if (Object.keys(traits).length === 0) continue
+    evidence.push({
+      vibe: applyTraitEvidence(NEUTRAL_DNA, traits, 0.8),
+      score: review.rating,
+      confidence: 0.4,
+    })
   }
 
-  const hasTop5 = top5Movies.length >= 1
+  const ratingMetadata = new Map(ratings.map(rating => [rating.tmdbId, rating]))
+  const topFiveEvidence = topFiveMovies.map(movie => {
+    const cached = ratingMetadata.get(movie.tmdbId)
+    const metadata: CachedMovieMetadata = cached
+      ? {
+          genreIds: cached.genreIds,
+          runtime: cached.runtime,
+          voteAverage: cached.voteAverage,
+          voteCount: cached.voteCount,
+          popularity: cached.popularity,
+          originalLanguage: cached.originalLanguage,
+          budget: cached.budget,
+          keywords: cached.keywords,
+          dnaMetadataVersion: cached.dnaMetadataVersion,
+        }
+      : {
+          genreIds: movie.genreIds,
+          runtime: null,
+          voteAverage: null,
+          voteCount: null,
+          popularity: null,
+          originalLanguage: null,
+          budget: null,
+          keywords: [],
+          dnaMetadataVersion: 0,
+        }
 
-  // ── Three-way blend: Top 5 anchor + ratings refinement + existing inertia ──
-  // Top 5 always gets 35% when ≥3 movies present (scales linearly below that).
-  // Remaining 65% splits between ratings-derived and existing DNA per rating count.
-  let t5Share       = hasTop5
-    ? (top5Movies.length >= 3 ? 0.35 : (top5Movies.length / 3) * 0.35)
-    : 0
-  const remaining     = 1 - t5Share
-  const rw            = ratingBlendRatio(ratings.length)  // 0.30–0.70
-  let ratingShare   = ratings.length > 0 ? rw * remaining : 0
-  let existingShare = 1 - t5Share - ratingShare
-
-  // First-ever computation for this user (no TasteProfile row yet) — there's
-  // no prior DNA to blend toward, so redistribute its share across whichever
-  // real signals (Top 5 / ratings) are actually present instead of diluting
-  // toward a fake neutral placeholder.
-  if (!hasExisting) {
-    const total = t5Share + ratingShare
-    if (total > 0) {
-      t5Share     /= total
-      ratingShare /= total
+    return {
+      vibe: computeMovieVibe(
+        toMovieVibeInput(movie.tmdbId, metadata, movie.releaseDate, fallbackMap.get(movie.tmdbId)),
+        metadata.keywords,
+      ),
+      weight: Math.max(0.5, 1 - (movie.position - 1) * 0.1),
     }
-    existingShare = 0
-  }
+  })
 
-  const existing: DNAScores = hasExisting
-    ? {
-        suspenseScore:        user.tasteProfile!.suspenseScore,
-        emotionalImpactScore: user.tasteProfile!.emotionalImpactScore,
-        complexityScore:      user.tasteProfile!.complexityScore,
-        humorScore:           user.tasteProfile!.humorScore,
-        realismScore:         user.tasteProfile!.realismScore,
-        actionScore:          user.tasteProfile!.actionScore,
-        darknessScore:        user.tasteProfile!.darknessScore,
-      }
-    : {
-        suspenseScore: 5, emotionalImpactScore: 5, complexityScore: 5,
-        humorScore: 5, realismScore: 5, actionScore: 5, darknessScore: 5,
-      }
+  const baseline = user.preferences
+    ? generateDNA(user.onboardingMovies, user.preferences)
+    : { ...NEUTRAL_DNA }
+  const updated = computeDeterministicDNA({
+    baseline,
+    ratings: evidence,
+    topFive: topFiveEvidence,
+  })
 
-  const updated = {} as DNAScores
-  for (const dim of dims) {
-    const ratingDerived = weights[dim] > 0 ? sums[dim] / weights[dim] : existing[dim]
-    const t5Derived     = t5Weights[dim] > 0 ? t5Sums[dim] / t5Weights[dim] : existing[dim]
-
-    const blended =
-      t5Derived    * t5Share     +
-      ratingDerived * ratingShare +
-      existing[dim] * existingShare
-
-    updated[dim] = Math.min(10, Math.max(1, parseFloat(blended.toFixed(2))))
-  }
-
-  // ── Save snapshot of old DNA before overwriting ───────────────────────────
-  // Only meaningful when a prior profile exists. Snapshot if it's never been
-  // snapshotted, or if > 7 days old, or if the rating count crossed a
-  // meaningful threshold (every 5 ratings).
-  const prevCount       = hasExisting ? (user.tasteProfile!.ratingCount ?? 0) : 0
-  const shouldSnapshot  = hasExisting && (
-    !user.tasteProfile!.dnaSnapshotAt ||
-    Date.now() - user.tasteProfile!.dnaSnapshotAt.getTime() > 7 * 24 * 60 * 60 * 1000 ||
-    Math.floor(ratings.length / 5) > Math.floor(prevCount / 5)
-  )
-
-  const snapshotData = shouldSnapshot
-    ? {
-        dnaSnapshot:   existing as unknown as Record<string, number>,
-        dnaSnapshotAt: new Date(),
-      }
+  const existing = user.tasteProfile
+    ? Object.fromEntries(DNA_DIMENSIONS.map(dim => [dim, user.tasteProfile![dim]])) as unknown as DNAScores
+    : null
+  const prevCount = user.tasteProfile?.ratingCount ?? 0
+  const shouldSnapshot = Boolean(user.tasteProfile && (
+    !user.tasteProfile.dnaSnapshotAt ||
+    Date.now() - user.tasteProfile.dnaSnapshotAt.getTime() > 7 * 24 * 60 * 60 * 1000 ||
+    Math.floor(ratings.length / 5) !== Math.floor(prevCount / 5)
+  ))
+  const snapshotData = shouldSnapshot && existing
+    ? { dnaSnapshot: existing as unknown as Record<string, number>, dnaSnapshotAt: new Date() }
     : {}
 
   await prisma.tasteProfile.upsert({
-    where:  { userId },
+    where: { userId },
     create: { userId, ...updated, ratingCount: ratings.length },
     update: {
       ...updated,
@@ -413,8 +609,6 @@ export async function recalcTasteProfile(userId: string): Promise<void> {
     },
   })
 
-  // Keep the personality/identity classification in lockstep with the DNA
-  // scores that just changed, so it never goes stale relative to them.
   const { assignPersonality } = await import('./personality')
   await assignPersonality(userId).catch(() => {})
 }
@@ -427,26 +621,33 @@ export async function recalcTasteProfile(userId: string): Promise<void> {
  * Also returns the set of already-rated tmdbIds to exclude or weight.
  */
 export async function getRatingSignalsForUser(userId: string): Promise<{
-  ratedIds:       Map<number, number>  // tmdbId → score
-  highRatedIds:   Set<number>           // score >= 75
-  lowRatedIds:    Set<number>           // score <= 35
+  ratedIds:     Map<number, number>  // tmdbId → score
+  genreAffinity: Map<number, { average: number; count: number }>
 }> {
   const ratings = await prisma.movieRating.findMany({
     where:   { userId },
-    select:  { tmdbId: true, score: true },
+    select:  { tmdbId: true, score: true, genreIds: true },
   })
 
-  const ratedIds     = new Map<number, number>()
-  const highRatedIds = new Set<number>()
-  const lowRatedIds  = new Set<number>()
+  const ratedIds = new Map<number, number>()
+  const genreTotals = new Map<number, { total: number; count: number }>()
 
   for (const r of ratings) {
     ratedIds.set(r.tmdbId, r.score)
-    if (r.score >= 75) highRatedIds.add(r.tmdbId)
-    if (r.score <= 35) lowRatedIds.add(r.tmdbId)
+    for (const genreId of r.genreIds) {
+      const current = genreTotals.get(genreId) ?? { total: 0, count: 0 }
+      genreTotals.set(genreId, { total: current.total + r.score, count: current.count + 1 })
+    }
   }
 
-  return { ratedIds, highRatedIds, lowRatedIds }
+  const genreAffinity = new Map(
+    [...genreTotals].map(([genreId, evidence]) => [
+      genreId,
+      { average: evidence.total / evidence.count, count: evidence.count },
+    ]),
+  )
+
+  return { ratedIds, genreAffinity }
 }
 
 // ─── Compatibility helper ─────────────────────────────────────────────────────

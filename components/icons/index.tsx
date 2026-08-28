@@ -164,6 +164,19 @@ export function WatchlistIcon(props: IconProps) {
   )
 }
 
+// Where to Watch — a cinema screen with a play mark and broadcast signal
+export function WhereToWatchIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="2.5" y="5" width="19" height="14" rx="2.5" />
+      <path d="M10 9 L15 12 L10 15 Z" fill="currentColor" stroke="none" />
+      <path d="M7.5 2.5 C10 4.2 14 4.2 16.5 2.5" />
+      <line x1="8" y1="22" x2="16" y2="22" />
+      <line x1="12" y1="19" x2="12" y2="22" />
+    </Svg>
+  )
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 7. Reviews — speech bubble with film-strip header
 // ─────────────────────────────────────────────────────────────────────────────
@@ -499,6 +512,17 @@ export function PlusIcon(props: IconProps) {
     <Svg {...props}>
       <line x1="12" y1="5"  x2="12" y2="19" />
       <line x1="5"  y1="12" x2="19" y2="12" />
+    </Svg>
+  )
+}
+
+// Upload a creator-owned film
+export function UploadMovieIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M8 4 V7 M12 4 V7 M16 4 V7 M8 17 V20 M12 17 V20 M16 17 V20" />
+      <path d="M12 15 V9 M9.5 11.5 L12 9 L14.5 11.5" />
     </Svg>
   )
 }
@@ -884,6 +908,50 @@ export function PinIcon(props: IconProps) {
       <line x1="7.5" y1="8.5" x2="16.5" y2="8.5" />
       {/* Shaft down to point */}
       <line x1="12" y1="8.5" x2="12" y2="21" />
+    </Svg>
+  )
+}
+
+// MailIcon - contact and email actions
+export function MailIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M4 7 L12 13 L20 7" />
+    </Svg>
+  )
+}
+
+// InstagramIcon - social link
+export function InstagramIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.25" cy="6.75" r="0.8" fill="currentColor" stroke="none" />
+    </Svg>
+  )
+}
+
+// LinkedInIcon - social link
+export function LinkedInIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="8" y1="11" x2="8" y2="17" />
+      <line x1="12" y1="17" x2="12" y2="11" />
+      <path d="M12 13.8 C12.5 12 14 11 15.8 11 C17.7 11 19 12.3 19 14.6 V17" />
+      <circle cx="8" cy="7.5" r="0.8" fill="currentColor" stroke="none" />
+    </Svg>
+  )
+}
+
+// TikTokIcon - social link
+export function TikTokIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M14 3 V14.3 C14 17.4 11.5 20 8.4 20 C5.9 20 4 18.1 4 15.6 C4 13.1 5.9 11.2 8.4 11.2 C9.1 11.2 9.7 11.3 10.3 11.6" />
+      <path d="M14 3 C14.7 5.9 17.2 8.2 20 8.5 V11.6 C17.7 11.5 15.6 10.7 14 9.3" />
     </Svg>
   )
 }

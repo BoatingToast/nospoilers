@@ -3,10 +3,12 @@
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import MovieNightIcebreaker from './MovieNightIcebreaker'
 import { formatYear, tmdbImageUrl } from '@/lib/utils'
 import {
   CheckIcon,
@@ -140,7 +142,7 @@ function scoreCandidate(
 function EmptyState({ hasFriends }: { hasFriends: boolean }) {
   return (
     <div className="border border-ns-border bg-ns-surface rounded-2xl p-8 text-center">
-      <ClapperboardIcon size={34} className="mx-auto text-ns-secondary mb-3" />
+      <ClapperboardIcon size={34} className="mx-auto text-ns-secondary-readable mb-3" />
       <h2 className="text-lg font-heading text-white mb-2">No group picks yet</h2>
       <p className="text-sm font-body text-ns-muted max-w-md mx-auto leading-relaxed">
         Add films to watchlists, rate a few movies, or generate recommendations to build a better shared pool.
@@ -164,7 +166,7 @@ function EmptyState({ hasFriends }: { hasFriends: boolean }) {
 function PickCard({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
   const scoreTone =
     pick.displayScore >= 85 ? 'text-ns-success' :
-    pick.displayScore >= 72 ? 'text-ns-secondary' :
+    pick.displayScore >= 72 ? 'text-ns-secondary-readable' :
     'text-ns-muted'
   const labels = genreLabels(pick.genreIds)
 
@@ -196,7 +198,7 @@ function PickCard({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
           </div>
 
           <Link href={`/movie/${pick.tmdbId}`} className="group">
-            <h3 className="text-base sm:text-lg font-heading text-white leading-tight group-hover:text-ns-secondary transition-colors line-clamp-2">
+            <h3 className="text-base sm:text-lg font-heading text-white leading-tight group-hover:text-ns-secondary-readable transition-colors line-clamp-2">
               {pick.title}
             </h3>
           </Link>
@@ -228,7 +230,7 @@ function PickCard({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
                 key={`${support.userId}-${support.type}`}
                 className="inline-flex items-center gap-1.5 text-[11px] font-body text-ns-muted bg-ns-surface-2 border border-ns-border rounded-full px-2 py-1"
               >
-                <Icon size={12} className="text-ns-secondary" />
+                <Icon size={12} className="text-ns-secondary-readable" />
                 {support.username}
               </span>
             )
@@ -240,7 +242,7 @@ function PickCard({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
             <FilmIcon size={14} />
             Movie
           </Button>
-          <Button href={`/movie/${pick.tmdbId}`} variant="outline" size="sm">
+          <Button href={`/movie/${pick.tmdbId}#spoiler-zone`} variant="outline" size="sm">
             <SpoilerZoneIcon size={14} />
             Zone
           </Button>
@@ -251,6 +253,7 @@ function PickCard({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
 }
 
 export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
+  const router = useRouter()
   const [sessionName, setSessionName] = useState('Friday Movie Night')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     () => new Set(seed.participants.slice(0, 5).map(p => p.id)),
@@ -261,6 +264,9 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
   const [avoidDivisive, setAvoidDivisive] = useState(false)
   const [vetoGenres, setVetoGenres] = useState<Set<number>>(() => new Set())
   const [copied, setCopied] = useState(false)
+  const [creatingRoom, setCreatingRoom] = useState(false)
+  const [liveError, setLiveError] = useState('')
+  const [joinCode, setJoinCode] = useState('')
 
   const selectedCount = selectedIds.size
   const hasFriends = seed.participants.some(p => !p.isViewer)
@@ -273,8 +279,9 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
       .filter((candidate): candidate is ScoredCandidate => {
         if (!candidate) return false
         if (unseenOnly && candidate.selectedSeenBy.length > 0) return false
-        if (avoidDivisive && candidate.voteAverage !== null && candidate.voteAverage < 6.4) return false
-        if (maxRuntime && candidate.runtime && candidate.runtime > maxRuntime) return false
+        if (avoidDivisive && (candidate.voteAverage === null || candidate.voteAverage < 6.4)) return false
+        if (maxRuntime && (!candidate.runtime || candidate.runtime > maxRuntime)) return false
+        if (vetoGenres.size > 0 && candidate.genreIds.length === 0) return false
         if (candidate.genreIds.some(id => vetoGenres.has(id))) return false
         return true
       })
@@ -309,12 +316,64 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
     window.setTimeout(() => setCopied(false), 1600)
   }
 
+  async function startLiveRoom() {
+    if (ranked.length < 2 || creatingRoom) {
+      setLiveError('Choose filters that leave at least two movie picks.')
+      return
+    }
+
+    setCreatingRoom(true)
+    setLiveError('')
+    try {
+      const response = await fetch('/api/movie-night/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: sessionName,
+          mood,
+          maxRuntime: runtime === 'any' ? null : Number(runtime),
+          vetoGenres: [...vetoGenres],
+          unseenOnly,
+          avoidDivisive,
+          candidates: ranked.slice(0, 12).map(candidate => ({
+            tmdbId:      candidate.tmdbId,
+            title:       candidate.title,
+            posterPath:  candidate.posterPath,
+            releaseDate: candidate.releaseDate,
+            genreIds:    candidate.genreIds,
+            runtime:     candidate.runtime,
+            voteAverage: candidate.voteAverage,
+            groupFit:    candidate.displayScore,
+            explanation: candidate.groupReason,
+          })),
+        }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error ?? 'Could not start the live room')
+
+      window.localStorage.setItem(`nospoilers:movie-night:${data.code}`, data.token)
+      router.push(`/movie-night/${data.code}`)
+    } catch (cause) {
+      setLiveError(cause instanceof Error ? cause.message : 'Could not start the live room')
+      setCreatingRoom(false)
+    }
+  }
+
+  function openRoomByCode() {
+    const code = joinCode.trim().toUpperCase()
+    if (code.length < 4) {
+      setLiveError('Enter a valid room code.')
+      return
+    }
+    router.push(`/movie-night/${code}`)
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       <div className="mb-8 flex flex-col lg:flex-row lg:items-end justify-between gap-5">
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <ClapperboardIcon size={22} className="text-ns-secondary" />
+            <ClapperboardIcon size={22} className="text-ns-secondary-readable" />
             <Badge variant="secondary" className="uppercase tracking-wider">Group Picker</Badge>
           </div>
           <h1 className="text-3xl sm:text-4xl font-heading text-white">Movie Night Picker</h1>
@@ -338,6 +397,64 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
           </div>
         </div>
       </div>
+
+      <MovieNightIcebreaker
+        players={seed.participants
+          .filter(participant => selectedIds.has(participant.id))
+          .map(participant => ({
+            id: participant.id,
+            label: participant.isViewer ? 'You' : participant.username,
+          }))}
+      />
+
+      <section className="relative overflow-hidden rounded-3xl border border-ns-secondary/30 bg-ns-surface mb-6">
+        <div className="absolute inset-0 bg-gradient-to-r from-ns-secondary/12 via-transparent to-ns-success/5 pointer-events-none" />
+        <div className="relative p-5 sm:p-7 flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-ns-secondary/10 border border-ns-secondary/30 flex items-center justify-center flex-shrink-0">
+              <FriendsIcon size={23} className="text-ns-secondary-readable" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <h2 className="text-lg font-heading text-white">Make it a live vote</h2>
+                <Badge variant="success">New</Badge>
+              </div>
+              <p className="text-sm font-body text-ns-muted leading-relaxed max-w-xl">
+                Open a lobby, gather the group, then start one private ballot for everyone at the same time.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 xl:flex-shrink-0">
+            <div className="flex rounded-xl border border-ns-border bg-ns-surface-2 overflow-hidden focus-within:border-ns-secondary/50">
+              <input
+                value={joinCode}
+                onChange={event => setJoinCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
+                onKeyDown={event => { if (event.key === 'Enter') openRoomByCode() }}
+                placeholder="ROOM CODE"
+                aria-label="Room code"
+                className="w-32 bg-transparent px-3 py-2.5 text-sm font-display tracking-widest text-white placeholder:text-ns-muted/50 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={openRoomByCode}
+                className="px-3 text-xs font-body text-ns-muted border-l border-ns-border hover:text-white hover:bg-white/5 transition-colors"
+              >
+                Join
+              </button>
+            </div>
+            <Button onClick={startLiveRoom} loading={creatingRoom} disabled={ranked.length < 2} variant="primary">
+              <ShareIcon size={16} />
+              Open live lobby
+            </Button>
+          </div>
+        </div>
+        {liveError && (
+          <div className="relative border-t border-ns-danger/20 bg-ns-danger/5 px-5 sm:px-7 py-2.5 text-xs font-body text-ns-danger">
+            {liveError}
+          </div>
+        )}
+      </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-6 items-start">
         <aside className="bg-ns-surface border border-ns-border rounded-2xl p-5 lg:sticky lg:top-24">
@@ -366,6 +483,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                       key={participant.id}
                       type="button"
                       onClick={() => toggleParticipant(participant.id)}
+                      aria-pressed={selected}
                       className={[
                         'w-full flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors',
                         selected
@@ -402,10 +520,11 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                     key={option.key}
                     type="button"
                     onClick={() => setMood(option.key)}
+                    aria-pressed={mood === option.key}
                     className={[
                       'rounded-xl border px-3 py-2 text-xs font-body transition-colors',
                       mood === option.key
-                        ? 'border-ns-secondary/45 bg-ns-secondary/10 text-ns-secondary'
+                        ? 'border-ns-secondary/45 bg-ns-secondary/10 text-ns-secondary-readable'
                         : 'border-ns-border bg-ns-surface-2 text-ns-muted hover:text-white',
                     ].join(' ')}
                   >
@@ -423,10 +542,11 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                     key={option.value}
                     type="button"
                     onClick={() => setRuntime(option.value)}
+                    aria-pressed={runtime === option.value}
                     className={[
                       'rounded-lg border px-2 py-2 text-xs font-body transition-colors',
                       runtime === option.value
-                        ? 'border-ns-secondary/45 bg-ns-secondary/10 text-ns-secondary'
+                        ? 'border-ns-secondary/45 bg-ns-secondary/10 text-ns-secondary-readable'
                         : 'border-ns-border bg-ns-surface-2 text-ns-muted hover:text-white',
                     ].join(' ')}
                   >
@@ -446,6 +566,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                       key={id}
                       type="button"
                       onClick={() => toggleGenre(id)}
+                      aria-pressed={active}
                       className={[
                         'rounded-full border px-3 py-1.5 text-[11px] font-body transition-colors',
                         active
@@ -464,6 +585,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
               <button
                 type="button"
                 onClick={() => setUnseenOnly(v => !v)}
+                aria-pressed={unseenOnly}
                 className="w-full flex items-center justify-between gap-3 rounded-xl border border-ns-border bg-ns-surface-2 px-3 py-2.5"
               >
                 <span className="text-sm font-body text-white">No one selected has seen it</span>
@@ -481,6 +603,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
               <button
                 type="button"
                 onClick={() => setAvoidDivisive(v => !v)}
+                aria-pressed={avoidDivisive}
                 className="w-full flex items-center justify-between gap-3 rounded-xl border border-ns-border bg-ns-surface-2 px-3 py-2.5"
               >
                 <span className="text-sm font-body text-white">Avoid low consensus picks</span>
@@ -566,7 +689,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                       const Icon = supportIcon(support.type)
                       return (
                         <div key={`${support.userId}-${support.type}`} className="flex items-start gap-2 text-sm font-body text-ns-muted">
-                          <Icon size={15} className="text-ns-secondary mt-0.5 flex-shrink-0" />
+                          <Icon size={15} className="text-ns-secondary-readable mt-0.5 flex-shrink-0" />
                           <span>{support.note}</span>
                         </div>
                       )
@@ -579,7 +702,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
             <EmptyState hasFriends={hasFriends} />
           ) : (
             <div className="border border-ns-border bg-ns-surface rounded-2xl p-8 text-center">
-              <RecsIcon size={32} className="mx-auto text-ns-secondary mb-3" />
+              <RecsIcon size={32} className="mx-auto text-ns-secondary-readable mb-3" />
               <h2 className="text-lg font-heading text-white mb-2">No matches under these filters</h2>
               <p className="text-sm font-body text-ns-muted">Relax the runtime, veto, or unseen filters to reopen the pool.</p>
             </div>

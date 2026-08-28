@@ -26,6 +26,7 @@
   --ns-secondary:            104 13 209;   /* #680DD1 — highlights, interactive elements, CTAs */
   --ns-secondary-dim:        70 9 141;     /* muted/disabled accent state */
   --ns-secondary-foreground: 255 255 255;  /* text/icons on secondary-filled surfaces */
+  --ns-secondary-readable:   196 181 253;  /* #C4B5FD — AA text/icons on dark surfaces */
 
   /* Typography */
   --ns-text:  237 233 225;  /* primary copy */
@@ -61,9 +62,14 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    max-width: 100%;
+    overflow-x: clip;
   }
 
   body {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
     background-color: rgb(var(--ns-bg));
     color: rgb(var(--ns-text));
   }
@@ -71,6 +77,11 @@
   ::selection {
     background-color: rgb(var(--ns-secondary) / 0.3);
     color: rgb(var(--ns-text));
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--ns-secondary-readable));
+    outline-offset: 3px;
   }
 }
 
@@ -82,10 +93,435 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Keep card actions discoverable on touch devices, while retaining the
+     quieter hover-reveal treatment for precise pointing devices. */
+  .touch-action-reveal {
+    opacity: 1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .touch-action-reveal {
+      opacity: 0;
+    }
+
+    .touch-action-group:hover .touch-action-reveal,
+    .touch-action-group:focus-within .touch-action-reveal {
+      opacity: 1;
+    }
+  }
 }
 
 /* Spoiler Zone preview panel fade-in */
 @keyframes szFadeIn {
   from { opacity: 0; transform: translateX(-6px); }
   to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes notificationBannerIn {
+  from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes notificationBannerTimer {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*='notificationBannerIn'],
+  [style*='notificationBannerTimer'] {
+    animation: none !important;
+  }
+}
+
+/* ─── Discover: cinematic scroll scene ───────────────────────────────────── */
+
+.discover-scene {
+  --discover-progress: 0;
+  max-width: 100%;
+  overflow-x: clip;
+  isolation: isolate;
+}
+
+.discover-grid {
+  background-image:
+    linear-gradient(rgb(var(--ns-secondary) / 0.075) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--ns-secondary) / 0.075) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 85% 70% at 50% 45%, black 12%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 45%, black 12%, transparent 78%);
+  opacity: 0.34;
+  transform:
+    perspective(900px)
+    rotateX(57deg)
+    scale(1.45)
+    translateY(calc(var(--discover-progress) * -90px));
+  transform-origin: center 70%;
+  will-change: transform;
+}
+
+.discover-aurora {
+  width: min(56vw, 760px);
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  filter: blur(110px);
+  opacity: 0.11;
+  will-change: transform;
+}
+
+.discover-aurora-one {
+  right: -12vw;
+  top: 8%;
+  background: rgb(var(--ns-secondary));
+  transform: translate3d(
+    calc(var(--discover-progress) * -110px),
+    calc(var(--discover-progress) * 240px),
+    0
+  );
+}
+
+.discover-aurora-two {
+  bottom: -24%;
+  left: -18vw;
+  background: rgb(var(--ns-info));
+  transform: translate3d(
+    calc(var(--discover-progress) * 160px),
+    calc(var(--discover-progress) * -180px),
+    0
+  );
+}
+
+.discover-scanline {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--ns-secondary) / 0.55),
+    rgb(var(--ns-info) / 0.35),
+    transparent
+  );
+  box-shadow: 0 0 28px rgb(var(--ns-secondary) / 0.5);
+  opacity: 0.35;
+  transform: translateY(calc(var(--discover-progress) * (100vh - 1px)));
+  will-change: transform;
+}
+
+.discover-hero {
+  animation: discoverHeroEnter 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.discover-theater {
+  background:
+    radial-gradient(ellipse 72% 45% at 50% 0%, rgb(var(--ns-secondary) / 0.12), transparent 70%),
+    linear-gradient(180deg, rgb(var(--ns-surface-2) / 0.66), rgb(var(--ns-bg)) 18%);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ns-text) / 0.06),
+    inset 0 -30px 70px rgb(var(--ns-bg) / 0.92),
+    0 34px 110px rgb(var(--ns-bg) / 0.82),
+    0 0 70px rgb(var(--ns-secondary) / 0.08);
+}
+
+.discover-theater-fascia {
+  background:
+    linear-gradient(180deg, rgb(var(--ns-surface-2)), rgb(var(--ns-bg) / 0.92)),
+    repeating-linear-gradient(
+      90deg,
+      rgb(var(--ns-secondary) / 0.08) 0 1px,
+      transparent 1px 72px
+    );
+  border-bottom: 1px solid rgb(var(--ns-border) / 0.82);
+  box-shadow:
+    0 10px 30px rgb(var(--ns-bg) / 0.88),
+    inset 0 -1px 0 rgb(var(--ns-text) / 0.035);
+}
+
+.discover-theater-lights span {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgb(var(--ns-text) / 0.72);
+  box-shadow:
+    0 0 7px rgb(var(--ns-text) / 0.55),
+    0 0 18px rgb(var(--ns-secondary) / 0.68),
+    0 12px 24px 8px rgb(var(--ns-secondary) / 0.1);
+}
+
+.discover-theater-frame {
+  background: linear-gradient(
+    145deg,
+    rgb(var(--ns-surface-2)),
+    rgb(var(--ns-bg)) 42%,
+    rgb(var(--ns-border)) 72%,
+    rgb(var(--ns-surface-2))
+  );
+  border: 1px solid rgb(var(--ns-text) / 0.08);
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--ns-bg)),
+    inset 0 0 28px rgb(var(--ns-bg) / 0.95),
+    0 18px 60px rgb(var(--ns-bg) / 0.9),
+    0 0 30px rgb(var(--ns-secondary) / 0.12);
+}
+
+.discover-theater-screen {
+  background:
+    linear-gradient(135deg, rgb(var(--ns-secondary) / 0.08), transparent 36%),
+    linear-gradient(180deg, rgb(var(--ns-surface) / 0.94), rgb(var(--ns-primary) / 0.78));
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--ns-bg) / 0.9),
+    inset 0 0 85px rgb(var(--ns-bg) / 0.58),
+    0 0 42px rgb(var(--ns-secondary) / 0.13);
+}
+
+.discover-theater-screen::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgb(var(--ns-text) / 0.018) 0,
+      rgb(var(--ns-text) / 0.018) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+  mix-blend-mode: screen;
+  opacity: 0.45;
+}
+
+.discover-projector-wash {
+  background:
+    radial-gradient(ellipse 72% 58% at 44% 48%, rgb(var(--ns-text) / 0.035), transparent 72%),
+    linear-gradient(108deg, transparent 10%, rgb(var(--ns-secondary) / 0.035) 50%, transparent 82%);
+}
+
+.discover-theater-curtain {
+  background:
+    linear-gradient(90deg, rgb(var(--ns-bg) / 0.96), transparent 18% 82%, rgb(var(--ns-bg) / 0.96)),
+    repeating-linear-gradient(
+      90deg,
+      rgb(var(--ns-secondary-dim) / 0.64) 0 12px,
+      rgb(var(--ns-secondary) / 0.24) 12px 22px,
+      rgb(var(--ns-primary) / 0.9) 22px 34px
+    );
+  border-inline: 1px solid rgb(var(--ns-secondary) / 0.18);
+  filter: saturate(0.82);
+  box-shadow: 0 0 32px rgb(var(--ns-bg) / 0.95);
+}
+
+.discover-theater-curtain::after {
+  position: absolute;
+  top: 49%;
+  width: 115%;
+  height: 9px;
+  content: '';
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--ns-secondary) / 0.68),
+    rgb(var(--ns-text) / 0.28),
+    rgb(var(--ns-secondary) / 0.68),
+    transparent
+  );
+  box-shadow: 0 0 14px rgb(var(--ns-secondary) / 0.38);
+}
+
+.discover-theater-curtain-left {
+  clip-path: polygon(0 0, 100% 0, 72% 48%, 100% 100%, 0 100%);
+}
+
+.discover-theater-curtain-left::after {
+  right: -8%;
+  transform: rotate(-4deg);
+}
+
+.discover-theater-curtain-right {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 28% 48%);
+}
+
+.discover-theater-curtain-right::after {
+  left: -8%;
+  transform: rotate(4deg);
+}
+
+.discover-theater-stage {
+  background: linear-gradient(to top, rgb(var(--ns-bg)) 10%, transparent);
+}
+
+.discover-theater-floor {
+  background:
+    linear-gradient(90deg, transparent 49.8%, rgb(var(--ns-secondary) / 0.16) 50%, transparent 50.2%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 88px,
+      rgb(var(--ns-secondary) / 0.09) 88px 89px
+    ),
+    linear-gradient(to bottom, rgb(var(--ns-secondary) / 0.08), transparent 72%);
+  border-top: 1px solid rgb(var(--ns-secondary) / 0.22);
+  clip-path: polygon(8% 0, 92% 0, 100% 100%, 0 100%);
+  transform: perspective(280px) rotateX(58deg);
+  transform-origin: center top;
+}
+
+.discover-theater-seat {
+  width: 58px;
+  height: 64px;
+  transform-origin: center bottom;
+}
+
+.discover-theater-seat i {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: rgb(var(--ns-bg));
+  box-shadow: inset 0 1px 0 rgb(var(--ns-text) / 0.035);
+  transform: translateX(-50%);
+}
+
+.discover-theater-seat b {
+  position: absolute;
+  right: 2px;
+  bottom: 0;
+  left: 2px;
+  height: 43px;
+  border: 1px solid rgb(var(--ns-border) / 0.55);
+  border-radius: 18px 18px 7px 7px;
+  background: linear-gradient(180deg, rgb(var(--ns-surface-2)), rgb(var(--ns-bg)) 64%);
+  box-shadow:
+    inset 0 1px 0 rgb(var(--ns-text) / 0.035),
+    0 -7px 20px rgb(var(--ns-secondary) / 0.035);
+}
+
+.discover-hero-orbit {
+  animation: discoverOrbit 28s linear infinite;
+}
+
+.discover-outline-title {
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(var(--ns-secondary) / 0.48);
+  text-shadow: 0 0 32px rgb(var(--ns-secondary) / 0.14);
+}
+
+.discover-card-frame {
+  transform: translateZ(0);
+  transition:
+    transform 550ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 350ms ease,
+    box-shadow 550ms ease;
+}
+
+.discover-card:hover .discover-card-frame,
+.discover-card:focus-visible .discover-card-frame {
+  border-color: rgb(var(--ns-secondary) / 0.55);
+  box-shadow:
+    0 24px 52px rgb(var(--ns-bg) / 0.72),
+    0 0 30px rgb(var(--ns-secondary) / 0.18);
+  transform: translateY(-9px) scale(1.025);
+}
+
+.discover-card-grid {
+  background-image:
+    linear-gradient(rgb(var(--ns-text) / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--ns-text) / 0.07) 1px, transparent 1px);
+  background-size: 18px 18px;
+  mask-image: linear-gradient(to top, black, transparent 72%);
+  -webkit-mask-image: linear-gradient(to top, black, transparent 72%);
+}
+
+.discover-scene[data-motion-ready='true'] .discover-section {
+  opacity: 0;
+  filter: blur(14px);
+  transition:
+    opacity 850ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 950ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1050ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, filter, transform;
+}
+
+.discover-scene[data-motion-ready='true'] .discover-section[data-direction='left'] {
+  transform: translate3d(-54px, 96px, 0) scale(0.955) rotateX(3deg);
+}
+
+.discover-scene[data-motion-ready='true'] .discover-section[data-direction='right'] {
+  transform: translate3d(54px, 96px, 0) scale(0.955) rotateX(3deg);
+}
+
+.discover-scene[data-motion-ready='true'] .discover-section[data-visible='true'] {
+  opacity: 1;
+  filter: blur(0);
+  transform: translate3d(0, 0, 0) scale(1) rotateX(0);
+}
+
+.discover-scene[data-motion-ready='true'] .discover-section .discover-section-heading {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 650ms ease,
+    transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.discover-scene[data-motion-ready='true'] .discover-section[data-visible='true'] .discover-section-heading {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 90ms;
+}
+
+.discover-scene[data-motion-ready='true'] .discover-section .discover-card {
+  opacity: 0;
+  filter: blur(8px);
+  transform: translate3d(42px, 38px, 0) scale(0.91) rotateY(-5deg);
+  transform-origin: center bottom;
+  transition:
+    opacity 600ms ease,
+    filter 720ms ease,
+    transform 850ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.discover-scene[data-motion-ready='true'] .discover-section[data-visible='true'] .discover-card {
+  opacity: 1;
+  filter: blur(0);
+  transform: translate3d(0, 0, 0) scale(1) rotateY(0);
+  transition-delay: calc(150ms + var(--card-index) * 42ms);
+}
+
+@keyframes discoverHeroEnter {
+  from {
+    opacity: 0;
+    filter: blur(16px);
+    transform: translateY(38px) scale(0.975);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes discoverOrbit {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .discover-hero,
+  .discover-hero-orbit {
+    animation: none;
+  }
+
+  .discover-grid,
+  .discover-aurora,
+  .discover-scanline,
+  .discover-section,
+  .discover-section-heading,
+  .discover-card,
+  .discover-card-frame,
+  .discover-theater-floor {
+    filter: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
 }

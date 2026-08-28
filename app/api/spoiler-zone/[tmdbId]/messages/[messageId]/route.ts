@@ -3,6 +3,7 @@ import { getServerSession }         from 'next-auth'
 import { authOptions }              from '@/lib/auth'
 import { prisma }                   from '@/lib/db'
 import { formatMessage, MSG_INCLUDE } from '@/lib/spoiler-zone-helpers'
+import { classifySpoilerBoundary }    from '@/lib/plot-passport'
 
 type Params = { params: Promise<{ tmdbId: string; messageId: string }> }
 
@@ -30,7 +31,13 @@ export async function PATCH(req: Request, { params }: Params) {
 
   const updated = await prisma.spoilerZoneMessage.update({
     where:   { id: messageId },
-    data:    { content, editedAt: new Date() },
+    data:    {
+      content,
+      editedAt: new Date(),
+      ...(existing.spoilerLevel === 'theory' || existing.spoilerLevel === 'behind'
+        ? {}
+        : { spoilerLevel: classifySpoilerBoundary(content, existing.spoilerLevel) }),
+    },
     include: MSG_INCLUDE,
   })
 

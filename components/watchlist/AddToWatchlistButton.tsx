@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import type { WatchStatus } from '@/types'
 import { EyeIcon, CheckIcon } from '@/components/icons'
 
@@ -32,23 +34,37 @@ const STATUS_CYCLE: Record<WatchStatus, WatchStatus> = {
 }
 
 export default function AddToWatchlistButton({ movie, compact = false }: Props) {
+  const { status: authStatus } = useSession()
+  const router = useRouter()
   const [status,  setStatus]  = useState<WatchStatus | null>(null)
   const [loading, setLoading] = useState(false)
   const [checked, setChecked] = useState(false)
 
   // Check if already in watchlist
   useEffect(() => {
-    fetch(`/api/watchlist?status=all&sortBy=addedAt`)
+    if (authStatus === 'loading') return
+    if (authStatus !== 'authenticated') {
+      setStatus(null)
+      setChecked(true)
+      return
+    }
+
+    setChecked(false)
+    fetch(`/api/watchlist/${movie.tmdbId}`)
       .then(r => r.json())
       .then(data => {
-        const item = (data.items ?? []).find((i: any) => i.tmdbId === movie.tmdbId)
-        if (item) setStatus(item.status)
+        setStatus(data.status ?? null)
       })
       .catch(() => {})
       .finally(() => setChecked(true))
-  }, [movie.tmdbId])
+  }, [authStatus, movie.tmdbId])
 
   async function handleClick() {
+    if (authStatus !== 'authenticated') {
+      router.push(`/login?callbackUrl=${encodeURIComponent(`/movie/${movie.tmdbId}`)}`)
+      return
+    }
+
     setLoading(true)
     try {
       if (!status) {
@@ -94,15 +110,21 @@ export default function AddToWatchlistButton({ movie, compact = false }: Props) 
           ${status === 'watched'
             ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
             : status === 'watching'
-            ? 'bg-ns-secondary/15 border border-ns-secondary/30 text-ns-secondary'
+            ? 'bg-ns-secondary/15 border border-ns-secondary/30 text-ns-secondary-readable'
             : status === 'want_to_watch'
-            ? 'bg-ns-surface border border-ns-border text-ns-muted hover:border-ns-secondary/30 hover:text-ns-secondary'
-            : 'bg-ns-secondary text-ns-bg hover:bg-ns-secondary/90'
+            ? 'bg-ns-surface border border-ns-border text-ns-muted hover:border-ns-secondary/30 hover:text-ns-secondary-readable'
+            : 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary/90'
           }
           ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         `}
       >
-        {loading ? '...' : status ? STATUS_LABELS[status] : (compact ? '+ List' : '+ Add to Watchlist')}
+        {loading
+          ? '...'
+          : status
+            ? STATUS_LABELS[status]
+            : authStatus === 'authenticated'
+              ? (compact ? '+ List' : '+ Add to Watchlist')
+              : (compact ? '+ List' : 'Sign in to save')}
       </button>
 
       {status && !loading && (

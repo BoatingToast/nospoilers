@@ -4,10 +4,10 @@
  * GET  /api/follow/[username]  — check follow status + social counts
  * POST /api/follow/[username]  — toggle follow/unfollow
  *
- * Auth: uses getToken() (next-auth/jwt) instead of getServerSession() because
- * Next.js 15 made cookies() async, which breaks NextAuth v4's getServerSession
- * in App Router route handlers. getToken reads directly from the JWT cookie and
- * works reliably in all contexts.
+ * Auth: uses getToken() (via @/lib/get-auth-token) instead of getServerSession()
+ * because Next.js 15 made cookies() async, which breaks NextAuth v4's
+ * getServerSession in App Router route handlers. getToken reads directly from
+ * the JWT cookie and works reliably in all contexts.
  *
  * Mutual-follow logic:
  *   • When A follows B AND B already follows A → Friendship auto-created
@@ -15,7 +15,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken }                   from 'next-auth/jwt'
+import { getToken }                   from '@/lib/get-auth-token'
 import { prisma }                     from '@/lib/db'
 import { logActivity }                            from '@/services/activity'
 import { notifyNewFollower, notifyNewFriend }      from '@/services/notifications'
@@ -160,13 +160,13 @@ export async function POST(req: NextRequest, { params }: Params) {
     becameFriends = true
 
     // Both get a "you're now friends" notification
-    void Promise.all([
-      notifyNewFriend(targetId, myId, me.username, username),
+    await Promise.all([
+      notifyNewFriend(targetId, myId, username, me.username),
       logActivity(myId, 'followed_user', { targetUsername: username, becameFriends: true }),
     ])
   } else {
     // One-way follow
-    void Promise.all([
+    await Promise.all([
       notifyNewFollower(targetId, myId, me.username),
       logActivity(myId, 'followed_user', { targetUsername: username }),
     ])

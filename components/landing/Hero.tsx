@@ -7,7 +7,7 @@ import SearchBar from './SearchBar'
 
 export default function Hero() {
   const [revealed, setRevealed] = useState(false)
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const loggedIn = status === 'authenticated'
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative min-h-[calc(100vh-5rem)] flex flex-col items-center bg-ns-bg overflow-hidden px-6 pt-16 pb-10">
+    <section className="relative flex min-h-[calc(100svh-4rem)] min-w-0 flex-col items-center overflow-hidden bg-ns-bg px-4 pb-8 pt-12 sm:min-h-[calc(100vh-5rem)] sm:px-6 sm:pb-10 sm:pt-16">
 
       {/* Subtle radial glow behind hero text */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px]
@@ -32,12 +32,12 @@ export default function Hero() {
         }}
       />
 
-      <div className="relative z-10 text-center max-w-5xl mx-auto flex-1 flex flex-col justify-center">
+      <div className="relative z-10 mx-auto flex w-full min-w-0 max-w-5xl flex-1 flex-col justify-center text-center">
 
         {/* Eyebrow badge */}
         <div
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-ns-secondary/25
-                     text-ns-secondary text-xs tracking-[0.2em] uppercase mb-10 font-body
+          className="mx-auto inline-flex max-w-full items-center gap-2 rounded-full border border-ns-secondary/25 px-3 py-1
+                     text-ns-secondary-readable text-xs tracking-[0.2em] uppercase mb-10 font-body
                      opacity-0 animate-fade-up"
           style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}
         >
@@ -47,7 +47,7 @@ export default function Hero() {
 
         {/* Main title: DISCOVER */}
         <h1
-          className="font-display text-[18vw] sm:text-[14vw] md:text-[12vw] leading-none
+          className="font-display text-[clamp(3.4rem,18vw,7.5rem)] sm:text-[14vw] md:text-[12vw] leading-none
                      tracking-wider text-ns-text select-none
                      opacity-0 animate-fade-up"
           style={{ animationDelay: '0.25s', animationFillMode: 'forwards' }}
@@ -57,11 +57,11 @@ export default function Hero() {
 
         {/* Signature reveal: WITHOUT SPOILERS */}
         <div
-          className="relative inline-block my-1 opacity-0 animate-fade-up"
+          className="relative my-1 inline-block max-w-full opacity-0 animate-fade-up"
           style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}
         >
           <h2 className="font-display text-[9vw] sm:text-[7vw] md:text-[6vw] leading-none
-                         tracking-wider text-ns-secondary select-none">
+                         tracking-wider text-ns-secondary-readable select-none">
             WITHOUT SPOILERS
           </h2>
 
@@ -74,7 +74,7 @@ export default function Hero() {
 
         {/* Subtitle */}
         <p
-          className="text-ns-muted text-base sm:text-lg max-w-lg mx-auto mt-8 mb-10 leading-relaxed font-body
+          className="mx-auto mb-10 mt-8 w-full max-w-lg text-base leading-relaxed text-ns-muted sm:text-lg font-body
                      opacity-0 animate-fade-up"
           style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}
         >
@@ -84,7 +84,7 @@ export default function Hero() {
 
         {/* Search */}
         <div
-          className="opacity-0 animate-fade-up"
+          className="w-full min-w-0 opacity-0 animate-fade-up"
           style={{ animationDelay: '0.75s', animationFillMode: 'forwards' }}
         >
           <SearchBar />
@@ -92,25 +92,25 @@ export default function Hero() {
 
         {/* CTAs — single source of truth from useSession() */}
         <div
-          className="flex flex-col sm:flex-row gap-3 justify-center mt-8
+          className="mt-8 flex w-full flex-col justify-center gap-3 sm:flex-row
                      opacity-0 animate-fade-up"
           style={{ animationDelay: '0.9s', animationFillMode: 'forwards' }}
         >
           {loggedIn ? (
             <>
-              <Button variant="primary" size="lg" href="/dashboard">
+              <Button variant="primary" size="lg" href="/dashboard" className="w-full sm:w-auto">
                 Go to Dashboard
               </Button>
-              <Button variant="secondary" size="lg" href="/discover">
+              <Button variant="secondary" size="lg" href="/discover" className="w-full sm:w-auto">
                 Discover Films
               </Button>
             </>
           ) : (
             <>
-              <Button variant="primary" size="lg" href="/register">
-                Get Started Free
+              <Button variant="primary" size="lg" href="/register" className="w-full sm:w-auto">
+                Build My Movie DNA
               </Button>
-              <Button variant="secondary" size="lg" href="/login">
+              <Button variant="secondary" size="lg" href="/login" className="w-full sm:w-auto">
                 Sign In
               </Button>
             </>

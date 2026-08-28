@@ -148,11 +148,11 @@ function ThreeDotMenu({ membership, onAction }: MenuProps) {
   // Close on outside click
   useEffect(() => {
     if (!open) return
-    const handler = (e: MouseEvent) => {
+    const handler = (e: PointerEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false)
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    document.addEventListener('pointerdown', handler)
+    return () => document.removeEventListener('pointerdown', handler)
   }, [open])
 
   const items = [
@@ -168,13 +168,16 @@ function ThreeDotMenu({ membership, onAction }: MenuProps) {
   return (
     <div ref={menuRef} className="relative" onClick={e => e.stopPropagation()}>
       <button
+        type="button"
         onClick={() => setOpen(v => !v)}
-        className="w-7 h-7 flex items-center justify-center rounded-lg
-                   text-ns-muted/50 hover:text-ns-text hover:bg-ns-surface/60
-                   transition-colors opacity-0 group-hover:opacity-100"
-        aria-label="Card options"
+        className="touch-action-reveal flex h-11 w-11 items-center justify-center rounded-xl
+                   bg-ns-bg/75 text-ns-text/80 backdrop-blur-sm hover:bg-ns-surface hover:text-ns-text
+                   transition-[color,background-color,opacity]"
+        aria-label={`Actions for ${membership.movieTitle}`}
+        aria-expanded={open}
+        aria-haspopup="menu"
       >
-        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+        <svg aria-hidden="true" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
           <circle cx="5"  cy="12" r="2"/>
           <circle cx="12" cy="12" r="2"/>
           <circle cx="19" cy="12" r="2"/>
@@ -183,19 +186,21 @@ function ThreeDotMenu({ membership, onAction }: MenuProps) {
 
       {open && (
         <div className="absolute right-0 top-full mt-1 w-48 bg-ns-surface border border-ns-border
-                        rounded-xl shadow-xl z-50 py-1 overflow-hidden">
+                        rounded-xl shadow-xl z-50 py-1 overflow-hidden" role="menu">
           {items.map(item => (
             <button
+              type="button"
               key={item.key}
               onClick={() => { setOpen(false); onAction(item.key) }}
-              className={`w-full text-left flex items-center gap-2.5 px-3 py-2 text-xs font-body
+              className={`flex min-h-11 w-full items-center gap-2.5 px-3 py-2 text-left text-xs font-body
                           transition-colors
                           ${'danger' in item && item.danger
                             ? 'text-red-400/80 hover:text-red-400 hover:bg-red-500/5'
                             : 'text-ns-muted hover:text-ns-text hover:bg-ns-surface/60'
                           }`}
+              role="menuitem"
             >
-              <span className="text-[11px] w-4 text-center">{item.icon}</span>
+              <span aria-hidden="true" className="w-4 text-center text-[11px]">{item.icon}</span>
               {item.label}
             </button>
           ))}
@@ -217,6 +222,7 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleMouseEnter = useCallback(() => {
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
     hoverTimer.current = setTimeout(() => setShowPreview(true), 400)
   }, [])
 
@@ -229,7 +235,7 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
 
   return (
     <div
-      className="group relative"
+      className="group touch-action-group relative"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -246,7 +252,7 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
         {/* Pin indicator */}
         {m.pinned && (
           <div className="absolute top-3 left-3 z-10">
-            <PinIcon size={10} className="text-ns-secondary/70" strokeWidth={2} />
+            <PinIcon size={10} className="text-ns-secondary-readable/70" strokeWidth={2} />
           </div>
         )}
 
@@ -262,7 +268,7 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
         {hasUnread && (
           <div className="absolute top-2.5 left-3 z-10">
             <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
-                             rounded-full bg-ns-secondary text-black text-[9px] font-bold tabular-nums
+                             rounded-full bg-ns-secondary text-ns-secondary-foreground text-[9px] font-bold tabular-nums
                              animate-pulse shadow-sm shadow-ns-secondary/30">
               {m.unreadCount > 99 ? '99+' : m.unreadCount}
             </span>
@@ -295,7 +301,7 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ns-secondary opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-ns-secondary" />
               </span>
-              <span className="text-[10px] font-body text-ns-secondary font-medium tracking-wide">
+              <span className="text-[10px] font-body text-ns-secondary-readable font-medium tracking-wide">
                 Active
               </span>
             </div>
@@ -324,9 +330,9 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
           <Link
             href={`/movie/${m.tmdbId}`}
             onClick={e => e.stopPropagation()}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-body font-semibold
-                       bg-ns-secondary/10 text-ns-secondary border border-ns-secondary/30
-                       hover:bg-ns-secondary hover:text-black hover:border-ns-secondary
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-body font-semibold
+                       bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/30
+                       hover:bg-ns-secondary hover:text-ns-secondary-foreground hover:border-ns-secondary
                        active:scale-[0.98] transition-all duration-200"
           >
             <SpoilerZoneIcon size={12} strokeWidth={2} />

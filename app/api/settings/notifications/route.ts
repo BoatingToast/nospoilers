@@ -1,7 +1,7 @@
 /** GET/PUT /api/settings/notifications — notification preferences */
 
 import { NextRequest, NextResponse }                       from 'next/server'
-import { getToken }                                        from 'next-auth/jwt'
+import { getToken }                                        from '@/lib/get-auth-token'
 import { getNotificationPrefs, updateNotificationPrefs }  from '@/services/notifications'
 
 export async function GET(req: NextRequest) {

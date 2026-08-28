@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { FriendFeedItem } from '@/services/friends-feed'
+import Avatar from '@/components/ui/Avatar'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -137,19 +138,12 @@ function ActivityRow({ item }: { item: FeedItem }) {
   return (
     <div className="flex items-start gap-3 py-3 px-4 hover:bg-ns-bg/30 transition-colors group">
       {/* Avatar */}
-      <Link href={`/profile/${item.authorUsername}`} className="flex-shrink-0">
-        <div className="w-8 h-8 rounded-full bg-ns-border overflow-hidden flex items-center justify-center text-xs font-body text-ns-muted">
-          {item.authorAvatarUrl
-            ? <img src={item.authorAvatarUrl} alt="" className="w-full h-full object-cover" />
-            : item.authorUsername.charAt(0).toUpperCase()
-          }
-        </div>
-      </Link>
+      <Avatar src={item.authorAvatarUrl} username={item.authorUsername} size="sm" href />
       {/* Content */}
       <div className="flex-1 min-w-0">
         <p className="text-xs font-body text-ns-text leading-snug">
           <Link href={`/profile/${item.authorUsername}`}
-                className="font-semibold hover:text-ns-secondary transition-colors">
+                className="font-semibold hover:text-ns-secondary-readable transition-colors">
             @{item.authorUsername}
           </Link>{' '}
           <Link href={href} className="text-ns-muted/80 hover:text-ns-text transition-colors">
@@ -188,7 +182,7 @@ export default function FriendsActivityWidget() {
         </div>
         <Link
           href="/feed"
-          className="text-xs font-body text-ns-secondary hover:text-amber-400 transition-colors"
+          className="text-xs font-body text-ns-secondary-readable hover:text-amber-400 transition-colors"
         >
           View All →
         </Link>
@@ -215,8 +209,8 @@ export default function FriendsActivityWidget() {
             <Link
               href="/friends/find"
               className="mt-3 inline-block px-4 py-2 rounded-xl text-xs font-body
-                         bg-ns-secondary/10 text-ns-secondary border border-ns-secondary/30
-                         hover:bg-ns-secondary hover:text-black transition-all"
+                         bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/30
+                         hover:bg-ns-secondary hover:text-ns-secondary-foreground transition-all"
             >
               Find People
             </Link>

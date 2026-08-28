@@ -6,6 +6,7 @@ import {
   type SortMode,
 } from '@/services/reviews'
 import { getFriendIds } from '@/services/friends'
+import { enforceRateLimit } from '@/lib/rate-limit'
 
 // GET /api/reviews?tmdbId=123&sort=helpful&limit=20&cursor=xxx
 export async function GET(req: NextRequest) {
@@ -23,16 +24,25 @@ export async function GET(req: NextRequest) {
   const friendIds = viewerId ? await getFriendIds(viewerId) : []
 
   const reviews = await getMovieReviews(tmdbId, viewerId, friendIds, sort, limit, cursor)
-  return NextResponse.json({ reviews })
+  return NextResponse.json({ reviews }, {
+    headers: { 'Cache-Control': 'private, no-store, max-age=0' },
+  })
 }
 
 // POST /api/reviews
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const limited = await enforceRateLimit(req, {
+    scope: 'review-create',
+    identifier: `user:${session.user.id}`,
+    limit: 10,
+    windowMs: 60 * 60 * 1000,
+  })
+  if (limited) return limited
 
   const body = await req.json()
-  const { tmdbId, movieTitle, title, review: reviewBody, rating, hasSpoilers } = body
+  const { tmdbId, movieTitle, title, review: reviewBody, rating, hasSpoilers, spoilerLevel } = body
 
   if (!tmdbId || !movieTitle || !reviewBody?.trim()) {
     return NextResponse.json({ error: 'tmdbId, movieTitle and review body required' }, { status: 400 })
@@ -48,7 +58,12 @@ export async function POST(req: NextRequest) {
       parseInt(tmdbId, 10),
       movieTitle,
       reviewBody.trim(),
-      { title: title?.trim() || undefined, rating: rating ?? undefined, hasSpoilers: hasSpoilers ?? false },
+      {
+        title: title?.trim() || undefined,
+        rating: rating ?? undefined,
+        hasSpoilers: hasSpoilers ?? false,
+        spoilerLevel: spoilerLevel ?? 'auto',
+      },
     )
     return NextResponse.json(result, { status: 201 })
   } catch (e: unknown) {

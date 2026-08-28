@@ -88,7 +88,7 @@ export default function DnaEvolutionWidget() {
     return (
       <div className="bg-ns-surface border border-ns-border rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-1">
-          <MovieDnaIcon size={16} className="text-ns-secondary flex-shrink-0" />
+          <MovieDnaIcon size={16} className="text-ns-secondary-readable flex-shrink-0" />
           <h2 className="text-sm font-heading text-white">Your Taste Is Evolving</h2>
         </div>
         <p className="text-xs font-body text-ns-muted">
@@ -110,7 +110,7 @@ export default function DnaEvolutionWidget() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <MovieDnaIcon size={16} className="text-ns-secondary flex-shrink-0" />
+            <MovieDnaIcon size={16} className="text-ns-secondary-readable flex-shrink-0" />
             <h2 className="text-sm font-heading text-white">Your Taste Is Evolving</h2>
           </div>
           <p className="text-[11px] font-body text-ns-muted">
@@ -120,7 +120,7 @@ export default function DnaEvolutionWidget() {
         </div>
         <Link
           href="/my-recommendations"
-          className="text-[11px] font-body text-ns-secondary hover:text-ns-secondary/80 transition-colors flex-shrink-0 flex items-center gap-1"
+          className="text-[11px] font-body text-ns-secondary-readable hover:text-ns-secondary-readable/80 transition-colors flex-shrink-0 flex items-center gap-1"
         >
           See recs <ArrowRightIcon size={11} />
         </Link>
@@ -147,7 +147,7 @@ export default function DnaEvolutionWidget() {
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
               >
                 <span className="text-[10px] font-body text-white/70 truncate max-w-[100px]">{film.title}</span>
-                <span className="text-[10px] font-body text-ns-secondary font-medium">{film.score}</span>
+                <span className="text-[10px] font-body text-ns-secondary-readable font-medium">{film.score}</span>
               </Link>
             ))}
           </div>

@@ -29,7 +29,7 @@ export default async function SpoilerZoneMemberships({ userId }: Props) {
   return (
     <div className="bg-ns-surface border border-ns-border rounded-2xl p-5">
       <div className="flex items-center gap-2 mb-4">
-        <SpoilerZoneIcon size={14} className="text-ns-secondary/70" />
+        <SpoilerZoneIcon size={14} className="text-ns-secondary-readable/70" />
         <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Spoiler Zones</p>
         <span className="ml-auto text-[10px] font-body text-ns-muted/50">{memberships.length}</span>
       </div>

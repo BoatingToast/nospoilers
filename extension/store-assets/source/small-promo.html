@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=440, initial-scale=1">
+  <title>NoSpoilers Shield Small Promo</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 440px; height: 280px; margin: 0; overflow: hidden; }
+    body {
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding: 34px;
+      background: radial-gradient(circle at 92% 8%, rgba(167,139,250,.42), transparent 38%), linear-gradient(145deg,#0a0f21,#111831);
+      color: #f7f5ff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body:after { content: ""; position: absolute; right: -42px; bottom: -82px; width: 210px; height: 210px; border: 1px solid rgba(167,139,250,.18); border-radius: 50%; box-shadow: 0 0 0 26px rgba(124,58,237,.04), 0 0 0 52px rgba(124,58,237,.025); }
+    .content { position: relative; z-index: 2; width: 265px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand img { width: 58px; height: 58px; }
+    .overline { margin: 0 0 3px; color: #a78bfa; font-size: 9px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: 25px; letter-spacing: -.03em; }
+    .tagline { margin: 24px 0 0; font-size: 24px; font-weight: 760; line-height: 1.12; letter-spacing: -.035em; }
+    .sub { margin: 10px 0 0; color: #a9a6b8; font-size: 11px; line-height: 1.45; }
+    .shield { position: absolute; z-index: 3; right: 29px; bottom: 31px; display: grid; width: 112px; height: 71px; place-items: center; border: 1px solid rgba(167,139,250,.65); border-radius: 16px; background: rgba(9,13,29,.95); box-shadow: 0 17px 38px rgba(0,0,0,.34); transform: rotate(-4deg); }
+    .shield strong { font-size: 10px; text-align: center; line-height: 1.35; }
+    .shield span { display: block; margin-top: 4px; color: #9d99ab; font-size: 8px; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="content">
+    <div class="brand"><img src="../../assets/icon-source.svg" alt=""><div><p class="overline">NoSpoilers</p><h1>Shield</h1></div></div>
+    <p class="tagline">Browse freely.<br>Reveal when ready.</p>
+    <p class="sub">Local spoiler protection for movies and TV.</p>
+  </div>
+  <div class="shield"><strong>Potential spoiler hidden<span>Click to reveal</span></strong></div>
+</body>
+</html>

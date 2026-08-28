@@ -35,8 +35,8 @@ export default function SpoilerZoneWidget() {
     return (
       <div className="rounded-2xl border border-ns-border bg-ns-surface/40 p-5">
         <div className="flex items-center gap-2 mb-3">
-          <SpoilerZoneIcon size={16} className="text-ns-secondary/70" />
-          <h3 className="font-display text-xs tracking-widest text-ns-secondary/70">SPOILER ZONES</h3>
+          <SpoilerZoneIcon size={16} className="text-ns-secondary-readable/70" />
+          <h3 className="font-display text-xs tracking-widest text-ns-secondary-readable/70">SPOILER ZONES</h3>
         </div>
         <p className="text-xs font-body text-ns-muted/60">
           Join a Spoiler Zone from any movie page to discuss freely.
@@ -57,8 +57,8 @@ export default function SpoilerZoneWidget() {
     <div className="rounded-2xl border border-ns-border bg-ns-surface/40 p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <SpoilerZoneIcon size={16} className="text-ns-secondary/70" />
-          <h3 className="font-display text-xs tracking-widest text-ns-secondary/70">SPOILER ZONES</h3>
+          <SpoilerZoneIcon size={16} className="text-ns-secondary-readable/70" />
+          <h3 className="font-display text-xs tracking-widest text-ns-secondary-readable/70">SPOILER ZONES</h3>
         </div>
         <span className="text-[10px] font-body text-ns-muted/50">
           {memberships.length} joined
@@ -121,7 +121,7 @@ function SZCard({ membership }: { membership: SZMembership }) {
           </span>
           {hasUnread && (
             <span className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full
-                             bg-ns-secondary text-black text-[8px] font-bold tabular-nums">
+                             bg-ns-secondary text-ns-secondary-foreground text-[8px] font-bold tabular-nums">
               {membership.unreadCount > 99 ? '99+' : membership.unreadCount}
             </span>
           )}

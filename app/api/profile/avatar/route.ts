@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { getSupabaseAdmin, AVATAR_BUCKET, buildAvatarUrl, extractStoragePath } from '@/lib/supabase-storage'
-
-const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-const MAX_BYTES      = 5 * 1024 * 1024 // 5 MB
+import {
+  AVATAR_MAX_BYTES,
+  AVATAR_MIME_TYPES,
+  buildDatabaseAvatarUrl,
+  hasValidImageSignature,
+} from '@/lib/avatar-storage'
 
 // ── POST /api/profile/avatar ──────────────────────────────────────────────────
 // Body: FormData with field "file" (Blob/File)
@@ -30,7 +32,7 @@ export async function POST(req: Request) {
   }
 
   // Validate MIME type
-  if (!ALLOWED_TYPES.includes(file.type)) {
+  if (!AVATAR_MIME_TYPES.includes(file.type as (typeof AVATAR_MIME_TYPES)[number])) {
     return NextResponse.json(
       { error: 'Only JPG, PNG, and WEBP images are allowed' },
       { status: 400 },
@@ -38,7 +40,7 @@ export async function POST(req: Request) {
   }
 
   // Validate size
-  if (file.size > MAX_BYTES) {
+  if (file.size > AVATAR_MAX_BYTES) {
     return NextResponse.json(
       { error: 'File exceeds 5 MB limit' },
       { status: 400 },
@@ -48,59 +50,30 @@ export async function POST(req: Request) {
   const userId = session.user.id
 
   try {
-    const supabase = getSupabaseAdmin()
+    const buffer = Buffer.from(await file.arrayBuffer())
 
-    // Delete previous avatar if one exists
-    const existing = await prisma.user.findUnique({
-      where:  { id: userId },
-      select: { avatarUrl: true },
-    })
-    if (existing?.avatarUrl) {
-      const oldPath = extractStoragePath(existing.avatarUrl)
-      if (oldPath) {
-        await supabase.storage.from(AVATAR_BUCKET).remove([oldPath])
-      }
+    if (!hasValidImageSignature(buffer, file.type)) {
+      return NextResponse.json({ error: 'The selected file is not a valid image' }, { status: 400 })
     }
 
-    // Upload new avatar — path: {userId}/{timestamp}.webp
-    const ext       = file.type === 'image/png' ? 'png' : 'webp'
-    const timestamp = Date.now()
-    const path      = `${userId}/${timestamp}.${ext}`
-    const buffer    = Buffer.from(await file.arrayBuffer())
-
-    const { error: uploadError } = await supabase.storage
-      .from(AVATAR_BUCKET)
-      .upload(path, buffer, {
-        contentType: file.type,
-        upsert:      false,
-      })
-
-    if (uploadError) {
-      console.error('Supabase upload error:', uploadError)
-      return NextResponse.json(
-        { error: 'Upload failed. Please try again.' },
-        { status: 500 },
-      )
-    }
-
-    // Build public URL and persist
-    const publicUrl = buildAvatarUrl(path)
-    await prisma.user.update({
-      where: { id: userId },
-      data:  { avatarUrl: publicUrl },
-    })
+    // The versioned URL gives every replacement a fresh immutable cache key.
+    const publicUrl = buildDatabaseAvatarUrl(userId, Date.now())
+    await prisma.$transaction([
+      prisma.avatarImage.upsert({
+        where:  { userId },
+        update: { data: buffer, contentType: file.type },
+        create: { userId, data: buffer, contentType: file.type },
+      }),
+      prisma.user.update({
+        where: { id: userId },
+        data:  { avatarUrl: publicUrl },
+      }),
+    ])
 
     return NextResponse.json({ url: publicUrl })
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    if (message.includes('not configured')) {
-      return NextResponse.json(
-        { error: 'Storage not configured. See SETUP_GUIDE.md.' },
-        { status: 503 },
-      )
-    }
+  } catch (err) {
     console.error('Avatar upload error:', err)
-    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Upload failed. Please try again.' }, { status: 500 })
   }
 }
 
@@ -116,23 +89,13 @@ export async function DELETE() {
   const userId = session.user.id
 
   try {
-    const user = await prisma.user.findUnique({
-      where:  { id: userId },
-      select: { avatarUrl: true },
-    })
-
-    if (user?.avatarUrl) {
-      const path = extractStoragePath(user.avatarUrl)
-      if (path) {
-        const supabase = getSupabaseAdmin()
-        await supabase.storage.from(AVATAR_BUCKET).remove([path])
-      }
-    }
-
-    await prisma.user.update({
-      where: { id: userId },
-      data:  { avatarUrl: null },
-    })
+    await prisma.$transaction([
+      prisma.avatarImage.deleteMany({ where: { userId } }),
+      prisma.user.update({
+        where: { id: userId },
+        data:  { avatarUrl: null },
+      }),
+    ])
 
     return NextResponse.json({ ok: true })
   } catch (err) {

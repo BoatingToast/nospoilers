@@ -28,14 +28,13 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     const result = await castVote(myId, collectionId, voteType as VoteType)
 
     if (voteType === 'upvote') {
-      void prisma.collection.findUnique({
+      const collection = await prisma.collection.findUnique({
         where:  { id: collectionId },
         select: { userId: true, title: true },
-      }).then(col => {
-        if (col && col.userId !== myId) {
-          notifyCollectionUpvote(col.userId, myId, collectionId, col.title).catch(() => {})
-        }
       })
+      if (collection && collection.userId !== myId) {
+        await notifyCollectionUpvote(collection.userId, myId, collectionId, collection.title)
+      }
     }
 
     return NextResponse.json(result)

@@ -1,40 +1,42 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { tmdbImageUrl } from '@/lib/utils'
-import type { CuratedRecGroups, EnrichedRec } from '@/services/curated-recs'
+import type { EnrichedRec } from '@/services/curated-recs'
 import RecBreakdownModal from './RecBreakdownModal'
+import { useDashboardRecommendations } from './DashboardRecommendationsProvider'
 import {
   RecsIcon, ThumbUpIcon, WatchlistIcon, EyeIcon, ThumbDownIcon,
   CheckIcon, ArrowRightIcon, type IconProps,
 } from '@/components/icons'
 
 export default function DashboardNextFavorite() {
-  const [rec,     setRec]     = useState<EnrichedRec | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { groups, loading, loadError, retry } = useDashboardRecommendations()
   const [showWhy, setShowWhy] = useState(false)
   const [sent,    setSent]    = useState<string | null>(null)
-
-  useEffect(() => {
-    fetch('/api/curated-recs')
-      .then(r => r.json())
-      .then((data: CuratedRecGroups) => setRec(data.nextFavorite ?? null))
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
+  const [saving,  setSaving]  = useState(false)
+  const [saveError, setSaveError] = useState(false)
+  const rec: EnrichedRec | null = groups?.nextFavorite ?? null
 
   async function handleFeedback(type: string) {
     if (!rec) return
-    setSent(type)
+    setSaving(true)
+    setSaveError(false)
     try {
-      await fetch('/api/recommendations/feedback', {
+      const response = await fetch('/api/recommendations/feedback', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ tmdbId: rec.tmdbId, feedback: type }),
+        body:    JSON.stringify({ recommendation: rec, feedback: type }),
       })
-    } catch {/* non-fatal */}
+      if (!response.ok) throw new Error('Feedback request failed')
+      setSent(type)
+    } catch {
+      setSaveError(true)
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (loading) {
@@ -47,13 +49,30 @@ export default function DashboardNextFavorite() {
     )
   }
 
+  if (loadError) {
+    return (
+      <div className="bg-ns-surface border border-dashed border-ns-border rounded-2xl p-5 flex flex-col items-center justify-center h-40 text-center">
+        <p className="text-ns-muted font-body text-sm mb-2">
+          Could not load your Next Favorite.
+        </p>
+        <button
+          type="button"
+          onClick={retry}
+          className="text-ns-secondary-readable text-xs font-body hover:text-amber-400"
+        >
+          Try again
+        </button>
+      </div>
+    )
+  }
+
   if (!rec) {
     return (
       <div className="bg-ns-surface border border-dashed border-ns-border rounded-2xl p-5 flex flex-col items-center justify-center h-40 text-center">
         <p className="text-ns-muted font-body text-sm mb-2">
           Complete your taste profile to unlock your Next Favorite.
         </p>
-        <Link href="/onboarding" className="text-ns-secondary text-xs font-body hover:text-amber-400">
+        <Link href="/onboarding" className="text-ns-secondary-readable text-xs font-body hover:text-amber-400">
           Set up profile <ArrowRightIcon size={11} className="inline-block" />
         </Link>
       </div>
@@ -90,14 +109,14 @@ export default function DashboardNextFavorite() {
 
           {/* Content */}
           <div className="flex-1 p-4 min-w-0">
-            <p className="text-[9px] font-body text-ns-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
+            <p className="text-[9px] font-body text-ns-secondary-readable uppercase tracking-widest mb-1 flex items-center gap-1">
               <RecsIcon size={10} /> Your Next Favorite
             </p>
             <div className="flex items-start gap-2 mb-1">
               <h3 className="text-sm font-heading text-white leading-tight truncate flex-1">
                 {rec.title}
               </h3>
-              <span className="text-[10px] font-mono text-ns-secondary bg-ns-secondary/10 border border-ns-secondary/20 px-1.5 py-0.5 rounded-md flex-shrink-0">
+              <span className="text-[10px] font-mono text-ns-secondary-readable bg-ns-secondary/10 border border-ns-secondary/20 px-1.5 py-0.5 rounded-md flex-shrink-0">
                 {rec.matchScore}%
               </span>
             </div>
@@ -107,7 +126,7 @@ export default function DashboardNextFavorite() {
 
             {/* Quick actions */}
             {sent ? (
-              <p className="text-xs font-body text-ns-secondary flex items-center gap-1">
+              <p className="text-xs font-body text-ns-secondary-readable flex items-center gap-1">
                 <CheckIcon size={12} /> Feedback saved
               </p>
             ) : (
@@ -117,6 +136,7 @@ export default function DashboardNextFavorite() {
                     key={value}
                     title={title}
                     onClick={() => handleFeedback(value)}
+                    disabled={saving}
                     className="text-ns-muted hover:text-white hover:scale-110 transition-all"
                   >
                     <Icon size={16} />
@@ -124,11 +144,14 @@ export default function DashboardNextFavorite() {
                 ))}
                 <button
                   onClick={() => setShowWhy(true)}
-                  className="ml-auto text-[10px] font-body text-ns-secondary hover:text-amber-400 transition-colors flex items-center gap-0.5"
+                  className="ml-auto text-[10px] font-body text-ns-secondary-readable hover:text-amber-400 transition-colors flex items-center gap-0.5"
                 >
                   Why? <ArrowRightIcon size={10} />
                 </button>
               </div>
+            )}
+            {saveError && (
+              <p className="mt-1 text-[10px] font-body text-red-400">Couldn&apos;t save. Try again.</p>
             )}
           </div>
         </div>
@@ -143,7 +166,7 @@ export default function DashboardNextFavorite() {
           </Link>
           <Link
             href="/my-recommendations"
-            className="text-[10px] font-body text-ns-secondary hover:text-amber-400 transition-colors"
+            className="text-[10px] font-body text-ns-secondary-readable hover:text-amber-400 transition-colors"
           >
             All recommendations <ArrowRightIcon size={10} className="inline-block" />
           </Link>

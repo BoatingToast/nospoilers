@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse }  from 'next/server'
-import { getToken }                    from 'next-auth/jwt'
+import { getToken }                    from '@/lib/get-auth-token'
 import { assignPersonality }           from '@/services/personality'
 import { notifyDnaEvolved }            from '@/services/notifications'
 import { prisma }                      from '@/lib/db'
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     const newType = result.primaryType.slug
     // Notify only if the type actually changed
     if (oldType && oldType !== newType) {
-      void notifyDnaEvolved(myId, oldType, newType).catch(() => {})
+      await notifyDnaEvolved(myId, oldType, newType)
     }
 
     return NextResponse.json(result)

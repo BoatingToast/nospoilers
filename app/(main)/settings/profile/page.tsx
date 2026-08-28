@@ -230,7 +230,7 @@ export default function EditProfilePage() {
             <div>
               <button
                 onClick={() => setShowCropModal(true)}
-                className="px-4 py-2 rounded-xl border border-ns-secondary/30 text-ns-secondary text-sm font-body
+                className="px-4 py-2 rounded-xl border border-ns-secondary/30 text-ns-secondary-readable text-sm font-body
                            hover:border-ns-secondary/60 hover:bg-ns-secondary/5 transition-all"
               >
                 Change Photo
@@ -238,8 +238,17 @@ export default function EditProfilePage() {
               {profile.avatarUrl && (
                 <button
                   onClick={async () => {
-                    await fetch('/api/profile/avatar', { method: 'DELETE' })
-                    await handleAvatarSuccess('')
+                    setError('')
+                    try {
+                      const res = await fetch('/api/profile/avatar', { method: 'DELETE' })
+                      if (!res.ok) {
+                        const data = await res.json().catch(() => null) as { error?: string } | null
+                        throw new Error(data?.error ?? 'Failed to remove photo')
+                      }
+                      await handleAvatarSuccess('')
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'Failed to remove photo')
+                    }
                   }}
                   className="block mt-2 text-xs font-body text-ns-muted/60 hover:text-red-400 transition-colors"
                 >
@@ -317,7 +326,7 @@ export default function EditProfilePage() {
                     onClick={() => toggleGenre(genre)}
                     className={`px-3 py-1.5 rounded-full text-xs font-body capitalize transition-all border ${
                       selected
-                        ? 'bg-ns-secondary text-ns-bg border-ns-secondary font-medium'
+                        ? 'bg-ns-secondary text-ns-secondary-foreground border-ns-secondary font-medium'
                         : 'border-ns-border text-ns-muted hover:border-ns-muted/40'
                     }`}
                   >
@@ -421,7 +430,7 @@ export default function EditProfilePage() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-6 py-2.5 bg-ns-secondary text-ns-bg rounded-xl text-sm font-body font-medium
+                className="px-6 py-2.5 bg-ns-secondary text-ns-secondary-foreground rounded-xl text-sm font-body font-medium
                            hover:bg-ns-secondary/90 transition-colors disabled:opacity-60"
               >
                 {saving ? 'Saving…' : 'Save Changes'}
