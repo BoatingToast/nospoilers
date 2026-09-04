@@ -135,6 +135,217 @@
   }
 }
 
+/* ─── Pro Cinema OS: dimensional launch experience ──────────────────────── */
+
+.pro-page-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.75'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+.pro-hero-grid {
+  background-image:
+    linear-gradient(rgb(var(--ns-secondary-readable) / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--ns-secondary-readable) / 0.045) 1px, transparent 1px);
+  background-size: 74px 74px;
+  mask-image: linear-gradient(to bottom, black, transparent 92%);
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 92%);
+}
+
+.pro-hero-object {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.pro-hero-orbit {
+  transform-style: preserve-3d;
+  box-shadow: inset 0 0 90px rgb(var(--ns-secondary) / 0.08);
+}
+
+.pro-hero-orbit-one {
+  animation: proOrbitOne 18s linear infinite;
+}
+
+.pro-hero-orbit-two {
+  animation: proOrbitTwo 14s linear infinite reverse;
+}
+
+.pro-hero-core {
+  transform-style: preserve-3d;
+  animation: proCoreFloat 6s ease-in-out infinite;
+}
+
+.pro-hero-core::before,
+.pro-ai-core::before {
+  content: '';
+  position: absolute;
+  inset: -14px;
+  border: 1px solid rgb(var(--ns-secondary-readable) / 0.12);
+  border-radius: inherit;
+}
+
+.pro-hero-card {
+  transform-style: preserve-3d;
+  animation: proCardFloat 6.5s ease-in-out infinite;
+}
+
+.pro-hero-card:nth-of-type(4) { animation-delay: -1.5s; }
+.pro-hero-card:nth-of-type(5) { animation-delay: -3s; }
+.pro-hero-card:nth-of-type(6) { animation-delay: -4.5s; }
+
+.pro-command-shell {
+  background-image: linear-gradient(145deg, rgb(var(--ns-surface-2) / 0.72), rgb(var(--ns-bg) / 0.98));
+}
+
+.pro-command-shell:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  border: 0;
+  border-radius: 0;
+  background: rgb(var(--ns-bg));
+}
+
+.pro-viewport {
+  background:
+    radial-gradient(circle at 50% 43%, rgb(var(--ns-secondary) / 0.22), transparent 36%),
+    radial-gradient(circle at 50% 70%, rgb(var(--ns-tier-epic) / 0.08), transparent 33%),
+    rgb(var(--ns-bg));
+}
+
+.pro-horizon-grid {
+  background-image:
+    linear-gradient(rgb(var(--ns-secondary-readable) / 0.13) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--ns-secondary-readable) / 0.13) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: linear-gradient(to bottom, transparent, black 35%, transparent 94%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 35%, transparent 94%);
+  transform: perspective(560px) rotateX(63deg) scale(1.5) translateY(12%);
+  transform-origin: center bottom;
+}
+
+.pro-ai-orbit {
+  box-shadow:
+    inset 0 0 72px rgb(var(--ns-secondary) / 0.08),
+    0 0 100px rgb(var(--ns-secondary) / 0.08);
+  transform-style: preserve-3d;
+  animation: proAiTilt 9s ease-in-out infinite;
+}
+
+.pro-ai-core {
+  animation: proCoreFloat 4.8s ease-in-out infinite;
+}
+
+.pro-orbit-dot {
+  transform-origin: 0 144px;
+  animation: proDotOrbit 6s linear infinite;
+}
+
+.pro-floating-card {
+  animation: proSmallFloat 5s ease-in-out infinite;
+}
+
+.pro-floating-card-delay {
+  animation-delay: -2.5s;
+}
+
+.pro-shield-sphere {
+  background:
+    radial-gradient(circle at 34% 28%, rgb(var(--ns-secondary-readable) / 0.17), transparent 28%),
+    radial-gradient(circle, rgb(var(--ns-secondary) / 0.14), transparent 70%);
+  box-shadow:
+    inset -20px -26px 70px rgb(var(--ns-bg) / 0.7),
+    0 0 90px rgb(var(--ns-secondary) / 0.15);
+  animation: proShieldBreathe 5s ease-in-out infinite;
+}
+
+.pro-range {
+  height: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 9999px;
+  background: rgb(var(--ns-border));
+  accent-color: rgb(var(--ns-secondary));
+  cursor: pointer;
+}
+
+.pro-range::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 4px solid rgb(var(--ns-bg));
+  border-radius: 9999px;
+  background: rgb(var(--ns-secondary-readable));
+  box-shadow: 0 0 0 1px rgb(var(--ns-secondary-readable) / 0.6), 0 0 24px rgb(var(--ns-secondary) / 0.72);
+}
+
+.pro-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 4px solid rgb(var(--ns-bg));
+  border-radius: 9999px;
+  background: rgb(var(--ns-secondary-readable));
+  box-shadow: 0 0 0 1px rgb(var(--ns-secondary-readable) / 0.6), 0 0 24px rgb(var(--ns-secondary) / 0.72);
+}
+
+.pro-system-card {
+  transform-style: preserve-3d;
+  background-image: linear-gradient(150deg, rgb(var(--ns-surface-2) / 0.45), rgb(var(--ns-surface) / 0.72));
+}
+
+@keyframes proOrbitOne {
+  from { transform: translate(-50%, -50%) rotateX(70deg) rotateZ(0deg); }
+  to { transform: translate(-50%, -50%) rotateX(70deg) rotateZ(360deg); }
+}
+
+@keyframes proOrbitTwo {
+  from { transform: translate(-50%, -50%) rotateY(68deg) rotateZ(0deg); }
+  to { transform: translate(-50%, -50%) rotateY(68deg) rotateZ(360deg); }
+}
+
+@keyframes proCoreFloat {
+  0%, 100% { margin-top: -4px; }
+  50% { margin-top: 8px; }
+}
+
+@keyframes proCardFloat {
+  0%, 100% { translate: 0 -4px; }
+  50% { translate: 0 7px; }
+}
+
+@keyframes proSmallFloat {
+  0%, 100% { transform: translateY(-3px); }
+  50% { transform: translateY(5px); }
+}
+
+@keyframes proAiTilt {
+  0%, 100% { transform: rotateX(66deg) rotateZ(-4deg); }
+  50% { transform: rotateX(58deg) rotateZ(7deg); }
+}
+
+@keyframes proDotOrbit {
+  from { transform: translateX(-50%) rotate(0deg); }
+  to { transform: translateX(-50%) rotate(360deg); }
+}
+
+@keyframes proShieldBreathe {
+  0%, 100% { transform: scale(0.985) rotate(-1deg); }
+  50% { transform: scale(1.015) rotate(1deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pro-hero-orbit,
+  .pro-hero-core,
+  .pro-hero-card,
+  .pro-ai-orbit,
+  .pro-ai-core,
+  .pro-orbit-dot,
+  .pro-floating-card,
+  .pro-shield-sphere {
+    animation: none !important;
+  }
+}
+
 /* ─── Discover: cinematic scroll scene ───────────────────────────────────── */
 
 .discover-scene {
