@@ -1,5 +1,8 @@
-const PRO_ACCESS_EMAIL = 'emoon0108@gmail.com'
+const PRO_ACCESS_EMAILS = new Set([
+  'emoon0108@gmail.com',
+  'noahkaplan721@gmail.com',
+])
 
 export function hasProAccess(email: string | null | undefined): boolean {
-  return email?.trim().toLowerCase() === PRO_ACCESS_EMAIL
+  return PRO_ACCESS_EMAILS.has(email?.trim().toLowerCase() ?? '')
 }
