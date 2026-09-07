@@ -33,6 +33,14 @@ const PRO_SYSTEMS: Array<{
   Icon: React.ComponentType<IconProps>
 }> = [
   {
+    number: '07',
+    label: 'New · Shared 3D premieres',
+    title: 'NoSpoilers Theater',
+    description: 'Give independent films and trailers an opening night. Take a first-person seat beside real viewers, or host from your own 3D creator booth.',
+    detail: 'Scheduled premieres · Shared avatars · Audience ratings',
+    Icon: ClapperboardIcon,
+  },
+  {
     number: '01',
     label: 'New · Interactive 3D',
     title: 'Living Taste Twin',
@@ -193,6 +201,20 @@ export default async function ProPage() {
         </section>
       )}
 
+      <section className="px-4 py-12 sm:px-6" aria-labelledby="pro-theater-title">
+        <div className="mx-auto grid max-w-[1400px] items-center gap-8 overflow-hidden rounded-3xl border border-[#ddbd86]/25 bg-[radial-gradient(ellipse_at_top_right,#483046,#19121f_60%)] p-7 sm:p-12 lg:grid-cols-[1fr_auto]">
+          <div>
+            <p className="text-[10px] uppercase tracking-[.22em] text-[#ddbd86]">Introducing NoSpoilers Theater</p>
+            <h2 id="pro-theater-title" className="mt-4 font-heading text-3xl font-semibold tracking-tight text-white sm:text-4xl">Small filmmakers. A big-screen moment.</h2>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/55">Premiere your film or trailer in a shared 3D cinema. Viewers take a first-person seat with their avatars, watch together, and rate the film after the credits.</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Link href="/theater" className="inline-flex min-h-12 items-center justify-center gap-3 rounded-xl bg-[#ddbd86] px-6 text-xs font-semibold text-[#211a12]">Explore Theater <ArrowRightIcon size={14} /></Link>
+            <Link href="/theater/preview" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/20 px-6 text-xs text-white/70">Try the first-person preview</Link>
+          </div>
+        </div>
+      </section>
+
       <section className="relative border-y border-white/10 px-4 py-20 sm:px-6 sm:py-28" aria-labelledby="pro-systems-title">
         <div aria-hidden="true" className="pro-hero-grid absolute inset-0 opacity-40" />
         <div className="relative mx-auto max-w-[1400px]">
@@ -201,7 +223,7 @@ export default async function ProPage() {
               <p className="font-heading text-[10px] font-semibold uppercase tracking-[0.24em] text-ns-secondary-readable">The complete system</p>
               <h2 id="pro-systems-title" className="mt-3 font-heading text-4xl font-semibold tracking-tight text-white sm:text-5xl">Worth it before the opening credits.</h2>
             </div>
-            <p className="max-w-2xl text-sm leading-7 text-ns-muted lg:justify-self-end">Six connected tools solve the whole movie-night problem: who you are, what to watch, who to watch with, and how to stay protected until the final frame.</p>
+            <p className="max-w-2xl text-sm leading-7 text-ns-muted lg:justify-self-end">Seven connected tools bring your cinema life together: who you are, what to watch, who to watch with, and a shared stage for independent stories.</p>
           </div>
 
           <div className="mt-12 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -239,7 +261,7 @@ export default async function ProPage() {
               </div>
               <p className="mt-3 text-xs leading-6 text-ns-muted">Founding price. Cancel anytime. No payment is collected while Pro is in preview.</p>
               <div className="mt-8 grid gap-3 text-xs text-ns-text">
-                {['All six Pro systems', 'Future Pro features included', 'Your spoiler boundaries stay yours'].map(item => (
+                {['All seven Pro systems, including Theater', 'Future Pro features included', 'Your spoiler boundaries stay yours'].map(item => (
                   <span key={item} className="flex items-center gap-2"><span className="grid h-5 w-5 place-items-center rounded-full bg-ns-success/10 text-ns-success"><CheckIcon size={11} /></span>{item}</span>
                 ))}
               </div>
