@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import { publicPageMetadata } from '@/lib/seo'
 import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -19,10 +19,11 @@ import {
   type IconProps,
 } from '@/components/icons'
 
-export const metadata: Metadata = {
-  title: 'NoSpoilers Pro — Your Personal Cinema OS',
+export const metadata = publicPageMetadata({
+  title: 'Pro — Personalized Movie Discovery & Movie Nights',
   description: 'Build a 3D cinema identity, talk to Lumi, control every reveal, and turn your taste into better movie nights with NoSpoilers Pro.',
-}
+  path: '/pro',
+})
 
 const PRO_SYSTEMS: Array<{
   number: string

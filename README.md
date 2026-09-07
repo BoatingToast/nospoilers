@@ -36,6 +36,8 @@ Open `.env` and fill in:
 |---|---|
 | `DATABASE_URL` | PostgreSQL connection string |
 | `NEXTAUTH_URL` | `http://localhost:3000` for local dev |
+| `SITE_URL` | Canonical public origin; defaults to `https://www.nospoilers.xyz` |
+| `GOOGLE_SITE_VERIFICATION` | Optional Search Console HTML verification token (the tag's `content` value) |
 | `NEXTAUTH_SECRET` | Run `openssl rand -base64 32` to generate |
 | `TMDB_API_KEY` | From your TMDb account settings |
 | `TMDB_ACCESS_TOKEN` | Read Access Token from TMDb (preferred over API key) |
@@ -190,3 +192,44 @@ with `npm run test:e2e -- e2e/theater.spec.ts`.
 
 If you have a **Read Access Token** (Bearer token), set `TMDB_ACCESS_TOKEN`.
 If you only have an **API key**, set `TMDB_API_KEY` — the service layer handles both automatically.
+
+## Search indexing and SEO
+
+Public movie and actor pages have individual canonical URLs, descriptions, and
+social previews. The homepage identifies NoSpoilers with WebSite and Organization
+structured data; movie pages describe only visible film facts and breadcrumbs.
+Movie descriptions omit plot summaries and taglines. `/movie-recommendations`
+provides a public guide to discovery, Movie DNA, and spoiler controls.
+
+`/sitemap.xml` refreshes hourly and includes the main public pages and a deduplicated
+set of movies from the trending, popular, top-rated, and now-playing catalogs.
+It remains available if a catalog fails, and excludes accounts, internal search,
+and private member tools. `/robots.txt` advertises it. Account and internal search
+routes send `X-Robots-Tag: noindex, follow`; crawling stays allowed so search
+engines can read that directive. Vercel non-production deployments send noindex
+for all routes. Canonicals always use `SITE_URL`, independent of the auth URL.
+
+After deploying:
+
+1. Verify the URL-prefix property `https://www.nospoilers.xyz/` in Google Search
+   Console using the included `public/googlec5f614f004ed0fab.html` file. Keep this
+   file deployed after verification to retain ownership. Alternatively, verify
+   the `nospoilers.xyz` domain property using DNS, or set
+   `GOOGLE_SITE_VERIFICATION` to a Search Console HTML tag token before rebuilding.
+2. Submit `https://www.nospoilers.xyz/sitemap.xml` in Search Console.
+3. Inspect the homepage, `/discover`, `/movie-recommendations`, and a movie URL.
+   Check the rendered page and request indexing for those representative pages.
+4. Validate the homepage and movie structured data with Google's Rich Results
+   Test or Schema.org's validator. Movie facts alone do not guarantee a rich result.
+5. Monitor indexed pages, impressions, clicks, and query positions. Start with
+   branded queries, spoiler-free movie recommendations, and specific film titles.
+   Add useful original guides and earn relevant links over time; technical SEO
+   does not guarantee a first-place ranking for broad queries such as “movies.”
+
+Reference: [Google's SEO Starter Guide](https://developers.google.com/search/docs/fundamentals/seo-starter-guide)
+and [sitemap submission guidance](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap).
+
+Verification: `npm run test:unit` includes SEO parsing and spoiler-safety checks;
+`npm run test:e2e -- e2e/seo.spec.ts --project=desktop-chromium` checks crawler HTML,
+canonicals, structured data, sitemap, noindex headers, missing movies, and the
+social preview using the local TMDb fixtures.

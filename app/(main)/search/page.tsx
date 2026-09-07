@@ -9,7 +9,10 @@ interface Props {
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { q } = await searchParams
   const query = q?.trim()
-  return { title: query ? `"${query}" — NoSpoilers Search` : 'Search — NoSpoilers' }
+  return {
+    title: query ? `"${query}" — Movie Search` : 'Search Movies & People',
+    robots: { index: false, follow: true },
+  }
 }
 
 export default async function SearchPage({ searchParams }: Props) {

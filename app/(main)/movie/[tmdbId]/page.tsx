@@ -1,4 +1,6 @@
 import Image from 'next/image'
+import Link from 'next/link'
+import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
 import type { Metadata } from 'next'
@@ -26,32 +28,46 @@ import ReviewSection from '@/components/reviews/ReviewSection'
 import SpoilerZone   from '@/components/spoiler-zone/SpoilerZone'
 import { selectMovieTrailers } from '@/lib/movie-trailers'
 import { selectRelatedMovies } from '@/lib/movie-quality'
+import { absoluteUrl, movieSearchDescription, parseCatalogId, publicPageMetadata } from '@/lib/seo'
+import JsonLd from '@/components/seo/JsonLd'
 
 interface Props {
   params: Promise<{ tmdbId: string }>
 }
 
+const getPageMovie = cache((id: number) => getMovieById(id).catch(() => null))
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { tmdbId } = await params
-  try {
-    const movie = await getMovieById(parseInt(tmdbId, 10))
-    return { title: `${movie.title} | NoSpoilers` }
-  } catch {
-    return { title: 'Movie | NoSpoilers' }
-  }
+  const id = parseCatalogId(tmdbId)
+  if (id === null) notFound()
+  const movie = await getPageMovie(id)
+  if (!movie) notFound()
+  const year = movie.release_date?.slice(0, 4)
+  const metadata = publicPageMetadata({
+    title: `${movie.title}${year ? ` (${year})` : ''} — Spoiler-Free Movie Guide`,
+    description: movieSearchDescription(movie),
+    path: `/movie/${movie.id}`,
+    image: movie.backdrop_path || movie.poster_path ? {
+      url: tmdbImageUrl(movie.backdrop_path || movie.poster_path, 'original'),
+      alt: movie.title,
+    } : undefined,
+  })
+  if (movie.adult) metadata.robots = { index: false, follow: true }
+  return metadata
 }
 
 export default async function MoviePage({ params }: Props) {
   const { tmdbId } = await params
-  const id = parseInt(tmdbId, 10)
-  if (isNaN(id)) notFound()
+  const id = parseCatalogId(tmdbId)
+  if (id === null) notFound()
 
   const requestHeaders = await headers()
   const detectedRegion = requestHeaders.get('x-vercel-ip-country')?.toUpperCase()
   const watchRegion = detectedRegion && /^[A-Z]{2}$/.test(detectedRegion) ? detectedRegion : 'US'
 
   const [movie, credits, videos, recommendations, similar, keywords, watchAvailability] = await Promise.all([
-    getMovieById(id).catch(() => null),
+    getPageMovie(id),
     getMovieCredits(id).catch(() => ({ id, cast: [], crew: [] })),
     getMovieVideos(id).catch(() => ({ id, results: [] })),
     getMovieRecommendations(id).catch(() => ({ results: [] })),
@@ -80,6 +96,40 @@ export default async function MoviePage({ params }: Props) {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'Movie',
+            '@id': `${absoluteUrl(`/movie/${movie.id}`)}#movie`,
+            url: absoluteUrl(`/movie/${movie.id}`),
+            name: movie.title,
+            description: movieSearchDescription(movie),
+            image: movie.poster_path ? tmdbImageUrl(movie.poster_path, 'w500') : undefined,
+            datePublished: movie.release_date || undefined,
+            duration: movie.runtime && movie.runtime > 0 ? `PT${movie.runtime}M` : undefined,
+            genre: movie.genres.map(genre => genre.name),
+            director: director ? { '@type': 'Person', name: director.name } : undefined,
+          },
+          {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'NoSpoilers', item: absoluteUrl('/') },
+              { '@type': 'ListItem', position: 2, name: 'Discover movies', item: absoluteUrl('/discover') },
+              { '@type': 'ListItem', position: 3, name: movie.title, item: absoluteUrl(`/movie/${movie.id}`) },
+            ],
+          },
+        ],
+      }} />
+      <nav aria-label="Breadcrumb" className="mb-8 text-xs text-ns-muted">
+        <ol className="flex flex-wrap items-center gap-2">
+          <li><Link href="/" className="hover:text-ns-text">NoSpoilers</Link></li>
+          <li aria-hidden="true">/</li>
+          <li><Link href="/discover" className="hover:text-ns-text">Discover movies</Link></li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page">{movie.title}</li>
+        </ol>
+      </nav>
 
       {/* Hero */}
       <div className="flex flex-col sm:flex-row gap-8 mb-12">
@@ -113,6 +163,8 @@ export default async function MoviePage({ params }: Props) {
           <h1 className="font-display text-5xl sm:text-6xl tracking-wider text-ns-text leading-none">
             {movie.title.toUpperCase()}
           </h1>
+
+          <p className="max-w-xl text-sm leading-6 text-ns-muted">{movieSearchDescription(movie)}</p>
 
           {movie.tagline && (
             <p className="text-ns-muted font-body text-sm italic">"{movie.tagline}"</p>

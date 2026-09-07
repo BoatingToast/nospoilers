@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 test('landing page stays within the viewport and search reaches results', async ({ page }) => {
   await gotoHydrated(page, '/')
 
-  await expect(page.getByRole('heading', { name: 'DISCOVER' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'DISCOVER MOVIES', exact: true })).toBeVisible()
   // Next's dev transition can briefly retain a hidden copy of streamed server
   // content; assert the user-visible heading instead of relying on strict text.
   await expect(page.getByRole('heading', { name: 'FEATURED FILMS' }).filter({ visible: true })).toBeVisible()
