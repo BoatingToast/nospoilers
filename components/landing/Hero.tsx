@@ -45,14 +45,14 @@ export default function Hero() {
           Now in Beta
         </div>
 
-        {/* Main title: DISCOVER */}
+        {/* Keep the complete search topic in the visible primary heading. */}
         <h1
-          className="font-display text-[clamp(3.4rem,18vw,7.5rem)] sm:text-[14vw] md:text-[12vw] leading-none
+          className="font-display text-[clamp(2.2rem,10vw,7.5rem)] leading-none
                      tracking-wider text-ns-text select-none
                      opacity-0 animate-fade-up"
           style={{ animationDelay: '0.25s', animationFillMode: 'forwards' }}
         >
-          DISCOVER
+          DISCOVER MOVIES
         </h1>
 
         {/* Signature reveal: WITHOUT SPOILERS */}
@@ -78,8 +78,8 @@ export default function Hero() {
                      opacity-0 animate-fade-up"
           style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}
         >
-          Find films you&apos;ll love based on your taste — not other people&apos;s reviews.
-          No plot twists. No ruined endings.
+          Find your next movie with NoSpoilers. Personalized movie recommendations
+          based on your taste, with story details under your control.
         </p>
 
         {/* Search */}
