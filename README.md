@@ -153,6 +153,37 @@ Install Chromium once with `npx playwright install chromium`, then run
 so it does not need a real TMDb key or database. Set `E2E_BASE_URL` to run the
 same journeys against an already-running environment instead.
 
+### NoSpoilers Theater
+
+Open `/theater` to spawn in the first-person multiplex lobby. Use arrow keys or
+WASD to walk, drag to look around, and press **E** or **Enter theater** at a door.
+The on-screen direction buttons support touch devices. Eight rooms are available;
+empty rooms can be explored without signing in, and Showtimes provides direct
+access to premieres. `/theater/preview` opens an empty screening room.
+
+Approved Pro preview accounts can schedule a completed Creator Studio upload at
+`/theater/new`. The form checks browser playback and reads its runtime, accepts a
+film or trailer, and stores the scheduled time in UTC. Optional promotions appear
+in the lobby Showtimes panel; these are included preview placements, not external
+paid ad campaigns. Creator access and upload ownership are checked on the server.
+
+Apply the `20260906000000_nospoilers_theater` migration with `npm run db:deploy`
+before enabling premieres. Theater uses the existing private Supabase upload
+bucket and server-only signed URLs. A viewer only receives a stream URL after
+reserving a seat and while the scheduled premiere is live. All viewers synchronize
+to the server's start time, including late arrivals. Rooms poll every five seconds
+and show the saved Pro avatar of each present attendee; reservations survive
+reconnects, and presence expires after 45 seconds away.
+
+Creators get a 3D room overview and aggregate ratings. After playback, attendees
+must submit a 1–5 star rating to finish the screening or join another premiere.
+The requirement is persisted in the database and survives reloads; it does not
+prevent closing the browser. The experience supports desktop and touch navigation,
+fullscreen, and a flat video fallback, but does not implement WebXR headset mode.
+
+Theater policy tests are included in `npm run test:unit`. Run the browser journeys
+with `npm run test:e2e -- e2e/theater.spec.ts`.
+
 ---
 
 ## TMDb Note

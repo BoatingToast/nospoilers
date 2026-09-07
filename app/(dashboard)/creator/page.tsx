@@ -38,6 +38,11 @@ export default function CreatorPage() {
 
       <UploadMovieSection />
 
+      <Link href="/theater/new" className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#ddbd86]/25 bg-[#ddbd86]/5 p-6 transition-colors hover:border-[#ddbd86]/50">
+        <div><p className="text-[9px] uppercase tracking-[.2em] text-[#ddbd86]">NoSpoilers Pro · Theater</p><h2 className="mt-2 font-heading text-lg font-semibold text-ns-text">Give your film an opening night.</h2><p className="mt-2 max-w-xl text-xs leading-6 text-ns-muted">Schedule a film or trailer premiere, promote it in Theater, and watch your audience arrive in a shared 3D cinema.</p></div>
+        <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#ddbd86]">Host a premiere <ArrowRightIcon size={14} /></span>
+      </Link>
+
       <section aria-labelledby="upload-details-title" className="mt-6 rounded-2xl border border-ns-border bg-ns-surface/55 p-5 sm:p-6">
         <h2 id="upload-details-title" className="font-heading text-sm font-semibold text-ns-text">Before you upload</h2>
         <ul className="mt-4 grid gap-3 md:grid-cols-3">
