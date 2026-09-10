@@ -5,7 +5,7 @@ import { gotoHydrated, mockMemberSession, mockSignedOutSession } from './support
 test('Pro lobby launches features and keeps signup on its own screen', async ({ page }) => {
   await mockSignedOutSession(page)
   await gotoHydrated(page, '/pro')
-  await expect(page.getByRole('heading', { name: 'A good night starts here.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'The lobby.', exact: true })).toBeVisible()
   await expect(page.getByRole('textbox')).toHaveCount(0)
   for (const name of ['Tonight Mode', 'Lumi AI', 'Identity Forge', 'Double Feature', 'Taste Lab', 'Spoiler Field', 'NoSpoilers Theater']) {
     await expect(page.getByRole('link', { name: `Open ${name}`, exact: true })).toBeVisible()
@@ -13,7 +13,7 @@ test('Pro lobby launches features and keeps signup on its own screen', async ({ 
   const dimensions = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, content: document.documentElement.scrollWidth }))
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport)
 
-  await page.getByRole('link', { name: 'Open Tonight Mode', exact: true }).click()
+  await page.getByRole('link', { name: 'Open Tonight Mode', exact: true }).press('Enter')
   await expect(page).toHaveURL(/\/pro\/access\?feature=tonight$/)
   await expect(page.getByRole('heading', { name: 'Tonight Mode is a Pro space.' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Sign in to continue' })).toHaveAttribute('href', '/login?callbackUrl=%2Fpro%2Ftonight')
