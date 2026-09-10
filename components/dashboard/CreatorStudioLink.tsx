@@ -11,7 +11,7 @@ export default function CreatorStudioLink() {
         <UploadMovieIcon size={17} />
       </span>
       <span className="min-w-0">
-        <span className="block text-[10px] font-body uppercase tracking-[0.16em] text-ns-muted">Make your next film</span>
+        <span className="block text-[10px] font-body uppercase tracking-[0.16em] text-ns-muted">NoSpoilers Pro · Make your next film</span>
         <span className="block text-xs font-heading font-semibold text-ns-text">Open NoSpoilers Lab</span>
       </span>
       <ArrowRightIcon size={14} className="ml-auto text-ns-muted transition-transform group-hover:translate-x-0.5 group-hover:text-ns-secondary-readable" />
