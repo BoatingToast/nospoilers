@@ -36,6 +36,15 @@ export default function CreatorPage() {
         </div>
       </header>
 
+      <Link href="/lab" className="group mb-8 flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-ns-secondary-readable/25 bg-gradient-to-r from-ns-secondary/15 to-ns-surface p-6 sm:p-8">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[.22em] text-ns-secondary-readable">NoSpoilers Lab</p>
+          <h2 className="mt-3 font-heading text-2xl font-medium tracking-tight text-ns-text">Your story. Your cut. Your next film.</h2>
+          <p className="mt-3 max-w-xl text-xs leading-6 text-ns-muted">Import your footage, build your timeline, add titles and sound, and export a finished movie. Your filmmaking workspace is ready.</p>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-lg bg-ns-secondary px-5 py-3 text-xs font-semibold text-white">Open Lab <ArrowRightIcon size={15} /></span>
+      </Link>
+
       <UploadMovieSection />
 
       <Link href="/theater/new" className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#ddbd86]/25 bg-[#ddbd86]/5 p-6 transition-colors hover:border-[#ddbd86]/50">

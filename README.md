@@ -168,6 +168,52 @@ Install Chromium once with `npx playwright install chromium`, then run
 so it does not need a real TMDb key or database. Set `E2E_BASE_URL` to run the
 same journeys against an already-running environment instead.
 
+### NoSpoilers Lab
+
+Open `/lab` while signed in, or choose **NoSpoilers Lab** from the profile menu,
+dashboard, or Creator Studio. Lab is a local filmmaking workspace and needs no AI
+API, database migration, or additional cloud storage configuration.
+
+- Create projects or try the editable starter film.
+- Import browser-decodable MP4, MOV, M4V, WebM, JPG, PNG, WebP, MP3, WAV, M4A,
+  AAC, OGG, or FLAC files, up to 1 GB per file. Unsupported codecs report an error.
+- Add shots to a sequential picture track; reorder, split, duplicate, and trim
+  them using drag handles or precise source times. Set speed, volume, framing,
+  color looks, and fades through black.
+- Layer manually timed titles, subtitles, credits, music, and voiceover. Audio
+  supports source trimming, volume, and fades. Text and audio keep their explicit
+  timestamps when picture clips move or change length.
+- Preview the composite with sound, seek by frame, and use session undo/redo.
+- Export 720p or 1080p at 30 fps in widescreen, portrait, or square format. The
+  browser exposes supported MP4/WebM encoders. Preview and export share the same
+  canvas compositor, and WebM exports include a finite duration for playback.
+- Download the finished movie, then upload it through Creator Studio to use the
+  existing publishing and Theater flows.
+
+Projects, original media, and notes autosave to IndexedDB, separated by account
+within the current browser. They are **not cloud synced**. Clearing browser site
+data removes them. ZIP backups include the original media and edit; portable
+backup/restore currently supports up to 500 MB of media. Restore creates a new
+project instead of overwriting an existing edit. Undo history lasts for the
+current editing session.
+
+This first version targets short films. Export uses browser MediaRecorder and
+runs at playback speed; keep the tab visible. Hiding it stops the export with a
+retry message. Canceling releases the encoder and media resources. Larger
+exports and backup files consume browser memory. Desktop Chromium is the tested
+editing/export target; mobile Chromium journeys also exercise the responsive
+panels. Native iOS Safari and other codecs may differ. There is one sequential
+picture track, independent audio layers, and text layers; cloud collaboration,
+AI, keyframe animation, and overlapping picture compositing are not included.
+
+`npm run test:unit` includes timeline, validation, and WebM metadata tests.
+Run the browser journeys with `npm run test:e2e -- e2e/lab.spec.ts`. They create
+real video/audio fixtures, decode exported output, check picture and sound, test
+project persistence/backups, and exercise failure/cancellation paths. If using a
+system Chrome installation, set `E2E_CHROME_CHANNEL=chrome`. Use `E2E_PORT` and
+`E2E_TMDB_PORT` to avoid existing local servers; test builds are isolated under
+`.next-e2e-<port>`. `NOSPOILERS_BUILD_DIR` can also isolate other local builds.
+
 ### NoSpoilers Theater
 
 Open `/theater` to spawn in the first-person multiplex lobby. Use arrow keys or
