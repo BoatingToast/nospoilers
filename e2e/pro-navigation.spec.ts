@@ -7,7 +7,7 @@ test('Pro lobby launches features and keeps signup on its own screen', async ({ 
   await gotoHydrated(page, '/pro')
   await expect(page.getByRole('heading', { name: 'The lobby.', exact: true })).toBeVisible()
   await expect(page.getByRole('textbox')).toHaveCount(0)
-  for (const name of ['Tonight Mode', 'Lumi AI', 'Identity Forge', 'Double Feature', 'Taste Lab', 'Spoiler Field', 'NoSpoilers Theater']) {
+  for (const name of ['Tonight Mode', 'Lumi AI', 'Identity Forge', 'Double Feature', 'Taste Lab', 'Spoiler Field', 'NoSpoilers Theater', 'NoSpoilers Lab']) {
     await expect(page.getByRole('link', { name: `Open ${name}`, exact: true })).toBeVisible()
   }
   const dimensions = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, content: document.documentElement.scrollWidth }))

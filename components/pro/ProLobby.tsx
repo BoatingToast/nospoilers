@@ -142,6 +142,28 @@ export default function ProLobby({ hasAccess }: { hasAccess: boolean }) {
               </div>
               <span className={styles.cardAction}>Enter the theater<ArrowRightIcon size={16} /></span>
             </Link>
+
+            <Link href="/lab" aria-label="Open NoSpoilers Lab" className={styles.toolCard}>
+              <div className={styles.cardTop}>
+                <span className={styles.toolIcon}><ClapperboardIcon size={21} strokeWidth={1.5} /></span>
+                <span className={styles.toolNumber}>07</span>
+              </div>
+              <div className={styles.toolArtwork} aria-hidden="true">
+                <svg viewBox="0 0 160 120" fill="none">
+                  <rect x="20" y="12" width="120" height="68" rx="7" stroke="currentColor" strokeOpacity=".3" />
+                  <path d="m70 32 24 14-24 14V32Z" fill="currentColor" fillOpacity=".35" />
+                  <rect x="20" y="88" width="36" height="12" rx="3" fill="currentColor" fillOpacity=".3" />
+                  <rect x="60" y="88" width="48" height="12" rx="3" fill="currentColor" fillOpacity=".18" />
+                  <rect x="112" y="88" width="28" height="12" rx="3" fill="currentColor" fillOpacity=".3" />
+                  <path d="M82 83v25" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </div>
+              <div className={styles.cardCopy}>
+                <h3>NoSpoilers Lab</h3>
+                <p>Your footage. Your cut. Edit shots, add titles and sound, and export your next film.</p>
+              </div>
+              <span className={styles.cardAction}>Open Lab<ArrowRightIcon size={16} /></span>
+            </Link>
           </div>
         </section>
 

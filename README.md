@@ -170,8 +170,11 @@ same journeys against an already-running environment instead.
 
 ### NoSpoilers Lab
 
-Open `/lab` while signed in, or choose **NoSpoilers Lab** from the profile menu,
-dashboard, or Creator Studio. Lab is a local filmmaking workspace and needs no AI
+Lab requires NoSpoilers Pro access, using the same private-preview approved-account
+list as the other Pro tools. Open `/lab` while signed in with a Pro account, or choose
+**NoSpoilers Lab** from the Pro lobby, profile menu, dashboard, or Creator Studio.
+Signed-in members without Pro access are redirected to `/pro/access?feature=lab`.
+Lab is a local filmmaking workspace and needs no AI
 API, database migration, or additional cloud storage configuration.
 
 - Create projects or try the editable starter film.

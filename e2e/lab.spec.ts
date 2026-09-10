@@ -1,7 +1,9 @@
 import { expect, test, type Page } from '@playwright/test'
 import { encode } from 'next-auth/jwt'
 import { readFile } from 'node:fs/promises'
-import { memberSession, mockMemberSession } from './support/session'
+import { memberSession, mockMemberSession, mockSignedOutSession } from './support/session'
+
+const proSession = { ...memberSession, user: { ...memberSession.user, email: 'emoon0108@gmail.com' } }
 
 async function panel(page: Page, name: 'media' | 'preview' | 'inspector') {
   await expect(page.getByLabel('Project name')).toBeVisible()
@@ -56,15 +58,57 @@ async function videoFixture(page: Page) {
 test.beforeEach(async ({ page, context, baseURL }) => {
   test.skip(Boolean(process.env.E2E_BASE_URL) && !process.env.E2E_UPLOAD_TEST_SESSION, 'Requires the local fixture session secret.')
   await mockMemberSession(page)
-  const token = await encode({ secret: 'nospoilers-e2e-secret', token: memberSession.user, maxAge: 3600 })
+  await page.route('**/api/auth/session', route => route.fulfill({ json: proSession }))
+  const token = await encode({ secret: 'nospoilers-e2e-secret', token: proSession.user, maxAge: 3600 })
   await context.addCookies([{ name: 'next-auth.session-token', value: token, url: baseURL!, httpOnly: true, sameSite: 'Lax' }])
 })
 
 test('a signed-out visitor is redirected and Lab is not indexed', async ({ page, context }) => {
   await context.clearCookies()
+  await mockSignedOutSession(page)
   const response = await page.goto('/lab')
   await expect(page).toHaveURL(/\/login\?callbackUrl=%2Flab/)
   expect(response?.headers()['x-robots-tag']).toContain('noindex')
+})
+
+test('a member without Pro cannot open Lab directly or from the Pro lobby', async ({ page, context, baseURL }) => {
+  await mockMemberSession(page)
+  const token = await encode({ secret: 'nospoilers-e2e-secret', token: memberSession.user, maxAge: 3600 })
+  await context.addCookies([{ name: 'next-auth.session-token', value: token, url: baseURL!, httpOnly: true, sameSite: 'Lax' }])
+
+  await page.goto('/lab')
+  await expect(page).toHaveURL(/\/pro\/access\?feature=lab$/)
+  await expect(page.getByRole('heading', { name: 'NoSpoilers Lab is a Pro space.' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Create a film', exact: true })).toHaveCount(0)
+
+  await page.goto('/pro')
+  await page.getByRole('link', { name: 'Open NoSpoilers Lab', exact: true }).click()
+  await expect(page).toHaveURL(/\/pro\/access\?feature=lab$/)
+  await expect(page.getByRole('button', { name: 'Try a starter film' })).toHaveCount(0)
+})
+
+test('Pro members can open Lab from the lobby and the access page', async ({ page }, testInfo) => {
+  await page.goto('/pro')
+  const labLink = page.getByRole('link', { name: 'Open NoSpoilers Lab', exact: true })
+  await expect(labLink).toHaveAttribute('href', '/lab')
+  await labLink.scrollIntoViewIfNeeded()
+  await page.screenshot({ path: testInfo.outputPath('pro-lobby-lab.png'), fullPage: true })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  await labLink.click()
+  await expect(page).toHaveURL(/\/lab$/)
+  await expect(page.getByRole('button', { name: 'Create a film', exact: true })).toBeEnabled()
+
+  await page.goto('/pro/access?feature=lab')
+  await expect(page).toHaveURL(/\/lab$/)
+  await expect(page.getByRole('button', { name: 'Try a starter film' })).toBeEnabled()
+})
+
+test('the Lab access page preserves the destination when signing in', async ({ page, context }) => {
+  await context.clearCookies()
+  await mockSignedOutSession(page)
+  await page.goto('/pro/access?feature=lab')
+  await expect(page.getByRole('heading', { name: 'NoSpoilers Lab is a Pro space.' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Sign in to continue' })).toHaveAttribute('href', '/login?callbackUrl=%2Flab')
 })
 
 test('starter projects edit, split, undo, save, restore, and remain usable on mobile', async ({ page }, testInfo) => {

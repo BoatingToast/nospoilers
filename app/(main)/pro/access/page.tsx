@@ -12,9 +12,13 @@ export const metadata = publicPageMetadata({ title: 'Get Pro Access', descriptio
 
 export default async function ProAccessPage({ searchParams }: { searchParams: Promise<{ feature?: string }> }) {
   const session = await getServerSession(authOptions)
-  const tool = getProTool((await searchParams).feature ?? '')
-  if (session?.user?.id && hasProAccess(session.user.email)) redirect(tool ? `/pro/${tool.slug}` : '/pro')
-  const callbackUrl = tool ? `/pro/${tool.slug}` : '/pro'
+  const feature = (await searchParams).feature ?? ''
+  const proTool = getProTool(feature)
+  const tool = feature === 'lab'
+    ? { title: 'NoSpoilers Lab', description: 'Import your footage, edit your film, and export your final cut in your own filmmaking workspace.' }
+    : proTool
+  const callbackUrl = feature === 'lab' ? '/lab' : proTool ? `/pro/${proTool.slug}` : '/pro'
+  if (session?.user?.id && hasProAccess(session.user.email)) redirect(callbackUrl)
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
@@ -27,7 +31,7 @@ export default async function ProAccessPage({ searchParams }: { searchParams: Pr
           <p className="mt-8"><span className="font-display text-6xl text-white">$4.99</span><span className="ml-2 text-sm text-ns-muted">/ month at launch</span></p>
           <p className="mt-2 text-xs leading-6 text-ns-muted">No payment collected during preview. Cancel anytime at launch.</p>
           <ul className="mt-7 space-y-3 text-sm text-ns-text">
-            {['All seven Pro experiences', 'Future Pro features included', 'Spoiler-free discovery, always'].map(item => <li key={item} className="flex items-center gap-2"><CheckIcon size={14} className="shrink-0 text-ns-success" />{item}</li>)}
+            {['All Pro experiences, including NoSpoilers Lab', 'Future Pro features included', 'Spoiler-free discovery, always'].map(item => <li key={item} className="flex items-center gap-2"><CheckIcon size={14} className="shrink-0 text-ns-success" />{item}</li>)}
           </ul>
         </div>
         <div className="flex flex-col justify-center p-6 sm:p-9">
