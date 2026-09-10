@@ -21,7 +21,7 @@ export function TheaterAccess({ error, retry, callbackUrl = '/theater' }: { erro
     <p role="alert" className="mt-4 text-sm leading-7 text-white/60">{error}</p>
     <div className="mt-6 flex flex-wrap justify-center gap-3">
       <Link href={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`} className={styles.button}>Sign in</Link>
-      <Link href="/pro#pro-access" className={`${styles.button} ${styles.secondary}`}>Get Pro access</Link>
+      <Link href="/pro/access" className={`${styles.button} ${styles.secondary}`}>Get Pro access</Link>
       {retry && <button className={`${styles.button} ${styles.secondary}`} onClick={retry}>Try again</button>}
     </div>
   </div>

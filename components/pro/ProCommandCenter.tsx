@@ -1,15 +1,13 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CheckIcon,
-  FriendsIcon,
   LockIcon,
-  MovieDnaIcon,
   RecsIcon,
   WatchlistIcon,
-  type IconProps,
 } from '@/components/icons'
 import type {
   CharacterAccessory,
@@ -104,18 +102,6 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   },
 ]
 
-const MODE_TABS: Array<{
-  id: ConsoleMode
-  index: string
-  label: string
-  caption: string
-  Icon: React.ComponentType<IconProps>
-}> = [
-  { id: 'forge', index: '01', label: 'Identity Forge', caption: 'Build your 3D self', Icon: MovieDnaIcon },
-  { id: 'lumi', index: '02', label: 'Lumi AI', caption: 'Talk to your taste', Icon: RecsIcon },
-  { id: 'shield', index: '03', label: 'Spoiler Field', caption: 'Control every reveal', Icon: LockIcon },
-]
-
 function optionLabel<T extends string>(items: Array<{ value: T; label: string }>, value: T) {
   return items.find(item => item.value === value)?.label ?? value
 }
@@ -151,7 +137,7 @@ function ColorRow({
 }) {
   return (
     <fieldset>
-      <legend className="text-[9px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">{label}</legend>
+      <legend className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">{label}</legend>
       <div className="mt-2.5 flex flex-wrap gap-2">
         {options.map(option => (
           <button
@@ -184,7 +170,7 @@ function SegmentedRow<T extends string>({
 }) {
   return (
     <fieldset>
-      <legend className="text-[9px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">{label}</legend>
+      <legend className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">{label}</legend>
       <div className="mt-2 grid grid-cols-3 gap-1 rounded-xl border border-ns-border bg-ns-bg/55 p-1">
         {options.map(option => (
           <button
@@ -192,7 +178,7 @@ function SegmentedRow<T extends string>({
             type="button"
             onClick={() => onChange(option.value)}
             aria-pressed={value === option.value}
-            className={`min-h-9 rounded-lg px-2 text-[9px] font-heading font-semibold transition-colors ${
+            className={`min-h-9 rounded-lg px-2 text-[10px] font-heading font-semibold transition-colors ${
               value === option.value
                 ? 'bg-ns-secondary text-white shadow-lg shadow-ns-secondary/20'
                 : 'text-ns-muted hover:bg-white/5 hover:text-white'
@@ -206,8 +192,7 @@ function SegmentedRow<T extends string>({
   )
 }
 
-export default function ProCommandCenter() {
-  const [mode, setMode] = useState<ConsoleMode>('forge')
+export default function ProCommandCenter({ mode, userId }: { mode: ConsoleMode; userId: string }) {
   const [config, setConfig] = useState<CharacterConfig>(DEFAULT_CHARACTER)
   const [avatarName, setAvatarName] = useState('NOVA-07')
   const [saveLabel, setSaveLabel] = useState('Save identity')
@@ -216,9 +201,11 @@ export default function ProCommandCenter() {
   const [sending, setSending] = useState(false)
   const [connection, setConnection] = useState<ConnectionMode>('preview')
   const [progress, setProgress] = useState(28)
+  const [sessionLoaded, setSessionLoaded] = useState(false)
   const shellRef = useRef<HTMLDivElement>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const messageIdRef = useRef(1)
+  const sessionKey = `nospoilers-pro-session-${userId}`
 
   useEffect(() => {
     try {
@@ -233,7 +220,31 @@ export default function ProCommandCenter() {
   }, [])
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    try {
+      const saved = JSON.parse(window.sessionStorage.getItem(sessionKey) ?? '{}') as { messages?: ChatMessage[]; progress?: number; connection?: ConnectionMode }
+      if (Array.isArray(saved.messages) && saved.messages.length && saved.messages.every(message => message && typeof message.id === 'string' && typeof message.content === 'string' && (message.role === 'user' || message.role === 'assistant'))) {
+        setMessages(saved.messages)
+        messageIdRef.current = saved.messages.length + 1
+      }
+      if (typeof saved.progress === 'number' && saved.progress >= 0 && saved.progress <= 100) setProgress(saved.progress)
+      if (saved.connection === 'live' || saved.connection === 'preview') setConnection(saved.connection)
+    } catch {
+      // Storage is optional; the tools also work in private browsing.
+    }
+    setSessionLoaded(true)
+  }, [sessionKey])
+
+  useEffect(() => {
+    if (!sessionLoaded) return
+    try {
+      window.sessionStorage.setItem(sessionKey, JSON.stringify({ messages, progress, connection }))
+    } catch {
+      // Keep the current conversation usable when storage is unavailable.
+    }
+  }, [messages, progress, connection, sessionLoaded, sessionKey])
+
+  useEffect(() => {
+    if (messages.length > 1 || sending) chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [messages, sending])
 
   const activeLayers = useMemo(() => {
@@ -340,62 +351,11 @@ export default function ProCommandCenter() {
   }
 
   return (
-    <section id="cinema-os" className="scroll-mt-24 px-3 py-14 sm:px-6 sm:py-20" aria-labelledby="cinema-os-title">
-      <div className="mx-auto max-w-[1400px]">
-        <div className="mb-7 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="font-heading text-[10px] font-semibold uppercase tracking-[0.26em] text-ns-secondary-readable">Interactive launch preview</p>
-            <h2 id="cinema-os-title" className="mt-2 max-w-3xl font-heading text-3xl font-semibold tracking-tight text-white sm:text-5xl">
-              Enter your personal cinema universe.
-            </h2>
-          </div>
-          <p className="max-w-lg text-sm leading-6 text-ns-muted">
-            Build your on-screen identity, talk to a spoiler-locked taste companion, and control exactly what the internet is allowed to reveal.
-          </p>
-        </div>
-
-        <div ref={shellRef} className="pro-command-shell overflow-hidden rounded-[28px] border border-white/10 bg-ns-surface shadow-2xl shadow-black/50">
-          <header className="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-ns-bg/65 px-4 py-3 sm:px-5">
-            <div className="flex items-center gap-3">
-              <span className="relative grid h-9 w-9 place-items-center rounded-full border border-ns-secondary-readable/35 bg-ns-secondary/15 text-ns-secondary-readable">
-                <span className="absolute inset-1 animate-pulse rounded-full border border-ns-secondary-readable/20" />
-                <MovieDnaIcon size={16} />
-              </span>
-              <div>
-                <p className="font-display text-xl tracking-[0.16em] text-white">CINEMA OS</p>
-                <p className="text-[8px] uppercase tracking-[0.22em] text-ns-muted">NoSpoilers Pro / Build 01</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="hidden items-center gap-2 rounded-full border border-ns-success/20 bg-ns-success/10 px-3 py-1.5 text-[9px] font-heading uppercase tracking-[0.12em] text-ns-success sm:inline-flex">
-                <span className="h-1.5 w-1.5 rounded-full bg-ns-success" /> All systems ready
-              </span>
-              <button type="button" onClick={() => void toggleFullscreen()} className="rounded-lg border border-ns-border px-3 py-2 text-[9px] font-heading uppercase tracking-[0.12em] text-ns-muted transition-colors hover:border-ns-secondary/50 hover:text-white">
-                Full screen
-              </button>
-            </div>
-          </header>
-
-          <nav className="grid border-b border-white/10 bg-ns-bg/35 md:grid-cols-3" aria-label="Cinema OS modes">
-            {MODE_TABS.map(({ id, index, label, caption, Icon }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setMode(id)}
-                aria-pressed={mode === id}
-                className={`group flex min-h-[76px] items-center gap-3 border-b border-white/10 px-4 text-left transition-colors last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0 ${mode === id ? 'bg-ns-secondary/12' : 'hover:bg-white/[0.035]'}`}
-              >
-                <span className={`font-display text-xl tracking-wider ${mode === id ? 'text-ns-secondary-readable' : 'text-ns-muted/55'}`}>{index}</span>
-                <span className={`grid h-9 w-9 place-items-center rounded-xl border ${mode === id ? 'border-ns-secondary/40 bg-ns-secondary/15 text-ns-secondary-readable' : 'border-ns-border text-ns-muted'}`}>
-                  <Icon size={16} />
-                </span>
-                <span>
-                  <span className={`block font-heading text-xs font-semibold ${mode === id ? 'text-white' : 'text-ns-muted group-hover:text-white'}`}>{label}</span>
-                  <span className="mt-0.5 block text-[9px] text-ns-muted/70">{caption}</span>
-                </span>
-              </button>
-            ))}
-          </nav>
+    <div ref={shellRef} className="pro-command-shell overflow-hidden rounded-3xl border border-ns-border bg-ns-surface shadow-2xl shadow-black/30">
+      <div className="flex items-center justify-between gap-3 border-b border-ns-border bg-ns-bg/35 px-5 py-3">
+        <p className="text-xs text-ns-muted">{mode === 'forge' ? 'Your identity studio' : mode === 'lumi' ? 'A conversation with Lumi' : 'Interactive boundary preview'}</p>
+        <button type="button" onClick={() => void toggleFullscreen()} className="min-h-10 rounded-lg border border-ns-border px-3 text-xs text-ns-muted transition-colors hover:border-ns-secondary/50 hover:text-white">Full screen</button>
+      </div>
 
           {mode === 'forge' && (
             <div className="grid min-h-[680px] lg:grid-cols-[minmax(0,1.35fr)_minmax(330px,0.65fr)]">
@@ -403,12 +363,12 @@ export default function ProCommandCenter() {
                 <div aria-hidden="true" className="pro-horizon-grid absolute inset-x-0 bottom-0 h-2/3" />
                 <div className="absolute left-5 top-5 z-10">
                   <p className="font-display text-2xl tracking-[0.12em] text-white">{avatarName || 'UNNAMED'}</p>
-                  <div className="mt-2 flex items-center gap-2 text-[8px] uppercase tracking-[0.17em] text-ns-muted">
+                  <div className="mt-2 flex items-center gap-2 text-[10px] uppercase tracking-[0.17em] text-ns-muted">
                     <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: config.accent }} />
                     Live taste twin
                   </div>
                 </div>
-                <div className="absolute right-5 top-5 z-10 rounded-full border border-white/10 bg-ns-bg/45 px-3 py-1.5 text-[8px] uppercase tracking-[0.15em] text-ns-muted backdrop-blur">
+                <div className="absolute right-5 top-5 z-10 rounded-full border border-white/10 bg-ns-bg/45 px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] text-ns-muted backdrop-blur">
                   Drag to orbit
                 </div>
                 <ProCharacterScene config={config} />
@@ -419,7 +379,7 @@ export default function ProCommandCenter() {
                     ['Signal', '98%'],
                   ].map(([label, value]) => (
                     <div key={label} className="rounded-xl border border-white/10 bg-ns-bg/55 px-3 py-2.5 backdrop-blur-md">
-                      <p className="text-[7px] uppercase tracking-[0.18em] text-ns-muted">{label}</p>
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-ns-muted">{label}</p>
                       <p className="mt-1 truncate font-heading text-[10px] font-semibold text-white">{value}</p>
                     </div>
                   ))}
@@ -429,16 +389,16 @@ export default function ProCommandCenter() {
               <aside className="bg-ns-surface-2/35 p-5 sm:p-7">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-[9px] font-heading font-semibold uppercase tracking-[0.2em] text-ns-secondary-readable">Character protocol</p>
+                    <p className="text-[10px] font-heading font-semibold uppercase tracking-[0.2em] text-ns-secondary-readable">Character protocol</p>
                     <h3 className="mt-1 font-heading text-xl font-semibold text-white">Make your Movie DNA visible.</h3>
                   </div>
-                  <button type="button" onClick={randomizeCharacter} className="rounded-lg border border-ns-border px-3 py-2 text-[9px] font-heading font-semibold text-ns-muted transition-colors hover:border-ns-secondary/50 hover:text-white">
+                  <button type="button" onClick={randomizeCharacter} className="rounded-lg border border-ns-border px-3 py-2 text-[10px] font-heading font-semibold text-ns-muted transition-colors hover:border-ns-secondary/50 hover:text-white">
                     Randomize
                   </button>
                 </div>
 
                 <label className="mt-6 block">
-                  <span className="text-[9px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">Identity name</span>
+                  <span className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">Identity name</span>
                   <input
                     value={avatarName}
                     onChange={event => { setAvatarName(event.target.value.slice(0, 18).toUpperCase()); setSaveLabel('Save identity') }}
@@ -454,7 +414,7 @@ export default function ProCommandCenter() {
                   <SegmentedRow label="Silhouette" value={config.silhouette} options={SILHOUETTES} onChange={value => updateConfig('silhouette', value)} />
                   <SegmentedRow label="Energy" value={config.energy} options={ENERGIES} onChange={value => updateConfig('energy', value)} />
                   <fieldset>
-                    <legend className="text-[9px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">Headwear</legend>
+                    <legend className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">Headwear</legend>
                     <div className="mt-2 grid grid-cols-2 gap-1.5">
                       {ACCESSORIES.map(option => (
                         <button
@@ -462,7 +422,7 @@ export default function ProCommandCenter() {
                           type="button"
                           onClick={() => updateConfig('accessory', option.value)}
                           aria-pressed={config.accessory === option.value}
-                          className={`rounded-lg border px-3 py-2.5 text-[9px] font-heading font-semibold transition-colors ${config.accessory === option.value ? 'border-ns-secondary/60 bg-ns-secondary/15 text-white' : 'border-ns-border text-ns-muted hover:text-white'}`}
+                          className={`rounded-lg border px-3 py-2.5 text-[10px] font-heading font-semibold transition-colors ${config.accessory === option.value ? 'border-ns-secondary/60 bg-ns-secondary/15 text-white' : 'border-ns-border text-ns-muted hover:text-white'}`}
                         >
                           {option.label}
                         </button>
@@ -474,13 +434,13 @@ export default function ProCommandCenter() {
                 <button type="button" onClick={saveCharacter} className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ns-secondary px-5 text-xs font-heading font-semibold text-white transition-transform hover:-translate-y-0.5 hover:bg-ns-secondary/90">
                   <CheckIcon size={15} /> {saveLabel}
                 </button>
-                <p className="mt-3 text-center text-[9px] leading-4 text-ns-muted/70">Saved to this device for the preview. Account sync can be connected at launch.</p>
+                <p className="mt-3 text-center text-[10px] leading-4 text-ns-muted/70">Your identity is saved on this device.</p>
               </aside>
             </div>
           )}
 
           {mode === 'lumi' && (
-            <div className="grid min-h-[680px] lg:grid-cols-[0.72fr_1.28fr]">
+            <div className="grid lg:grid-cols-[0.72fr_1.28fr]">
               <div className="relative hidden overflow-hidden border-r border-white/10 bg-ns-bg/45 lg:block">
                 <div aria-hidden="true" className="pro-horizon-grid absolute inset-0" />
                 <div className="absolute inset-0 grid place-items-center">
@@ -495,32 +455,32 @@ export default function ProCommandCenter() {
                 </div>
                 <div className="absolute inset-x-6 bottom-7 grid grid-cols-2 gap-2">
                   <div className="pro-floating-card rounded-xl border border-white/10 bg-ns-surface/70 p-3 backdrop-blur">
-                    <p className="text-[7px] uppercase tracking-[0.16em] text-ns-muted">Context read</p>
+                    <p className="text-[10px] uppercase tracking-[0.16em] text-ns-muted">Context read</p>
                     <p className="mt-1 font-heading text-[10px] text-white">Movie DNA + Passport</p>
                   </div>
                   <div className="pro-floating-card pro-floating-card-delay rounded-xl border border-white/10 bg-ns-surface/70 p-3 backdrop-blur">
-                    <p className="text-[7px] uppercase tracking-[0.16em] text-ns-muted">Plot details</p>
+                    <p className="text-[10px] uppercase tracking-[0.16em] text-ns-muted">Plot details</p>
                     <p className="mt-1 font-heading text-[10px] text-ns-success">Blocked by default</p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex min-h-[680px] flex-col bg-ns-surface-2/25">
+              <div className="flex h-[min(680px,80svh)] min-h-[560px] min-w-0 flex-col bg-ns-surface-2/25">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4 sm:px-7">
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-heading text-base font-semibold text-white">Lumi, your cinema companion</h3>
-                      <span className="rounded-full border border-ns-secondary/35 bg-ns-secondary/10 px-2 py-1 text-[7px] font-heading uppercase tracking-[0.13em] text-ns-secondary-readable">GPT-4o mini</span>
+
                     </div>
-                    <p className="mt-1 text-[9px] text-ns-muted">Taste-aware. Decisive. Plot-blind by design.</p>
+                    <p className="mt-1 text-[10px] text-ns-muted">Taste-aware. Decisive. Plot-blind by design.</p>
                   </div>
-                  <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[8px] uppercase tracking-[0.14em] ${connection === 'live' ? 'border-ns-success/25 bg-ns-success/10 text-ns-success' : connection === 'connecting' ? 'border-ns-warning/25 bg-ns-warning/10 text-ns-warning' : 'border-ns-border text-ns-muted'}`}>
+                  <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] ${connection === 'live' ? 'border-ns-success/25 bg-ns-success/10 text-ns-success' : connection === 'connecting' ? 'border-ns-warning/25 bg-ns-warning/10 text-ns-warning' : 'border-ns-border text-ns-muted'}`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${connection === 'live' ? 'bg-ns-success' : connection === 'connecting' ? 'animate-pulse bg-ns-warning' : 'bg-ns-muted'}`} />
                     {connection === 'live' ? 'Live AI' : connection === 'connecting' ? 'Connecting' : 'Preview brain'}
                   </span>
                 </div>
 
-                <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-7" aria-live="polite">
+                <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-7" aria-live="polite">
                   {messages.map(message => (
                     <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                       {message.role === 'assistant' && (
@@ -547,7 +507,7 @@ export default function ProCommandCenter() {
                 <div className="border-t border-white/10 p-4 sm:p-5">
                   <div className="mb-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                     {QUICK_PROMPTS.map(prompt => (
-                      <button key={prompt} type="button" onClick={() => void sendMessage(prompt)} disabled={sending} className="flex-shrink-0 rounded-full border border-ns-border px-3 py-2 text-[8px] font-heading text-ns-muted transition-colors hover:border-ns-secondary/50 hover:text-white disabled:opacity-50">
+                      <button key={prompt} type="button" onClick={() => void sendMessage(prompt)} disabled={sending} className="flex-shrink-0 rounded-full border border-ns-border px-3 py-2 text-[10px] font-heading text-ns-muted transition-colors hover:border-ns-secondary/50 hover:text-white disabled:opacity-50">
                         {prompt}
                       </button>
                     ))}
@@ -566,13 +526,13 @@ export default function ProCommandCenter() {
                       }}
                       rows={2}
                       placeholder="Ask for one great decision…"
-                      className="min-h-11 flex-1 resize-none bg-transparent px-3 py-2 text-xs leading-5 text-white outline-none placeholder:text-ns-muted/60"
+                      className="min-h-11 min-w-0 flex-1 resize-none bg-transparent px-3 py-2 text-xs leading-5 text-white outline-none placeholder:text-ns-muted/60"
                     />
                     <button type="submit" disabled={!chatInput.trim() || sending} className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl bg-ns-secondary text-white transition-colors hover:bg-ns-secondary/90 disabled:cursor-not-allowed disabled:bg-ns-secondary-dim disabled:text-ns-muted" aria-label="Send message">
                       <span aria-hidden="true" className="translate-x-px text-base">↗</span>
                     </button>
                   </form>
-                  <p className="mt-2 text-center text-[8px] leading-4 text-ns-muted/65">Add OPENAI_API_KEY to activate live replies. Preview mode stays functional without a key.</p>
+                  <p className="mt-2 text-center text-[10px] leading-4 text-ns-muted/65">Lumi may use preview replies when live AI is unavailable. Your conversation stays spoiler-free.</p>
                 </div>
               </div>
             </div>
@@ -583,9 +543,9 @@ export default function ProCommandCenter() {
               <div className="relative flex min-h-[460px] flex-col justify-between overflow-hidden border-b border-white/10 bg-ns-bg/50 p-6 lg:border-b-0 lg:border-r sm:p-9">
                 <div aria-hidden="true" className="pro-horizon-grid absolute inset-0 opacity-60" />
                 <div className="relative z-10">
-                  <p className="text-[9px] font-heading font-semibold uppercase tracking-[0.2em] text-ns-secondary-readable">Adaptive Spoiler Field</p>
-                  <h3 className="mt-2 max-w-md font-heading text-2xl font-semibold text-white sm:text-3xl">The internet changes with your progress.</h3>
-                  <p className="mt-3 max-w-md text-xs leading-6 text-ns-muted">One slider becomes a universal permission layer across reviews, search, friends, and Lumi.</p>
+                  <p className="text-[10px] font-heading font-semibold uppercase tracking-[0.2em] text-ns-secondary-readable">Adaptive Spoiler Field</p>
+                  <h3 className="mt-2 max-w-md font-heading text-2xl font-semibold text-white sm:text-3xl">See how your boundaries open up.</h3>
+                  <p className="mt-3 max-w-md text-xs leading-6 text-ns-muted">Try the preview slider to explore each layer. Manage progress for your actual movies in Plot Passport.</p>
                 </div>
 
                 <div className="relative z-10 my-8 grid place-items-center">
@@ -594,13 +554,13 @@ export default function ProCommandCenter() {
                     <div className="absolute inset-12 rounded-full border border-ns-secondary-readable/15 bg-ns-secondary/10 shadow-[inset_0_0_60px_rgb(var(--ns-secondary)/0.22)]" />
                     <div className="relative text-center">
                       <p className="font-display text-7xl tracking-wide text-white">{progress}%</p>
-                      <p className="text-[8px] uppercase tracking-[0.2em] text-ns-secondary-readable">Story progress</p>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-ns-secondary-readable">Story progress</p>
                     </div>
                   </div>
                 </div>
 
                 <label className="relative z-10 block">
-                  <span className="flex justify-between text-[8px] uppercase tracking-[0.16em] text-ns-muted"><span>Just started</span><span>Finished</span></span>
+                  <span className="flex justify-between text-[10px] uppercase tracking-[0.16em] text-ns-muted"><span>Just started</span><span>Finished</span></span>
                   <input type="range" min="0" max="100" value={progress} onChange={event => setProgress(Number(event.target.value))} className="pro-range mt-3 w-full" aria-label="Movie progress percentage" />
                 </label>
               </div>
@@ -608,11 +568,11 @@ export default function ProCommandCenter() {
               <div className="bg-ns-surface-2/25 p-5 sm:p-8 lg:p-10">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <p className="text-[9px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">Live boundary map</p>
+                    <p className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">Live boundary map</p>
                     <h3 className="mt-1 font-heading text-xl font-semibold text-white">What is safe at {progress}%</h3>
                   </div>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-ns-success/25 bg-ns-success/10 px-3 py-2 text-[8px] font-heading uppercase tracking-[0.12em] text-ns-success">
-                    <LockIcon size={11} /> Zero leaks detected
+                  <span className="inline-flex items-center gap-2 rounded-full border border-ns-success/25 bg-ns-success/10 px-3 py-2 text-[10px] font-heading uppercase tracking-[0.12em] text-ns-success">
+                    <LockIcon size={11} /> Boundary preview
                   </span>
                 </div>
 
@@ -622,9 +582,9 @@ export default function ProCommandCenter() {
                       <span className={`grid h-10 w-10 place-items-center rounded-xl border font-display text-lg ${layer.open ? 'border-ns-success/25 bg-ns-success/10 text-ns-success' : 'border-ns-border bg-ns-surface text-ns-muted'}`}>{String(index + 1).padStart(2, '0')}</span>
                       <div>
                         <p className={`font-heading text-xs font-semibold ${layer.open ? 'text-white' : 'text-ns-muted'}`}>{layer.name}</p>
-                        <p className="mt-1 text-[9px] leading-4 text-ns-muted/75">{layer.detail}</p>
+                        <p className="mt-1 text-[10px] leading-4 text-ns-muted/75">{layer.detail}</p>
                       </div>
-                      <span className={`rounded-full px-2.5 py-1 text-[7px] font-heading uppercase tracking-[0.13em] ${layer.open ? 'bg-ns-success/10 text-ns-success' : 'bg-ns-surface text-ns-muted'}`}>{layer.open ? 'Open' : `At ${layer.threshold}%`}</span>
+                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-heading uppercase tracking-[0.13em] ${layer.open ? 'bg-ns-success/10 text-ns-success' : 'bg-ns-surface text-ns-muted'}`}>{layer.open ? 'Open' : `At ${layer.threshold}%`}</span>
                     </div>
                   ))}
                 </div>
@@ -633,8 +593,9 @@ export default function ProCommandCenter() {
                   <div className="flex gap-3">
                     <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-ns-secondary/15 text-ns-secondary-readable"><WatchlistIcon size={17} /></span>
                     <div>
-                      <p className="text-[8px] font-heading uppercase tracking-[0.17em] text-ns-secondary-readable">Everywhere, automatically</p>
-                      <p className="mt-2 text-xs leading-6 text-ns-text">Your current boundary follows you into reviews, friend activity, search results, conversations, and browser protection.</p>
+                      <p className="text-[10px] font-heading uppercase tracking-[0.17em] text-ns-secondary-readable">Your real movie progress</p>
+                      <p className="mt-2 text-xs leading-6 text-ns-text">This preview does not update your movies. Set each title’s progress in Plot Passport to manage your spoiler boundaries.</p>
+                      <Link href="/plot-passport" className="mt-3 inline-flex min-h-10 items-center text-sm font-semibold text-ns-secondary-readable hover:text-white">Open Plot Passport →</Link>
                     </div>
                   </div>
                 </div>
@@ -642,20 +603,6 @@ export default function ProCommandCenter() {
             </div>
           )}
 
-          <footer className="grid gap-px border-t border-white/10 bg-white/10 sm:grid-cols-3">
-            {[
-              { label: 'Privacy', value: 'Local-first identity', Icon: LockIcon },
-              { label: 'Social layer', value: 'Presence-ready rooms', Icon: FriendsIcon },
-              { label: 'Taste engine', value: 'Continuously learning', Icon: MovieDnaIcon },
-            ].map(({ label, value, Icon }) => (
-              <div key={label} className="flex items-center gap-3 bg-ns-bg/70 px-5 py-4">
-                <Icon size={14} className="text-ns-secondary-readable" />
-                <div><p className="text-[7px] uppercase tracking-[0.16em] text-ns-muted">{label}</p><p className="mt-1 font-heading text-[9px] font-semibold text-white">{value}</p></div>
-              </div>
-            ))}
-          </footer>
-        </div>
-      </div>
-    </section>
+    </div>
   )
 }
