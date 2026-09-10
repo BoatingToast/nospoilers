@@ -41,14 +41,27 @@ Open `.env` and fill in:
 | `NEXTAUTH_SECRET` | Run `openssl rand -base64 32` to generate |
 | `TMDB_API_KEY` | From your TMDb account settings |
 | `TMDB_ACCESS_TOKEN` | Read Access Token from TMDb (preferred over API key) |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase public anon key used for direct movie uploads |
+| `SUPABASE_URL` | Server-side Supabase project URL for movie storage (also accepts the existing `NEXT_PUBLIC_SUPABASE_URL`) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only key used to issue secure upload tokens |
+| `NEXT_PUBLIC_SUPABASE_URL` | Optional Supabase project URL for realtime Spoiler Zone updates |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional public anon key for realtime updates; movie uploads do not require it |
 | `CRON_SECRET` | Separate random secret used to authenticate scheduled cleanup |
 
 Profile pictures are stored in the existing PostgreSQL database. The app creates
 the private Supabase `movie-uploads` bucket automatically when a creator starts
 their first movie upload; access to video bytes must use signed URLs.
+
+For a deployed app, set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the
+hosting project's environment settings for each environment that should support
+uploads, then redeploy. A database connection alone does not provide movie
+storage. Keep the service-role key server-only; never prefix it with
+`NEXT_PUBLIC_`. The browser uploads directly to the single-file signed URL
+returned by the authenticated upload API, so movie bytes do not pass through the
+app's request body limit. The API verifies the stored file before marking it ready.
+
+The storage project's file-size limit must support the advertised 1 GB maximum;
+the private bucket cannot override a lower project-wide limit. If storage is not
+configured, the upload dialog reports unavailability before requesting a file.
 
 ### 3. Set up the database
 
