@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from 'react'
 import Modal from '@/components/ui/Modal'
 import WhereToWatch from '@/components/movie/WhereToWatch'
 import {
@@ -10,7 +10,6 @@ import {
   UploadMovieIcon,
   WarningIcon,
 } from '@/components/icons'
-import { getSupabasePublicClient } from '@/lib/supabase-client'
 import {
   formatMovieFileSize,
   MAX_MOVIE_BYTES,
@@ -19,18 +18,16 @@ import {
   MAX_MOVIE_TITLE_LENGTH,
   MAX_MOVIE_WATCH_PROVIDERS,
   MOVIE_WATCH_REGIONS,
-  MOVIE_UPLOAD_BUCKET,
   normalizeMovieWatchProviders,
   normalizeMovieMimeType,
   type MovieWatchProvider,
 } from '@/lib/movie-uploads'
 
-type UploadStage = 'details' | 'uploading' | 'success'
+type UploadStage = 'checking' | 'unavailable' | 'details' | 'uploading' | 'success'
 
 interface UploadTicket {
   movieId: string
-  path: string
-  token: string
+  signedUrl: string
 }
 
 interface UploadMovieDialogProps {
@@ -76,7 +73,8 @@ async function responseError(response: Response, fallback: string) {
 }
 
 function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
-  const [stage, setStage] = useState<UploadStage>('details')
+  const [stage, setStage] = useState<UploadStage>('checking')
+  const [availabilityAttempt, setAvailabilityAttempt] = useState(0)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [releaseYear, setReleaseYear] = useState('')
@@ -88,6 +86,23 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
   const [dragOver, setDragOver] = useState(false)
   const [progress, setProgress] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    async function checkAvailability() {
+      try {
+        const response = await fetch('/api/movie-uploads', { cache: 'no-store', signal: controller.signal })
+        if (!response.ok) throw new Error(await responseError(response, 'Movie uploads are temporarily unavailable. Please try again later.'))
+        if (!controller.signal.aborted) setStage('details')
+      } catch (cause) {
+        if (controller.signal.aborted) return
+        setError(cause instanceof Error ? cause.message : 'Could not check upload availability. Please try again.')
+        setStage('unavailable')
+      }
+    }
+    void checkAvailability()
+    return () => controller.abort()
+  }, [availabilityAttempt])
 
   function chooseMovie(file: File) {
     const nextError = movieFileError(file)
@@ -173,9 +188,8 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
     }
 
     const mimeType = normalizeMovieMimeType(movieFile.type, movieFile.name)
-    const supabase = getSupabasePublicClient()
-    if (!mimeType || !supabase) {
-      setError('Movie storage is not configured yet.')
+    if (!mimeType) {
+      setError('Choose an MP4, MOV, M4V, or WEBM movie.')
       return
     }
 
@@ -212,14 +226,17 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
       movieId = ticket.movieId
       setProgress(current => Math.max(current, 18))
 
-      const { error: uploadError } = await supabase.storage
-        .from(MOVIE_UPLOAD_BUCKET)
-        .uploadToSignedUrl(ticket.path, ticket.token, movieFile, {
-          cacheControl: '3600',
-          contentType: mimeType,
-        })
+      // The server-issued URL authorizes this one file. No browser Supabase
+      // client, public API key, or application cookie is needed by storage.
+      const uploadResponse = await fetch(ticket.signedUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': mimeType, 'Cache-Control': 'max-age=3600' },
+        body: movieFile,
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+      })
 
-      if (uploadError) throw new Error(uploadError.message)
+      if (!uploadResponse.ok) throw new Error('Could not upload your movie. Please try again.')
       setProgress(92)
 
       const finishResponse = await fetch('/api/movie-uploads', {
@@ -277,6 +294,22 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
         className="max-h-[calc(100vh-2rem)] overflow-y-auto"
         data-testid="upload-movie-dialog"
       >
+        {(stage === 'checking' || stage === 'unavailable') && (
+          <div className="px-6 py-12 text-center sm:px-12">
+            <UploadMovieIcon size={32} className="mx-auto text-ns-secondary-readable" />
+            <h2 id="upload-movie-dialog-title" className="mt-5 font-heading text-xl font-semibold text-ns-text">
+              {stage === 'checking' ? 'Checking movie uploads…' : 'Uploads are unavailable right now'}
+            </h2>
+            {stage === 'checking' ? (
+              <p role="status" className="mt-3 text-sm text-ns-muted">Checking that we can receive your movie.</p>
+            ) : (
+              <>
+                <p role="alert" className="mt-3 text-sm leading-6 text-ns-muted">{error}</p>
+                <button type="button" onClick={() => { setError(''); setStage('checking'); setAvailabilityAttempt(attempt => attempt + 1) }} className="mt-6 min-h-11 rounded-xl bg-ns-secondary px-5 text-sm font-semibold text-white hover:bg-ns-secondary/90">Try again</button>
+              </>
+            )}
+          </div>
+        )}
         {stage === 'details' && (
           <form onSubmit={handleSubmit}>
             <div className="border-b border-ns-border px-5 py-5 pr-14 sm:px-7 sm:py-6 sm:pr-16">

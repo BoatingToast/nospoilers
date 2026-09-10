@@ -1,6 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 import { MAX_MOVIE_BYTES, MOVIE_MIME_TYPES, MOVIE_UPLOAD_BUCKET } from './movie-uploads'
 
+export function isMovieStorageConfigured() {
+  return Boolean(
+    (process.env.SUPABASE_URL?.trim() || process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()) &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(),
+  )
+}
+
 /**
  * Makes the creator-upload bucket self-configuring in new environments. Existing
  * projects are reconciled to the same private, size-limited policy. Consumers
@@ -40,12 +47,12 @@ export async function ensureMovieUploadBucket() {
  * Throws clearly if env vars are not configured.
  */
 export function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const url = process.env.SUPABASE_URL?.trim() || process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
 
   if (!url || !key) {
     throw new Error(
-      'Supabase not configured. Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to .env.local.',
+      'Supabase not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the server environment.',
     )
   }
 
