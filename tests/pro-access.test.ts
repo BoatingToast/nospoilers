@@ -3,10 +3,15 @@ import test from 'node:test'
 // @ts-expect-error explicit TypeScript extension is intentional for node:test
 import { hasProAccess } from '../lib/pro-access.ts'
 
-test('grants Pro access only to the allowlisted account', () => {
+test('grants Pro access only to the allowlisted accounts', () => {
   assert.equal(hasProAccess('emoon0108@gmail.com'), true)
   assert.equal(hasProAccess('  EMOON0108@GMAIL.COM '), true)
+  assert.equal(hasProAccess('noahkaplan721@gmail.com'), true)
+  assert.equal(hasProAccess('  NOAHKAPLAN721@GMAIL.COM '), true)
   assert.equal(hasProAccess('someone@example.com'), false)
   assert.equal(hasProAccess('emoon0108+test@gmail.com'), false)
+  assert.equal(hasProAccess('noahkaplan721+test@gmail.com'), false)
   assert.equal(hasProAccess(null), false)
+  assert.equal(hasProAccess(undefined), false)
+  assert.equal(hasProAccess(''), false)
 })

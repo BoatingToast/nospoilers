@@ -1,6 +1,7 @@
 // ─── TMDb ────────────────────────────────────────────────────────────────────
 
 export interface TMDbMovie {
+  adult?: boolean
   id: number
   title: string
   overview: string
@@ -16,6 +17,7 @@ export interface TMDbMovie {
 }
 
 export interface TMDbMovieDetail {
+  adult?: boolean
   id: number
   title: string
   overview: string

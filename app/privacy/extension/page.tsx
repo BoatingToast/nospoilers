@@ -1,11 +1,12 @@
-import type { Metadata } from 'next'
+import { publicPageMetadata } from '@/lib/seo'
 import Link from 'next/link'
 import Footer from '@/components/landing/Footer'
 
-export const metadata: Metadata = {
-  title: 'NoSpoilers Shield Privacy Policy',
+export const metadata = publicPageMetadata({
+  title: 'Shield Privacy Policy',
   description: 'Privacy policy for the NoSpoilers Shield Chrome extension.',
-}
+  path: '/privacy/extension',
+})
 
 const UPDATED = 'July 13, 2026'
 

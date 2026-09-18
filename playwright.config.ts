@@ -14,6 +14,7 @@ export default defineConfig({
   reporter: process.env.CI ? [['line'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL,
+    ...(process.env.E2E_CHROME_CHANNEL ? { channel: process.env.E2E_CHROME_CHANNEL } : {}),
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -43,9 +44,14 @@ export default defineConfig({
           reuseExistingServer: !process.env.CI,
           timeout: 120_000,
           env: {
+            NOSPOILERS_BUILD_DIR: `.next-e2e-${port}`,
             DATABASE_URL: process.env.DATABASE_URL ?? 'postgresql://e2e:e2e@127.0.0.1:5432/e2e',
             NEXTAUTH_SECRET: 'nospoilers-e2e-secret',
             NEXTAUTH_URL: baseURL,
+            SUPABASE_URL: '',
+            SUPABASE_SERVICE_ROLE_KEY: '',
+            NEXT_PUBLIC_SUPABASE_URL: '',
+            NEXT_PUBLIC_SUPABASE_ANON_KEY: '',
             TMDB_API_KEY: 'e2e-fixture-key',
             TMDB_BASE_URL: `http://127.0.0.1:${mockTmdbPort}/3`,
           },

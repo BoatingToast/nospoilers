@@ -17,11 +17,27 @@ import {
   normalizeMovieMimeType,
   type MovieWatchProvider,
 } from '@/lib/movie-uploads'
-import { ensureMovieUploadBucket } from '@/lib/supabase-storage'
+import { ensureMovieUploadBucket, isMovieStorageConfigured } from '@/lib/supabase-storage'
 import { findAutomaticMovieMatch, getMovieWatchProviders } from '@/services/tmdb'
 import { enforceRateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
+
+function unavailableResponse() {
+  return NextResponse.json({
+    code: 'MOVIE_STORAGE_UNAVAILABLE',
+    error: 'Movie uploads are temporarily unavailable. Please try again later.',
+  }, { status: 503 })
+}
+
+// Check server configuration before asking a creator to choose and describe a file.
+export async function GET() {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) return NextResponse.json({ error: 'Please sign in to upload a movie.' }, { status: 401 })
+  return isMovieStorageConfigured()
+    ? NextResponse.json({ available: true }, { headers: { 'Cache-Control': 'no-store' } })
+    : unavailableResponse()
+}
 
 interface StartUploadBody {
   title?: unknown
@@ -67,6 +83,7 @@ export async function POST(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  if (!isMovieStorageConfigured()) return unavailableResponse()
   const limited = await enforceRateLimit(request, {
     scope: 'movie-upload',
     identifier: `user:${session.user.id}`,
@@ -196,11 +213,12 @@ export async function POST(request: Request) {
       movieId: movie.id,
       path: data.path,
       token: data.token,
+      signedUrl: data.signedUrl,
       automaticMatch: tmdbId ? { tmdbId, providerCount: automaticProviders.length } : null,
     }, { status: 201 })
   } catch (error) {
     if (storageUnavailable(error)) {
-      return NextResponse.json({ error: 'Movie storage is not configured yet' }, { status: 503 })
+      return unavailableResponse()
     }
     console.error('[POST /api/movie-uploads]', error)
     return NextResponse.json({ error: 'Could not start the upload. Please try again.' }, { status: 500 })

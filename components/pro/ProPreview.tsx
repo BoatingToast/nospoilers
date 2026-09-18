@@ -22,27 +22,15 @@ import {
   MovieDnaIcon,
   RecsIcon,
   WatchlistIcon,
-  type IconProps,
 } from '@/components/icons'
 
 interface ProPreviewProps {
   data: ProPreviewData
-  username: string
+  activeTab: PreviewTab
 }
 
 type PreviewTab = 'tonight' | 'double' | 'taste'
 type StartState = 'idle' | 'loading' | 'started' | 'error'
-
-const TABS: Array<{
-  id: PreviewTab
-  label: string
-  eyebrow: string
-  Icon: React.ComponentType<IconProps>
-}> = [
-  { id: 'tonight', label: 'Tonight Mode', eyebrow: 'Make one good call', Icon: RecsIcon },
-  { id: 'double', label: 'Double Feature', eyebrow: 'Build a two-film arc', Icon: ClapperboardIcon },
-  { id: 'taste', label: 'Taste Lab', eyebrow: 'See the signal', Icon: MovieDnaIcon },
-]
 
 const TIME_CHOICES: Array<{ value: ProTimeBudget; label: string }> = [
   { value: 'quick', label: '≤ 1h 45m' },
@@ -138,8 +126,7 @@ function Poster({
   )
 }
 
-export default function ProPreview({ data, username }: ProPreviewProps) {
-  const [activeTab, setActiveTab] = useState<PreviewTab>('tonight')
+export default function ProPreview({ data, activeTab }: ProPreviewProps) {
   const [time, setTime] = useState<ProTimeBudget>('standard')
   const [mood, setMood] = useState<ProMood>('gripping')
   const [company, setCompany] = useState<ProCompany>('solo')
@@ -200,65 +187,9 @@ export default function ProPreview({ data, username }: ProPreviewProps) {
   }
 
   return (
-    <section id="pro-lab" className="scroll-mt-28 border-y border-ns-secondary/20 bg-ns-surface/35" aria-labelledby="pro-lab-heading">
-      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-ns-success/30 bg-ns-success/10 px-3 py-1.5 text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-success">
-              <span className="h-1.5 w-1.5 rounded-full bg-ns-success" /> Founding preview unlocked
-            </div>
-            <p className="text-xs font-heading font-semibold uppercase tracking-[0.2em] text-ns-secondary-readable">Your Pro Lab</p>
-            <h2 id="pro-lab-heading" className="mt-2 font-display text-4xl tracking-wide text-white sm:text-6xl">
-              LESS BROWSING. BETTER NIGHTS.
-            </h2>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-ns-muted">
-              Built from @{username}&apos;s real queue and rating history. No plot summaries enter the decision.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            {[
-              { value: data.queueStats.count, label: 'Ready to watch' },
-              { value: data.queueStats.knownRuntimeMinutes ? formatMinutes(data.queueStats.knownRuntimeMinutes) : '—', label: 'Queue time' },
-              { value: `${data.taste.calibration}%`, label: 'Taste signal' },
-            ].map(metric => (
-              <div key={metric.label} className="min-w-24 rounded-2xl border border-ns-border bg-ns-surface/80 px-3 py-3 text-center sm:min-w-28">
-                <p className="font-display text-2xl tracking-wide text-white">{metric.value}</p>
-                <p className="mt-0.5 text-[9px] uppercase tracking-wider text-ns-muted">{metric.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-10 grid gap-2 sm:grid-cols-3" role="tablist" aria-label="Pro tools">
-          {TABS.map(({ id, label, eyebrow, Icon }) => (
-            <button
-              key={id}
-              id={`pro-tab-${id}`}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === id}
-              aria-controls={`pro-panel-${id}`}
-              onClick={() => setActiveTab(id)}
-              className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition-colors ${
-                activeTab === id
-                  ? 'border-ns-secondary/55 bg-ns-secondary/15'
-                  : 'border-ns-border bg-ns-surface/65 hover:border-ns-secondary/30'
-              }`}
-            >
-              <span className={`grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl ${activeTab === id ? 'bg-ns-secondary text-white' : 'bg-ns-bg text-ns-muted'}`}>
-                <Icon size={19} />
-              </span>
-              <span>
-                <span className="block font-heading text-sm font-semibold text-white">{label}</span>
-                <span className="mt-0.5 block text-[10px] text-ns-muted">{eyebrow}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-
+    <div>
         {activeTab === 'tonight' && (
-          <div id="pro-panel-tonight" role="tabpanel" aria-labelledby="pro-tab-tonight" className="mt-4 overflow-hidden rounded-3xl border border-ns-border bg-ns-surface">
+          <div aria-label="Tonight Mode workspace" className="overflow-hidden rounded-3xl border border-ns-border bg-ns-surface">
             {selected ? (
               <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
                 <div className="border-b border-ns-border p-5 sm:p-7 lg:border-b-0 lg:border-r">
@@ -334,7 +265,7 @@ export default function ProPreview({ data, username }: ProPreviewProps) {
         )}
 
         {activeTab === 'double' && (
-          <div id="pro-panel-double" role="tabpanel" aria-labelledby="pro-tab-double" className="mt-4 rounded-3xl border border-ns-border bg-ns-surface p-5 sm:p-7">
+          <div aria-label="Double Feature workspace" className="mt-4 rounded-3xl border border-ns-border bg-ns-surface p-5 sm:p-7">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-secondary-readable">Double-feature builder</p>
@@ -417,7 +348,7 @@ export default function ProPreview({ data, username }: ProPreviewProps) {
         )}
 
         {activeTab === 'taste' && (
-          <div id="pro-panel-taste" role="tabpanel" aria-labelledby="pro-tab-taste" className="mt-4 rounded-3xl border border-ns-border bg-ns-surface p-5 sm:p-7">
+          <div aria-label="Taste Lab workspace" className="mt-4 rounded-3xl border border-ns-border bg-ns-surface p-5 sm:p-7">
             <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
               <div className="rounded-2xl border border-ns-secondary/25 bg-ns-secondary/10 p-6">
                 <div className="flex items-end justify-between gap-4">
@@ -503,8 +434,7 @@ export default function ProPreview({ data, username }: ProPreviewProps) {
         <p className="sr-only" aria-live="polite">
           {Object.values(startStates).some(state => state === 'started') ? 'Plot Passport updated.' : ''}
         </p>
-      </div>
-    </section>
+    </div>
   )
 }
 

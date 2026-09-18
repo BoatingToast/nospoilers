@@ -1,0 +1,34 @@
+.theater {
+  --theater-gold: #ddbd86;
+  color: #f4efe7;
+  background: #0c0b10;
+  min-height: calc(100svh - 64px);
+}
+.eyebrow { color: #ddbd86; font-size: 10px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; }
+.title { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; letter-spacing: -.055em; }
+.button {
+  display: inline-flex; min-height: 46px; align-items: center; justify-content: center; gap: 9px;
+  padding: 12px 20px; border: 1px solid #ddbd86; border-radius: 9px; background: #ddbd86;
+  color: #211a12; font-size: 12px; font-weight: 600; transition: background .2s, transform .2s;
+}
+.button:hover:not(:disabled) { background: #efd4a6; transform: translateY(-1px); }
+.button:disabled { opacity: .4; cursor: not-allowed; }
+.secondary { background: rgb(255 255 255 / .035); border-color: rgb(255 255 255 / .16); color: #f4efe7; }
+.secondary:hover:not(:disabled) { background: rgb(255 255 255 / .1); }
+.field { display: grid; gap: 9px; color: #c7c0cf; font-size: 12px; }
+.input {
+  width: 100%; min-height: 46px; border-radius: 8px; border: 1px solid #ffffff24;
+  padding: 12px 14px; background: #ffffff05; color: #f4efe7; outline: none; color-scheme: dark;
+}
+.input:focus { border-color: #ddbd86; box-shadow: 0 0 0 3px #ddbd8614; }
+.input option { background: #17131e; }
+.panel { border: 1px solid #ffffff16; border-radius: 16px; background: #ffffff03; }
+.room { position: fixed; inset: 0; z-index: 80; isolation: isolate; overflow: hidden; color: #f4efe7; background: #07070c; }
+.roomShade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(#05050be8, transparent 24%, transparent 67%, #05050bf0); }
+.glass { border: 1px solid #ffffff24; background: #121018bd; backdrop-filter: blur(20px); box-shadow: 0 16px 60px #0004; }
+.control { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; border-radius: 8px; color: #ded8e8; transition: background .15s; }
+.control:hover { background: #ffffff12; }
+.control:focus-visible, .button:focus-visible { outline: 2px solid #ddbd86; outline-offset: 3px; }
+.dialog { width: min(440px, calc(100vw - 32px)); border: 1px solid #ddbd8640; border-radius: 22px; padding: 32px; background: #17121f; color: #f4efe7; box-shadow: 0 24px 100px #0008; }
+.dialog::backdrop { background: #05040cd9; backdrop-filter: blur(14px); }
+@media (prefers-reduced-motion: reduce) { .button { transition: none; } }

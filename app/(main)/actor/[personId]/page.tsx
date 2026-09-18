@@ -5,6 +5,7 @@ import type { Metadata } from 'next'
 import { getPersonById, getPersonMovieCredits } from '@/services/tmdb'
 import { formatYear, tmdbImageUrl } from '@/lib/utils'
 import type { TMDbPersonMovieCredit } from '@/types'
+import { parseCatalogId, publicPageMetadata } from '@/lib/seo'
 
 interface Props {
   params: Promise<{ personId: string }>
@@ -27,24 +28,26 @@ function sortAndDedupeCredits(credits: TMDbPersonMovieCredit[]) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { personId } = await params
-  const id = Number(personId)
-  if (!Number.isInteger(id) || id <= 0) return { title: 'Actor' }
+  const id = parseCatalogId(personId)
+  if (id === null) notFound()
 
   try {
     const person = await getPersonById(id)
-    return {
-      title: `${person.name} — Filmography`,
-      description: `Browse movies featuring ${person.name}.`,
-    }
+    return publicPageMetadata({
+      title: `${person.name} Movies & Filmography`,
+      description: `Explore movies featuring ${person.name}. Browse their filmography and find your next film with spoiler controls on NoSpoilers.`,
+      path: `/actor/${id}`,
+      image: person.profile_path ? { url: tmdbImageUrl(person.profile_path, 'w500'), alt: person.name } : undefined,
+    })
   } catch {
-    return { title: 'Actor' }
+    return { title: 'Person not found', robots: { index: false, follow: true } }
   }
 }
 
 export default async function ActorPage({ params }: Props) {
   const { personId } = await params
-  const id = Number(personId)
-  if (!Number.isInteger(id) || id <= 0) notFound()
+  const id = parseCatalogId(personId)
+  if (id === null) notFound()
 
   const [person, credits] = await Promise.all([
     getPersonById(id).catch(() => null),

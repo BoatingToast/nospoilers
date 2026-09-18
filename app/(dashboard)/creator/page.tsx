@@ -36,7 +36,21 @@ export default function CreatorPage() {
         </div>
       </header>
 
+      <Link href="/lab" className="group mb-8 flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-ns-secondary-readable/25 bg-gradient-to-r from-ns-secondary/15 to-ns-surface p-6 sm:p-8">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[.22em] text-ns-secondary-readable">NoSpoilers Pro · Lab</p>
+          <h2 className="mt-3 font-heading text-2xl font-medium tracking-tight text-ns-text">Your story. Your cut. Your next film.</h2>
+          <p className="mt-3 max-w-xl text-xs leading-6 text-ns-muted">Import your footage, build your timeline, add titles and sound, and export a finished movie. Your filmmaking workspace is ready.</p>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-lg bg-ns-secondary px-5 py-3 text-xs font-semibold text-white">Open Lab <ArrowRightIcon size={15} /></span>
+      </Link>
+
       <UploadMovieSection />
+
+      <Link href="/theater/new" className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#ddbd86]/25 bg-[#ddbd86]/5 p-6 transition-colors hover:border-[#ddbd86]/50">
+        <div><p className="text-[9px] uppercase tracking-[.2em] text-[#ddbd86]">NoSpoilers Pro · Theater</p><h2 className="mt-2 font-heading text-lg font-semibold text-ns-text">Give your film an opening night.</h2><p className="mt-2 max-w-xl text-xs leading-6 text-ns-muted">Schedule a film or trailer premiere, promote it in Theater, and watch your audience arrive in a shared 3D cinema.</p></div>
+        <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#ddbd86]">Host a premiere <ArrowRightIcon size={14} /></span>
+      </Link>
 
       <section aria-labelledby="upload-details-title" className="mt-6 rounded-2xl border border-ns-border bg-ns-surface/55 p-5 sm:p-6">
         <h2 id="upload-details-title" className="font-heading text-sm font-semibold text-ns-text">Before you upload</h2>

@@ -98,6 +98,8 @@ model User {
 
   // Creator uploads
   uploadedMovies UploadedMovie[]
+  theaterPremieres TheaterPremiere[]
+  theaterAttendance TheaterAttendance[]
 
   // NoSpoilers Pro launch waitlist
   proWaitlistEntry ProWaitlistEntry?
@@ -367,10 +369,55 @@ model UploadedMovie {
   uploadedAt       DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+  premieres        TheaterPremiere[]
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([status, uploadedAt(sort: Desc)])
   @@index([tmdbId])
+}
+
+// Scheduled, shared screenings of creator-owned uploads.
+model TheaterPremiere {
+  id              String   @id @default(cuid())
+  ownerId         String
+  owner           User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  uploadId        String
+  upload          UploadedMovie @relation(fields: [uploadId], references: [id], onDelete: Restrict)
+  title           String   @db.VarChar(120)
+  description     String   @db.VarChar(1000)
+  kind            String
+  startsAt        DateTime
+  endsAt          DateTime
+  durationSeconds Int
+  capacity        Int      @default(48)
+  promoted        Boolean  @default(false)
+  adCopy          String?  @db.VarChar(180)
+  cancelledAt     DateTime?
+  createdAt       DateTime @default(now())
+  attendees       TheaterAttendance[]
+
+  @@index([startsAt])
+  @@index([ownerId, startsAt])
+  @@index([uploadId])
+}
+
+model TheaterAttendance {
+  id          String   @id @default(cuid())
+  premiereId  String
+  premiere    TheaterPremiere @relation(fields: [premiereId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seat        Int
+  avatar      Json
+  joinedAt    DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+  watchedAt   DateTime?
+  rating      Int?
+  ratedAt     DateTime?
+
+  @@unique([premiereId, userId])
+  @@unique([premiereId, seat])
+  @@index([userId, rating])
 }
 
 model Collection {

@@ -1,4 +1,5 @@
-import type { Metadata } from 'next'
+import Link from 'next/link'
+import { publicPageMetadata } from '@/lib/seo'
 import {
   getTrendingMovies,
   getPopularMovies,
@@ -13,7 +14,11 @@ import SearchModal from '@/components/ui/SearchModal'
 import { curateDistinctMovieShelf } from '@/lib/movie-quality'
 import type { TMDbMovie } from '@/types'
 
-export const metadata: Metadata = { title: 'Discover | NoSpoilers' }
+export const metadata = publicPageMetadata({
+  title: 'Discover Movies — Trending, Top Rated & Hidden Gems',
+  description: 'Browse trending movies, new releases, top-rated films, and hidden gems. Discover drama, thriller, sci-fi, and comedy with spoiler controls on NoSpoilers.',
+  path: '/discover',
+})
 
 const GENRE_ROWS = [
   { id: 18,   label: 'Drama'         },
@@ -128,7 +133,7 @@ export default async function DiscoverPage() {
                     Feature presentation
                   </p>
                   <h1 className="font-display text-[clamp(2.65rem,14vw,10rem)] leading-[0.82] tracking-[0.04em] text-ns-text sm:tracking-[0.055em]">
-                    DISCOVER
+                    DISCOVER<span className="block text-[0.5em] leading-tight">MOVIES</span>
                   </h1>
                   <p className="discover-outline-title mt-3 whitespace-nowrap font-display text-[clamp(1.1rem,5.5vw,4.8rem)] leading-none tracking-[0.04em] sm:tracking-[0.08em]">
                     WITHOUT THE NOISE
@@ -137,7 +142,7 @@ export default async function DiscoverPage() {
 
                 <div className="flex flex-col gap-6 border-t border-ns-border/70 pt-6 sm:flex-row sm:items-end sm:justify-between">
                   <p className="max-w-xl font-body text-sm leading-relaxed text-ns-muted sm:text-base">
-                    Move through live trends, acclaimed classics, and hidden signals.
+                    Find movies to watch: trending films, acclaimed classics, and hidden gems.
                     You control when synopsis, cast, and trailer details are revealed.
                   </p>
                   <div className="w-full flex-shrink-0 sm:w-auto">
@@ -166,6 +171,12 @@ export default async function DiscoverPage() {
         </header>
 
         <div className="relative">
+          <p className="mb-10 max-w-2xl text-sm leading-7 text-ns-muted">
+            Looking for a personal starting point?{' '}
+            <Link href="/movie-recommendations" className="text-ns-secondary-readable underline underline-offset-4">
+              Learn how to find movie recommendations for your taste.
+            </Link>
+          </p>
           {sections.map((section, index) => (
             <DiscoverSection
               key={section.title}

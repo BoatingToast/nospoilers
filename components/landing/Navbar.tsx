@@ -53,7 +53,10 @@ interface DropdownItem {
 
 const DROPDOWN_ITEMS: DropdownItem[] = [
   { href: '/dashboard',         label: 'Dashboard',        Icon: DashboardIcon    },
+  { href: '/lab',               label: 'NoSpoilers Lab · Pro', Icon: ClapperboardIcon },
+  { href: '/creator',           label: 'Creator Studio',   Icon: ClapperboardIcon },
   { href: '/movie-night',       label: 'Movie Night',      Icon: ClapperboardIcon },
+  { href: '/theater',           label: 'Theater · Pro',    Icon: ClapperboardIcon },
   { href: '/plot-passport',     label: 'Plot Passport',    Icon: LockIcon         },
   { href: '/watchlist',         label: 'Watchlist',        Icon: WatchlistIcon    },
   { href: '/ratings',           label: 'Ratings',          Icon: RatingsIcon      },

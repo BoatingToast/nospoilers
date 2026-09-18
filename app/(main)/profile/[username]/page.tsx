@@ -48,6 +48,11 @@ export default async function ProfilePage({ params }: Props) {
         select:  { tmdbId: true, title: true, posterPath: true },
         orderBy: { addedAt: 'asc' },
       },
+      topFiveMovies: {
+        select:  { tmdbId: true, title: true, posterPath: true },
+        orderBy: { position: 'asc' },
+        take:    3,
+      },
       preferences:  { select: { genres: true } },
       personality:  { select: { primaryType: true, secondaryType: true } },
       _count: {
@@ -113,6 +118,9 @@ export default async function ProfilePage({ params }: Props) {
 
   const primaryPersonality   = user.personality ? getPersonalityBySlug(user.personality.primaryType) : null
   const secondaryPersonality = user.personality?.secondaryType ? getPersonalityBySlug(user.personality.secondaryType) : null
+  const identityMovies = user.topFiveMovies.length > 0
+    ? user.topFiveMovies
+    : user.onboardingMovies.slice(0, 3)
 
   return (
     <div className="min-h-screen pb-20">
@@ -249,7 +257,7 @@ export default async function ProfilePage({ params }: Props) {
                 username={user.username}
                 personality={primaryPersonality}
                 dnaScores={dnaScores}
-                topMovies={user.onboardingMovies.slice(0, 3).map(m => m.title)}
+                topMovies={identityMovies.map(m => m.title)}
               />
             </div>
           </div>

@@ -25,7 +25,16 @@ export async function GET(
       letterboxdUrl:    true,
       instagramUrl:     true,
       tasteProfile:     true,
-      onboardingMovies: { select: { tmdbId: true, title: true, posterPath: true } },
+      onboardingMovies: {
+        select:  { tmdbId: true, title: true, posterPath: true },
+        orderBy: { addedAt: 'asc' },
+        take:    5,
+      },
+      topFiveMovies: {
+        select:  { tmdbId: true, title: true, posterPath: true },
+        orderBy: { position: 'asc' },
+        take:    5,
+      },
       preferences:      { select: { genres: true } },
       personality:      { select: { primaryType: true, secondaryType: true, assignedAt: true } },
       followers:        { select: { followerId: true } },
@@ -48,6 +57,10 @@ export async function GET(
     darknessScore:        user.tasteProfile.darknessScore,
   } : null
 
+  const favoriteMovies = user.topFiveMovies.length > 0
+    ? user.topFiveMovies
+    : user.onboardingMovies
+
   const profile: PublicProfile = {
     id:               user.id,
     username:         user.username,
@@ -68,7 +81,7 @@ export async function GET(
       assignedAt:    user.personality.assignedAt.toISOString(),
     } : null,
     dnaScores,
-    favoriteMovies:  user.onboardingMovies.map(m => ({ tmdbId: m.tmdbId, title: m.title, posterPath: m.posterPath })),
+    favoriteMovies:  favoriteMovies.map(m => ({ tmdbId: m.tmdbId, title: m.title, posterPath: m.posterPath })),
     favoriteGenres:  user.preferences?.genres ?? [],
     followerCount:   user.followers.length,
     followingCount:  user.following.length,
