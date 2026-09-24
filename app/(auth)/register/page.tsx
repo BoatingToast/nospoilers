@@ -1,17 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import Input from '@/components/ui/Input'
 import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
+import { readCallbackUrl, withCallbackUrl } from '@/lib/callback-url'
 
 export default function RegisterPage() {
   const [fields, setFields] = useState({ email: '', username: '', password: '', confirm: '' })
   const [errors, setErrors] = useState<Partial<typeof fields & { form: string }>>({})
   const [loading, setLoading] = useState(false)
   const [accountCreated, setAccountCreated] = useState(false)
+  const [callbackUrl, setCallbackUrl] = useState<string | null>(null)
+
+  useEffect(() => { setCallbackUrl(readCallbackUrl()) }, [])
 
   function update(key: keyof typeof fields) {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,7 +78,7 @@ export default function RegisterPage() {
         return
       }
 
-      window.location.assign('/onboarding')
+      window.location.assign(withCallbackUrl('/onboarding', callbackUrl))
     } catch {
       if (registrationSucceeded) {
         setAccountCreated(true)
@@ -95,7 +99,7 @@ export default function RegisterPage() {
           Your account is ready, but automatic sign-in did not finish. Sign in with the credentials you just created to continue.
         </p>
         <Link
-          href="/login"
+          href={withCallbackUrl('/login', callbackUrl)}
           className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-ns-secondary px-7 py-3.5 font-body font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary"
         >
           Continue to sign in
@@ -178,7 +182,7 @@ export default function RegisterPage() {
 
       <p className="text-center text-ns-muted text-sm font-body mt-6">
         Already have an account?{' '}
-        <Link href="/login" className="text-ns-secondary-readable hover:underline">
+        <Link href={withCallbackUrl('/login', callbackUrl)} className="text-ns-secondary-readable hover:underline">
           Sign in
         </Link>
       </p>

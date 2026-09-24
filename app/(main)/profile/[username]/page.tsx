@@ -195,7 +195,14 @@ export default async function ProfilePage({ params }: Props) {
                     <RecsIcon size={14} /> Compare Taste
                   </Link>
                 </>
-              ) : null}
+              ) : (
+                <Link
+                  href={`/register?callbackUrl=${encodeURIComponent(`/compatibility/${user.username}`)}`}
+                  className="px-4 py-2 rounded-xl text-sm font-body font-semibold bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary/90 transition-colors flex items-center gap-1.5"
+                >
+                  <RecsIcon size={14} /> Compare your taste with @{user.username}
+                </Link>
+              )}
             </div>
           </div>
 
