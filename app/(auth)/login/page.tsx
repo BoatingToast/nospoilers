@@ -1,17 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import Input from '@/components/ui/Input'
 import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
+import { readCallbackUrl, withCallbackUrl } from '@/lib/callback-url'
 
 export default function LoginPage() {
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
+  const [callbackUrl, setCallbackUrl] = useState<string | null>(null)
+
+  useEffect(() => { setCallbackUrl(readCallbackUrl()) }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -38,11 +42,7 @@ export default function LoginPage() {
       // Hard navigation so the browser sends the freshly-set session cookie with the
       // request, middleware evaluates onboardingCompleted, and ALL server components
       // re-render in authenticated state.
-      const requestedDestination = new URLSearchParams(window.location.search).get('callbackUrl')
-      const safeDestination = requestedDestination?.startsWith('/') && !requestedDestination.startsWith('//')
-        ? requestedDestination
-        : '/discover'
-      window.location.assign(safeDestination)
+      window.location.assign(readCallbackUrl() ?? '/discover')
     } catch {
       setError('Could not reach NoSpoilers. Check your connection and try again.')
     } finally {
@@ -108,7 +108,7 @@ export default function LoginPage() {
 
       <p className="text-center text-ns-muted text-sm font-body mt-6">
         Don&apos;t have an account?{' '}
-        <Link href="/register" className="text-ns-secondary-readable hover:underline">
+        <Link href={withCallbackUrl('/register', callbackUrl)} className="text-ns-secondary-readable hover:underline">
           Create one
         </Link>
       </p>

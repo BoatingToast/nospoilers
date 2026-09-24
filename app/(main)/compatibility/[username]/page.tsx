@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CompatibilityPage({ params }: Props) {
   const { username } = await params
   const session = await getServerSession(authOptions)
-  if (!session) redirect('/login')
+  if (!session) redirect(`/login?callbackUrl=${encodeURIComponent(`/compatibility/${username}`)}`)
 
   const target = await prisma.user.findUnique({
     where:  { username },
