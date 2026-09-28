@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
+import { getServerSession } from 'next-auth'
 import type { Metadata } from 'next'
 import {
   getMovieById,
@@ -17,6 +18,7 @@ import { computeMovieVibe } from '@/services/movie-vibe'
 import { makeCondensedPremise, generateAudienceProfile } from '@/services/spoiler-free'
 import { tmdbImageUrl, formatYear } from '@/lib/utils'
 import MovieVibeProfile from '@/components/movie/MovieVibeProfile'
+import RomComDnaRoast, { type RoastAccess } from '@/components/movie/RomComDnaRoast'
 import WhoWouldEnjoy from '@/components/movie/WhoWouldEnjoy'
 import SimilarMovies from '@/components/movie/SimilarMovies'
 import WhereToWatch from '@/components/movie/WhereToWatch'
@@ -29,6 +31,9 @@ import SpoilerZone   from '@/components/spoiler-zone/SpoilerZone'
 import { selectMovieTrailers } from '@/lib/movie-trailers'
 import { selectRelatedMovies } from '@/lib/movie-quality'
 import { absoluteUrl, movieSearchDescription, parseCatalogId, publicPageMetadata } from '@/lib/seo'
+import { authOptions } from '@/lib/auth'
+import { isRomComMovie, type RomComRoastResult } from '@/lib/rom-com-roast'
+import { getRomComRoastForUser } from '@/services/rom-com-roast'
 import JsonLd from '@/components/seo/JsonLd'
 
 interface Props {
@@ -85,6 +90,8 @@ export default async function MoviePage({ params }: Props) {
   const audience     = generateAudienceProfile(movie)
   // Use the full movie object — detail endpoint returns `genres`, not `genre_ids`
   const vibe         = computeMovieVibe(movie, keywords)
+  const genreIds     = movie.genres.map(genre => genre.id)
+  const isRomCom     = isRomComMovie(genreIds)
   const relatedMovies = selectRelatedMovies(
     movie,
     recommendations.results ?? [],
@@ -93,6 +100,30 @@ export default async function MoviePage({ params }: Props) {
   const runtime    = movie.runtime
     ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m`
     : null
+
+  let roastAccess: RoastAccess = 'signed-out'
+  let romComRoast: RomComRoastResult | null = null
+
+  if (isRomCom) {
+    const session = await getServerSession(authOptions)
+    if (session) {
+      try {
+        romComRoast = await getRomComRoastForUser(session.user.id, {
+          tmdbId: movie.id,
+          title: movie.title,
+          genreIds,
+          keywords,
+          releaseDate: movie.release_date ?? null,
+          runtime: movie.runtime,
+          movieDNA: vibe,
+        })
+        roastAccess = romComRoast ? 'ready' : 'needs-dna'
+      } catch (error) {
+        console.error('[rom-com-roast]', error)
+        roastAccess = 'unavailable'
+      }
+    }
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
@@ -248,6 +279,15 @@ export default async function MoviePage({ params }: Props) {
         cast={topCast}
         trailers={trailers}
       />
+
+      {isRomCom && (
+        <RomComDnaRoast
+          movieTitle={movie.title}
+          tmdbId={movie.id}
+          access={roastAccess}
+          result={romComRoast}
+        />
+      )}
 
       {/* Vibe + Audience grid */}
       <div className="grid sm:grid-cols-2 gap-6 mb-10">
