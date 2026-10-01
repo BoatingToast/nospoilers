@@ -9,6 +9,7 @@ import {
   type IconProps,
 } from '@/components/icons'
 import Avatar from '@/components/ui/Avatar'
+import Button from '@/components/ui/Button'
 
 const EVENT_ICONS: Record<string, React.ComponentType<IconProps>> = {
   rated_movie:              RatingsIcon,
@@ -60,13 +61,13 @@ function timeAgo(iso: string): string {
 
 function Skeleton() {
   return (
-    <div className="space-y-3">
+    <div className="border-b border-ns-border">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="flex items-start gap-3 p-4 bg-ns-surface border border-ns-border rounded-2xl animate-pulse">
-          <div className="w-8 h-8 bg-ns-border rounded-full flex-shrink-0" />
+        <div key={i} className="flex animate-pulse items-start gap-3 border-t border-ns-border py-4">
+          <div className="h-8 w-8 flex-shrink-0 rounded-full bg-ns-border" />
           <div className="flex-1 space-y-2">
-            <div className="h-3 bg-ns-border rounded w-3/4" />
-            <div className="h-2 bg-ns-border rounded w-1/3" />
+            <div className="h-3 w-3/4 rounded bg-ns-border" />
+            <div className="h-2 w-1/3 rounded bg-ns-border" />
           </div>
         </div>
       ))}
@@ -90,26 +91,22 @@ export default function FriendsFeed() {
 
   if (feed.length === 0) {
     return (
-      <div className="py-16 text-center">
-        <FriendsIcon size={44} className="text-ns-secondary-readable/40 mx-auto mb-4" />
-        <p className="text-white font-body mb-2">Your friends feed is empty</p>
-        <p className="text-ns-muted text-sm font-body mb-6">
+      <div className="border-t border-ns-border py-6">
+        <p className="font-body text-base font-semibold text-ns-text">Your friends feed is empty</p>
+        <p className="mt-1 font-body text-sm text-ns-muted">
           Add friends to see what they&apos;re watching and rating.
         </p>
-        <Link
-          href="/friends/find"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
-        >
+        <Button variant="secondary" href="/friends/find" className="mt-5 w-full sm:w-auto">
           Find Friends <ArrowRightIcon size={13} />
-        </Link>
+        </Button>
       </div>
     )
   }
 
   return (
-    <div className="space-y-3">
+    <div className="border-b border-ns-border">
       {feed.map(event => (
-        <div key={event.id} className="flex items-start gap-3 p-4 bg-ns-surface border border-ns-border rounded-2xl hover:border-ns-border/80 transition-colors">
+        <div key={event.id} className="flex min-w-0 items-start gap-3 border-t border-ns-border py-4">
           <Avatar
             src={event.authorAvatarUrl}
             username={event.authorUsername}
@@ -117,17 +114,17 @@ export default function FriendsFeed() {
             href
           />
 
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-body text-white leading-snug">
-              <Link href={`/profile/${event.authorUsername}`} className="text-ns-secondary-readable hover:text-amber-400 transition-colors font-medium">
+          <div className="min-w-0 flex-1">
+            <p className="font-body text-sm leading-snug text-ns-text [overflow-wrap:anywhere]">
+              <Link href={`/profile/${event.authorUsername}`} className="font-medium text-ns-secondary-readable underline-offset-4 transition-colors hover:text-ns-text hover:underline">
                 @{event.authorUsername}
               </Link>
               {' '}
               <span className="text-ns-muted">{eventLabel(event)}</span>
             </p>
-            <div className="flex items-center gap-2 mt-1">
-              {(() => { const Ico = EVENT_ICONS[event.type] ?? FilmIcon; return <Ico size={12} className="text-ns-secondary-readable/60 flex-shrink-0" /> })()}
-              <span className="text-[10px] font-body text-ns-muted/60">{timeAgo(event.createdAt)}</span>
+            <div className="mt-1 flex items-center gap-2">
+              {(() => { const Ico = EVENT_ICONS[event.type] ?? FilmIcon; return <Ico size={12} className="flex-shrink-0 text-ns-muted" /> })()}
+              <span className="font-body text-[11px] text-ns-muted">{timeAgo(event.createdAt)}</span>
             </div>
           </div>
 
@@ -135,7 +132,7 @@ export default function FriendsFeed() {
           {event.type === 'rated_movie' && typeof event.data.tmdbId === 'number' && (
             <Link
               href={`/movie/${event.data.tmdbId}`}
-              className="text-[10px] font-body text-ns-muted hover:text-ns-secondary-readable transition-colors flex-shrink-0 flex items-center gap-0.5"
+              className="flex min-h-[40px] flex-shrink-0 items-center gap-1 font-heading text-xs text-ns-muted underline-offset-4 transition-colors hover:text-ns-text hover:underline"
             >
               View <ArrowRightIcon size={9} />
             </Link>

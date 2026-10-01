@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { SearchIcon } from '@/components/icons'
 import FollowButton from '@/components/social/FollowButton'
 import Avatar from '@/components/ui/Avatar'
+import Section from '@/components/ui/Section'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -36,62 +37,52 @@ const PERSONALITY_LABELS: Record<string, string> = {
 function UserCard({ user }: { user: UserResult }) {
   const [followerCount, setFollowerCount] = useState(user.followerCount)
 
+  const meta = [
+    user.personality ? (PERSONALITY_LABELS[user.personality] ?? user.personality) : null,
+    user.topGenre,
+  ].filter(Boolean)
+
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-4 flex items-start gap-4
-                    hover:border-ns-border/70 transition-all">
+    <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-3 border-t border-ns-border py-4">
       {/* Avatar */}
-      <div className="flex-shrink-0 mt-0.5">
-        <Avatar
-          src={user.avatarUrl}
-          username={user.username}
-          size="md"
-          href
-          className="ring-2 ring-transparent hover:ring-ns-secondary/30 transition-all"
-        />
-      </div>
+      <Avatar
+        src={user.avatarUrl}
+        username={user.username}
+        size="md"
+        href
+        className="flex-shrink-0"
+      />
 
       {/* Info */}
-      <div className="flex-1 min-w-0">
-        {/* Top row: name + follow button */}
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="min-w-0">
-            <Link
-              href={`/profile/${user.username}`}
-              className="text-sm font-body font-semibold text-ns-text hover:text-ns-secondary-readable transition-colors"
-            >
-              @{user.username}
-            </Link>
-            {user.displayName && (
-              <p className="text-xs font-body text-ns-muted/60 truncate leading-tight">{user.displayName}</p>
-            )}
-          </div>
-
-          <FollowButton
-            username={user.username}
-            initialIsFollowing={user.isFollowing}
-            initialIsFriend={user.isFriend}
-            size="sm"
-            onToggle={state => setFollowerCount(state.followerCount)}
-          />
-        </div>
+      <div className="min-w-0 flex-1 basis-40">
+        <Link
+          href={`/profile/${user.username}`}
+          className="font-body text-sm font-semibold text-ns-text underline-offset-4 [overflow-wrap:anywhere] hover:underline"
+        >
+          @{user.username}
+        </Link>
+        {user.displayName && (
+          <p className="truncate font-body text-xs leading-tight text-ns-muted">{user.displayName}</p>
+        )}
 
         {/* Meta row */}
-        <div className="flex items-center flex-wrap gap-x-3 gap-y-0.5 mt-1.5">
-          {user.personality && (
-            <span className="text-[11px] font-body text-ns-secondary-readable/70 font-medium">
-              {PERSONALITY_LABELS[user.personality] ?? user.personality}
-            </span>
-          )}
-          {user.topGenre && (
-            <span className="text-[11px] font-body text-ns-muted/50 capitalize">{user.topGenre}</span>
-          )}
-          <span className="text-[11px] font-body text-ns-muted/50">
-            {followerCount.toLocaleString()} follower{followerCount !== 1 ? 's' : ''}
-            <span className="mx-1 opacity-40">·</span>
-            {user.followingCount.toLocaleString()} following
-          </span>
-        </div>
+        {meta.length > 0 && (
+          <p className="mt-1 font-body text-xs capitalize text-ns-muted">{meta.join(' · ')}</p>
+        )}
+        <p className="mt-0.5 font-body text-xs text-ns-muted">
+          {followerCount.toLocaleString()} follower{followerCount !== 1 ? 's' : ''}
+          <span className="mx-1">·</span>
+          {user.followingCount.toLocaleString()} following
+        </p>
       </div>
+
+      <FollowButton
+        username={user.username}
+        initialIsFollowing={user.isFollowing}
+        initialIsFriend={user.isFriend}
+        size="sm"
+        onToggle={state => setFollowerCount(state.followerCount)}
+      />
     </div>
   )
 }
@@ -100,23 +91,21 @@ function UserCard({ user }: { user: UserResult }) {
 
 function CardSkeleton() {
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-4 flex gap-4 animate-pulse">
-      <div className="w-11 h-11 rounded-full bg-ns-border flex-shrink-0" />
-      <div className="flex-1 space-y-2 pt-0.5">
-        <div className="flex justify-between">
-          <div className="h-3.5 bg-ns-border rounded w-1/4" />
-          <div className="h-7 bg-ns-border rounded-lg w-16" />
-        </div>
-        <div className="h-2.5 bg-ns-border rounded w-1/3" />
-        <div className="h-2 bg-ns-border rounded w-1/2" />
+    <div className="flex animate-pulse items-center gap-4 border-t border-ns-border py-4">
+      <div className="h-12 w-12 flex-shrink-0 rounded-full bg-ns-border" />
+      <div className="flex-1 space-y-2">
+        <div className="h-3.5 w-1/4 rounded bg-ns-border" />
+        <div className="h-2.5 w-1/3 rounded bg-ns-border" />
+        <div className="h-2 w-1/2 rounded bg-ns-border" />
       </div>
+      <div className="h-8 w-16 rounded bg-ns-border" />
     </div>
   )
 }
 
 // ── Section ───────────────────────────────────────────────────────────────────
 
-function Section({
+function PeopleSection({
   title,
   subtitle,
   users,
@@ -130,23 +119,19 @@ function Section({
   emptyText: string
 }) {
   return (
-    <div>
-      <div className="mb-3">
-        <h2 className="font-display text-2xl tracking-wider text-ns-text">{title}</h2>
-        {subtitle && <p className="text-xs font-body text-ns-muted mt-0.5">{subtitle}</p>}
-      </div>
+    <Section title={title} note={subtitle}>
       {loading ? (
-        <div className="space-y-3">
+        <div className="border-b border-ns-border">
           {[1, 2, 3].map(i => <CardSkeleton key={i} />)}
         </div>
       ) : users.length === 0 ? (
-        <p className="text-ns-muted/50 text-sm font-body py-3">{emptyText}</p>
+        <p className="border-t border-ns-border py-4 font-body text-sm text-ns-muted">{emptyText}</p>
       ) : (
-        <div className="space-y-3">
+        <div className="border-b border-ns-border">
           {users.map(u => <UserCard key={u.id} user={u} />)}
         </div>
       )}
-    </div>
+    </Section>
   )
 }
 
@@ -238,11 +223,11 @@ export default function FindFriends() {
   const isSearching = query.trim().length >= 2
 
   return (
-    <div className="space-y-10">
+    <div className="min-w-0 space-y-10">
 
       {/* ── Search bar ──────────────────────────────────────────────────────── */}
-      <div className="relative">
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ns-muted pointer-events-none">
+      <div className="relative max-w-2xl">
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ns-muted">
           <SearchIcon size={16} />
         </span>
         <input
@@ -250,20 +235,20 @@ export default function FindFriends() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search by username or display name…"
-          className="w-full pl-11 pr-12 py-3.5 bg-ns-surface border border-ns-border rounded-2xl
-                     text-sm font-body text-white placeholder-ns-muted/40
-                     focus:outline-none focus:border-ns-secondary/50 transition-colors"
+          className="w-full rounded border border-ns-border bg-ns-surface py-3.5 pl-11 pr-12
+                     font-body text-sm text-ns-text placeholder:text-ns-muted/60
+                     transition-colors focus:border-ns-text focus:outline-none"
           autoFocus
         />
         {searchLoading && (
           <span className="absolute right-4 top-1/2 -translate-y-1/2">
-            <span className="w-4 h-4 border border-ns-muted/40 border-t-ns-secondary rounded-full animate-spin block" />
+            <span className="block h-4 w-4 animate-spin rounded-full border border-ns-muted/40 border-t-ns-secondary" />
           </span>
         )}
         {!searchLoading && query.length > 0 && (
           <button
             onClick={() => setQuery('')}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-ns-muted/50 hover:text-ns-text transition-colors text-lg leading-none"
+            className="absolute right-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-lg leading-none text-ns-muted transition-colors hover:text-ns-text"
           >
             ×
           </button>
@@ -272,62 +257,61 @@ export default function FindFriends() {
 
       {/* ── Search results ───────────────────────────────────────────────────── */}
       {isSearching && (
-        <div>
-          <h2 className="font-display text-2xl tracking-wider text-ns-text mb-3">
-            Results
-            {searchResults.length > 0 && (
-              <span className="text-ns-muted font-body text-sm font-normal ml-2 tracking-normal">
-                {searchResults.length} found
-              </span>
-            )}
-          </h2>
+        <Section
+          title="Results"
+          action={searchResults.length > 0 ? (
+            <span className="font-body text-sm text-ns-muted">{searchResults.length} found</span>
+          ) : undefined}
+        >
           {searchLoading ? (
-            <div className="space-y-3">
+            <div className="border-b border-ns-border">
               <CardSkeleton />
               <CardSkeleton />
             </div>
           ) : searchResults.length === 0 ? (
-            <div className="bg-ns-surface border border-ns-border rounded-2xl py-10 text-center">
-              <p className="text-ns-muted/60 font-body text-sm">No users found for &quot;{query}&quot;</p>
-              <p className="text-ns-muted/40 font-body text-xs mt-1">Try a different username or display name</p>
+            <div className="border-t border-ns-border py-6">
+              <p className="font-body text-sm text-ns-text [overflow-wrap:anywhere]">No users found for &quot;{query}&quot;</p>
+              <p className="mt-1 font-body text-xs text-ns-muted">Try a different username or display name</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="border-b border-ns-border">
               {searchResults.map(u => <UserCard key={u.id} user={u} />)}
             </div>
           )}
-        </div>
+        </Section>
       )}
 
       {/* ── Discovery sections (visible when not searching) ─────────────────── */}
       {!isSearching && (
-        <>
-          {suggested.length > 0 && (
-            <Section
-              title="Suggested for You"
-              subtitle="Based on your Movie DNA and taste profile"
-              users={suggested}
-              loading={false}
-              emptyText=""
+        <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+          <div className="min-w-0 space-y-10">
+            {suggested.length > 0 && (
+              <PeopleSection
+                title="Suggested for You"
+                subtitle="Based on your Movie DNA and taste profile"
+                users={suggested}
+                loading={false}
+                emptyText=""
+              />
+            )}
+
+            <PeopleSection
+              title="Recently Joined"
+              subtitle="New members building their taste profile"
+              users={recent}
+              loading={sectionsLoading}
+              emptyText="No recent members found."
             />
-          )}
+          </div>
 
-          <Section
-            title="Recently Joined"
-            subtitle="New members building their taste profile"
-            users={recent}
-            loading={sectionsLoading}
-            emptyText="No recent members found."
-          />
-
-          <Section
+          <PeopleSection
             title="Popular Members"
             subtitle="Most-followed cinephiles on NoSpoilers"
             users={popular}
             loading={sectionsLoading}
             emptyText="No members found."
           />
-        </>
+        </div>
       )}
     </div>
   )

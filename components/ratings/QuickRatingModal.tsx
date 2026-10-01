@@ -102,27 +102,25 @@ export default function QuickRatingModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
 
-      <div className="relative z-10 w-full max-w-sm bg-ns-bg border border-ns-border rounded-2xl
-                      shadow-2xl shadow-black/80 overflow-hidden">
-        {/* Gold top strip */}
-        <div className="h-0.5 w-full bg-gradient-to-r from-ns-secondary/0 via-ns-secondary to-ns-secondary/0" />
+      <div className="relative z-10 w-full max-w-sm bg-ns-bg border border-ns-border border-t-2 border-t-ns-text rounded
+                      overflow-hidden">
 
         <div className="p-6">
           {/* Header */}
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <p className="text-ns-secondary-readable text-[10px] tracking-widest uppercase font-body mb-1">
-                Rate this film
-              </p>
-              <h2 className="font-display text-2xl tracking-wider text-ns-text leading-tight">
+          <div className="flex items-start justify-between gap-3 mb-6">
+            <div className="min-w-0">
+              <h2 className="font-display text-3xl tracking-wide text-ns-text leading-none">
                 {movie.title.toUpperCase()}
               </h2>
+              <p className="text-ns-muted text-sm font-body mt-2">
+                Rate this film
+              </p>
             </div>
             <button
               onClick={onClose}
-              className="text-ns-muted hover:text-ns-text transition-colors mt-1"
+              className="-mr-2 -mt-2 flex h-10 w-10 flex-shrink-0 items-center justify-center text-ns-muted hover:text-ns-text transition-colors"
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M18 6L6 18M6 6l12 12"/>
@@ -134,12 +132,12 @@ export default function QuickRatingModal({
           <div className="flex justify-center mb-2">
             <ScoreDial value={score} onChange={setScore} size={180} />
           </div>
-          <p className="text-ns-muted/60 text-[11px] font-body text-center mb-6">
+          <p className="text-ns-muted text-xs font-body text-center mb-6">
             Your overall rating — 1 to 100
           </p>
 
           {error && (
-            <p className="text-red-400 text-xs font-body text-center mb-4">{error}</p>
+            <p className="text-red-400 text-xs font-body mb-4">{error}</p>
           )}
 
           {/* Actions */}
@@ -147,8 +145,8 @@ export default function QuickRatingModal({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full py-3 rounded-xl bg-ns-secondary text-ns-secondary-foreground font-body font-semibold
-                         text-sm tracking-wide hover:bg-amber-400 disabled:opacity-50
+              className="w-full py-3 rounded bg-ns-secondary text-ns-secondary-foreground font-heading font-semibold
+                         text-sm hover:bg-ns-text hover:text-ns-bg disabled:opacity-50
                          transition-colors"
             >
               {saving ? 'Saving…' : existing ? 'Update Rating' : 'Save Rating'}
@@ -156,8 +154,8 @@ export default function QuickRatingModal({
 
             <button
               onClick={onGoDetailed}
-              className="w-full py-2.5 rounded-xl border border-ns-border text-ns-muted
-                         font-body text-sm hover:text-ns-text hover:border-ns-border/60
+              className="w-full py-2.5 rounded border border-ns-border text-ns-text
+                         font-heading text-sm hover:border-ns-text
                          transition-colors"
             >
               Add Dimension Ratings →
@@ -167,7 +165,7 @@ export default function QuickRatingModal({
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="w-full py-2 text-red-400/70 font-body text-xs hover:text-red-400
+                className="w-full min-h-10 py-2 text-red-400/70 font-body text-xs underline underline-offset-4 hover:text-red-400
                            transition-colors disabled:opacity-50"
               >
                 {deleting ? 'Removing…' : 'Remove rating'}

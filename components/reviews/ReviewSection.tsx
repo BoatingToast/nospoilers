@@ -7,7 +7,8 @@ import ReviewStats    from './ReviewStats'
 import WriteReview    from './WriteReview'
 import ReviewCard     from './ReviewCard'
 import type { ReviewWithMeta } from '@/services/reviews'
-import { FilmIcon, ArrowRightIcon } from '@/components/icons'
+import Button from '@/components/ui/Button'
+import Section from '@/components/ui/Section'
 import Avatar from '@/components/ui/Avatar'
 
 type SortMode = 'helpful' | 'popular' | 'top' | 'newest' | 'friends'
@@ -89,21 +90,19 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
   const otherReviews = reviews.filter(r => r.userId !== sessionId)
 
   return (
-    <section className="mt-14">
-      {/* Section header */}
-      <div className="flex items-baseline justify-between mb-6">
-        <h2 className="font-display text-3xl tracking-wider text-ns-text">COMMUNITY REVIEWS</h2>
-        {session && !userReview && !showForm && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="text-sm font-heading font-medium text-ns-secondary-readable hover:text-amber-400 transition-colors"
-          >
-            + Write a Review
-          </button>
-        )}
-      </div>
-
-      {/* Stats bar */}
+    <Section
+      title="COMMUNITY REVIEWS"
+      action={session && !userReview && !showForm ? (
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
+          className="min-h-10 font-heading text-sm text-ns-secondary-readable underline underline-offset-4 transition-colors hover:text-ns-text"
+        >
+          + Write a Review
+        </button>
+      ) : undefined}
+    >
+      {/* Stats row */}
       <ReviewStats key={statsRefresh} tmdbId={tmdbId} />
 
       {/* Write / edit form */}
@@ -122,7 +121,7 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
       {/* Own review — pinned at top */}
       {userReview && (
         <div className="mb-8">
-          <p className="text-[10px] font-body text-ns-muted uppercase tracking-widest mb-3">Your Review</p>
+          <p className="text-[11px] font-body text-ns-muted uppercase tracking-widest mb-3">Your Review</p>
           {editingOwn ? (
             <WriteReview
               tmdbId={tmdbId}
@@ -145,24 +144,23 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
         </div>
       )}
 
-      {/* Friend reviews banner */}
+      {/* Friend reviews list */}
       {friendReviews.length > 0 && (
         <div className="mb-8">
-          <p className="text-[10px] font-body text-ns-muted uppercase tracking-widest mb-3">
+          <p className="text-[11px] font-body text-ns-muted uppercase tracking-widest mb-1">
             Friends Who Reviewed This
           </p>
-          <div className="flex flex-wrap gap-2 p-4 rounded-2xl bg-ns-secondary/4 border border-ns-secondary/15">
+          <div className="flex flex-wrap gap-x-6">
             {friendReviews.map(r => (
               <Link
                 key={r.id}
                 href={`/profile/${r.username}`}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-ns-secondary/10 border border-ns-secondary/20
-                           hover:bg-ns-secondary/20 transition-colors"
+                className="group flex min-h-10 items-center gap-2"
               >
                 <Avatar src={r.avatarUrl} username={r.username} size="xs" />
-                <span className="text-ns-secondary-readable text-xs font-heading font-medium">@{r.username}</span>
+                <span className="text-ns-secondary-readable text-xs font-heading font-medium underline-offset-4 group-hover:underline">@{r.username}</span>
                 {r.rating !== null && (
-                  <span className="text-ns-muted text-[10px] font-body">{r.rating}/100</span>
+                  <span className="text-ns-muted text-[11px] font-body">{r.rating}/100</span>
                 )}
               </Link>
             ))}
@@ -172,76 +170,65 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
 
       {/* Sort controls */}
       {(otherReviews.length > 0 || loading) && (
-        <div className="flex items-center gap-1.5 mb-6 overflow-x-auto scrollbar-hide pb-1">
+        <div className="flex items-center gap-5 overflow-x-auto scrollbar-hide">
           {SORT_OPTIONS.map(opt => (
             <button
               key={opt.value}
+              type="button"
               onClick={() => setSort(opt.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-heading font-medium whitespace-nowrap border transition-all ${
+              aria-pressed={sort === opt.value}
+              className={`min-h-10 whitespace-nowrap border-b-2 text-xs font-heading font-medium transition-colors ${
                 sort === opt.value
-                  ? 'bg-ns-secondary/15 border-ns-secondary/40 text-ns-secondary-readable'
-                  : 'border-ns-border text-ns-muted hover:text-white hover:border-white/20'
+                  ? 'border-ns-secondary-readable text-ns-secondary-readable'
+                  : 'border-transparent text-ns-muted hover:text-ns-text'
               }`}
             >
               {opt.label}
             </button>
           ))}
-          <div className="flex-1" />
         </div>
       )}
 
       {/* Review list */}
       {loading ? (
-        <div className="space-y-4">
+        <div>
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="animate-pulse rounded-2xl bg-ns-surface border border-ns-border p-5 h-40" />
+            <div key={i} className="animate-pulse border-t border-ns-border py-5">
+              <div className="h-4 w-40 max-w-full rounded bg-ns-border" />
+              <div className="mt-4 h-3 w-full rounded bg-ns-border" />
+              <div className="mt-2 h-3 w-2/3 rounded bg-ns-border" />
+            </div>
           ))}
         </div>
       ) : otherReviews.length === 0 && !userReview ? (
-        <div className="text-center py-16">
-          <FilmIcon size={44} className="text-ns-secondary-readable/30 mx-auto mb-4" />
-          <p className="font-heading text-lg text-white mb-2">No reviews yet</p>
-          <p className="text-ns-muted text-sm font-body mb-6">
+        <div className="border-t border-ns-border pt-5">
+          <p className="font-heading text-lg text-ns-text">No reviews yet</p>
+          <p className="mt-1 mb-5 text-ns-muted text-sm font-body">
             Be the first to share your thoughts on {movieTitle}.
           </p>
           {session ? (
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold
-                         hover:bg-amber-400 transition-colors"
-            >
+            <Button variant="secondary" onClick={() => setShowForm(true)} className="min-h-10">
               Write the First Review
-            </button>
+            </Button>
           ) : (
-            <Link
-              href="/login"
-              className="px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold
-                         hover:bg-amber-400 transition-colors"
-            >
+            <Button variant="secondary" href="/login" className="min-h-10">
               Sign In to Review
-            </Link>
+            </Button>
           )}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div>
           {/* Friend reviews first in default sort */}
-          {sort !== 'friends' && friendReviews.length > 0 && (
-            <div className="space-y-4">
-              {friendReviews.map(review => (
-                <ReviewCard
-                  key={review.id}
-                  review={review}
-                  isOwn={false}
-                  sessionId={sessionId}
-                  sessionAvatarUrl={sessionAvatarUrl}
-                  sessionUsername={sessionUsername}
-                />
-              ))}
-              {otherReviews.filter(r => !r.isFriend).length > 0 && (
-                <div className="border-t border-ns-border pt-4" />
-              )}
-            </div>
-          )}
+          {sort !== 'friends' && friendReviews.map(review => (
+            <ReviewCard
+              key={review.id}
+              review={review}
+              isOwn={false}
+              sessionId={sessionId}
+              sessionAvatarUrl={sessionAvatarUrl}
+              sessionUsername={sessionUsername}
+            />
+          ))}
 
           {/* Remaining reviews */}
           {(sort === 'friends' ? otherReviews : otherReviews.filter(r => !r.isFriend)).map(review => (
@@ -259,14 +246,10 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
 
           {/* CTA to write if no own review yet */}
           {session && !userReview && !showForm && otherReviews.length > 0 && (
-            <div className="pt-2 text-center">
-              <button
-                onClick={() => setShowForm(true)}
-                className="px-5 py-2 rounded-xl border border-ns-secondary/40 text-ns-secondary-readable text-sm font-heading font-medium
-                           hover:bg-ns-secondary/10 transition-colors"
-              >
+            <div className="border-t border-ns-border pt-5">
+              <Button variant="outline" onClick={() => setShowForm(true)} className="min-h-10">
                 Add Your Review
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -274,18 +257,16 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
 
       {/* Not signed in CTA */}
       {!session && (
-        <div className="mt-8 text-center py-8 rounded-2xl border border-dashed border-ns-border">
-          <p className="text-ns-muted text-sm font-body mb-3">
-            Sign in to write a review, vote, and see friend reviews.
-          </p>
+        <p className="mt-8 border-t border-ns-border pt-5 text-ns-muted text-sm font-body">
+          Sign in to write a review, vote, and see friend reviews.{' '}
           <Link
             href="/login"
-            className="text-ns-secondary-readable text-sm font-heading font-medium hover:text-amber-400 transition-colors"
+            className="inline-flex min-h-10 items-center font-heading text-ns-secondary-readable underline underline-offset-4 transition-colors hover:text-ns-text"
           >
-            Sign In <ArrowRightIcon size={12} className="inline-block ml-0.5" />
+            Sign In
           </Link>
-        </div>
+        </p>
       )}
-    </section>
+    </Section>
   )
 }

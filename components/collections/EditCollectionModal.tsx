@@ -25,6 +25,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { tmdbImageUrl, formatYear } from '@/lib/utils'
 import type { CollectionMovieData } from '@/types'
+import Button from '@/components/ui/Button'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -252,18 +253,18 @@ export default function EditCollectionModal({
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
 
       {/* Panel — z-10 to sit above backdrop */}
-      <div className="relative z-10 w-full max-w-2xl bg-ns-surface border border-ns-border rounded-2xl
-                      shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="relative z-10 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded
+                      border border-ns-border border-t-2 border-t-ns-text bg-ns-surface">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-ns-border flex-shrink-0">
-          <h2 className="font-display text-xl tracking-wider text-ns-text">EDIT COLLECTION</h2>
+        <div className="flex items-center justify-between px-4 py-3 sm:px-6 border-b border-ns-border flex-shrink-0">
+          <h2 className="font-display text-2xl leading-none tracking-wide text-ns-text">EDIT COLLECTION</h2>
           <button
             onClick={onClose}
-            className="text-ns-muted hover:text-ns-text transition-colors p-1"
+            className="flex h-10 w-10 items-center justify-center text-ns-muted hover:text-ns-text transition-colors"
           >
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M18 6L6 18M6 6l12 12"/>
@@ -272,17 +273,17 @@ export default function EditCollectionModal({
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-ns-border flex-shrink-0">
+        <div className="flex gap-x-5 border-b border-ns-border px-4 sm:px-6 flex-shrink-0">
           {(['details', 'movies', 'add'] as Tab[]).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-6 py-3 text-xs font-body tracking-widest uppercase transition-colors relative
-                ${tab === t ? 'text-ns-secondary-readable' : 'text-ns-muted hover:text-ns-text'}`}
+              className={`relative min-h-10 py-3 text-sm font-heading transition-colors
+                ${tab === t ? 'text-ns-text' : 'text-ns-muted hover:text-ns-text'}`}
             >
               {t === 'details' ? 'Details' : t === 'movies' ? `Movies (${movies.length})` : 'Add Movies'}
               {tab === t && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-ns-secondary" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-ns-text" />
               )}
             </button>
           ))}
@@ -293,23 +294,23 @@ export default function EditCollectionModal({
 
           {/* ── Details tab ───────────────────────────────────────────── */}
           {tab === 'details' && (
-            <div className="p-6 space-y-5">
+            <div className="p-4 sm:p-6 space-y-5">
               <div>
-                <label className="block text-xs font-body tracking-widest uppercase text-ns-muted mb-2">
+                <label className="block text-sm font-heading text-ns-text mb-2">
                   Title *
                 </label>
                 <input
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   maxLength={100}
-                  className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-3
+                  className="w-full bg-ns-bg border border-ns-border rounded px-4 py-3
                              text-ns-text font-body text-sm placeholder:text-ns-muted/40
-                             focus:outline-none focus:border-ns-secondary/60 transition-colors"
+                             focus:outline-none focus:border-ns-text transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-body tracking-widest uppercase text-ns-muted mb-2">
+                <label className="block text-sm font-heading text-ns-text mb-2">
                   Description
                 </label>
                 <textarea
@@ -317,54 +318,49 @@ export default function EditCollectionModal({
                   onChange={e => setDescription(e.target.value)}
                   rows={4}
                   maxLength={500}
-                  className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-3
+                  className="w-full bg-ns-bg border border-ns-border rounded px-4 py-3
                              text-ns-text font-body text-sm placeholder:text-ns-muted/40
-                             focus:outline-none focus:border-ns-secondary/60 transition-colors resize-none"
+                             focus:outline-none focus:border-ns-text transition-colors resize-none"
                   placeholder="What's this collection about?"
                 />
-                <p className="text-ns-muted/40 text-xs font-body text-right mt-1">
+                <p className="text-ns-muted text-xs font-body text-right mt-1">
                   {description.length}/500
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-body tracking-widest uppercase text-ns-muted mb-3">
+                <label className="block text-sm font-heading text-ns-text mb-2">
                   Visibility
                 </label>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setIsPublic(true)}
-                    className={`flex-1 py-2.5 rounded-xl border text-sm font-body transition-colors
+                    className={`flex-1 min-h-10 py-2.5 rounded border text-sm font-heading transition-colors
                       ${isPublic
-                        ? 'border-ns-secondary text-ns-secondary-readable bg-ns-secondary/10'
-                        : 'border-ns-border text-ns-muted hover:border-ns-muted/40'}`}
+                        ? 'border-ns-text text-ns-text'
+                        : 'border-ns-border text-ns-muted hover:border-ns-text'}`}
                   >
-                    🌍 Public
+                    Public
                   </button>
                   <button
                     onClick={() => setIsPublic(false)}
-                    className={`flex-1 py-2.5 rounded-xl border text-sm font-body transition-colors
+                    className={`flex-1 min-h-10 py-2.5 rounded border text-sm font-heading transition-colors
                       ${!isPublic
-                        ? 'border-ns-secondary text-ns-secondary-readable bg-ns-secondary/10'
-                        : 'border-ns-border text-ns-muted hover:border-ns-muted/40'}`}
+                        ? 'border-ns-text text-ns-text'
+                        : 'border-ns-border text-ns-muted hover:border-ns-text'}`}
                   >
-                    🔒 Private
+                    Private
                   </button>
                 </div>
               </div>
 
               {detailsErr && (
-                <p className="text-red-400 text-xs font-body">{detailsErr}</p>
+                <p className="text-ns-danger text-xs font-body">{detailsErr}</p>
               )}
 
-              <button
-                onClick={saveDetails}
-                disabled={saving}
-                className="w-full py-3 rounded-xl bg-ns-secondary text-ns-secondary-foreground font-body text-sm
-                           font-semibold hover:bg-amber-400 transition-colors disabled:opacity-50"
-              >
+              <Button variant="primary" onClick={saveDetails} disabled={saving} className="w-full sm:w-auto">
                 {saving ? 'Saving…' : 'Save Details'}
-              </button>
+              </Button>
             </div>
           )}
 
@@ -372,22 +368,22 @@ export default function EditCollectionModal({
           {tab === 'movies' && (
             <div className="p-4">
               {movies.length === 0 ? (
-                <div className="text-center py-16">
+                <div className="py-8">
                   <p className="text-ns-muted font-body text-sm">No movies yet.</p>
                   <button
                     onClick={() => setTab('add')}
-                    className="mt-3 text-ns-secondary-readable text-xs font-body hover:text-amber-400 transition-colors"
+                    className="mt-1 min-h-10 text-ns-secondary-readable text-sm font-heading underline underline-offset-4 hover:text-ns-text transition-colors"
                   >
                     + Add Movies
                   </button>
                 </div>
               ) : (
                 <>
-                  <p className="text-ns-muted/50 text-xs font-body mb-3">
+                  <p className="text-ns-muted text-xs font-body mb-3">
                     Drag rows to reorder. Changes save automatically.
                     {reordering && <span className="ml-2 text-ns-secondary-readable">Saving order…</span>}
                   </p>
-                  <div className="space-y-2">
+                  <div className="border-b border-ns-border">
                     {movies.map((movie, idx) => (
                       <div
                         key={movie.tmdbId}
@@ -396,12 +392,11 @@ export default function EditCollectionModal({
                         onDragEnter={() => onDragEnter(idx)}
                         onDragEnd={onDragEnd}
                         onDragOver={e => e.preventDefault()}
-                        className="flex items-center gap-3 bg-ns-bg border border-ns-border rounded-xl
-                                   p-2 cursor-grab active:cursor-grabbing group hover:border-ns-secondary/30
-                                   transition-colors select-none"
+                        className="group flex cursor-grab select-none items-center gap-3 border-t border-ns-border
+                                   py-2 active:cursor-grabbing"
                       >
                         {/* Drag handle */}
-                        <div className="text-ns-muted/30 group-hover:text-ns-muted/60 transition-colors flex-shrink-0 pl-1">
+                        <div className="text-ns-muted/50 group-hover:text-ns-text transition-colors flex-shrink-0">
                           <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                             <circle cx="8"  cy="6"  r="1.5"/>
                             <circle cx="16" cy="6"  r="1.5"/>
@@ -413,12 +408,12 @@ export default function EditCollectionModal({
                         </div>
 
                         {/* Position */}
-                        <span className="text-ns-muted/40 text-xs font-body w-5 text-right flex-shrink-0">
+                        <span className="text-ns-muted text-xs font-body w-5 text-right flex-shrink-0">
                           {idx + 1}
                         </span>
 
                         {/* Poster */}
-                        <div className="w-8 h-12 rounded-md overflow-hidden bg-ns-surface flex-shrink-0">
+                        <div className="w-8 h-12 rounded overflow-hidden bg-ns-bg flex-shrink-0">
                           {movie.posterPath ? (
                             <Image
                               src={tmdbImageUrl(movie.posterPath, 'w185')}
@@ -435,14 +430,14 @@ export default function EditCollectionModal({
                         <div className="flex-1 min-w-0">
                           <p className="text-ns-text text-sm font-body truncate">{movie.title}</p>
                           {movie.releaseDate && (
-                            <p className="text-ns-muted/40 text-xs font-body">{formatYear(movie.releaseDate)}</p>
+                            <p className="text-ns-muted text-xs font-body">{formatYear(movie.releaseDate)}</p>
                           )}
                         </div>
 
                         {/* Remove */}
                         <button
                           onClick={() => removeMovie(movie.tmdbId)}
-                          className="text-ns-muted/40 hover:text-red-400 transition-colors flex-shrink-0 p-1"
+                          className="flex h-10 w-10 flex-shrink-0 items-center justify-center text-ns-muted hover:text-ns-danger transition-colors"
                           title="Remove from collection"
                         >
                           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -465,36 +460,36 @@ export default function EditCollectionModal({
                 onChange={e => { setQuery(e.target.value); setAddError('') }}
                 placeholder="Search for a movie…"
                 autoFocus
-                className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-3
+                className="w-full bg-ns-bg border border-ns-border rounded px-4 py-3
                            text-ns-text font-body text-sm placeholder:text-ns-muted/40
-                           focus:outline-none focus:border-ns-secondary/60 transition-colors mb-4"
+                           focus:outline-none focus:border-ns-text transition-colors mb-4"
               />
 
               {addError && (
-                <div className="mb-3 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20">
-                  <p className="text-red-400 text-xs font-body">{addError}</p>
+                <div className="mb-3 px-3 py-2 rounded bg-ns-danger/10 border border-ns-danger/20">
+                  <p className="text-ns-danger text-xs font-body">{addError}</p>
                 </div>
               )}
 
               {searching && (
                 <div className="space-y-2">
                   {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-16 bg-ns-bg rounded-xl animate-pulse" />
+                    <div key={i} className="h-16 bg-ns-bg rounded animate-pulse" />
                   ))}
                 </div>
               )}
 
               {!searching && results.length > 0 && (
-                <div className="space-y-2">
+                <div className="border-b border-ns-border">
                   {results.map(movie => {
                     const already = addedIds.has(movie.id)
                     const adding  = addingId === movie.id
                     return (
                       <div
                         key={movie.id}
-                        className="flex items-center gap-3 bg-ns-bg border border-ns-border rounded-xl p-2"
+                        className="flex items-center gap-3 border-t border-ns-border py-2"
                       >
-                        <div className="w-8 h-12 rounded-md overflow-hidden bg-ns-surface flex-shrink-0">
+                        <div className="w-8 h-12 rounded overflow-hidden bg-ns-bg flex-shrink-0">
                           {movie.poster_path ? (
                             <Image
                               src={tmdbImageUrl(movie.poster_path, 'w185')}
@@ -510,19 +505,19 @@ export default function EditCollectionModal({
                         <div className="flex-1 min-w-0">
                           <p className="text-ns-text text-sm font-body truncate">{movie.title}</p>
                           {movie.release_date && (
-                            <p className="text-ns-muted/40 text-xs font-body">{formatYear(movie.release_date)}</p>
+                            <p className="text-ns-muted text-xs font-body">{formatYear(movie.release_date)}</p>
                           )}
                         </div>
 
                         <button
                           onClick={() => addMovie(movie)}
                           disabled={already || adding}
-                          className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-body transition-colors
+                          className={`flex-shrink-0 min-h-10 px-3 rounded text-sm font-heading transition-colors
                             ${already
-                              ? 'border border-emerald-500/30 text-emerald-400 cursor-default'
+                              ? 'border border-ns-success/30 text-ns-success cursor-default'
                               : adding
-                                ? 'border border-ns-secondary/30 text-ns-secondary-readable/50 cursor-wait'
-                                : 'border border-ns-secondary/50 text-ns-secondary-readable hover:bg-ns-secondary/10'}`}
+                                ? 'border border-ns-border text-ns-muted cursor-wait'
+                                : 'border border-ns-border text-ns-text hover:border-ns-text'}`}
                         >
                           {already ? '✓ Added' : adding ? 'Adding…' : '+ Add'}
                         </button>
@@ -533,13 +528,13 @@ export default function EditCollectionModal({
               )}
 
               {!searching && query && results.length === 0 && (
-                <p className="text-ns-muted font-body text-sm text-center py-8">
+                <p className="text-ns-muted font-body text-sm py-8">
                   No results for &ldquo;{query}&rdquo;
                 </p>
               )}
 
               {!query && (
-                <p className="text-ns-muted/40 font-body text-sm text-center py-8">
+                <p className="text-ns-muted font-body text-sm py-8">
                   Start typing to search movies
                 </p>
               )}
@@ -548,17 +543,13 @@ export default function EditCollectionModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-3 border-t border-ns-border flex-shrink-0 bg-ns-surface">
-          <p className="text-ns-muted/40 text-xs font-body">
+        <div className="flex items-center justify-between px-4 py-3 sm:px-6 border-t border-ns-border flex-shrink-0 bg-ns-surface">
+          <p className="text-ns-muted text-xs font-body">
             {movies.length} movie{movies.length !== 1 ? 's' : ''}
           </p>
-          <button
-            onClick={onClose}
-            className="px-4 py-1.5 rounded-lg border border-ns-border text-ns-muted text-xs
-                       font-body hover:border-ns-muted/60 hover:text-ns-text transition-colors"
-          >
+          <Button variant="outline" onClick={onClose}>
             Done
-          </button>
+          </Button>
         </div>
       </div>
     </div>

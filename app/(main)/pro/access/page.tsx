@@ -4,7 +4,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { hasProAccess } from '@/lib/pro-access'
 import { publicPageMetadata } from '@/lib/seo'
-import { ArrowRightIcon, CheckIcon, LockIcon } from '@/components/icons'
+import { ArrowRightIcon } from '@/components/icons'
+import PageHeader from '@/components/ui/PageHeader'
+import Section from '@/components/ui/Section'
 import { getProTool } from '@/components/pro/pro-tools'
 import ProWaitlistForm from '@/components/pro/ProWaitlistForm'
 
@@ -21,25 +23,26 @@ export default async function ProAccessPage({ searchParams }: { searchParams: Pr
   if (session?.user?.id && hasProAccess(session.user.email)) redirect(callbackUrl)
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
-      <Link href="/pro" className="inline-flex min-h-11 items-center gap-2 text-sm text-ns-muted hover:text-white"><ArrowRightIcon size={15} className="rotate-180" /> Back to Pro lobby</Link>
-      <div className="mt-7 grid overflow-hidden rounded-3xl border border-ns-border bg-ns-surface md:grid-cols-2">
-        <div className="border-b border-ns-border bg-gradient-to-br from-ns-secondary/15 to-transparent p-6 sm:p-9 md:border-b-0 md:border-r">
-          <span className="inline-flex items-center gap-2 text-xs font-heading uppercase tracking-widest text-ns-secondary-readable"><LockIcon size={15} /> Founding membership</span>
-          <h1 className="mt-6 font-heading text-3xl font-semibold tracking-tight text-white">{tool ? `${tool.title} is a Pro space.` : 'Your next chapter in movies.'}</h1>
-          <p className="mt-4 text-sm leading-7 text-ns-muted">{tool ? tool.description : 'A personal companion, better movie nights, and a space to explore your taste.'} Pro is currently in private preview.</p>
-          <p className="mt-8"><span className="font-display text-6xl text-white">$4.99</span><span className="ml-2 text-sm text-ns-muted">/ month at launch</span></p>
-          <p className="mt-2 text-xs leading-6 text-ns-muted">No payment collected during preview. Cancel anytime at launch.</p>
-          <ul className="mt-7 space-y-3 text-sm text-ns-text">
-            {['All Pro experiences, including NoSpoilers Lab', 'Future Pro features included', 'Spoiler-free discovery, always'].map(item => <li key={item} className="flex items-center gap-2"><CheckIcon size={14} className="shrink-0 text-ns-success" />{item}</li>)}
-          </ul>
-        </div>
-        <div className="flex flex-col justify-center p-6 sm:p-9">
-          <h2 className="font-heading text-2xl font-semibold text-white">Join the founding list.</h2>
-          <p className="mb-7 mt-3 text-sm leading-6 text-ns-muted">Save your place. We&apos;ll send you an invitation when access expands.</p>
+    <div className="mx-auto w-full min-w-0 max-w-6xl px-4 py-6 sm:px-6 sm:py-9">
+      <Link href="/pro" className="inline-flex min-h-11 items-center gap-2 font-heading text-sm text-ns-muted underline-offset-4 hover:text-ns-text hover:underline"><ArrowRightIcon size={15} className="rotate-180" /> Back to Pro lobby</Link>
+      <PageHeader
+        title={tool ? `${tool.title} is a Pro space.` : 'Your next chapter in movies.'}
+        lede={<>{tool ? tool.description : 'A personal companion, better movie nights, and a space to explore your taste.'} Pro is currently in private preview.</>}
+        className="mt-6 sm:mt-8"
+      />
+      <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <Section title="Join the founding list." note="Save your place. We&apos;ll send you an invitation when access expands.">
           <ProWaitlistForm initialEmail={session?.user?.email ?? ''} signedIn={Boolean(session)} />
-          {!session && <p className="mt-6 text-sm leading-6 text-ns-muted">Already have access? <Link href={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="font-medium text-ns-secondary-readable hover:text-white">Sign in to continue</Link></p>}
-        </div>
+          {!session && <p className="mt-6 font-body text-sm leading-relaxed text-ns-muted">Already have access? <Link href={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="font-medium text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text">Sign in to continue</Link></p>}
+        </Section>
+        <aside className="min-w-0 border-t-2 border-ns-text pt-4">
+          <p className="font-heading text-sm font-semibold text-ns-text">Founding membership</p>
+          <p className="mt-3"><span className="font-display text-6xl leading-none text-ns-text">$4.99</span><span className="ml-2 font-body text-sm text-ns-muted">/ month at launch</span></p>
+          <p className="mt-2 font-body text-sm leading-relaxed text-ns-muted">No payment collected during preview. Cancel anytime at launch.</p>
+          <ul className="mt-6 border-b border-ns-border font-body text-sm text-ns-text">
+            {['All Pro experiences, including NoSpoilers Lab', 'Future Pro features included', 'Spoiler-free discovery, always'].map(item => <li key={item} className="border-t border-ns-border py-3">{item}</li>)}
+          </ul>
+        </aside>
       </div>
     </div>
   )

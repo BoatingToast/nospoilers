@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import RecommendationCard from './RecommendationCard'
 import { RecommendationCardSkeleton } from '@/components/ui/Skeleton'
 import Button from '@/components/ui/Button'
+import Section from '@/components/ui/Section'
 import type { RecommendationItem } from '@/types'
 
 export default function RecommendationFeed() {
@@ -50,37 +51,33 @@ export default function RecommendationFeed() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="font-display text-2xl tracking-wider text-ns-text">RECOMMENDED FOR YOU</h2>
-          <p className="text-ns-muted text-xs font-body mt-1">Based on your Movie DNA</p>
-        </div>
-        <Button variant="ghost" size="sm" onClick={handleRefresh} loading={refreshing}>
+    <Section
+      title="RECOMMENDED FOR YOU"
+      note="Based on your Movie DNA"
+      action={
+        <Button variant="outline" size="sm" onClick={handleRefresh} loading={refreshing} className="min-h-10">
           Refresh
         </Button>
-      </div>
-
+      }
+    >
       {error && (
-        <p className="text-red-400 text-sm font-body mb-4">{error}</p>
+        <p className="mb-4 font-body text-sm text-ns-danger">{error}</p>
       )}
 
       {loading ? (
-        <div className="grid sm:grid-cols-2 gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {Array.from({ length: 6 }).map((_, i) => <RecommendationCardSkeleton key={i} />)}
         </div>
       ) : items.length === 0 ? (
-        <div className="border border-dashed border-ns-border rounded-2xl p-10 text-center">
-          <p className="text-ns-muted font-body text-sm">No recommendations yet. Add your TMDb API key to get started.</p>
-        </div>
+        <p className="border-t border-ns-border py-6 font-body text-sm text-ns-muted">No recommendations yet. Add your TMDb API key to get started.</p>
       ) : (
         <>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             {items.map(rec => <RecommendationCard key={rec.id} rec={rec} />)}
           </div>
 
           {hasMore && (
-            <div className="text-center mt-6">
+            <div className="mt-6">
               <Button variant="secondary" size="md" onClick={handleLoadMore} loading={loadMore}>
                 Load More
               </Button>
@@ -88,6 +85,6 @@ export default function RecommendationFeed() {
           )}
         </>
       )}
-    </div>
+    </Section>
   )
 }

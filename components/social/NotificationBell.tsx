@@ -45,7 +45,7 @@ function BellSvg({ ringing }: { ringing: boolean }) {
 function GroupLabel({ label }: { label: string }) {
   return (
     <div className="sticky top-0 z-10 border-y border-ns-border/30 bg-ns-bg/40 px-4 py-2">
-      <p className="text-[10px] font-body font-semibold uppercase tracking-widest text-ns-muted/50">
+      <p className="text-[11px] font-body font-semibold uppercase tracking-widest text-ns-muted/50">
         {label}
       </p>
     </div>
@@ -290,7 +290,7 @@ export default function NotificationBell() {
         >
           <BellSvg ringing={ringing} />
           {unread > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-ns-secondary px-1 text-[9px] font-body font-bold text-white shadow-md shadow-ns-secondary/30">
+            <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-ns-secondary px-1 text-[11px] font-body font-bold text-white shadow-md shadow-ns-secondary/30">
               {unread > 99 ? '99+' : unread}
             </span>
           )}
@@ -308,7 +308,7 @@ export default function NotificationBell() {
                   Notifications
                 </span>
                 {unread > 0 && (
-                  <span className="whitespace-nowrap text-[10px] font-body text-ns-muted/50">
+                  <span className="whitespace-nowrap text-[11px] font-body text-ns-muted/50">
                     {unread} unread
                   </span>
                 )}
@@ -317,7 +317,7 @@ export default function NotificationBell() {
                 {unread > 0 && (
                   <button
                     onClick={markAllRead}
-                    className="text-[10px] font-body text-ns-secondary-readable/80 transition-colors hover:text-ns-secondary-readable"
+                    className="text-[11px] font-body text-ns-secondary-readable/80 transition-colors hover:text-ns-secondary-readable"
                   >
                     Mark all read
                   </button>
@@ -325,7 +325,7 @@ export default function NotificationBell() {
                 <Link
                   href="/settings/notifications"
                   onClick={() => setOpen(false)}
-                  className="text-[10px] font-body text-ns-muted/50 transition-colors hover:text-ns-secondary-readable"
+                  className="text-[11px] font-body text-ns-muted/50 transition-colors hover:text-ns-secondary-readable"
                 >
                   Settings
                 </Link>

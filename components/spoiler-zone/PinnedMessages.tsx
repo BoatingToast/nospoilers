@@ -11,34 +11,25 @@ export default function PinnedMessages({ pinned, onJump }: Props) {
   if (pinned.length === 0) return null
 
   return (
-    <div className="border-b border-ns-border bg-ns-surface/40 px-4 py-2.5">
-      <div className="flex items-start gap-2">
-        {/* Pin icon */}
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"
-          className="text-ns-secondary-readable/60 flex-shrink-0 mt-0.5">
-          <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/>
-        </svg>
-        <div className="flex-1 min-w-0">
-          {pinned.map((msg, i) => (
-            <button
-              key={msg.id}
-              onClick={() => onJump(msg.id)}
-              className="block w-full text-left group"
-            >
-              <p className="text-[10px] font-body text-ns-muted/60 tracking-wide mb-0.5">
-                {msg.pinnedLabel ?? 'Pinned Message'}
-                {pinned.length > 1 && <span className="ml-1 text-ns-muted/40">#{i + 1}</span>}
-              </p>
-              <p className="text-xs font-body text-ns-muted group-hover:text-ns-text transition-colors truncate">
-                <span className="text-ns-secondary-readable font-medium">@{msg.username}</span>
-                {': '}
-                {msg.viewerUnlocked ? msg.content.slice(0, 100) : 'Locked by your Plot Passport'}
-                {msg.viewerUnlocked && msg.content.length > 100 && '…'}
-              </p>
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="flex-shrink-0 border-b border-ns-border">
+      {pinned.map((msg, i) => (
+        <button
+          key={msg.id}
+          onClick={() => onJump(msg.id)}
+          className="group block w-full min-w-0 border-t border-ns-border py-2 text-left first:border-t-0"
+        >
+          <span className="block font-body text-[11px] uppercase tracking-widest text-ns-muted">
+            {msg.pinnedLabel ?? 'Pinned Message'}
+            {pinned.length > 1 && <span className="ml-1">#{i + 1}</span>}
+          </span>
+          <span className="block truncate font-body text-xs text-ns-muted transition-colors group-hover:text-ns-text">
+            <span className="font-medium text-ns-secondary-readable">@{msg.username}</span>
+            {': '}
+            {msg.viewerUnlocked ? msg.content.slice(0, 100) : 'Locked by your Plot Passport'}
+            {msg.viewerUnlocked && msg.content.length > 100 && '…'}
+          </span>
+        </button>
+      ))}
     </div>
   )
 }

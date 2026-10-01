@@ -1,3 +1,5 @@
+import Section from '@/components/ui/Section'
+
 interface WhoWouldEnjoyProps {
   wouldEnjoy: string[]
   mightNotEnjoy: string[]
@@ -5,18 +7,17 @@ interface WhoWouldEnjoyProps {
 
 export default function WhoWouldEnjoy({ wouldEnjoy, mightNotEnjoy }: WhoWouldEnjoyProps) {
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
-      <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-4">Who would enjoy this</p>
-      <div className="grid sm:grid-cols-2 gap-6">
+    <Section title="Who would enjoy this">
+      <div className="grid gap-8 sm:grid-cols-2">
         {wouldEnjoy.length > 0 && (
-          <div>
-            <p className="text-ns-secondary-readable text-xs font-body font-semibold mb-2 uppercase tracking-wider">
+          <div className="min-w-0">
+            <p className="mb-2 font-body text-xs font-semibold uppercase tracking-wider text-ns-secondary-readable">
               Recommended for
             </p>
-            <ul className="flex flex-col gap-2">
+            <ul>
               {wouldEnjoy.map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-ns-text text-sm font-body">
-                  <span className="text-ns-secondary-readable mt-0.5 flex-shrink-0">✓</span>
+                <li key={i} className="flex items-start gap-2 border-t border-ns-border py-3 font-body text-sm text-ns-text">
+                  <span className="flex-shrink-0 text-ns-secondary-readable" aria-hidden="true">✓</span>
                   {item}
                 </li>
               ))}
@@ -24,14 +25,14 @@ export default function WhoWouldEnjoy({ wouldEnjoy, mightNotEnjoy }: WhoWouldEnj
           </div>
         )}
         {mightNotEnjoy.length > 0 && (
-          <div>
-            <p className="text-ns-muted text-xs font-body font-semibold mb-2 uppercase tracking-wider">
+          <div className="min-w-0">
+            <p className="mb-2 font-body text-xs font-semibold uppercase tracking-wider text-ns-muted">
               May not appeal to
             </p>
-            <ul className="flex flex-col gap-2">
+            <ul>
               {mightNotEnjoy.map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-ns-muted text-sm font-body">
-                  <span className="mt-0.5 flex-shrink-0">–</span>
+                <li key={i} className="flex items-start gap-2 border-t border-ns-border py-3 font-body text-sm text-ns-muted">
+                  <span className="flex-shrink-0" aria-hidden="true">–</span>
                   {item}
                 </li>
               ))}
@@ -39,6 +40,6 @@ export default function WhoWouldEnjoy({ wouldEnjoy, mightNotEnjoy }: WhoWouldEnj
           </div>
         )}
       </div>
-    </div>
+    </Section>
   )
 }

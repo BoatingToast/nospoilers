@@ -1,3 +1,6 @@
+import Badge from '@/components/ui/Badge'
+import Section from '@/components/ui/Section'
+
 export default function MovieDNAPlaceholder() {
   const traits = [
     { label: 'Genre Affinity',     value: 'Needs more data' },
@@ -7,31 +10,21 @@ export default function MovieDNAPlaceholder() {
   ]
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
-        <h2 className="font-display text-2xl tracking-wider text-ns-text">MOVIE DNA</h2>
-        <span className="px-2 py-0.5 rounded-full bg-ns-secondary/10 border border-ns-secondary/20
-                         text-ns-secondary-readable text-xs font-body tracking-wider uppercase">
-          Coming Soon
-        </span>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <Section
+      title="MOVIE DNA"
+      action={<Badge variant="secondary" className="uppercase tracking-wider">Coming Soon</Badge>}
+    >
+      <dl className="border-b border-ns-border">
         {traits.map(trait => (
           <div
             key={trait.label}
-            className="p-5 rounded-2xl bg-ns-surface border border-ns-border"
+            className="flex items-baseline justify-between gap-4 border-t border-ns-border py-3 font-body text-sm"
           >
-            <p className="text-ns-muted text-xs uppercase tracking-widest font-body mb-3">
-              {trait.label}
-            </p>
-            <div className="h-2 bg-ns-border rounded-full overflow-hidden">
-              <div className="h-full w-0 bg-ns-secondary/30 rounded-full" />
-            </div>
-            <p className="text-ns-muted/50 text-xs font-body mt-2">{trait.value}</p>
+            <dt className="text-ns-text">{trait.label}</dt>
+            <dd className="text-ns-muted">{trait.value}</dd>
           </div>
         ))}
-      </div>
-    </div>
+      </dl>
+    </Section>
   )
 }

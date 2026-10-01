@@ -21,7 +21,7 @@ const variantClasses: Record<Variant, string> = {
 }
 
 const sizeClasses: Record<Size, string> = {
-  sm: 'text-[10px] px-2 py-0.5 gap-1',
+  sm: 'text-[11px] px-1.5 py-0.5 gap-1',
   md: 'text-xs px-2.5 py-1 gap-1.5',
 }
 
@@ -35,7 +35,7 @@ export default function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full font-body font-medium tracking-wide whitespace-nowrap',
+        'inline-flex items-center rounded-sm font-heading font-medium whitespace-nowrap',
         variantClasses[variant],
         sizeClasses[size],
         className,

@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ImportPreview from './ImportPreview'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
+import Section from '@/components/ui/Section'
 import type {
   TasteImportHistoryItem,
   TasteImportPreviewItem,
@@ -155,20 +158,20 @@ export default function TasteImport({ compact = false, onImported }: Props) {
   }
 
   return (
-    <div className={compact ? '' : 'space-y-8'}>
-      <div className={compact ? 'rounded-2xl border border-ns-border bg-ns-bg/30 p-4 sm:p-5' : 'rounded-2xl border border-ns-border bg-ns-surface p-5 sm:p-6'}>
+    <div className={compact ? '' : 'grid min-w-0 gap-12 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]'}>
+      <div className="min-w-0 border-t-2 border-ns-text pt-4">
         {!preview ? (
           <div className="space-y-5">
             <div>
-              <h2 className="text-lg font-heading font-semibold text-ns-text">Import your movie history</h2>
-              <p className="mt-1 text-sm font-body leading-relaxed text-ns-muted">
+              <h2 className="font-display text-3xl leading-none tracking-wide text-ns-text sm:text-4xl">Import your movie history</h2>
+              <p className="mt-2 max-w-2xl text-sm font-body leading-relaxed text-ns-muted">
                 Bring over ratings, watched films, watchlist entries, dates, and reviews. Imported activity will not flood your friends&apos; feeds.
               </p>
               <a
                 href="https://www.youtube.com/watch?v=Vj90ijGE6tQ"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 inline-flex items-center gap-1.5 text-xs font-body font-medium text-ns-secondary-readable transition-colors hover:text-amber-300"
+                className="mt-2 inline-flex min-h-10 items-center gap-1.5 text-sm font-body font-medium text-ns-secondary-readable underline underline-offset-4 transition-colors hover:text-ns-text"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <circle cx="12" cy="12" r="9" />
@@ -181,11 +184,11 @@ export default function TasteImport({ compact = false, onImported }: Props) {
 
             <div className="grid gap-3 sm:grid-cols-[10rem_1fr]">
               <label className="block">
-                <span className="mb-1.5 block text-[10px] font-body uppercase tracking-widest text-ns-muted">Source</span>
+                <span className="mb-1.5 block text-sm font-body text-ns-muted">Source</span>
                 <select
                   value={source}
                   onChange={event => setSource(event.target.value as typeof source)}
-                  className="w-full rounded-xl border border-ns-border bg-ns-bg px-3 py-2.5 text-sm font-body text-ns-text focus:border-ns-secondary/50 focus:outline-none"
+                  className="w-full rounded border border-ns-border bg-ns-bg px-3 py-2.5 text-sm font-body text-ns-text focus:border-ns-secondary/50 focus:outline-none"
                 >
                   <option value="auto">Detect automatically</option>
                   <option value="letterboxd">Letterboxd</option>
@@ -194,40 +197,34 @@ export default function TasteImport({ compact = false, onImported }: Props) {
               </label>
 
               <label className="block">
-                <span className="mb-1.5 block text-[10px] font-body uppercase tracking-widest text-ns-muted">CSV or ZIP export</span>
+                <span className="mb-1.5 block text-sm font-body text-ns-muted">CSV or ZIP export</span>
                 <input
                   ref={inputRef}
                   type="file"
                   accept=".csv,.zip,text/csv,application/zip"
                   onChange={event => setFile(event.target.files?.[0] ?? null)}
-                  className="block w-full cursor-pointer rounded-xl border border-ns-border bg-ns-bg text-sm font-body text-ns-muted file:mr-3 file:border-0 file:border-r file:border-ns-border file:bg-white/5 file:px-4 file:py-2.5 file:text-xs file:font-body file:text-ns-text hover:file:bg-white/10"
+                  className="block w-full min-w-0 cursor-pointer rounded border border-ns-border bg-ns-bg text-sm font-body text-ns-muted file:mr-3 file:border-0 file:border-r file:border-ns-border file:bg-white/5 file:px-4 file:py-2.5 file:text-xs file:font-body file:text-ns-text hover:file:bg-white/10"
                 />
               </label>
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-[11px] font-body text-ns-muted/60">Up to 10 MB and 500 unique movies per import.</p>
-              <button
-                type="button"
-                onClick={createPreview}
-                disabled={!file || busy !== null}
-                className="rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-body font-semibold text-ns-secondary-foreground transition-colors hover:bg-amber-300 hover:text-ns-bg disabled:cursor-not-allowed disabled:opacity-45"
-              >
+              <p className="text-xs font-body text-ns-muted">Up to 10 MB and 500 unique movies per import.</p>
+              <Button variant="primary" onClick={createPreview} disabled={!file || busy !== null}>
                 {busy === 'preview' ? 'Matching movies…' : 'Preview import'}
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
           <div className="space-y-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] font-body uppercase tracking-widest text-ns-secondary-readable">Preview</p>
-                <h2 className="mt-1 text-lg font-heading font-semibold text-ns-text">{preview.fileName}</h2>
-                <p className="mt-1 text-xs font-body text-ns-muted">
-                  {preview.matchedRows} exact · {preview.conflictRows} need review · {preview.unmatchedRows} unmatched
+                <h2 className="break-words font-display text-3xl leading-none tracking-wide text-ns-text sm:text-4xl">{preview.fileName}</h2>
+                <p className="mt-2 text-sm font-body text-ns-muted">
+                  Preview · {preview.matchedRows} exact · {preview.conflictRows} need review · {preview.unmatchedRows} unmatched
                 </p>
               </div>
-              <button type="button" onClick={startOver} className="text-xs font-body text-ns-muted hover:text-ns-text">Choose another file</button>
+              <button type="button" onClick={startOver} className="min-h-10 text-sm font-body text-ns-muted underline underline-offset-4 hover:text-ns-text">Choose another file</button>
             </div>
 
             <ImportPreview
@@ -236,27 +233,22 @@ export default function TasteImport({ compact = false, onImported }: Props) {
               onChoice={(rowKey, tmdbId) => setChoices(current => ({ ...current, [rowKey]: tmdbId }))}
             />
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ns-border/60 pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
               <p className="text-xs font-body text-ns-muted">{selectedCount} movies selected</p>
-              <button
-                type="button"
-                onClick={commitImport}
-                disabled={selectedCount === 0 || busy !== null}
-                className="rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-body font-semibold text-ns-secondary-foreground transition-colors hover:bg-amber-300 hover:text-ns-bg disabled:cursor-not-allowed disabled:opacity-45"
-              >
+              <Button variant="primary" onClick={commitImport} disabled={selectedCount === 0 || busy !== null}>
                 {busy === 'commit' ? 'Importing and rebuilding DNA…' : `Import ${selectedCount} movies`}
-              </button>
+              </Button>
             </div>
           </div>
         )}
 
         {error && (
-          <div role="alert" className="mt-4 rounded-xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm font-body text-rose-300">
+          <div role="alert" className="mt-4 border-l-2 border-rose-500/60 py-1 pl-3 text-sm font-body text-rose-300">
             {error}
           </div>
         )}
         {success && (
-          <div className="mt-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3">
+          <div className="mt-4 border-l-2 border-emerald-500/60 py-1 pl-3">
             <p className="text-sm font-body font-medium text-emerald-300">Imported {success.imported} movies successfully.</p>
             <p className="mt-1 text-xs font-body text-emerald-200/70">
               {success.ratings} ratings · {success.watched} watched · {success.watchlist} watchlist · {success.reviews} reviews
@@ -267,41 +259,41 @@ export default function TasteImport({ compact = false, onImported }: Props) {
       </div>
 
       {!compact && (
-        <section>
-          <div className="mb-3">
-            <h2 className="text-lg font-heading font-semibold text-ns-text">Import history</h2>
-            <p className="mt-1 text-xs font-body text-ns-muted">Re-importing updates movies with the same TMDb ID instead of creating duplicates.</p>
-          </div>
+        <Section
+          title="Import history"
+          note="Re-importing updates movies with the same TMDb ID instead of creating duplicates."
+          className="lg:self-start"
+        >
           {history.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-ns-border p-8 text-center text-sm font-body text-ns-muted/60">No previous imports.</div>
+            <p className="border-t border-ns-border py-4 text-sm font-body text-ns-muted">No previous imports.</p>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-ns-border bg-ns-surface divide-y divide-ns-border/50">
+            <div className="border-t border-ns-border">
               {history.map(batch => (
-                <div key={batch.id}>
+                <div key={batch.id} className="border-b border-ns-border">
                   <button
                     type="button"
                     onClick={() => toggleHistory(batch.id)}
-                    className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-4 text-left transition-colors hover:bg-white/[0.025] sm:px-5"
+                    className="flex w-full flex-wrap items-center justify-between gap-3 py-4 text-left transition-colors hover:text-ns-secondary-readable"
                   >
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="truncate text-sm font-body font-medium text-ns-text">{batch.fileName}</p>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-body ${batch.status === 'completed' ? 'bg-emerald-500/10 text-emerald-300' : 'bg-amber-500/10 text-amber-300'}`}>
+                        <Badge variant={batch.status === 'completed' ? 'success' : 'warning'}>
                           {batch.status === 'completed' ? 'Completed' : 'Preview only'}
-                        </span>
+                        </Badge>
                       </div>
-                      <p className="mt-1 text-[11px] font-body text-ns-muted/60">
+                      <p className="mt-1 text-xs font-body text-ns-muted">
                         {new Date(batch.completedAt ?? batch.createdAt).toLocaleDateString()} · {batch.source === 'imdb' ? 'IMDb' : 'Letterboxd'} · Inspect
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-display tracking-wider text-ns-text">{batch.summary?.imported ?? batch.matchedRows}</p>
-                      <p className="text-[10px] font-body uppercase tracking-wider text-ns-muted/60">movies {expandedBatch === batch.id ? '↑' : '↓'}</p>
+                      <p className="text-2xl font-display leading-none tracking-wider text-ns-text">{batch.summary?.imported ?? batch.matchedRows}</p>
+                      <p className="text-[11px] font-body uppercase tracking-wider text-ns-muted">movies {expandedBatch === batch.id ? '↑' : '↓'}</p>
                     </div>
                   </button>
 
                   {expandedBatch === batch.id && (
-                    <div className="border-t border-ns-border/40 bg-ns-bg/30 px-4 py-3 sm:px-5">
+                    <div className="border-t border-ns-border pb-3 pl-3">
                       {!historyDetails[batch.id] ? (
                         <p className="py-3 text-xs font-body text-ns-muted">Loading import details…</p>
                       ) : historyDetails[batch.id].length === 0 ? (
@@ -315,10 +307,10 @@ export default function TasteImport({ compact = false, onImported }: Props) {
                                   {item.matchedTitle ?? item.importedTitle}{item.matchedYear ?? item.importedYear ? ` (${item.matchedYear ?? item.importedYear})` : ''}
                                 </p>
                                 {item.matchedTitle && item.matchedTitle !== item.importedTitle && (
-                                  <p className="truncate text-[10px] font-body text-ns-muted/50">Imported as “{item.importedTitle}”</p>
+                                  <p className="truncate text-[11px] font-body text-ns-muted/50">Imported as “{item.importedTitle}”</p>
                                 )}
                               </div>
-                              <p className="flex-shrink-0 text-[10px] font-body text-ns-muted/60">
+                              <p className="flex-shrink-0 text-[11px] font-body text-ns-muted/60">
                                 {item.ratingScore !== null ? `${item.ratingScore}/100` : item.watched ? 'Watched' : item.watchlist ? 'Watchlist' : 'Movie'}
                                 {item.hasReview ? ' · Review' : ''}
                               </p>
@@ -332,7 +324,7 @@ export default function TasteImport({ compact = false, onImported }: Props) {
               ))}
             </div>
           )}
-        </section>
+        </Section>
       )}
     </div>
   )

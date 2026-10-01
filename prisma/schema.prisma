@@ -104,6 +104,8 @@ model User {
   // NoSpoilers Pro launch waitlist
   proWaitlistEntry ProWaitlistEntry?
 
+  // Taste Lab: saved reasons behind the member's ratings
+  tasteReasonProfile TasteReasonProfile?
   // Progress-scoped Where Was I? answers. Story progress remains owned by
   // WatchlistItem / Plot Passport; only derived answers are cached here.
   resumeAnswerCaches ResumeAnswerCache[]
@@ -129,6 +131,22 @@ model ProWaitlistEntry {
   createdAt DateTime @default(now())
 
   @@index([createdAt(sort: Desc)])
+}
+
+// "Why Did I Love That?" in Taste Lab. `evidence` holds only what the member
+// told us directly (answers, feedback, corrections), each with its provenance.
+// Ratings are re-read on every visit and are never copied here.
+model TasteReasonProfile {
+  id           String @id @default(cuid())
+  userId       String @unique
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evidence     Json   @default("[]")
+  notes        Json   @default("{}")
+  confirmedIds Int[]  @default([])
+  // UserPreferences values this profile replaced, so forgetting it can restore them.
+  previousPreferences Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model FavoriteMovie {

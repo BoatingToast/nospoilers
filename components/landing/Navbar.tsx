@@ -155,7 +155,7 @@ function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl:
             setOpen(true)
           }
         }}
-        className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-white/5 transition-colors group"
+        className="flex min-h-10 items-center gap-1.5 px-2 py-1 rounded transition-colors group"
       >
         <Avatar src={avatarUrl} username={username} size="xs" />
         <span className="hidden lg:block text-xs font-body text-ns-muted group-hover:text-ns-text transition-colors max-w-[80px] truncate">
@@ -176,7 +176,7 @@ function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl:
         role="menu"
         aria-label="Profile menu"
         onKeyDown={handleMenuKeyDown}
-        className="absolute right-0 top-full mt-2 w-52 bg-ns-surface border border-ns-border rounded-2xl shadow-2xl overflow-hidden animate-fade-in"
+        className="absolute right-0 top-full mt-2 max-h-[calc(100vh-7rem)] w-56 overflow-y-auto rounded border border-ns-border border-t-2 border-t-ns-text bg-ns-surface"
       >
         {/* User info header */}
         <div className="px-4 py-3 border-b border-ns-border">
@@ -184,7 +184,7 @@ function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl:
           <Link
             href={`/profile/${username}`}
             role="menuitem"
-            className="text-[11px] font-body text-ns-secondary-readable hover:text-white transition-colors"
+            className="text-xs font-body text-ns-secondary-readable underline underline-offset-4 hover:text-white transition-colors"
             onClick={() => closeMenu()}
           >
             View Profile →
@@ -192,14 +192,14 @@ function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl:
         </div>
 
         {/* Nav items */}
-        <div className="py-1.5">
+        <div className="py-1">
           {DROPDOWN_ITEMS.map(({ href, label, Icon }) => (
             <Link
               key={href}
               href={href}
               role="menuitem"
               onClick={() => closeMenu()}
-              className="flex items-center gap-3 px-4 py-2 text-sm font-body text-ns-muted hover:text-white hover:bg-white/5 transition-colors"
+              className="flex min-h-10 items-center gap-3 px-4 py-2 text-sm font-body text-ns-muted hover:text-white transition-colors"
             >
               <Icon size={15} className="flex-shrink-0 opacity-70" />
               {label}
@@ -208,12 +208,12 @@ function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl:
         </div>
 
         {/* Sign out */}
-        <div className="border-t border-ns-border py-1.5">
+        <div className="border-t border-ns-border py-1">
           <button
             type="button"
             role="menuitem"
             onClick={() => signOut({ callbackUrl: '/' })}
-            className="w-full flex items-center gap-3 px-4 py-2 text-sm font-body text-ns-muted hover:text-rose-400 hover:bg-white/5 transition-colors"
+            className="w-full flex min-h-10 items-center gap-3 px-4 py-2 text-sm font-body text-ns-muted hover:text-rose-400 transition-colors"
           >
             <ArrowRightIcon size={15} className="flex-shrink-0 opacity-70" />
             Sign Out
@@ -286,7 +286,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-8 left-0 right-0 z-50 bg-ns-bg/90 backdrop-blur-md border-b border-white/5">
+      <header className="fixed top-8 left-0 right-0 z-50 bg-ns-bg border-b border-ns-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
 
           {/* Logo */}
@@ -310,7 +310,7 @@ export default function Navbar() {
                   href={link.href}
                   className={[
                     'relative text-[13px] font-heading font-medium tracking-[0.04em]',
-                    'transition-colors duration-200 group whitespace-nowrap flex items-center gap-1.5',
+                    'transition-colors duration-150 group whitespace-nowrap flex h-16 items-center gap-1.5',
                     link.highlight
                       ? active
                         ? 'text-amber-300'
@@ -322,18 +322,18 @@ export default function Navbar() {
                 >
                   {link.highlight && <RecsIcon size={13} className="flex-shrink-0" />}
                   {link.label}
-                  {/* Sliding underline indicator */}
+                  {/* Active rule: sits on the bar's hairline */}
                   <span
+                    aria-hidden="true"
                     className={[
-                      'absolute -bottom-[1px] left-0 right-0 h-[2px] rounded-full',
-                      'transition-all duration-300 origin-left',
+                      'absolute -bottom-px left-0 right-0 h-[2px]',
                       link.highlight
                         ? active
-                          ? 'bg-amber-300 scale-x-100'
-                          : 'bg-ns-secondary-readable scale-x-0 group-hover:scale-x-100'
+                          ? 'bg-amber-300'
+                          : 'bg-ns-secondary-readable opacity-0 group-hover:opacity-100'
                         : active
-                          ? 'bg-ns-secondary-readable scale-x-100'
-                          : 'bg-white/25 scale-x-0 group-hover:scale-x-100',
+                          ? 'bg-ns-secondary-readable'
+                          : 'bg-white/25 opacity-0 group-hover:opacity-100',
                     ].join(' ')}
                   />
                 </Link>
@@ -369,7 +369,7 @@ export default function Navbar() {
               aria-expanded={mobileOpen}
               aria-haspopup="dialog"
               aria-controls="mobile-navigation"
-              className="md:hidden flex flex-col gap-[5px] items-center justify-center w-9 h-9 rounded-lg hover:bg-white/5 transition-colors"
+              className="md:hidden flex flex-col gap-[5px] items-center justify-center w-10 h-10 rounded transition-colors"
             >
               <span className={`block w-5 h-0.5 bg-ns-text transition-all duration-200 ${mobileOpen ? 'translate-y-[7px] rotate-45'  : ''}`} />
               <span className={`block w-5 h-0.5 bg-ns-text transition-all duration-200 ${mobileOpen ? 'opacity-0'                     : ''}`} />
@@ -394,19 +394,19 @@ export default function Navbar() {
         id="mobile-navigation"
         role="dialog"
         aria-modal="true"
-        className={`fixed top-8 right-0 bottom-0 z-50 w-72 max-w-[85vw] bg-ns-surface border-l border-ns-border
+        className={`fixed top-8 right-0 bottom-0 z-50 w-72 max-w-[85vw] bg-ns-bg border-l border-ns-border
                     flex flex-col md:hidden transition-transform duration-300 ease-in-out
                     ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}`}
         aria-label="Mobile navigation menu"
       >
         {/* Drawer header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-ns-border">
-          <span className="font-display text-lg tracking-widest text-ns-text">NOSPOILERS</span>
+        <div className="flex h-16 flex-shrink-0 items-center justify-between px-4 border-b border-ns-border">
+          <span className="font-display text-xl tracking-widest text-ns-text">NOSPOILERS</span>
           <button
             ref={mobileCloseRef}
             type="button"
             onClick={() => setMobileOpen(false)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-ns-muted hover:text-white transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded text-ns-muted hover:text-white transition-colors"
             aria-label="Close menu"
           >
             <CloseIcon size={16} />
@@ -419,8 +419,8 @@ export default function Navbar() {
         </div>
 
         {/* Primary nav links */}
-        <nav className="px-3 py-3 border-b border-ns-border space-y-1">
-          <p className="text-[10px] font-body text-ns-muted uppercase tracking-widest px-2 pb-1">Explore</p>
+        <nav className="px-4 pt-4 pb-2 border-b border-ns-border">
+          <p className="text-[11px] font-body text-ns-muted uppercase tracking-widest pb-2">Explore</p>
           {visibleLinks.map(link => {
             const active = isActive(link.href, pathname)
             return (
@@ -428,10 +428,10 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 className={[
-                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-heading font-medium transition-all',
+                  'flex min-h-11 items-center gap-3 border-t border-ns-border py-2.5 text-sm font-heading font-medium transition-colors',
                   link.highlight
-                    ? active ? 'text-amber-300 bg-ns-secondary/15' : 'text-ns-secondary-readable hover:text-amber-300 hover:bg-ns-secondary/10'
-                    : active ? 'text-ns-secondary-readable bg-ns-secondary/8' : 'text-white/60 hover:text-white hover:bg-white/5',
+                    ? active ? 'text-amber-300' : 'text-ns-secondary-readable hover:text-amber-300'
+                    : active ? 'text-ns-secondary-readable' : 'text-white/60 hover:text-white',
                 ].join(' ')}
               >
                 {link.highlight && <RecsIcon size={14} />}
@@ -443,13 +443,13 @@ export default function Navbar() {
 
         {/* Personal links */}
         {session && (
-          <nav className="px-3 py-3 border-b border-ns-border space-y-1 overflow-y-auto">
-            <p className="text-[10px] font-body text-ns-muted uppercase tracking-widest px-2 pb-1">Personal</p>
+          <nav className="px-4 pt-4 pb-2 border-b border-ns-border overflow-y-auto">
+            <p className="text-[11px] font-body text-ns-muted uppercase tracking-widest pb-2">Personal</p>
             {DROPDOWN_ITEMS.map(({ href, label, Icon }) => (
               <Link
                 key={href}
                 href={href}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-body text-ns-muted hover:text-white hover:bg-white/5 transition-colors"
+                className="flex min-h-11 items-center gap-3 border-t border-ns-border py-2.5 text-sm font-body text-ns-muted hover:text-white transition-colors"
               >
                 <Icon size={15} className="flex-shrink-0 opacity-70" />
                 {label}
@@ -464,7 +464,7 @@ export default function Navbar() {
             <div className="space-y-3">
               <Link
                 href={`/profile/${username}`}
-                className="flex items-center gap-2.5 px-1 group"
+                className="flex min-h-10 items-center gap-2.5 group"
               >
                 <Avatar src={avatarUrl} username={username} size="sm" />
                 <div className="min-w-0">
@@ -474,7 +474,7 @@ export default function Navbar() {
               </Link>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-body text-ns-muted hover:text-rose-400 hover:bg-white/5 transition-colors"
+                className="w-full min-h-10 text-left py-2.5 text-sm font-body text-ns-muted underline-offset-4 hover:text-rose-400 hover:underline transition-colors"
               >
                 Sign Out
               </button>

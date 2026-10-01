@@ -8,6 +8,9 @@ import CompatibilityScore from '@/components/compatibility/CompatibilityScore'
 import DNAComparison from '@/components/compatibility/DNAComparison'
 import SharedMovies from '@/components/compatibility/SharedMovies'
 import PersonalityBadge from '@/components/profile/PersonalityBadge'
+import Badge from '@/components/ui/Badge'
+import PageHeader from '@/components/ui/PageHeader'
+import Section from '@/components/ui/Section'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
@@ -44,77 +47,80 @@ export default async function CompatibilityPage({ params }: Props) {
     select: { username: true },
   })
 
+  const noPersonality = (
+    <p className="font-body text-sm text-ns-muted">No personality yet</p>
+  )
+
   return (
     <div className="min-h-screen pb-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
 
         {/* Back link */}
-        <Link href={`/profile/${username}`} className="inline-flex items-center gap-2 text-ns-muted text-sm font-body hover:text-ns-text transition-colors mb-8">
+        <Link href={`/profile/${username}`} className="mb-6 inline-flex min-h-[40px] items-center gap-2 font-body text-sm text-ns-muted underline-offset-4 transition-colors hover:text-ns-text hover:underline">
           ← Back to @{username}
         </Link>
 
         {/* Heading */}
-        <div className="text-center mb-12">
-          <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-3">Taste Compatibility</p>
-          <h1 className="font-display text-5xl sm:text-6xl tracking-wider text-ns-text mb-4">
-            @{me?.username ?? 'you'} × @{username}
-          </h1>
-        </div>
-
-        {/* Big score */}
-        <CompatibilityScore score={result.score} insight={result.insight} reasons={result.reasons} />
-
-        {/* Personalities side by side */}
-        {(myPersonality || theirPersonality) && (
-          <div className="grid grid-cols-2 gap-4 mt-8">
-            <div>
-              <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-2 text-center">You</p>
-              {myPersonality ? (
-                <PersonalityBadge primary={myPersonality.primaryType} secondary={myPersonality.secondaryType} compact />
-              ) : (
-                <div className="bg-ns-surface border border-ns-border rounded-2xl p-4 text-center text-ns-muted text-sm font-body">
-                  No personality yet
-                </div>
-              )}
-            </div>
-            <div>
-              <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-2 text-center">@{username}</p>
-              {theirPersonality ? (
-                <PersonalityBadge primary={theirPersonality.primaryType} secondary={theirPersonality.secondaryType} compact />
-              ) : (
-                <div className="bg-ns-surface border border-ns-border rounded-2xl p-4 text-center text-ns-muted text-sm font-body">
-                  No personality yet
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Shared movies */}
-        {result.sharedMovies.length > 0 && (
-          <SharedMovies movies={result.sharedMovies} />
-        )}
-
-        {/* DNA comparison */}
-        <DNAComparison
-          dnaDiff={result.dnaDiff}
-          yourUsername={me?.username ?? 'You'}
-          theirUsername={username}
+        <PageHeader
+          title={`@${me?.username ?? 'you'} × `}
+          accent={`@${username}`}
+          lede="Taste Compatibility: how closely your Movie DNA, ratings and favourite genres line up."
+          className="mb-10 [overflow-wrap:anywhere]"
         />
 
-        {/* Shared genres */}
-        {result.sharedGenres.length > 0 && (
-          <div className="mt-8 bg-ns-surface border border-ns-border rounded-2xl p-6">
-            <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">Shared Genres</p>
-            <div className="flex flex-wrap gap-2">
-              {result.sharedGenres.map(g => (
-                <span key={g} className="px-3 py-1.5 rounded-full bg-ns-secondary/10 border border-ns-secondary/30 text-ns-secondary-readable text-xs font-body capitalize">
-                  {g}
-                </span>
-              ))}
-            </div>
+        <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+          <div className="min-w-0 space-y-10">
+            {/* Big score */}
+            <CompatibilityScore score={result.score} insight={result.insight} reasons={result.reasons} />
+
+            {/* DNA comparison */}
+            <DNAComparison
+              dnaDiff={result.dnaDiff}
+              yourUsername={me?.username ?? 'You'}
+              theirUsername={username}
+            />
           </div>
-        )}
+
+          <div className="min-w-0 space-y-10">
+            {/* Personalities */}
+            {(myPersonality || theirPersonality) && (
+              <Section title="Personalities">
+                <div className="border-b border-ns-border">
+                  <div className="border-t border-ns-border py-4">
+                    <p className="mb-2 font-body text-[11px] uppercase tracking-widest text-ns-muted">You</p>
+                    {myPersonality ? (
+                      <PersonalityBadge primary={myPersonality.primaryType} secondary={myPersonality.secondaryType} compact />
+                    ) : noPersonality}
+                  </div>
+                  <div className="border-t border-ns-border py-4">
+                    <p className="mb-2 font-body text-[11px] tracking-widest text-ns-muted [overflow-wrap:anywhere]">@{username}</p>
+                    {theirPersonality ? (
+                      <PersonalityBadge primary={theirPersonality.primaryType} secondary={theirPersonality.secondaryType} compact />
+                    ) : noPersonality}
+                  </div>
+                </div>
+              </Section>
+            )}
+
+            {/* Shared movies */}
+            {result.sharedMovies.length > 0 && (
+              <SharedMovies movies={result.sharedMovies} />
+            )}
+
+            {/* Shared genres */}
+            {result.sharedGenres.length > 0 && (
+              <Section title="Shared Genres">
+                <div className="flex flex-wrap gap-2">
+                  {result.sharedGenres.map(g => (
+                    <Badge key={g} variant="secondary" size="md" className="capitalize">
+                      {g}
+                    </Badge>
+                  ))}
+                </div>
+              </Section>
+            )}
+          </div>
+        </div>
 
       </div>
     </div>

@@ -2,41 +2,33 @@ const STEPS = ['Favorite Movies', 'Your Genres', 'Your Preferences']
 
 export default function OnboardingProgress({ currentStep }: { currentStep: number }) {
   return (
-    <div className="w-full max-w-lg mx-auto mb-12">
-      <div className="flex items-center justify-between mb-3">
-        {STEPS.map((label, i) => {
-          const step = i + 1
-          const done    = step < currentStep
-          const active  = step === currentStep
-          return (
-            <div key={step} className="flex flex-col items-center gap-1.5 flex-1">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold font-body
-                              transition-all duration-300
-                              ${done   ? 'bg-ns-secondary text-ns-secondary-foreground' :
-                                active ? 'bg-ns-secondary/20 border-2 border-ns-secondary text-ns-secondary-readable' :
-                                         'bg-ns-surface border border-ns-border text-ns-muted'}`}>
-                {done ? (
-                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                ) : step}
-              </div>
-              <span className={`text-[10px] tracking-wider uppercase font-body transition-colors
-                               ${active ? 'text-ns-secondary-readable' : done ? 'text-ns-muted' : 'text-ns-muted/40'}`}>
-                {label}
-              </span>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Track */}
-      <div className="relative h-px bg-ns-border mt-1 -mx-2">
-        <div
-          className="absolute left-0 top-0 h-full bg-ns-secondary transition-all duration-500 ease-out"
-          style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
-        />
-      </div>
-    </div>
+    <ol className="mb-10 grid w-full min-w-0 grid-cols-3 gap-x-3 sm:gap-x-6">
+      {STEPS.map((label, i) => {
+        const step = i + 1
+        const done    = step < currentStep
+        const active  = step === currentStep
+        return (
+          <li
+            key={step}
+            aria-current={active ? 'step' : undefined}
+            className={`min-w-0 border-t-2 pt-2 transition-colors
+                        ${active ? 'border-ns-secondary' : done ? 'border-ns-text' : 'border-ns-border'}`}
+          >
+            <span className={`block font-display text-2xl leading-none tracking-wide
+                             ${active ? 'text-ns-secondary-readable' : done ? 'text-ns-text' : 'text-ns-muted'}`}>
+              {done ? (
+                <svg aria-hidden="true" className="inline-block" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              ) : step}
+            </span>
+            <span className={`mt-1 block text-xs font-body leading-snug
+                             ${active ? 'text-ns-text' : 'text-ns-muted'}`}>
+              {label}
+            </span>
+          </li>
+        )
+      })}
+    </ol>
   )
 }

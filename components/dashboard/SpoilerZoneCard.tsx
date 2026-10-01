@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
-import Link      from 'next/link'
 import Image     from 'next/image'
 import Avatar    from '@/components/ui/Avatar'
+import Button    from '@/components/ui/Button'
 import { SpoilerZoneIcon, TheoryIcon, PinIcon } from '@/components/icons'
 import type { SZMembership, SZPreview } from '@/types'
 
@@ -51,9 +51,9 @@ function HoverPreview({ tmdbId, visible }: { tmdbId: number; visible: boolean })
 
   return (
     <div
-      className="absolute left-full top-0 ml-3 w-72 bg-ns-surface/95 backdrop-blur-md
-                 border border-ns-border rounded-2xl shadow-2xl shadow-black/50 z-50"
-      style={{ minHeight: '120px', animation: 'szFadeIn 0.15s ease-out' }}
+      className="absolute left-full top-0 ml-3 w-72 bg-ns-surface
+                 border border-ns-border rounded z-50"
+      style={{ minHeight: '120px' }}
     >
       {loading ? (
         <div className="p-4 space-y-3">
@@ -77,12 +77,11 @@ function HoverPreview({ tmdbId, visible }: { tmdbId: number; visible: boolean })
         <div className="p-4 space-y-3">
           {/* Header */}
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-body text-ns-muted/60 tracking-widest uppercase">
+            <span className="text-[11px] font-body text-ns-muted/60 tracking-widest uppercase">
               Recent Discussion
             </span>
             {preview.onlineCount > 0 && (
-              <span className="flex items-center gap-1 text-[10px] font-body text-emerald-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[11px] font-body text-emerald-400">
                 {preview.onlineCount} online
               </span>
             )}
@@ -95,13 +94,13 @@ function HoverPreview({ tmdbId, visible }: { tmdbId: number; visible: boolean })
                 <Avatar src={msg.avatarUrl} username={msg.username} size="xs" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-[10px] font-body font-semibold text-ns-text">
+                    <span className="text-[11px] font-body font-semibold text-ns-text">
                       @{msg.username}
                     </span>
                     {msg.isTheory && (
                       <TheoryIcon size={9} className="text-violet-400/70" strokeWidth={2} />
                     )}
-                    <span className="text-[9px] font-body text-ns-muted/40 ml-auto flex-shrink-0">
+                    <span className="text-[11px] font-body text-ns-muted/40 ml-auto flex-shrink-0">
                       {timeAgo(msg.createdAt)}
                     </span>
                   </div>
@@ -118,12 +117,12 @@ function HoverPreview({ tmdbId, visible }: { tmdbId: number; visible: boolean })
             <div className="border-t border-ns-border pt-2.5 mt-2">
               <div className="flex items-center gap-1.5 mb-1">
                 <TheoryIcon size={10} className="text-violet-400" strokeWidth={2} />
-                <span className="text-[10px] font-body text-violet-400 font-medium">Latest Theory</span>
+                <span className="text-[11px] font-body text-violet-400 font-medium">Latest Theory</span>
               </div>
               <p className="text-[11px] font-body text-ns-muted/70 leading-snug line-clamp-2 italic">
                 "{preview.latestTheory.content}"
               </p>
-              <p className="text-[9px] font-body text-ns-muted/40 mt-0.5">
+              <p className="text-[11px] font-body text-ns-muted/40 mt-0.5">
                 by @{preview.latestTheory.username}
               </p>
             </div>
@@ -170,8 +169,8 @@ function ThreeDotMenu({ membership, onAction }: MenuProps) {
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="touch-action-reveal flex h-11 w-11 items-center justify-center rounded-xl
-                   bg-ns-bg/75 text-ns-text/80 backdrop-blur-sm hover:bg-ns-surface hover:text-ns-text
+        className="touch-action-reveal flex h-11 w-11 items-center justify-center rounded
+                   bg-ns-bg/75 text-ns-text/80 hover:bg-ns-surface hover:text-ns-text
                    transition-[color,background-color,opacity]"
         aria-label={`Actions for ${membership.movieTitle}`}
         aria-expanded={open}
@@ -186,7 +185,7 @@ function ThreeDotMenu({ membership, onAction }: MenuProps) {
 
       {open && (
         <div className="absolute right-0 top-full mt-1 w-48 bg-ns-surface border border-ns-border
-                        rounded-xl shadow-xl z-50 py-1 overflow-hidden" role="menu">
+                        rounded z-50 py-1 overflow-hidden" role="menu">
           {items.map(item => (
             <button
               type="button"
@@ -240,22 +239,12 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
       onMouseLeave={handleMouseLeave}
     >
       <div
-        className={`relative overflow-hidden rounded-2xl border transition-all duration-300
-          hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30
+        className={`relative overflow-hidden rounded border bg-ns-surface transition-colors duration-200
           ${m.pinned
-            ? 'border-ns-secondary/30 bg-ns-secondary/3'
-            : hasUnread
-            ? 'border-ns-border/80 bg-ns-surface/60 hover:border-ns-secondary/20'
-            : 'border-ns-border/50 bg-ns-surface/40 hover:border-ns-border'
+            ? 'border-ns-secondary/30'
+            : 'border-ns-border hover:border-ns-text/60'
           }`}
       >
-        {/* Pin indicator */}
-        {m.pinned && (
-          <div className="absolute top-3 left-3 z-10">
-            <PinIcon size={10} className="text-ns-secondary-readable/70" strokeWidth={2} />
-          </div>
-        )}
-
         {/* Three-dot menu (top-right) */}
         <div className="absolute top-2.5 right-2.5 z-10">
           <ThreeDotMenu
@@ -267,43 +256,26 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
         {/* Unread badge */}
         {hasUnread && (
           <div className="absolute top-2.5 left-3 z-10">
-            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1
-                             rounded-full bg-ns-secondary text-ns-secondary-foreground text-[9px] font-bold tabular-nums
-                             animate-pulse shadow-sm shadow-ns-secondary/30">
+            <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-sm bg-ns-secondary px-1
+                             text-[11px] font-bold tabular-nums text-ns-secondary-foreground">
               {m.unreadCount > 99 ? '99+' : m.unreadCount}
             </span>
           </div>
         )}
 
-        {/* Poster background */}
-        <div className="relative h-36 overflow-hidden">
+        {/* Poster */}
+        <div className="relative h-36 overflow-hidden bg-ns-surface-2">
           {m.moviePoster ? (
-            <>
-              <Image
-                src={`https://image.tmdb.org/t/p/w342${m.moviePoster}`}
-                alt={m.movieTitle}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                sizes="(max-width: 640px) 50vw, 33vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-ns-bg via-ns-bg/40 to-transparent" />
-            </>
+            <Image
+              src={`https://image.tmdb.org/t/p/w342${m.moviePoster}`}
+              alt={m.movieTitle}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 50vw, 33vw"
+            />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-ns-surface to-ns-bg flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center">
               <SpoilerZoneIcon size={36} className="text-ns-muted/20" />
-            </div>
-          )}
-
-          {/* Active indicator */}
-          {m.isActive && (
-            <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ns-secondary opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-ns-secondary" />
-              </span>
-              <span className="text-[10px] font-body text-ns-secondary-readable font-medium tracking-wide">
-                Active
-              </span>
             </div>
           )}
         </div>
@@ -311,33 +283,42 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
         {/* Card body */}
         <div className="p-4">
           {/* Title */}
-          <h3 className="font-body font-semibold text-sm text-ns-text leading-tight mb-2.5 line-clamp-2 pr-5">
+          <h3 className="mb-2 line-clamp-2 font-body text-sm font-semibold leading-tight text-ns-text">
             {m.movieTitle}
           </h3>
 
+          {/* Pinned / active state */}
+          {(m.pinned || m.isActive) && (
+            <p className="mb-2 flex flex-wrap items-center gap-x-2 font-body text-[11px] text-ns-secondary-readable">
+              {m.pinned && (
+                <span className="inline-flex items-center gap-1">
+                  <PinIcon size={10} strokeWidth={2} /> Pinned
+                </span>
+              )}
+              {m.isActive && <span className="font-medium">Active</span>}
+            </p>
+          )}
+
           {/* Stats row */}
-          <div className="flex items-center gap-3 mb-3 flex-wrap">
-            <StatChip icon="👥" value={fmt(m.memberCount)} label="Members" />
-            <StatChip icon="💬" value={fmt(m.messageCount)} label="Messages" />
-          </div>
+          <p className="mb-1 flex flex-wrap gap-x-3 gap-y-1">
+            <Stat value={fmt(m.memberCount)} label="Members" />
+            <Stat value={fmt(m.messageCount)} label="Messages" />
+          </p>
 
           {/* Last activity */}
-          <p className="text-[10px] font-body text-ns-muted/50 mb-3">
+          <p className="mb-3 font-body text-[11px] text-ns-muted">
             Last active {timeAgo(m.lastActivity)}
           </p>
 
           {/* CTA button */}
-          <Link
+          <Button
+            variant="outline"
+            size="sm"
             href={`/movie/${m.tmdbId}`}
-            onClick={e => e.stopPropagation()}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-body font-semibold
-                       bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/30
-                       hover:bg-ns-secondary hover:text-ns-secondary-foreground hover:border-ns-secondary
-                       active:scale-[0.98] transition-all duration-200"
+            className="min-h-11 w-full"
           >
-            <SpoilerZoneIcon size={12} strokeWidth={2} />
             Open Spoiler Zone
-          </Link>
+          </Button>
         </div>
       </div>
 
@@ -347,12 +328,11 @@ export default function SpoilerZoneCard({ membership: m, onAction }: Props) {
   )
 }
 
-function StatChip({ icon, value, label }: { icon: string; value: string; label: string }) {
+function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex items-center gap-1">
-      <span className="text-[10px]">{icon}</span>
-      <span className="text-xs font-body font-semibold text-ns-text">{value}</span>
-      <span className="text-[10px] font-body text-ns-muted/50">{label}</span>
-    </div>
+    <span className="inline-flex items-baseline gap-1">
+      <span className="font-body text-xs font-semibold text-ns-text">{value}</span>
+      <span className="font-body text-[11px] text-ns-muted">{label}</span>
+    </span>
   )
 }

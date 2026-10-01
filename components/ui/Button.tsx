@@ -12,18 +12,18 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  primary:   'bg-ns-secondary text-ns-secondary-foreground font-semibold hover:bg-ns-secondary/90 active:scale-[0.98]',
-  secondary: 'bg-ns-surface-2 text-ns-text border border-ns-border hover:border-ns-secondary-readable/60 hover:bg-ns-surface',
-  ghost:     'text-ns-muted hover:text-ns-text hover:bg-ns-surface',
-  outline:   'bg-transparent text-ns-text border border-ns-border hover:border-ns-secondary-readable/60 hover:text-ns-secondary-readable',
+  primary:   'bg-ns-secondary text-ns-secondary-foreground font-semibold hover:bg-ns-text hover:text-ns-bg active:translate-y-px',
+  secondary: 'bg-transparent text-ns-text border border-ns-text/70 font-semibold hover:bg-ns-text hover:text-ns-bg',
+  ghost:     'text-ns-muted hover:text-ns-text underline-offset-4 hover:underline',
+  outline:   'bg-transparent text-ns-text border border-ns-border hover:border-ns-text',
   danger:    'bg-ns-danger/10 text-ns-danger border border-ns-danger/20 hover:bg-ns-danger/20',
   success:   'bg-ns-success/10 text-ns-success border border-ns-success/20 hover:bg-ns-success/20',
 }
 
 const sizeClasses: Record<Size, string> = {
-  sm:  'px-3 py-1.5 text-sm rounded-lg',
-  md:  'px-5 py-2.5 text-sm rounded-xl',
-  lg:  'px-7 py-3.5 text-base rounded-xl',
+  sm:  'px-3 py-1.5 text-sm rounded',
+  md:  'px-5 py-2.5 text-sm rounded',
+  lg:  'px-7 py-3.5 text-base rounded',
 }
 
 export default function Button({
@@ -37,7 +37,7 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const classes = cn(
-    'inline-flex items-center justify-center gap-2 font-body transition-all duration-200 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary-readable focus-visible:ring-offset-2 focus-visible:ring-offset-ns-bg',
+    'inline-flex items-center justify-center gap-2 font-heading transition-colors duration-150 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary-readable focus-visible:ring-offset-2 focus-visible:ring-offset-ns-bg',
     variantClasses[variant],
     sizeClasses[size],
     (disabled || loading) && 'opacity-50 cursor-not-allowed pointer-events-none',

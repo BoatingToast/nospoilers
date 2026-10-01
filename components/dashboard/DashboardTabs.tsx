@@ -60,7 +60,7 @@ function TabSkeleton() {
   return (
     <div className="space-y-4 pt-2">
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="animate-pulse bg-ns-surface border border-ns-border rounded-2xl h-32" />
+        <div key={i} className="h-32 animate-pulse rounded bg-ns-surface-2" />
       ))}
     </div>
   )

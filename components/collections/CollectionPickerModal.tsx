@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { tmdbImageUrl } from '@/lib/utils'
 import type { CollectionData } from '@/types'
 import { CollectionsIcon } from '@/components/icons'
+import Button from '@/components/ui/Button'
 
 interface Movie {
   tmdbId:      number
@@ -189,16 +190,16 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
     <div
       ref={backdropRef}
       onClick={e => { if (e.target === backdropRef.current) onClose() }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
     >
-      <div className="w-full max-w-md bg-ns-bg border border-ns-border rounded-2xl overflow-hidden shadow-2xl">
+      <div className="w-full max-w-md overflow-hidden rounded border border-ns-border border-t-2 border-t-ns-text bg-ns-bg">
 
         {/* Toast */}
         {toast && (
           <div className={`flex items-center gap-2 px-5 py-2.5 text-xs font-body transition-all ${
             toast.ok
-              ? 'bg-emerald-500/10 text-emerald-400 border-b border-emerald-500/20'
-              : 'bg-red-500/10 text-red-400 border-b border-red-500/20'
+              ? 'bg-ns-success/10 text-ns-success border-b border-ns-success/20'
+              : 'bg-ns-danger/10 text-ns-danger border-b border-ns-danger/20'
           }`}>
             {toast.ok
               ? <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
@@ -209,14 +210,14 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-ns-border">
-          <div>
-            <h2 className="font-display text-xl tracking-wider text-ns-text">ADD TO COLLECTION</h2>
-            <p className="text-ns-muted text-xs font-body mt-0.5 truncate max-w-[260px]">{movie.title}</p>
+        <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-ns-border">
+          <div className="min-w-0">
+            <h2 className="font-display text-2xl leading-none tracking-wide text-ns-text">ADD TO COLLECTION</h2>
+            <p className="text-ns-muted text-xs font-body mt-1 truncate">{movie.title}</p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-ns-muted hover:text-ns-text hover:bg-ns-surface transition-colors"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded text-ns-muted transition-colors hover:text-ns-text"
           >
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M18 6L6 18M6 6l12 12"/>
@@ -236,16 +237,15 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
 
           {/* No collections yet */}
           {!loading && collections.length === 0 && !showCreate && (
-            <div className="py-12 text-center px-5">
-              <CollectionsIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
-              <p className="text-ns-muted font-body text-sm">You don&apos;t have any collections yet.</p>
-              <p className="text-ns-muted/60 font-body text-xs mt-1">Create one below to get started.</p>
+            <div className="px-5 py-8">
+              <p className="text-ns-text font-body text-sm">You don&apos;t have any collections yet.</p>
+              <p className="text-ns-muted font-body text-xs mt-1">Create one below to get started.</p>
             </div>
           )}
 
           {/* Collection list */}
           {!loading && collections.length > 0 && (
-            <ul className="divide-y divide-ns-border/40">
+            <ul className="divide-y divide-ns-border">
               {collections.map(col => {
                 const isIn      = added.has(col.id)
                 const isBusy    = toggling === col.id
@@ -262,7 +262,7 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
                       className="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-ns-surface/60 transition-colors group"
                     >
                       {/* Thumbnail */}
-                      <div className="w-10 h-14 rounded-lg overflow-hidden bg-ns-surface border border-ns-border flex-shrink-0">
+                      <div className="w-10 h-14 rounded overflow-hidden bg-ns-surface border border-ns-border flex-shrink-0">
                         {cover ? (
                           <Image
                             src={tmdbImageUrl(cover, 'w185')}
@@ -289,7 +289,7 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
                       </div>
 
                       {/* Check indicator */}
-                      <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center border transition-all ${
+                      <div className={`w-6 h-6 rounded-sm flex-shrink-0 flex items-center justify-center border transition-all ${
                         isIn
                           ? 'bg-ns-secondary border-ns-secondary text-ns-secondary-foreground'
                           : 'border-ns-border text-transparent group-hover:border-ns-muted/40'
@@ -311,8 +311,8 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
 
           {/* Inline create form */}
           {showCreate && (
-            <form onSubmit={handleCreate} className="px-5 py-4 border-t border-ns-border/40 bg-ns-surface/30">
-              <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-3">New Collection</p>
+            <form onSubmit={handleCreate} className="px-5 py-4 border-t border-ns-border">
+              <p className="text-ns-text text-sm font-heading mb-3">New Collection</p>
               <div className="flex gap-2">
                 <input
                   ref={titleInputRef}
@@ -320,23 +320,23 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
                   onChange={e => setNewTitle(e.target.value)}
                   placeholder="Collection name..."
                   maxLength={60}
-                  className="flex-1 bg-ns-surface border border-ns-border rounded-xl px-3 py-2 text-ns-text font-body text-sm
-                             placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-secondary/40 transition-colors"
+                  className="min-w-0 flex-1 bg-ns-surface border border-ns-border rounded px-3 py-2 text-ns-text font-body text-sm
+                             placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-text transition-colors"
                 />
-                <button
+                <Button
                   type="submit"
+                  variant="primary"
                   disabled={creating || !newTitle.trim()}
-                  className="px-4 py-2 bg-ns-secondary text-ns-secondary-foreground rounded-xl font-body font-medium text-sm
-                             hover:bg-ns-secondary/90 transition-colors disabled:opacity-50 whitespace-nowrap"
+                  className="whitespace-nowrap"
                 >
                   {creating ? 'Creating...' : 'Create & Add'}
-                </button>
+                </Button>
               </div>
-              {createError && <p className="text-red-400 text-xs font-body mt-2">{createError}</p>}
+              {createError && <p className="text-ns-danger text-xs font-body mt-2">{createError}</p>}
               <button
                 type="button"
                 onClick={() => { setShowCreate(false); setNewTitle(''); setCreateError('') }}
-                className="text-ns-muted text-xs font-body mt-2 hover:text-ns-text transition-colors"
+                className="mt-2 min-h-10 text-ns-muted text-sm font-body underline underline-offset-4 hover:text-ns-text transition-colors"
               >
                 Cancel
               </button>
@@ -345,11 +345,11 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 border-t border-ns-border flex items-center justify-between">
+        <div className="px-5 py-3 border-t border-ns-border flex items-center justify-between">
           {!showCreate ? (
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-1.5 text-ns-secondary-readable text-sm font-body hover:text-amber-400 transition-colors"
+              className="flex min-h-10 items-center gap-1.5 text-ns-secondary-readable text-sm font-heading underline underline-offset-4 hover:text-ns-text transition-colors"
             >
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M12 5v14M5 12h14"/>
@@ -360,12 +360,9 @@ export default function CollectionPickerModal({ movie, onClose }: Props) {
             <span />
           )}
 
-          <button
-            onClick={onClose}
-            className="text-ns-muted text-sm font-body hover:text-ns-text transition-colors"
-          >
+          <Button variant="outline" onClick={onClose}>
             Done
-          </button>
+          </Button>
         </div>
       </div>
     </div>

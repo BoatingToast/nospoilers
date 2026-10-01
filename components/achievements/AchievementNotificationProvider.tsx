@@ -96,60 +96,48 @@ export default function AchievementNotificationProvider() {
   return (
     <>
       {/* Toast stack — bottom-right */}
-      <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
+      <div className="pointer-events-none fixed bottom-4 left-4 right-4 z-[100] flex flex-col items-end gap-3 sm:bottom-6 sm:left-auto sm:right-6">
         {queue.map(notif => (
           <div
             key={notif.id}
             className={`
-              pointer-events-auto
-              flex items-center gap-3 px-4 py-3 rounded-2xl
-              bg-ns-bg border shadow-2xl shadow-black/60
-              transition-all duration-400
+              pointer-events-auto flex w-full max-w-[320px] items-start gap-3 rounded border border-t-2 bg-ns-bg px-4 py-3
+              transition-opacity duration-300
               ${RARITY_ACCENT[notif.achievement.rarity]}
-              ${notif.exiting
-                ? 'opacity-0 translate-x-4 scale-95'
-                : 'opacity-100 translate-x-0 scale-100'
-              }
+              ${notif.exiting ? 'opacity-0' : 'opacity-100'}
             `}
-            style={{ maxWidth: 320 }}
           >
             {/* Icon */}
-            <div className="w-10 h-10 rounded-full bg-ns-surface border border-ns-secondary/30
-                            flex items-center justify-center text-xl flex-shrink-0
-                            shadow-[0_0_12px_rgb(var(--ns-secondary)/0.3)]">
+            <span className="flex-shrink-0 text-xl leading-none">
               {notif.achievement.icon}
-            </div>
+            </span>
 
             {/* Text */}
-            <div className="flex-1 min-w-0">
-              <p className="text-ns-secondary-readable text-[10px] font-body tracking-widest uppercase mb-0.5">
-                Achievement Unlocked!
-              </p>
-              <p className="text-ns-text text-sm font-body font-medium truncate">
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-heading text-sm font-semibold text-ns-text">
                 {notif.achievement.name}
               </p>
-              <p className="text-ns-muted text-[11px] font-body">
-                +{notif.achievement.xpReward} XP
+              <p className="font-body text-xs text-ns-muted">
+                <span className="text-ns-secondary-readable">Achievement Unlocked!</span> · +{notif.achievement.xpReward} XP
               </p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-              <button
-                onClick={() => dismiss(notif.id)}
-                className="text-ns-muted hover:text-ns-text transition-colors"
-              >
-                <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path d="M18 6L6 18M6 6l12 12"/>
-                </svg>
-              </button>
               <button
                 onClick={() => { setModalItem(notif.achievement); dismiss(notif.id) }}
-                className="text-ns-secondary-readable text-[10px] font-body hover:text-ns-secondary-readable/70 transition-colors whitespace-nowrap"
+                className="mt-1 inline-flex min-h-8 items-center whitespace-nowrap font-heading text-xs text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text"
               >
                 View →
               </button>
             </div>
+
+            {/* Dismiss */}
+            <button
+              onClick={() => dismiss(notif.id)}
+              aria-label="Dismiss"
+              className="-mr-2 -mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center text-ns-muted transition-colors hover:text-ns-text"
+            >
+              <svg aria-hidden="true" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
           </div>
         ))}
       </div>

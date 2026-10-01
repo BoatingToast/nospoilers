@@ -13,7 +13,7 @@ import { getSupabasePublicClient } from '@/lib/supabase-client'
 import type { SZMessageData, SZRoomStats, SpoilerLevel } from '@/types'
 import {
   PulseIcon, TimelineIcon, CalendarWeekIcon, TodayIcon,
-  TheoryIcon, EmptyDiscussionIcon, CloseIcon, SearchIcon,
+  TheoryIcon, CloseIcon, SearchIcon,
   type IconProps,
 } from '@/components/icons'
 
@@ -33,18 +33,7 @@ function TypingIndicator({ users }: { users: string[] }) {
       : `${users[0]} and ${users.length - 1} others are typing…`
 
   return (
-    <div className="flex items-center gap-2 px-4 py-1.5">
-      <div className="flex gap-0.5">
-        {[0, 1, 2].map(i => (
-          <span
-            key={i}
-            className="w-1 h-1 rounded-full bg-ns-muted/40 animate-bounce"
-            style={{ animationDelay: `${i * 0.15}s` }}
-          />
-        ))}
-      </div>
-      <span className="text-[10px] font-body text-ns-muted/50 italic">{label}</span>
-    </div>
+    <p className="flex-shrink-0 py-1.5 font-body text-xs italic text-ns-muted" aria-live="polite">{label}</p>
   )
 }
 
@@ -371,52 +360,45 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
   ]
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-ns-bg rounded-2xl border border-ns-border overflow-hidden">
+    <div className="flex h-full min-h-0 min-w-0 flex-col">
 
       {/* ── Header ── */}
-      <div className="flex-shrink-0 px-5 pt-5 pb-3 border-b border-ns-border">
+      <div className="flex-shrink-0 border-b border-ns-border pb-3">
 
-        {/* Title + stats + member button row */}
-        <div className="flex items-start justify-between gap-4 mb-3">
-          <div>
-            <h2 className="font-display text-xl tracking-widest text-ns-secondary-readable leading-none mb-1">
-              SPOILER ZONE
-            </h2>
-            <p className="text-ns-muted text-xs font-body truncate max-w-[240px]">{movieTitle}</p>
-          </div>
-          <div className="flex flex-col items-end gap-2 flex-shrink-0">
-            <RoomStats
-              memberCount={stats.memberCount}
-              messageCount={stats.messageCount}
-              onlineCount={stats.onlineCount}
-              movieTitle={movieTitle}
-            />
-            <MemberButton
-              tmdbId={tmdbId}
-              movieTitle={movieTitle}
-              moviePoster={moviePoster}
-              initialMemberCount={stats.memberCount}
-              onMembershipChange={(joined, count) => {
-                setIsMember(joined)
-                setMemberCount(count)
-                setStats(s => ({ ...s, memberCount: count }))
-              }}
-            />
-          </div>
+        {/* Stats + member button row */}
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+          <RoomStats
+            memberCount={stats.memberCount}
+            messageCount={stats.messageCount}
+            onlineCount={stats.onlineCount}
+            movieTitle={movieTitle}
+          />
+          <MemberButton
+            tmdbId={tmdbId}
+            movieTitle={movieTitle}
+            moviePoster={moviePoster}
+            initialMemberCount={stats.memberCount}
+            onMembershipChange={(joined, count) => {
+              setIsMember(joined)
+              setMemberCount(count)
+              setStats(s => ({ ...s, memberCount: count }))
+            }}
+          />
         </div>
 
         {/* Filter tabs */}
-        <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-x-5 overflow-x-auto scrollbar-hide">
           {FILTERS.map(f => {
             const active = filter === f.key && !searchQuery
             return (
               <button
                 key={f.key}
                 onClick={() => { setFilter(f.key); setSearchQuery(''); setSearchInput('') }}
-                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-body transition-all
+                aria-pressed={active}
+                className={`flex min-h-10 flex-shrink-0 items-center gap-1.5 font-heading text-xs underline-offset-4 transition-colors
                   ${active
-                    ? 'bg-ns-secondary/15 text-ns-secondary-readable border border-ns-secondary/30'
-                    : 'text-ns-muted hover:text-ns-text hover:bg-ns-surface/40'}`}
+                    ? 'font-semibold text-ns-secondary-readable underline'
+                    : 'text-ns-muted hover:text-ns-text'}`}
               >
                 <f.Icon size={12} strokeWidth={active ? 2.5 : 2} />
                 <span>{f.label}</span>
@@ -426,22 +408,22 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
         </div>
 
         {/* Search */}
-        <form onSubmit={handleSearchSubmit} className="mt-2 flex gap-1 items-center">
-          <div className="relative flex-1">
-            <SearchIcon size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ns-muted/40 pointer-events-none" />
+        <form onSubmit={handleSearchSubmit} className="mt-1 flex items-center gap-1">
+          <div className="relative min-w-0 flex-1">
+            <SearchIcon size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ns-muted" />
             <input
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
               placeholder="Search messages…"
-              className="w-full bg-ns-surface border border-ns-border rounded-lg pl-8 pr-3 py-1.5 text-xs font-body
-                         text-ns-text placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-secondary/40 transition-colors"
+              className="min-h-10 w-full rounded border border-ns-border bg-ns-surface pl-8 pr-3 font-body text-sm
+                         text-ns-text transition-colors placeholder:text-ns-muted focus:border-ns-text focus:outline-none"
             />
           </div>
           {searchQuery && (
             <button
               type="button"
               onClick={() => { setSearchQuery(''); setSearchInput('') }}
-              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-ns-muted/50 hover:text-ns-muted hover:bg-ns-surface/60 transition-colors"
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center text-ns-muted transition-colors hover:text-ns-text"
               aria-label="Clear search"
             >
               <CloseIcon size={12} />
@@ -460,7 +442,7 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
       <PinnedMessages pinned={pinned} onJump={jumpTo} />
 
       {/* ── Discussion prompts ── */}
-      <div className="flex-shrink-0 px-4 pt-3 pb-2">
+      <div className="flex-shrink-0 border-b border-ns-border py-2">
         <DiscussionPrompts
           movieTitle={movieTitle}
           onPrompt={text => {
@@ -473,15 +455,15 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
       <div
         ref={feedRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto py-2 space-y-0.5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-ns-border"
+        className="min-w-0 flex-1 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-ns-border [&>*:first-child]:border-t-0"
       >
         {/* Load more button (for non-live modes, messages load oldest-first or at top) */}
         {hasMore && filter !== 'live' && (
-          <div className="flex justify-center py-2">
+          <div className="py-1">
             <button
               onClick={loadMore}
               disabled={loadingMore}
-              className="text-xs font-body text-ns-muted hover:text-ns-text transition-colors"
+              className="min-h-10 font-heading text-xs text-ns-muted underline underline-offset-4 transition-colors hover:text-ns-text"
             >
               {loadingMore ? 'Loading…' : 'Load more'}
             </button>
@@ -489,19 +471,16 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
         )}
 
         {loading ? (
-          <div className="flex justify-center py-8">
-            <svg className="animate-spin text-ns-secondary-readable/40" width="20" height="20" fill="none" viewBox="0 0 24 24">
+          <div className="py-8">
+            <svg aria-hidden="true" className="animate-spin text-ns-muted" width="20" height="20" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
             </svg>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-            <EmptyDiscussionIcon size={52} className="text-ns-secondary-readable/30 mb-4" strokeWidth={1.5} />
-            <p className="text-ns-muted font-body text-sm">
-              {searchQuery ? 'No messages found.' : 'Be the first to spark discussion!'}
-            </p>
-          </div>
+          <p className="py-10 font-body text-sm text-ns-muted">
+            {searchQuery ? 'No messages found.' : 'Be the first to spark discussion!'}
+          </p>
         ) : (
           messages.map(msg => (
             <MessageItem
@@ -521,11 +500,11 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
 
         {/* Live load more */}
         {hasMore && filter === 'live' && (
-          <div className="flex justify-center py-2">
+          <div className="border-t border-ns-border py-1">
             <button
               onClick={loadMore}
               disabled={loadingMore}
-              className="text-xs font-body text-ns-muted hover:text-ns-text transition-colors"
+              className="min-h-10 font-heading text-xs text-ns-muted underline underline-offset-4 transition-colors hover:text-ns-text"
             >
               {loadingMore ? 'Loading…' : 'Load earlier messages'}
             </button>
@@ -554,9 +533,9 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
           }}
         />
       ) : (
-        <div className="flex-shrink-0 px-4 py-4 border-t border-ns-border text-center">
-          <p className="text-xs font-body text-ns-muted">
-            <a href="/auth/signin" className="text-ns-secondary-readable hover:text-amber-400 transition-colors">Sign in</a>
+        <div className="flex-shrink-0 border-t border-ns-border py-4">
+          <p className="font-body text-sm text-ns-muted">
+            <a href="/auth/signin" className="text-ns-secondary-readable underline underline-offset-4 transition-colors hover:text-ns-text">Sign in</a>
             {' '}to join the discussion
           </p>
         </div>

@@ -8,21 +8,21 @@ interface Props {
 
 export default function PersonalityBadge({ primary, secondary, compact = false }: Props) {
   return (
-    <div className="h-full overflow-hidden rounded-2xl border border-ns-border bg-ns-surface">
+    <div className="min-w-0">
       {/* Primary type */}
-      <div className={`${primary.color} border-b border-ns-border ${compact ? 'p-4' : 'p-6'}`}>
-        <div className={`${compact ? 'text-3xl mb-2' : 'text-4xl mb-3'}`}>{primary.icon}</div>
-        <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-1">
+      <div>
+        <p className="text-ns-muted text-[11px] tracking-widest uppercase font-body mb-1">
           Primary Personality
         </p>
         <h3
-          className={`font-display tracking-wider text-ns-text ${compact ? 'text-2xl' : 'text-3xl'}`}
+          className={`font-display leading-none tracking-wide text-ns-text ${compact ? 'text-2xl' : 'text-4xl sm:text-5xl'}`}
           style={{ color: primary.accentHex }}
         >
+          <span aria-hidden="true" className="mr-2">{primary.icon}</span>
           {primary.name}
         </h3>
         {!compact && (
-          <p className="text-ns-muted text-xs font-body mt-2 leading-relaxed">
+          <p className="mt-3 max-w-xl text-sm font-body leading-relaxed text-ns-muted">
             {primary.description}
           </p>
         )}
@@ -30,29 +30,21 @@ export default function PersonalityBadge({ primary, secondary, compact = false }
 
       {/* Traits */}
       {!compact && (
-        <div className="p-4 flex flex-wrap gap-2">
-          {primary.traits.map(t => (
-            <span
-              key={t}
-              className="px-2.5 py-1 rounded-full text-[11px] font-body border"
-              style={{ color: primary.accentHex, borderColor: `${primary.accentHex}40`, background: `${primary.accentHex}10` }}
-            >
-              {t}
-            </span>
-          ))}
-        </div>
+        <p className="mt-4 border-t border-ns-border pt-3 text-sm font-body leading-relaxed text-ns-text">
+          {primary.traits.join(' · ')}
+        </p>
       )}
 
       {/* Secondary type */}
       {secondary && (
-        <div className="px-4 pb-4 pt-2 border-t border-ns-border">
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-1">
+        <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-t border-ns-border pt-3">
+          <p className="text-ns-muted text-[11px] tracking-widest uppercase font-body">
             Secondary
           </p>
-          <div className="flex items-center gap-2">
-            <span className="text-lg">{secondary.icon}</span>
-            <span className="text-ns-muted text-sm font-body">{secondary.name}</span>
-          </div>
+          <p className="text-sm font-body text-ns-text">
+            <span aria-hidden="true" className="mr-1.5">{secondary.icon}</span>
+            {secondary.name}
+          </p>
         </div>
       )}
     </div>

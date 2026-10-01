@@ -28,6 +28,8 @@
     "test:recommendation-preferences": "node --experimental-strip-types --test tests/recommendation-preferences.test.ts",
     "test:uploads": "node --experimental-strip-types --test tests/movie-uploads.test.ts tests/movie-matching.test.ts",
     "test:movie-night": "node --experimental-strip-types --test tests/movie-night.test.ts",
+    "test:taste": "node --experimental-strip-types --test tests/taste-reasons.test.ts",
+    "eval:taste": "node --experimental-strip-types --no-warnings scripts/eval-taste-reasons.ts",
     "test:where-was-i": "node --experimental-strip-types --test tests/where-was-i.test.ts",
     "test:unit": "node --experimental-strip-types --test tests/*.test.ts extension/tests/*.test.cjs",
     "check": "npm run lint && npm run typecheck && npm run test:unit && npm run build"

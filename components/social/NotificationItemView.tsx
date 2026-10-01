@@ -80,15 +80,12 @@ export function NotificationRow({
     <Link
       href={notification.link}
       onClick={() => onSelect(notification)}
-      className={`group relative flex items-start gap-3 transition-colors
-        ${roomy ? 'px-5 py-4 sm:px-6' : 'px-4 py-3.5'}
-        ${notification.read
-          ? 'hover:bg-ns-bg/30'
-          : 'border-l-2 border-ns-secondary/40 bg-ns-secondary/[0.04] hover:bg-ns-secondary/[0.07]'
-        }`}
+      className={`group relative flex items-start gap-3 border-l-2 transition-colors hover:bg-ns-surface
+        ${roomy ? 'px-3 py-4' : 'px-4 py-3.5'}
+        ${notification.read ? 'border-transparent' : 'border-ns-secondary'}`}
     >
       {notification.actorUsername ? (
-        <div className="mt-0.5">
+        <div className="mt-0.5 flex-shrink-0">
           <Avatar
             src={notification.actorAvatarUrl}
             username={notification.actorUsername}
@@ -96,10 +93,7 @@ export function NotificationRow({
           />
         </div>
       ) : (
-        <div className={`mt-0.5 flex flex-shrink-0 items-center justify-center rounded-xl
-          ${roomy ? 'h-10 w-10' : 'h-8 w-8 rounded-lg'}
-          ${notification.read ? 'bg-ns-bg/50' : 'bg-ns-secondary/10'}`}
-        >
+        <div className={`mt-0.5 flex flex-shrink-0 items-start justify-center pt-0.5 ${roomy ? 'w-12' : 'w-8'}`}>
           <NotificationTypeIcon
             icon={notification.icon}
             unread={!notification.read}
@@ -114,18 +108,16 @@ export function NotificationRow({
         >
           {notification.title}
         </p>
-        <p className={`${roomy ? 'mt-1 text-sm' : 'mt-0.5 line-clamp-2 text-xs'} font-body leading-snug
-          ${notification.read ? 'text-ns-muted/50' : 'text-ns-muted/80'}`}
-        >
+        <p className={`${roomy ? 'mt-1 text-sm' : 'mt-0.5 line-clamp-2 text-xs'} font-body leading-snug text-ns-muted`}>
           {notification.body}
         </p>
-        <p className={`${roomy ? 'mt-1.5' : 'mt-1'} text-[10px] font-body text-ns-muted/40`}>
+        <p className={`${roomy ? 'mt-1.5' : 'mt-1'} font-body text-[11px] text-ns-muted`}>
           {notificationTimeAgo(notification.createdAt)}
         </p>
       </div>
 
       {!notification.read && (
-        <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-ns-secondary shadow-sm shadow-ns-secondary/50" />
+        <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-ns-secondary" />
       )}
     </Link>
   )

@@ -13,14 +13,10 @@ interface Props {
 
 export default function MovieDNATab({ dnaProfile, username, extras }: Props) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       {dnaProfile && <DnaEvolutionWidget />}
       <MovieDNACard profile={dnaProfile} username={username} />
-      {extras && (
-        <div className="space-y-8 border-t border-ns-border/40 pt-8">
-          {extras}
-        </div>
-      )}
+      {extras}
     </div>
   )
 }

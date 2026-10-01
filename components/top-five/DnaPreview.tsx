@@ -42,13 +42,13 @@ export default function DnaPreview({ current, predicted, deltas, loading }: Prop
   const hasChange = DIMS.some(d => Math.abs(deltas[d]) >= 0.05)
 
   return (
-    <div className="rounded-2xl bg-ns-surface border border-ns-border overflow-hidden">
+    <div className="border-t-2 border-ns-text">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-ns-border flex items-center gap-2">
+      <div className="py-3 border-b border-ns-border flex items-center gap-2">
         <MovieDnaIcon size={16} className="text-ns-secondary-readable flex-shrink-0" />
         <h3 className="font-heading font-semibold text-white text-sm">DNA Preview</h3>
         {loading && (
-          <span className="ml-auto text-xs font-body text-ns-muted animate-pulse">Calculating…</span>
+          <span className="ml-auto text-xs font-body text-ns-muted">Calculating…</span>
         )}
         {!loading && !hasChange && (
           <span className="ml-auto text-xs font-body text-ns-muted">No change</span>
@@ -56,7 +56,7 @@ export default function DnaPreview({ current, predicted, deltas, loading }: Prop
       </div>
 
       {/* Dimension rows */}
-      <div className="p-4 space-y-3">
+      <div className="py-4 space-y-3">
         {DIMS.map(dim => {
           const { label, Icon } = DNA_LABELS[dim]
           const cur     = current[dim]
@@ -83,7 +83,7 @@ export default function DnaPreview({ current, predicted, deltas, loading }: Prop
                   {loading ? '—' : fmt(pred)}
                 </span>
                 {/* Delta pill */}
-                <span className={`text-[10px] font-body w-8 text-right ${
+                <span className={`text-[11px] font-body w-8 text-right ${
                   loading ? 'text-ns-muted' :
                   isUp    ? 'text-emerald-400' :
                   isDown  ? 'text-rose-400'   :
@@ -94,16 +94,16 @@ export default function DnaPreview({ current, predicted, deltas, loading }: Prop
               </div>
 
               {/* Bar */}
-              <div className="h-1 bg-ns-border rounded-full overflow-visible relative">
+              <div className="h-1 bg-ns-border overflow-visible relative">
                 {/* Current */}
                 <div
-                  className="absolute h-full rounded-full bg-ns-secondary/40 transition-all duration-300"
+                  className="absolute h-full bg-ns-secondary/40 transition-all duration-300"
                   style={{ width: `${pct}%` }}
                 />
                 {/* Predicted overlay */}
                 {!loading && hasChange && (
                   <div
-                    className={`absolute h-full rounded-full transition-all duration-500 ${
+                    className={`absolute h-full transition-all duration-500 ${
                       isUp ? 'bg-emerald-400/60' : isDown ? 'bg-rose-400/60' : 'bg-ns-secondary/40'
                     }`}
                     style={{ width: `${predPct}%` }}
@@ -116,8 +116,8 @@ export default function DnaPreview({ current, predicted, deltas, loading }: Prop
       </div>
 
       {/* Footer note */}
-      <div className="px-4 pb-3">
-        <p className="text-[10px] font-body text-ns-muted leading-relaxed">
+      <div className="pb-1">
+        <p className="text-[11px] font-body text-ns-muted leading-relaxed">
           Your Top 5 contributes 35% of your Movie DNA.
           Final scores blend with your ratings and taste history.
         </p>

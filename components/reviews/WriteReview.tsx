@@ -4,6 +4,8 @@ import { useState } from 'react'
 import type { ReviewWithMeta } from '@/services/reviews'
 import { WarningIcon, SpoilerFreeIcon } from '@/components/icons'
 import type { PlotPassportLevel } from '@/lib/plot-passport'
+import Button from '@/components/ui/Button'
+import Panel from '@/components/ui/Panel'
 
 interface Props {
   tmdbId:     number
@@ -89,13 +91,13 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
   }
 
   return (
-    <div className="rounded-2xl bg-ns-surface border border-ns-border p-6">
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="font-heading font-semibold text-white text-base">
+    <Panel>
+      <div className="flex items-center justify-between gap-4 mb-5">
+        <h3 className="min-w-0 font-heading font-semibold text-ns-text text-base">
           {isEdit ? 'Edit Your Review' : `Review ${movieTitle}`}
         </h3>
         {onCancel && (
-          <button onClick={onCancel} className="text-ns-muted hover:text-white text-sm transition-colors">
+          <button type="button" onClick={onCancel} className="min-h-10 text-ns-muted hover:text-ns-text text-sm underline-offset-4 hover:underline transition-colors">
             Cancel
           </button>
         )}
@@ -103,13 +105,13 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
 
       {/* Prompt chips — spoiler-free inspiration */}
       {!hasSpoilers && (
-        <div className="flex flex-wrap gap-1.5 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4">
           {SPOILER_FREE_PROMPTS.map(p => (
             <button
               key={p}
               type="button"
               onClick={() => setBody(prev => prev ? `${prev} ${p} ` : `${p} `)}
-              className="px-2.5 py-1 rounded-full border border-ns-border text-ns-muted hover:text-white hover:border-white/20 text-[11px] font-body transition-colors"
+              className="min-h-10 px-2.5 py-1 rounded-sm border border-ns-border text-left text-ns-muted hover:text-ns-text hover:border-ns-text text-xs font-body transition-colors"
             >
               {p}
             </button>
@@ -130,7 +132,7 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
             onChange={e => setTitle(e.target.value)}
             maxLength={120}
             placeholder="A compelling one-liner..."
-            className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-2.5 text-sm font-body text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-secondary/50 transition-colors"
+            className="w-full min-h-10 bg-ns-bg border border-ns-border rounded px-4 py-2.5 text-sm font-body text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-secondary/50 transition-colors"
           />
         </div>
 
@@ -148,9 +150,9 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
               ? 'Share your full thoughts — mark it as containing spoilers so others can choose to read it...'
               : 'Share your experience without revealing plot details. Talk about acting, visuals, emotion, atmosphere...'
             }
-            className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-3 text-sm font-body text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-secondary/50 transition-colors resize-y leading-relaxed"
+            className="w-full bg-ns-bg border border-ns-border rounded px-4 py-3 text-sm font-body text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-secondary/50 transition-colors resize-y leading-relaxed"
           />
-          <p className="text-[10px] font-body text-ns-muted/50 mt-1 text-right">
+          <p className="text-[11px] font-body text-ns-muted/50 mt-1 text-right">
             {body.length}/4000
           </p>
         </div>
@@ -170,19 +172,19 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
                 value={rating}
                 onChange={e => setRating(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="—"
-                className="w-16 bg-ns-bg border border-ns-border rounded-lg px-2 py-1.5 text-sm font-body text-center text-ns-text focus:outline-none focus:border-ns-secondary/50 transition-colors"
+                className="w-16 min-h-10 bg-ns-bg border border-ns-border rounded px-2 py-1.5 text-sm font-body text-center text-ns-text focus:outline-none focus:border-ns-secondary/50 transition-colors"
               />
               <span className="text-ns-muted text-xs font-body">/100</span>
             </div>
           </div>
 
           {/* Plot Passport boundary */}
-          <label className="flex items-center gap-2.5 ml-auto">
+          <label className="flex items-center gap-2.5 sm:ml-auto">
             <span className="text-xs font-body text-ns-muted whitespace-nowrap">Safe to show</span>
             <select
               value={spoilerLevel}
               onChange={e => setSpoilerLevel(e.target.value as PlotPassportLevel | 'auto')}
-              className="bg-ns-bg border border-ns-border rounded-lg px-2.5 py-1.5 text-xs font-body text-ns-text focus:outline-none focus:border-ns-secondary/50"
+              className="min-h-10 bg-ns-bg border border-ns-border rounded px-2.5 py-1.5 text-xs font-body text-ns-text focus:outline-none focus:border-ns-secondary/50"
             >
               <option value="auto">Auto-detect</option>
               <option value="safe">For everyone</option>
@@ -193,10 +195,10 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
         </div>
 
         {/* Plot Passport notice */}
-        <div className={`flex items-start gap-2 p-3 rounded-xl border ${
+        <div className={`flex items-start gap-2 border-l-2 pl-3 ${
           spoilerLevel === 'safe'
-            ? 'bg-emerald-500/8 border-emerald-500/20'
-            : 'bg-amber-500/8 border-amber-500/20'
+            ? 'border-emerald-500/40'
+            : 'border-amber-500/40'
         }`}>
           {spoilerLevel === 'safe'
             ? <SpoilerFreeIcon size={14} className="text-emerald-400 flex-shrink-0 mt-0.5" />
@@ -218,15 +220,15 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
           <p className="text-rose-400 text-sm font-body">{error}</p>
         )}
 
-        <button
+        <Button
           type="submit"
+          variant="secondary"
           disabled={saving || !body.trim()}
-          className="self-start px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold
-                     hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="min-h-10 self-start"
         >
           {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Publish Review'}
-        </button>
+        </Button>
       </form>
-    </div>
+    </Panel>
   )
 }

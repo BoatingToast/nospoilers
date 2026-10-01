@@ -16,24 +16,24 @@ export default function XPBar({ level }: Props) {
   }, [level.progress])
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="font-display text-xl tracking-wider text-ns-secondary-readable">LVL {level.level}</span>
-          <span className="text-ns-muted text-xs font-body">{level.title}</span>
+    <div className="flex min-w-0 flex-col gap-2">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <div className="flex min-w-0 items-baseline gap-2">
+          <span className="font-display text-2xl leading-none tracking-wide text-ns-secondary-readable">LVL {level.level}</span>
+          <span className="font-body text-sm text-ns-muted">{level.title}</span>
         </div>
-        <span className="text-ns-muted/50 text-[10px] font-body">{level.totalXP} XP</span>
+        <span className="font-body text-xs tabular-nums text-ns-muted">{level.totalXP} XP</span>
       </div>
 
-      <div className="h-2 bg-ns-border rounded-full overflow-hidden">
+      <div className="h-1.5 overflow-hidden bg-ns-border">
         <div
-          className="h-full bg-gradient-to-r from-ns-secondary to-amber-400 rounded-full transition-all duration-1000 ease-out"
+          className="h-full bg-ns-secondary transition-all duration-1000 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
 
       {level.progress < 100 && (
-        <p className="text-ns-muted/50 text-[10px] font-body">
+        <p className="font-body text-xs text-ns-muted">
           {level.currentXP} / {level.maxXP - level.minXP} XP to Level {level.level + 1}
         </p>
       )}

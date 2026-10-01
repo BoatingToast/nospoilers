@@ -22,27 +22,24 @@ export default function AchievementBadge({ achievement, size = 'md' }: Props) {
         onClick={() => setOpen(true)}
         title={achievement.name}
         className={`
-          relative flex flex-col items-center text-center
+          group relative flex flex-col items-center text-center
+          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary-readable
           ${sm ? 'gap-1' : 'gap-2'}
           ${achievement.earned ? '' : 'opacity-60'}
-          hover:opacity-100 transition-opacity group focus:outline-none
+          hover:opacity-100 transition-opacity
         `}
       >
-        {/* Icon circle */}
+        {/* Icon */}
         <div className={`
-          rounded-full flex items-center justify-center border-2 relative
-          transition-all duration-200
-          group-hover:scale-110 group-hover:border-ns-secondary/40
-          ${sm ? 'w-10 h-10 text-lg' : 'w-14 h-14 text-2xl'}
-          ${achievement.earned
-            ? 'border-ns-secondary bg-ns-secondary/10 shadow-[0_0_12px_rgb(var(--ns-secondary)/0.3)]'
-            : 'border-ns-border bg-ns-surface'}
+          relative flex items-center justify-center rounded-full border transition-colors
+          group-hover:border-ns-text/60
+          ${sm ? 'h-10 w-10 text-lg' : 'h-14 w-14 text-2xl'}
+          ${achievement.earned ? 'border-ns-secondary' : 'border-ns-border'}
         `}>
           {achievement.icon}
           {achievement.earned && (
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-ns-secondary
-                            flex items-center justify-center">
-              <svg width="8" height="8" fill="none" stroke="white" strokeWidth="2.5" viewBox="0 0 24 24">
+            <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-ns-secondary">
+              <svg aria-hidden="true" width="8" height="8" fill="none" stroke="white" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path d="M20 6 9 17l-5-5"/>
               </svg>
             </div>
@@ -50,21 +47,21 @@ export default function AchievementBadge({ achievement, size = 'md' }: Props) {
         </div>
 
         {/* Name */}
-        <p className={`text-ns-text font-body font-medium leading-tight group-hover:text-ns-secondary-readable transition-colors
-                       ${sm ? 'text-[10px]' : 'text-xs'}`}>
+        <p className={`font-body font-medium leading-tight text-ns-text transition-colors group-hover:text-ns-secondary-readable
+                       ${sm ? 'text-[11px]' : 'text-xs'}`}>
           {achievement.name}
         </p>
 
         {/* Progress */}
         {!achievement.earned && (
           <div className={`w-full ${sm ? 'max-w-[40px]' : 'max-w-[56px]'}`}>
-            <div className="h-0.5 bg-ns-border rounded-full overflow-hidden">
+            <div className="h-0.5 overflow-hidden bg-ns-border">
               <div
-                className="h-full bg-ns-secondary/50 rounded-full transition-all"
+                className="h-full bg-ns-secondary/50 transition-all"
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <p className="text-ns-muted/50 text-[9px] font-body mt-0.5">
+            <p className="mt-0.5 font-body text-[11px] text-ns-muted">
               {achievement.progress}/{achievement.goal}
             </p>
           </div>

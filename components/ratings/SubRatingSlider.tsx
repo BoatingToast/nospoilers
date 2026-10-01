@@ -80,7 +80,7 @@ export default function SubRatingSlider({ label, Icon, value, onChange }: Props)
             <button
               key={v}
               onClick={() => onChange(isActive ? null : v)}
-              className="flex-1 h-5 rounded text-[9px] font-body transition-all duration-100"
+              className="flex-1 h-5 rounded text-[11px] font-body transition-all duration-100"
               style={{
                 background: isActive ? barColor(v) : 'rgb(var(--ns-surface))',
                 color:      isActive ? chipTextColor(v) : 'rgb(var(--ns-muted))',

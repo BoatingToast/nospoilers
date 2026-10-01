@@ -48,14 +48,13 @@ export default function CompatibilityScore({ score, insight, reasons }: Props) {
   // SVG arc
   const radius = 80
   const circumference = 2 * Math.PI * radius
-  const offset = circumference - (score / 100) * circumference
 
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-8 text-center">
-      {/* Arc gauge */}
-      <div className="flex justify-center mb-6">
-        <div className="relative w-48 h-48 flex items-center justify-center">
-          <svg width="192" height="192" viewBox="0 0 192 192" className="-rotate-90 absolute inset-0">
+    <section className="min-w-0 border-t-2 border-ns-text pt-6">
+      <div className="grid min-w-0 gap-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:gap-8">
+        {/* Arc gauge */}
+        <div className="relative flex h-48 w-48 items-center justify-center">
+          <svg width="192" height="192" viewBox="0 0 192 192" className="absolute inset-0 -rotate-90" aria-hidden="true">
             <circle
               cx="96" cy="96" r={radius}
               fill="none" stroke="rgb(var(--ns-border))" strokeWidth="8"
@@ -65,43 +64,43 @@ export default function CompatibilityScore({ score, insight, reasons }: Props) {
               fill="none" stroke={color} strokeWidth="8"
               strokeDasharray={circumference}
               strokeDashoffset={circumference - (displayed / 100) * circumference}
-              strokeLinecap="round"
               style={{ transition: 'stroke-dashoffset 0.05s ease-out' }}
             />
           </svg>
-          <div className="text-center relative z-10">
+          <div className="relative z-10 text-center">
             <span className="font-display text-6xl tracking-wider" style={{ color }}>
               {displayed}
             </span>
-            <span className="text-ns-muted text-xl font-body">%</span>
+            <span className="font-body text-xl text-ns-muted">%</span>
           </div>
+        </div>
+
+        <div className="min-w-0">
+          {/* Label */}
+          <p className="font-display text-3xl leading-none tracking-wide sm:text-4xl" style={{ color }}>
+            {getScoreLabel(score)}
+          </p>
+
+          {/* Insight */}
+          <p className="mt-3 max-w-xl font-body text-base leading-relaxed text-ns-text">
+            {insight}
+          </p>
         </div>
       </div>
 
-      {/* Label */}
-      <p className="font-display text-2xl tracking-wider text-ns-text mb-2" style={{ color }}>
-        {getScoreLabel(score)}
-      </p>
-
-      {/* Insight */}
-      <p className="text-ns-muted text-sm font-body max-w-md mx-auto leading-relaxed mb-6">
-        {insight}
-      </p>
-
       {/* Reasons */}
       {reasons.length > 0 && (
-        <div className="flex flex-col gap-2 max-w-sm mx-auto">
+        <ul className="mt-6 border-b border-ns-border">
           {reasons.map((reason, i) => (
-            <div
+            <li
               key={i}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-ns-surface-2 text-ns-muted text-xs font-body"
+              className="border-t border-ns-border py-3 font-body text-sm leading-relaxed text-ns-muted"
             >
-              <span style={{ color }}>✦</span>
               {reason}
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </div>
+    </section>
   )
 }

@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import PageHeader from '@/components/ui/PageHeader'
+import Section from '@/components/ui/Section'
+import Button from '@/components/ui/Button'
 import AchievementCard from '@/components/achievements/AchievementCard'
 import XPBar from '@/components/achievements/XPBar'
 import type { UserAchievementData, XPLevel } from '@/types'
@@ -26,39 +28,36 @@ export default function AchievementsTab() {
   const inProgress = achievements.filter(a => !a.earned && a.progress > 0)
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <p className="text-ns-muted text-xs font-body">{earned.length} unlocked</p>
-        <Link href="/achievements" className="text-xs font-body text-ns-muted hover:text-ns-secondary-readable transition-colors">
+    <div className="space-y-10">
+      <PageHeader title="Achievements" lede={<p>{earned.length} unlocked</p>}>
+        <Button variant="outline" href="/achievements">
           Full page →
-        </Link>
-      </div>
+        </Button>
+      </PageHeader>
 
-      {xp && <div className="mb-6"><XPBar level={xp} /></div>}
+      {xp && <XPBar level={xp} />}
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="animate-pulse bg-ns-surface border border-ns-border rounded-2xl h-24" />
+            <div key={i} className="h-24 animate-pulse rounded bg-ns-surface-2" />
           ))}
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-12">
           {earned.length > 0 && (
-            <div>
-              <p className="text-[10px] font-body text-ns-muted uppercase tracking-widest mb-3">Earned</p>
+            <Section title="Earned">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {earned.map(a => <AchievementCard key={a.slug} achievement={a} />)}
               </div>
-            </div>
+            </Section>
           )}
           {inProgress.length > 0 && (
-            <div>
-              <p className="text-[10px] font-body text-ns-muted uppercase tracking-widest mb-3">In Progress</p>
+            <Section title="In Progress">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {inProgress.slice(0, 6).map(a => <AchievementCard key={a.slug} achievement={a} />)}
               </div>
-            </div>
+            </Section>
           )}
         </div>
       )}

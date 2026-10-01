@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Bebas_Neue, Space_Grotesk } from 'next/font/google'
+import { Inter, Bebas_Neue, Archivo } from 'next/font/google'
 import SessionProvider from '@/components/providers/SessionProvider'
 import AchievementNotificationProvider from '@/components/achievements/AchievementNotificationProvider'
 import ProLaunchBanner from '@/components/pro/ProLaunchBanner'
@@ -19,7 +19,8 @@ const bebasNeue = Bebas_Neue({
   display: 'swap',
 })
 
-const spaceGrotesk = Space_Grotesk({
+// Headings and interface labels. Exposed under the existing variable name.
+const spaceGrotesk = Archivo({
   subsets: ['latin'],
   variable: '--font-space',
   weight: ['400', '500', '600', '700'],

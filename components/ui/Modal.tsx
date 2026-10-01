@@ -124,7 +124,7 @@ export default function Modal({
       onMouseDown={event => {
         if (event.target === backdropRef.current) onCloseRef.current()
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
     >
       <div
         ref={panelRef}
@@ -134,15 +134,15 @@ export default function Modal({
         aria-labelledby={ariaLabelledBy}
         aria-describedby={ariaDescribedBy}
         tabIndex={-1}
-        className={cn('relative w-full bg-ns-bg border border-ns-border rounded-2xl overflow-hidden shadow-2xl outline-none', maxWidth, className)}
+        className={cn('relative w-full bg-ns-bg border border-ns-border border-t-2 border-t-ns-text rounded overflow-hidden outline-none', maxWidth, className)}
       >
         {showClose && (
           <button
             type="button"
             onClick={() => onCloseRef.current()}
             aria-label="Close dialog"
-            className="absolute top-5 right-5 z-10 w-7 h-7 flex items-center justify-center rounded-full
-                       text-ns-muted hover:text-ns-text hover:bg-ns-surface transition-colors
+            className="absolute top-2 right-2 z-10 w-10 h-10 flex items-center justify-center rounded
+                       text-ns-muted hover:text-ns-text transition-colors
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary"
           >
             <CloseIcon size={12} />

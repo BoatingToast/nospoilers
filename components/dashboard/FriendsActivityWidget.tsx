@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { FriendFeedItem } from '@/services/friends-feed'
 import Avatar from '@/components/ui/Avatar'
+import Button from '@/components/ui/Button'
+import Section from '@/components/ui/Section'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -122,10 +124,10 @@ function LikeBtn({ eventId, initialLiked, initialCount }: {
   return (
     <button
       onClick={toggle}
-      className={`flex items-center gap-1 text-[10px] font-body transition-colors
-        ${liked ? 'text-red-400' : 'text-ns-muted/50 hover:text-red-400'}`}
+      className={`flex items-center gap-1 text-xs font-body transition-colors
+        ${liked ? 'text-red-400' : 'text-ns-muted hover:text-red-400'}`}
     >
-      <HeartIcon filled={liked} size={11} />
+      <HeartIcon filled={liked} size={12} />
       {count > 0 && count}
     </button>
   )
@@ -136,26 +138,24 @@ function LikeBtn({ eventId, initialLiked, initialCount }: {
 function ActivityRow({ item }: { item: FeedItem }) {
   const { text, href } = activityLabel(item)
   return (
-    <div className="flex items-start gap-3 py-3 px-4 hover:bg-ns-bg/30 transition-colors group">
-      {/* Avatar */}
+    <li className="flex items-start gap-3 border-t border-ns-border py-3">
       <Avatar src={item.authorAvatarUrl} username={item.authorUsername} size="sm" href />
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-body text-ns-text leading-snug">
+      <div className="min-w-0 flex-1">
+        <p className="font-body text-sm leading-snug text-ns-text">
           <Link href={`/profile/${item.authorUsername}`}
-                className="font-semibold hover:text-ns-secondary-readable transition-colors">
+                className="font-semibold transition-colors hover:text-ns-secondary-readable">
             @{item.authorUsername}
           </Link>{' '}
-          <Link href={href} className="text-ns-muted/80 hover:text-ns-text transition-colors">
+          <Link href={href} className="text-ns-muted transition-colors hover:text-ns-text">
             {text}
           </Link>
         </p>
-        <div className="flex items-center gap-3 mt-1">
-          <span className="text-[10px] font-body text-ns-muted/40">{timeAgo(item.createdAt)}</span>
+        <div className="mt-1 flex items-center gap-3">
+          <span className="font-body text-xs text-ns-muted">{timeAgo(item.createdAt)}</span>
           <LikeBtn eventId={item.id} initialLiked={item.userLiked} initialCount={item.likeCount} />
         </div>
       </div>
-    </div>
+    </li>
   )
 }
 
@@ -174,55 +174,35 @@ export default function FriendsActivityWidget() {
   }, [])
 
   return (
-    <section>
-      <div className="flex items-center justify-between mb-4 px-0">
-        <div>
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Social</p>
-          <h2 className="font-display text-2xl tracking-wider text-ns-text mt-0.5">Friends Activity</h2>
-        </div>
-        <Link
-          href="/feed"
-          className="text-xs font-body text-ns-secondary-readable hover:text-amber-400 transition-colors"
-        >
-          View All →
-        </Link>
-      </div>
-
-      <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
-        {loading ? (
-          <div className="divide-y divide-ns-border/30">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="flex gap-3 p-4 animate-pulse">
-                <div className="w-8 h-8 rounded-full bg-ns-border flex-shrink-0" />
-                <div className="flex-1 space-y-1.5">
-                  <div className="h-3 bg-ns-border rounded w-3/4" />
-                  <div className="h-2 bg-ns-border rounded w-1/4" />
-                </div>
+    <Section title="Friends Activity" href="/feed" linkLabel="View All →">
+      {loading ? (
+        <ul>
+          {[1, 2, 3, 4].map(i => (
+            <li key={i} className="flex animate-pulse gap-3 border-t border-ns-border py-3">
+              <div className="h-8 w-8 flex-shrink-0 rounded-full bg-ns-surface-2" />
+              <div className="flex-1 space-y-1.5">
+                <div className="h-3 w-3/4 rounded bg-ns-surface-2" />
+                <div className="h-2 w-1/4 rounded bg-ns-surface-2" />
               </div>
-            ))}
-          </div>
-        ) : items.length === 0 ? (
-          <div className="py-10 text-center px-6">
-            <p className="text-ns-muted/50 text-sm font-body">
-              Follow people to see their activity here.
-            </p>
-            <Link
-              href="/friends/find"
-              className="mt-3 inline-block px-4 py-2 rounded-xl text-xs font-body
-                         bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/30
-                         hover:bg-ns-secondary hover:text-ns-secondary-foreground transition-all"
-            >
-              Find People
-            </Link>
-          </div>
-        ) : (
-          <div className="divide-y divide-ns-border/30">
-            {items.map(item => (
-              <ActivityRow key={item.id} item={item} />
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
+            </li>
+          ))}
+        </ul>
+      ) : items.length === 0 ? (
+        <div className="border-t border-ns-border pt-4">
+          <p className="font-body text-sm text-ns-muted">
+            Follow people to see their activity here.
+          </p>
+          <Button variant="outline" size="sm" href="/friends/find" className="mt-4 min-h-10">
+            Find People
+          </Button>
+        </div>
+      ) : (
+        <ul className="border-b border-ns-border">
+          {items.map(item => (
+            <ActivityRow key={item.id} item={item} />
+          ))}
+        </ul>
+      )}
+    </Section>
   )
 }
