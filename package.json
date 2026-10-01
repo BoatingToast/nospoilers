@@ -16,6 +16,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
+    "ingest:where-was-i": "node --experimental-strip-types scripts/ingest-where-was-i.ts",
+    "eval:where-was-i": "node --experimental-strip-types scripts/eval-where-was-i.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:extension": "node --test extension/tests/*.test.cjs",
@@ -28,6 +30,7 @@
     "test:movie-night": "node --experimental-strip-types --test tests/movie-night.test.ts",
     "test:taste": "node --experimental-strip-types --test tests/taste-reasons.test.ts",
     "eval:taste": "node --experimental-strip-types --no-warnings scripts/eval-taste-reasons.ts",
+    "test:where-was-i": "node --experimental-strip-types --test tests/where-was-i.test.ts",
     "test:unit": "node --experimental-strip-types --test tests/*.test.ts extension/tests/*.test.cjs",
     "check": "npm run lint && npm run typecheck && npm run test:unit && npm run build"
   },

@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 1,
+  "title": {
+    "slug": "the-signal-at-kestrel",
+    "catalogId": 9900001,
+    "title": "The Signal at Kestrel",
+    "format": "series",
+    "premise": "Audio archivist Mara Venn returns to remote Kestrel Island when its abandoned beacon broadcasts a recording of her missing sister.",
+    "sourceVersion": 1,
+    "rightsNote": "An original fictional NoSpoilers demonstration. No third-party scripts, transcripts, plots, or characters were used.",
+    "totalSeasons": 1,
+    "totalEpisodes": 6,
+    "isDemo": true
+  },
+  "checkpoints": [
+    {
+      "id": "kestrel-s1e1",
+      "ordinal": 1,
+      "season": 1,
+      "episode": 1,
+      "label": "Finished episode 1",
+      "shortRecap": [
+        { "text": "Mara Venn returns to Kestrel Island after the abandoned beacon broadcasts her missing sister June’s recorded voice.", "evidenceIds": ["k-e1-voice"] },
+        { "text": "The message includes a phrase only the sisters used, and the supposedly disconnected beacon had power during an island outage.", "evidenceIds": ["k-e1-phrase", "k-e1-power"] }
+      ],
+      "longRecap": [
+        { "text": "Audio archivist Mara Venn returns to Kestrel Island after its abandoned beacon transmits the voice of her sister June, who disappeared years earlier.", "evidenceIds": ["k-e1-mara", "k-e1-voice"] },
+        { "text": "The transmission uses a private phrase from the sisters’ childhood, convincing Mara that the source drew on material connected to June.", "evidenceIds": ["k-e1-phrase"] },
+        { "text": "Harbor mechanic Ellis Rook ferries Mara to the island, while archive director Dr. Sable Chen allows her to inspect the stored recordings.", "evidenceIds": ["k-e1-ellis", "k-e1-sable"] },
+        { "text": "The immediate unanswered problem is practical: the beacon broadcast while the island grid was down even though it was supposed to be disconnected.", "evidenceIds": ["k-e1-power"] }
+      ]
+    },
+    {
+      "id": "kestrel-s1e2",
+      "ordinal": 2,
+      "season": 1,
+      "episode": 2,
+      "label": "Finished episode 2",
+      "shortRecap": [
+        { "text": "Mara proves the transmission was spliced from June’s old field tapes, but nothing yet identifies who assembled it.", "evidenceIds": ["k-e2-splice"] },
+        { "text": "Salt marks on the equipment match an old buoy-maintenance map, and Toma Vale admits he heard a similar signal before Mara arrived.", "evidenceIds": ["k-e2-salt", "k-e2-toma"] }
+      ],
+      "longRecap": [
+        { "text": "Mara’s audio analysis shows that the beacon message was assembled from fragments of June’s 2009 field recordings.", "evidenceIds": ["k-e2-splice"] },
+        { "text": "The splice establishes how June’s voice could be used, but the available material does not identify the person who made it.", "evidenceIds": ["k-e2-splice"] },
+        { "text": "Corrosion and salt traces on the beacon equipment correspond to a route on an old buoy-maintenance map.", "evidenceIds": ["k-e2-salt"] },
+        { "text": "Fisher Toma Vale admits he heard earlier bursts of the same signal and kept that from the others.", "evidenceIds": ["k-e2-toma"] },
+        { "text": "Sable tells Mara that June had been investigating altered rescue-call logs before she vanished.", "evidenceIds": ["k-e2-logs"] }
+      ]
+    },
+    {
+      "id": "kestrel-s1e3",
+      "ordinal": 3,
+      "season": 1,
+      "episode": 3,
+      "label": "Finished episode 3",
+      "shortRecap": [
+        { "text": "Ellis admits he restored power to the beacon three weeks earlier after receiving a written request from Sable.", "evidenceIds": ["k-e3-ellis-power", "k-e3-request"] },
+        { "text": "Mara confirms the broadcast is a recent construction from archived fragments, not a live transmission from June.", "evidenceIds": ["k-e3-not-live"] }
+      ],
+      "longRecap": [
+        { "text": "Ellis admits that he quietly restored the beacon’s backup power three weeks before Mara returned.", "evidenceIds": ["k-e3-ellis-power"] },
+        { "text": "He says he acted on a written equipment-test request bearing Sable’s name; the request establishes why Ellis was there, not who made the broadcast.", "evidenceIds": ["k-e3-request"] },
+        { "text": "Mara’s waveform comparison confirms that the voice message is a recent edit built from archived recordings rather than live speech from June.", "evidenceIds": ["k-e3-not-live"] },
+        { "text": "The open questions are who assembled the edit and why the buoy route appears in the physical evidence.", "evidenceIds": ["k-e2-splice", "k-e2-salt"] }
+      ]
+    },
+    {
+      "id": "kestrel-s1e4",
+      "ordinal": 4,
+      "season": 1,
+      "episode": 4,
+      "label": "Finished episode 4",
+      "shortRecap": [
+        { "text": "Mara traces the signal through the retired buoy network, and Toma gives her the field notebook he hid after June disappeared.", "evidenceIds": ["k-e4-route", "k-e4-notebook"] },
+        { "text": "June’s notes say someone called “Grey Finch” altered rescue calls, but the material through episode 4 does not identify that person.", "evidenceIds": ["k-e4-grey-unknown"] }
+      ],
+      "longRecap": [
+        { "text": "Using the maintenance map and recorded delays, Mara traces the broadcast path through Kestrel’s retired buoy network.", "evidenceIds": ["k-e4-route"] },
+        { "text": "Toma admits that he found and hid June’s field notebook after her disappearance because he feared it would be destroyed.", "evidenceIds": ["k-e4-notebook"] },
+        { "text": "The notebook says a person using the name “Grey Finch” altered rescue-call logs. At this boundary, that name is not connected to an identified person.", "evidenceIds": ["k-e4-grey-unknown"] },
+        { "text": "Sable acknowledges that the buoy path was once used as a private salvage channel.", "evidenceIds": ["k-e4-salvage"] },
+        { "text": "It is established that the new signal used old infrastructure and June’s archived audio; who assembled it and Grey Finch’s identity remain unresolved.", "evidenceIds": ["k-e4-route", "k-e3-not-live", "k-e4-grey-unknown"] }
+      ]
+    },
+    {
+      "id": "kestrel-s1e5",
+      "ordinal": 5,
+      "season": 1,
+      "episode": 5,
+      "label": "Finished episode 5",
+      "shortRecap": [
+        { "text": "A signed maintenance authorization and June’s cipher key establish that Sable Chen used the name “Grey Finch.”", "evidenceIds": ["k-e5-grey-identity"] },
+        { "text": "The altered calls concealed unauthorized salvage traffic, and June’s notes show she reached the sea tunnel while investigating it.", "evidenceIds": ["k-e5-motive", "k-e5-tunnel"] }
+      ],
+      "longRecap": [
+        { "text": "Mara matches June’s notebook cipher to a maintenance authorization signed by Sable, establishing that Sable used the name “Grey Finch.”", "evidenceIds": ["k-e5-grey-identity"] },
+        { "text": "The altered rescue-call records concealed unauthorized salvage traffic through the old buoy channel.", "evidenceIds": ["k-e5-motive"] },
+        { "text": "June’s decoded route notes show that she followed the traffic as far as the sea tunnel on the night she disappeared.", "evidenceIds": ["k-e5-tunnel"] },
+        { "text": "The origin of the recent broadcast and what happened after June entered the tunnel are still not established at this boundary.", "evidenceIds": ["k-e5-tunnel", "k-e2-splice"] }
+      ]
+    },
+    {
+      "id": "kestrel-s1e6",
+      "ordinal": 6,
+      "season": 1,
+      "episode": 6,
+      "label": "Finished episode 6",
+      "shortRecap": [
+        { "text": "June’s recovered recorder establishes that she escaped the tunnel and later chose to leave Kestrel under a new identity after documenting the salvage operation.", "evidenceIds": ["k-e6-june"] },
+        { "text": "Toma assembled the recent beacon message from June’s tapes to force the sealed archive to reopen, and he gives Mara June’s final recording.", "evidenceIds": ["k-e6-toma-broadcast", "k-e6-resolution"] }
+      ],
+      "longRecap": [
+        { "text": "A recorder recovered beyond the sea tunnel establishes that June escaped and documented the salvage operation.", "evidenceIds": ["k-e6-june"] },
+        { "text": "June explains that she chose to leave Kestrel under a new identity after threats made a public return unsafe.", "evidenceIds": ["k-e6-june"] },
+        { "text": "Toma admits that he constructed the recent beacon message from June’s archived field tapes so the closed archive would be investigated again.", "evidenceIds": ["k-e6-toma-broadcast"] },
+        { "text": "He gives Mara June’s final recording, and Mara publishes the documented rescue-log and salvage evidence.", "evidenceIds": ["k-e6-resolution"] }
+      ]
+    }
+  ],
+  "evidence": [
+    { "id": "k-e1-mara", "earliestCheckpointId": "kestrel-s1e1", "kind": "identity", "characterKey": "mara", "text": "Mara Venn is an audio archivist and June Venn’s sister.", "sourceLabel": "Original episode bible", "sourceRef": "S1E1 · Home Frequency", "sourceExcerpt": "Mara identifies herself as an audio archivist when she requests access to June’s stored field tapes." },
+    { "id": "k-e1-voice", "earliestCheckpointId": "kestrel-s1e1", "kind": "viewer_fact", "text": "The abandoned beacon broadcasts a recording of June Venn’s voice.", "sourceLabel": "Original episode bible", "sourceRef": "S1E1 · Home Frequency", "sourceExcerpt": "The beacon transmission contains a sentence spoken in June Venn’s recorded voice." },
+    { "id": "k-e1-phrase", "earliestCheckpointId": "kestrel-s1e1", "kind": "viewer_fact", "characterKey": "mara", "text": "The message includes a private childhood phrase known to Mara and June.", "sourceLabel": "Original episode bible", "sourceRef": "S1E1 · Home Frequency", "sourceExcerpt": "Mara recognizes the phrase as one the sisters used privately as children." },
+    { "id": "k-e1-power", "earliestCheckpointId": "kestrel-s1e1", "kind": "unresolved", "text": "The disconnected beacon had power during an island-wide outage; the available evidence does not yet explain how.", "sourceLabel": "Original episode bible", "sourceRef": "S1E1 · Home Frequency", "sourceExcerpt": "The control panel logs power during the outage despite the beacon’s disconnected status." },
+    { "id": "k-e1-ellis", "earliestCheckpointId": "kestrel-s1e1", "kind": "identity", "characterKey": "ellis", "text": "Ellis Rook is Kestrel’s harbor mechanic and ferries Mara to the island.", "sourceLabel": "Original episode bible", "sourceRef": "S1E1 · Home Frequency", "sourceExcerpt": "Ellis introduces himself as the harbor mechanic before taking Mara across." },
+    { "id": "k-e1-sable", "earliestCheckpointId": "kestrel-s1e1", "kind": "identity", "characterKey": "sable", "text": "Dr. Sable Chen directs the Kestrel audio archive and grants Mara access to June’s recordings.", "sourceLabel": "Original episode bible", "sourceRef": "S1E1 · Home Frequency", "sourceExcerpt": "Sable opens the archive store and identifies herself as its director." },
+    { "id": "k-e1-mara-knows", "earliestCheckpointId": "kestrel-s1e1", "kind": "character_knowledge", "characterKey": "mara", "text": "Mara knows the broadcast uses June’s voice and their private childhood phrase.", "sourceLabel": "Original episode bible", "sourceRef": "S1E1 · Home Frequency", "sourceExcerpt": "Mara recognizes both the voice and the phrase while listening at the beacon." },
+    { "id": "k-e1-ellis-knows", "earliestCheckpointId": "kestrel-s1e1", "kind": "character_knowledge", "characterKey": "ellis", "text": "Ellis knows that the beacon’s control panel registered power during the outage.", "sourceLabel": "Original episode bible", "sourceRef": "S1E1 · Home Frequency", "sourceExcerpt": "Ellis reads the power log with Mara inside the beacon house." },
+    { "id": "k-e1-sable-knows", "earliestCheckpointId": "kestrel-s1e1", "kind": "character_knowledge", "characterKey": "sable", "text": "Sable knows Mara has returned to examine June’s archive recordings.", "sourceLabel": "Original episode bible", "sourceRef": "S1E1 · Home Frequency", "sourceExcerpt": "Sable signs Mara into the archive and discusses the purpose of her visit." },
+    { "id": "k-e1-sisters", "earliestCheckpointId": "kestrel-s1e1", "kind": "relationship", "characterKey": "mara", "text": "Mara and June are sisters; June has been missing for years.", "sourceLabel": "Original episode bible", "sourceRef": "S1E1 · Home Frequency", "sourceExcerpt": "Mara refers to June as her sister and describes the unresolved disappearance." },
+
+    { "id": "k-e2-splice", "earliestCheckpointId": "kestrel-s1e2", "kind": "viewer_fact", "characterKey": "mara", "text": "Mara proves the transmission was recently spliced from June’s 2009 field tapes, but the maker is not identified.", "sourceLabel": "Original episode bible", "sourceRef": "S1E2 · Salt Lines", "sourceExcerpt": "Matching breath sounds and tape noise identify three separate 2009 recordings in the transmitted sentence." },
+    { "id": "k-e2-salt", "earliestCheckpointId": "kestrel-s1e2", "kind": "viewer_fact", "text": "Salt traces on the beacon equipment match stops on an old buoy-maintenance map.", "sourceLabel": "Original episode bible", "sourceRef": "S1E2 · Salt Lines", "sourceExcerpt": "Mara lays the corrosion samples beside the maintenance chart and matches their mineral profiles." },
+    { "id": "k-e2-toma", "earliestCheckpointId": "kestrel-s1e2", "kind": "identity", "characterKey": "toma", "text": "Toma Vale is a fisher who heard earlier bursts of the same beacon signal and initially kept quiet about them.", "sourceLabel": "Original episode bible", "sourceRef": "S1E2 · Salt Lines", "sourceExcerpt": "Toma says his radio picked up two earlier bursts and admits he told no one." },
+    { "id": "k-e2-logs", "earliestCheckpointId": "kestrel-s1e2", "kind": "viewer_fact", "characterKey": "sable", "text": "Sable says June was investigating altered rescue-call logs before her disappearance.", "sourceLabel": "Original episode bible", "sourceRef": "S1E2 · Salt Lines", "sourceExcerpt": "Sable shows Mara a log discrepancy June had marked before she vanished." },
+    { "id": "k-e2-mara-knows", "earliestCheckpointId": "kestrel-s1e2", "kind": "character_knowledge", "characterKey": "mara", "text": "Mara knows the message is a splice made from June’s old field tapes and that the equipment carries buoy-route salt traces.", "sourceLabel": "Original episode bible", "sourceRef": "S1E2 · Salt Lines", "sourceExcerpt": "Mara completes the audio and corrosion comparisons herself." },
+    { "id": "k-e2-toma-knows", "earliestCheckpointId": "kestrel-s1e2", "kind": "character_knowledge", "characterKey": "toma", "text": "Toma knows the beacon signal was transmitted at least twice before Mara returned.", "sourceLabel": "Original episode bible", "sourceRef": "S1E2 · Salt Lines", "sourceExcerpt": "Toma heard and logged the earlier bursts on his fishing radio." },
+    { "id": "k-e2-sable-knows", "earliestCheckpointId": "kestrel-s1e2", "kind": "character_knowledge", "characterKey": "sable", "text": "Sable knows June had marked alterations in the rescue-call logs.", "sourceLabel": "Original episode bible", "sourceRef": "S1E2 · Salt Lines", "sourceExcerpt": "Sable retrieves the page containing June’s handwritten discrepancy marks." },
+
+    { "id": "k-e3-ellis-power", "earliestCheckpointId": "kestrel-s1e3", "kind": "viewer_fact", "characterKey": "ellis", "text": "Ellis admits he restored the beacon’s backup power three weeks before Mara returned.", "sourceLabel": "Original episode bible", "sourceRef": "S1E3 · Closed Circuit", "sourceExcerpt": "Ellis shows Mara his dated work log for the beacon generator repair." },
+    { "id": "k-e3-request", "earliestCheckpointId": "kestrel-s1e3", "kind": "viewer_fact", "characterKey": "sable", "text": "Ellis says a written equipment-test request bearing Sable’s name prompted the repair.", "sourceLabel": "Original episode bible", "sourceRef": "S1E3 · Closed Circuit", "sourceExcerpt": "The work order shown on screen bears Sable’s printed name and archive office code." },
+    { "id": "k-e3-not-live", "earliestCheckpointId": "kestrel-s1e3", "kind": "viewer_fact", "characterKey": "mara", "text": "Mara confirms the beacon message is a recent edit of archived fragments, not live speech from June.", "sourceLabel": "Original episode bible", "sourceRef": "S1E3 · Closed Circuit", "sourceExcerpt": "The splice software timestamps the edit format years after June’s disappearance." },
+    { "id": "k-e3-ellis-knows", "earliestCheckpointId": "kestrel-s1e3", "kind": "character_knowledge", "characterKey": "ellis", "text": "Ellis knows he restored the backup power and that his work order bore Sable’s name.", "sourceLabel": "Original episode bible", "sourceRef": "S1E3 · Closed Circuit", "sourceExcerpt": "Ellis describes the repair and hands the work order to Mara." },
+    { "id": "k-e3-sable-knows", "earliestCheckpointId": "kestrel-s1e3", "kind": "character_knowledge", "characterKey": "sable", "text": "Sable knows that a beacon repair request carries her name and office code.", "sourceLabel": "Original episode bible", "sourceRef": "S1E3 · Closed Circuit", "sourceExcerpt": "Mara shows Sable the signed work order during their archive conversation." },
+
+    { "id": "k-e4-route", "earliestCheckpointId": "kestrel-s1e4", "kind": "viewer_fact", "characterKey": "mara", "text": "Mara traces the recent signal through Kestrel’s retired buoy network.", "sourceLabel": "Original episode bible", "sourceRef": "S1E4 · The Field Book", "sourceExcerpt": "Signal delays and salt profiles align at each retired buoy on the route." },
+    { "id": "k-e4-notebook", "earliestCheckpointId": "kestrel-s1e4", "kind": "viewer_fact", "characterKey": "toma", "text": "Toma reveals that he hid June’s field notebook after her disappearance because he feared it would be destroyed.", "sourceLabel": "Original episode bible", "sourceRef": "S1E4 · The Field Book", "sourceExcerpt": "Toma retrieves the notebook from a sealed compartment beneath his boat." },
+    { "id": "k-e4-grey-unknown", "earliestCheckpointId": "kestrel-s1e4", "kind": "unresolved", "text": "Grey Finch is an unidentified name in June’s notebook associated with altered rescue calls; the material through episode 4 does not identify a person behind it.", "sourceLabel": "Original episode bible", "sourceRef": "S1E4 · The Field Book", "sourceExcerpt": "June’s note reads: Grey Finch changed the calls. No real name is attached to the entry." },
+    { "id": "k-e4-salvage", "earliestCheckpointId": "kestrel-s1e4", "kind": "viewer_fact", "characterKey": "sable", "text": "Sable acknowledges that the retired buoy route once served as a private salvage channel.", "sourceLabel": "Original episode bible", "sourceRef": "S1E4 · The Field Book", "sourceExcerpt": "Sable identifies the route on the map as an old channel used by salvage crews." },
+    { "id": "k-e4-mara-knows", "earliestCheckpointId": "kestrel-s1e4", "kind": "character_knowledge", "characterKey": "mara", "text": "Mara knows the signal used the retired buoy route and that June’s notebook links the unidentified Grey Finch to altered rescue calls.", "sourceLabel": "Original episode bible", "sourceRef": "S1E4 · The Field Book", "sourceExcerpt": "Mara completes the route trace and reads the Grey Finch entry." },
+    { "id": "k-e4-toma-knows", "earliestCheckpointId": "kestrel-s1e4", "kind": "character_knowledge", "characterKey": "toma", "text": "Toma knows where June’s notebook was hidden and that it names Grey Finch without identifying that person.", "sourceLabel": "Original episode bible", "sourceRef": "S1E4 · The Field Book", "sourceExcerpt": "Toma explains when he found the notebook and says he never decoded the name." },
+    { "id": "k-e4-sable-knows", "earliestCheckpointId": "kestrel-s1e4", "kind": "character_knowledge", "characterKey": "sable", "text": "Sable knows Mara has traced the signal through the former salvage channel and obtained June’s notebook.", "sourceLabel": "Original episode bible", "sourceRef": "S1E4 · The Field Book", "sourceExcerpt": "Mara shows Sable the route and notebook during their confrontation." },
+
+    { "id": "k-e5-grey-identity", "earliestCheckpointId": "kestrel-s1e5", "kind": "identity", "characterKey": "sable", "text": "The signed authorization and June’s cipher key establish that Sable Chen used the name Grey Finch.", "sourceLabel": "Original episode bible", "sourceRef": "S1E5 · Grey Finch", "sourceExcerpt": "The decoded initials on the authorization match Sable’s archive cipher and signature." },
+    { "id": "k-e5-motive", "earliestCheckpointId": "kestrel-s1e5", "kind": "viewer_fact", "characterKey": "sable", "text": "Sable altered rescue-call records to conceal unauthorized salvage traffic through the buoy channel.", "sourceLabel": "Original episode bible", "sourceRef": "S1E5 · Grey Finch", "sourceExcerpt": "The decoded ledger aligns each altered call with an unlicensed salvage movement." },
+    { "id": "k-e5-tunnel", "earliestCheckpointId": "kestrel-s1e5", "kind": "viewer_fact", "characterKey": "mara", "text": "June’s decoded route notes establish that she reached the sea tunnel while investigating the salvage traffic.", "sourceLabel": "Original episode bible", "sourceRef": "S1E5 · Grey Finch", "sourceExcerpt": "June’s final route mark before the notes stop is inside the sea tunnel." },
+    { "id": "k-e5-mara-knows", "earliestCheckpointId": "kestrel-s1e5", "kind": "character_knowledge", "characterKey": "mara", "text": "Mara knows Sable used the name Grey Finch, why the rescue logs were altered, and that June reached the sea tunnel.", "sourceLabel": "Original episode bible", "sourceRef": "S1E5 · Grey Finch", "sourceExcerpt": "Mara decodes the notebook, authorization, and route marks together." },
+    { "id": "k-e5-sable-knows", "earliestCheckpointId": "kestrel-s1e5", "kind": "character_knowledge", "characterKey": "sable", "text": "Sable knows Mara has connected her to the Grey Finch name and the altered rescue-call records.", "sourceLabel": "Original episode bible", "sourceRef": "S1E5 · Grey Finch", "sourceExcerpt": "Mara presents the decoded authorization and ledger to Sable." },
+
+    { "id": "k-e6-june", "earliestCheckpointId": "kestrel-s1e6", "kind": "viewer_fact", "text": "June escaped the sea tunnel and chose to leave Kestrel under a new identity after documenting the salvage operation.", "sourceLabel": "Original episode bible", "sourceRef": "S1E6 · Clear Channel", "sourceExcerpt": "June explains her escape and decision in the recovered recorder entry." },
+    { "id": "k-e6-toma-broadcast", "earliestCheckpointId": "kestrel-s1e6", "kind": "viewer_fact", "characterKey": "toma", "text": "Toma assembled the recent beacon broadcast from June’s archived tapes to force the sealed archive to reopen.", "sourceLabel": "Original episode bible", "sourceRef": "S1E6 · Clear Channel", "sourceExcerpt": "Toma demonstrates the tape edits and explains why he sent the signal." },
+    { "id": "k-e6-resolution", "earliestCheckpointId": "kestrel-s1e6", "kind": "viewer_fact", "characterKey": "mara", "text": "Toma gives Mara June’s final recording, and Mara publishes the documented rescue-log and salvage evidence.", "sourceLabel": "Original episode bible", "sourceRef": "S1E6 · Clear Channel", "sourceExcerpt": "Mara receives the recorder and releases the archive with its supporting records." },
+    { "id": "k-e6-toma-knows", "earliestCheckpointId": "kestrel-s1e6", "kind": "character_knowledge", "characterKey": "toma", "text": "Toma knows he built the broadcast and that June’s final recorder establishes her escape.", "sourceLabel": "Original episode bible", "sourceRef": "S1E6 · Clear Channel", "sourceExcerpt": "Toma confesses beside the recovered recorder." },
+    { "id": "k-e6-mara-knows", "earliestCheckpointId": "kestrel-s1e6", "kind": "character_knowledge", "characterKey": "mara", "text": "Mara knows June escaped, Toma made the recent broadcast, and the archive evidence is ready to publish.", "sourceLabel": "Original episode bible", "sourceRef": "S1E6 · Clear Channel", "sourceExcerpt": "Mara listens to June’s recorder and receives Toma’s confession." }
+  ],
+  "characters": [
+    {
+      "stableKey": "mara",
+      "snapshots": [
+        { "checkpointId": "kestrel-s1e1", "displayName": "Mara Venn", "viewerContext": [{ "text": "An audio archivist who returned after hearing her missing sister’s voice.", "evidenceIds": ["k-e1-mara", "k-e1-voice"] }], "relationships": [{ "text": "June Venn — her missing sister.", "evidenceIds": ["k-e1-sisters"] }], "characterKnowledge": [{ "text": "She recognizes June’s voice and their private phrase.", "evidenceIds": ["k-e1-mara-knows"] }] },
+        { "checkpointId": "kestrel-s1e2", "displayName": "Mara Venn", "viewerContext": [{ "text": "The audio archivist analyzing the beacon transmission.", "evidenceIds": ["k-e1-mara", "k-e2-splice"] }], "relationships": [{ "text": "June Venn — her missing sister.", "evidenceIds": ["k-e1-sisters"] }], "characterKnowledge": [{ "text": "She knows the message is spliced from June’s field tapes and has linked salt traces to the buoy map.", "evidenceIds": ["k-e2-mara-knows"] }] },
+        { "checkpointId": "kestrel-s1e3", "displayName": "Mara Venn", "viewerContext": [{ "text": "The investigator who proved the signal is a recent archive edit.", "evidenceIds": ["k-e3-not-live"] }], "relationships": [{ "text": "June Venn — her missing sister.", "evidenceIds": ["k-e1-sisters"] }], "characterKnowledge": [{ "text": "She knows the broadcast is not live and that Ellis restored the beacon on a request bearing Sable’s name.", "evidenceIds": ["k-e3-not-live", "k-e3-ellis-power", "k-e3-request"] }] },
+        { "checkpointId": "kestrel-s1e4", "displayName": "Mara Venn", "viewerContext": [{ "text": "The investigator who traced the signal through the retired buoy network.", "evidenceIds": ["k-e4-route"] }], "relationships": [{ "text": "June Venn — her missing sister and author of the recovered notebook.", "evidenceIds": ["k-e1-sisters", "k-e4-notebook"] }], "characterKnowledge": [{ "text": "She knows the signal route and that the notebook links an unidentified Grey Finch to altered rescue calls.", "evidenceIds": ["k-e4-mara-knows"] }] },
+        { "checkpointId": "kestrel-s1e5", "displayName": "Mara Venn", "viewerContext": [{ "text": "The investigator who decoded June’s notebook and the Grey Finch evidence.", "evidenceIds": ["k-e5-grey-identity"] }], "relationships": [{ "text": "June Venn — her missing sister, last traced to the sea tunnel.", "evidenceIds": ["k-e1-sisters", "k-e5-tunnel"] }], "characterKnowledge": [{ "text": "She knows Sable used the Grey Finch name, the reason the logs were altered, and June’s route to the tunnel.", "evidenceIds": ["k-e5-mara-knows"] }] },
+        { "checkpointId": "kestrel-s1e6", "displayName": "Mara Venn", "viewerContext": [{ "text": "The archivist who releases the evidence gathered across the investigation.", "evidenceIds": ["k-e6-resolution"] }], "relationships": [{ "text": "June Venn — her sister, whose final recording she receives.", "evidenceIds": ["k-e6-june", "k-e6-resolution"] }], "characterKnowledge": [{ "text": "She knows June escaped, Toma built the signal, and the archive evidence can be published.", "evidenceIds": ["k-e6-mara-knows"] }] }
+      ]
+    },
+    {
+      "stableKey": "ellis",
+      "snapshots": [
+        { "checkpointId": "kestrel-s1e1", "displayName": "Ellis Rook", "viewerContext": [{ "text": "Kestrel’s harbor mechanic, who ferried Mara to the island.", "evidenceIds": ["k-e1-ellis"] }], "relationships": [{ "text": "Mara Venn — his passenger and the returning investigator.", "evidenceIds": ["k-e1-ellis", "k-e1-mara"] }], "characterKnowledge": [{ "text": "He knows the beacon registered power during the outage.", "evidenceIds": ["k-e1-ellis-knows"] }] },
+        { "checkpointId": "kestrel-s1e2", "displayName": "Ellis Rook", "viewerContext": [{ "text": "The harbor mechanic assisting with the beacon equipment.", "evidenceIds": ["k-e1-ellis"] }], "relationships": [{ "text": "Mara Venn — the investigator examining the beacon.", "evidenceIds": ["k-e1-ellis", "k-e1-mara"] }], "characterKnowledge": [{ "text": "He knows the beacon registered power during the outage.", "evidenceIds": ["k-e1-ellis-knows"] }] },
+        { "checkpointId": "kestrel-s1e3", "displayName": "Ellis Rook", "viewerContext": [{ "text": "The mechanic who admits restoring the beacon’s backup power.", "evidenceIds": ["k-e3-ellis-power"] }], "relationships": [{ "text": "Sable Chen — the archive director named on his work order.", "evidenceIds": ["k-e3-request", "k-e1-sable"] }], "characterKnowledge": [{ "text": "He knows he restored the power and that the request bore Sable’s name.", "evidenceIds": ["k-e3-ellis-knows"] }] },
+        { "checkpointId": "kestrel-s1e4", "displayName": "Ellis Rook", "viewerContext": [{ "text": "The mechanic who restored the beacon before the new transmissions.", "evidenceIds": ["k-e3-ellis-power"] }], "relationships": [{ "text": "Sable Chen — the archive director named on his work order.", "evidenceIds": ["k-e3-request", "k-e1-sable"] }], "characterKnowledge": [{ "text": "He knows he restored the power and that the request bore Sable’s name.", "evidenceIds": ["k-e3-ellis-knows"] }] },
+        { "checkpointId": "kestrel-s1e5", "displayName": "Ellis Rook", "viewerContext": [{ "text": "The mechanic whose repair allowed the beacon to transmit.", "evidenceIds": ["k-e3-ellis-power"] }], "relationships": [{ "text": "Sable Chen — the person identified on his repair request.", "evidenceIds": ["k-e3-request", "k-e1-sable"] }], "characterKnowledge": [{ "text": "He knows he restored the power and that the request bore Sable’s name.", "evidenceIds": ["k-e3-ellis-knows"] }] },
+        { "checkpointId": "kestrel-s1e6", "displayName": "Ellis Rook", "viewerContext": [{ "text": "The harbor mechanic whose repair enabled the later beacon signal.", "evidenceIds": ["k-e3-ellis-power"] }], "relationships": [{ "text": "Mara Venn — the investigator he helped return to Kestrel.", "evidenceIds": ["k-e1-ellis", "k-e1-mara"] }], "characterKnowledge": [{ "text": "He knows he restored the beacon power before Mara returned.", "evidenceIds": ["k-e3-ellis-knows"] }] }
+      ]
+    },
+    {
+      "stableKey": "sable",
+      "snapshots": [
+        { "checkpointId": "kestrel-s1e1", "displayName": "Dr. Sable Chen", "viewerContext": [{ "text": "Director of the Kestrel audio archive.", "evidenceIds": ["k-e1-sable"] }], "relationships": [{ "text": "Mara Venn — a visiting archivist she grants access to June’s tapes.", "evidenceIds": ["k-e1-sable", "k-e1-mara"] }], "characterKnowledge": [{ "text": "She knows Mara returned to examine June’s recordings.", "evidenceIds": ["k-e1-sable-knows"] }] },
+        { "checkpointId": "kestrel-s1e2", "displayName": "Dr. Sable Chen", "viewerContext": [{ "text": "The archive director who tells Mara about June’s rescue-log investigation.", "evidenceIds": ["k-e2-logs"] }], "relationships": [{ "text": "June Venn — an archive researcher whose marked log Sable retained.", "evidenceIds": ["k-e2-logs"] }], "characterKnowledge": [{ "text": "She knows June had marked alterations in the rescue-call logs.", "evidenceIds": ["k-e2-sable-knows"] }] },
+        { "checkpointId": "kestrel-s1e3", "displayName": "Dr. Sable Chen", "viewerContext": [{ "text": "The archive director whose name and office code appear on Ellis’s repair request.", "evidenceIds": ["k-e3-request"] }], "relationships": [{ "text": "Ellis Rook — the mechanic who received the repair request.", "evidenceIds": ["k-e3-request", "k-e1-ellis"] }], "characterKnowledge": [{ "text": "She knows Mara has seen the work order carrying her name and office code.", "evidenceIds": ["k-e3-sable-knows"] }] },
+        { "checkpointId": "kestrel-s1e4", "displayName": "Dr. Sable Chen", "viewerContext": [{ "text": "The archive director who acknowledges the buoy route’s former use as a salvage channel.", "evidenceIds": ["k-e4-salvage"] }], "relationships": [{ "text": "Mara Venn — the investigator who confronts her with the route and notebook.", "evidenceIds": ["k-e4-sable-knows"] }], "characterKnowledge": [{ "text": "She knows Mara traced the signal and obtained June’s notebook.", "evidenceIds": ["k-e4-sable-knows"] }] },
+        { "checkpointId": "kestrel-s1e5", "displayName": "Dr. Sable Chen", "viewerContext": [{ "text": "The archive director established to have used the name Grey Finch.", "evidenceIds": ["k-e5-grey-identity"] }], "relationships": [{ "text": "Mara Venn — the investigator who decoded evidence connecting her to Grey Finch.", "evidenceIds": ["k-e5-mara-knows"] }], "characterKnowledge": [{ "text": "She knows Mara has connected her to Grey Finch and the altered rescue-call records.", "evidenceIds": ["k-e5-sable-knows"] }] },
+        { "checkpointId": "kestrel-s1e6", "displayName": "Dr. Sable Chen", "viewerContext": [{ "text": "The former archive director documented as Grey Finch in the published evidence.", "evidenceIds": ["k-e5-grey-identity", "k-e6-resolution"] }], "relationships": [{ "text": "Mara Venn — the archivist who publishes the evidence against her.", "evidenceIds": ["k-e6-resolution"] }], "characterKnowledge": [{ "text": "She knows Mara connected and published the rescue-log and salvage evidence.", "evidenceIds": ["k-e5-sable-knows", "k-e6-resolution"] }] }
+      ]
+    },
+    {
+      "stableKey": "toma",
+      "snapshots": [
+        { "checkpointId": "kestrel-s1e2", "displayName": "Toma Vale", "viewerContext": [{ "text": "A fisher who privately heard earlier beacon signals.", "evidenceIds": ["k-e2-toma"] }], "relationships": [{ "text": "Mara Venn — the investigator to whom he admits hearing the signal.", "evidenceIds": ["k-e2-toma", "k-e1-mara"] }], "characterKnowledge": [{ "text": "He knows the signal sounded at least twice before Mara returned.", "evidenceIds": ["k-e2-toma-knows"] }] },
+        { "checkpointId": "kestrel-s1e3", "displayName": "Toma Vale", "viewerContext": [{ "text": "The fisher who heard earlier beacon signals.", "evidenceIds": ["k-e2-toma"] }], "relationships": [{ "text": "Mara Venn — the investigator to whom he disclosed the earlier signals.", "evidenceIds": ["k-e2-toma", "k-e1-mara"] }], "characterKnowledge": [{ "text": "He knows the signal sounded before Mara returned.", "evidenceIds": ["k-e2-toma-knows"] }] },
+        { "checkpointId": "kestrel-s1e4", "displayName": "Toma Vale", "viewerContext": [{ "text": "The fisher who hid June’s notebook and now gives it to Mara.", "evidenceIds": ["k-e4-notebook"] }], "relationships": [{ "text": "June Venn — the missing researcher whose notebook he protected.", "evidenceIds": ["k-e4-notebook", "k-e1-sisters"] }], "characterKnowledge": [{ "text": "He knows where the notebook was hidden and that it names Grey Finch without identifying that person.", "evidenceIds": ["k-e4-toma-knows"] }] },
+        { "checkpointId": "kestrel-s1e5", "displayName": "Toma Vale", "viewerContext": [{ "text": "The fisher who preserved June’s notebook.", "evidenceIds": ["k-e4-notebook"] }], "relationships": [{ "text": "June Venn — the researcher whose notebook he protected.", "evidenceIds": ["k-e4-notebook"] }], "characterKnowledge": [{ "text": "He knows the notebook’s hiding place and its original Grey Finch entry.", "evidenceIds": ["k-e4-toma-knows"] }] },
+        { "checkpointId": "kestrel-s1e6", "displayName": "Toma Vale", "viewerContext": [{ "text": "The fisher who assembled the recent beacon broadcast from June’s tapes.", "evidenceIds": ["k-e6-toma-broadcast"] }], "relationships": [{ "text": "Mara Venn — the person to whom he gives June’s final recording.", "evidenceIds": ["k-e6-resolution"] }], "characterKnowledge": [{ "text": "He knows he built the broadcast and that June’s recorder establishes her escape.", "evidenceIds": ["k-e6-toma-knows"] }] }
+      ]
+    }
+  ]
+}

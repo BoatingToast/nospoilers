@@ -41,6 +41,10 @@ Open `.env` and fill in:
 | `NEXTAUTH_SECRET` | Run `openssl rand -base64 32` to generate |
 | `TMDB_API_KEY` | From your TMDb account settings |
 | `TMDB_ACCESS_TOKEN` | Read Access Token from TMDb (preferred over API key) |
+| `OPENAI_API_KEY` | Optional, server-only; enables model-assisted evidence selection for Lumi and Where Was I? |
+| `WHERE_WAS_I_MODEL` | Optional Responses API model for evidence selection; defaults to `gpt-4o-mini` |
+| `WHERE_WAS_I_INPUT_COST_PER_MILLION` | Optional current input-token price for answer cost telemetry |
+| `WHERE_WAS_I_OUTPUT_COST_PER_MILLION` | Optional current output-token price for answer cost telemetry |
 | `SUPABASE_URL` | Server-side Supabase project URL for movie storage (also accepts the existing `NEXT_PUBLIC_SUPABASE_URL`) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only key used to issue secure upload tokens |
 | `NEXT_PUBLIC_SUPABASE_URL` | Optional Supabase project URL for realtime Spoiler Zone updates |
@@ -80,6 +84,24 @@ npm run dev
 ```
 
 Open http://localhost:3000
+
+### Where Was I? demo
+
+Apply the committed migration and ingest the explicitly fictional six-episode
+demo before opening `/where-was-i`:
+
+```bash
+npm run db:deploy
+npm run ingest:where-was-i
+npm run dev
+```
+
+The feature works without an AI key using its deterministic extractive fallback.
+With `OPENAI_API_KEY` set, the Responses API can select only from evidence that
+the server already filtered to the authenticated viewer's Plot Passport
+checkpoint; the server validates those IDs and renders the stored evidence text.
+See [`docs/where-was-i.md`](docs/where-was-i.md) for the threat model, ingestion
+format, rollback behavior, and demo script.
 
 ### Chrome extension
 
@@ -143,6 +165,9 @@ nospoilers/
 | `npm run db:deploy` | Apply committed migrations without creating new ones |
 | `npm run db:studio` | Open Prisma Studio at localhost:5555 |
 | `npm run db:generate` | Regenerate Prisma client after schema changes |
+| `npm run ingest:where-was-i` | Validate and ingest the original Where Was I? demo corpus |
+| `npm run eval:where-was-i` | Run the deterministic adversarial leakage/usefulness evaluation |
+| `npm run test:where-was-i` | Run Where Was I? boundary and cache-isolation unit tests |
 | `npm run test:e2e` | Run hermetic Playwright journeys in desktop and mobile Chromium |
 | `npm run test:e2e:ui` | Open Playwright's interactive test runner |
 | `npm run test:extension` | Run the extension classifier and manifest tests |
