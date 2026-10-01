@@ -3,9 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { UserPersonalityData } from '@/types'
-import { getPersonalityIcon, ArrowRightIcon } from '@/components/icons'
-import Button from '@/components/ui/Button'
-import Section from '@/components/ui/Section'
+import { getPersonalityIcon, ArrowRightIcon, FilmIcon } from '@/components/icons'
 
 interface Props {
   username:    string
@@ -31,48 +29,73 @@ export default function PersonalityWidget({ username, initialData }: Props) {
   const st = data?.secondaryType
 
   return (
-    <Section title="Your Movie Personality">
-      {pt ? (
-        <>
-          <div className="flex items-center gap-3">
-            {(() => { const Ico = getPersonalityIcon(pt.slug); return <span style={{ color: pt.accentHex }} className="flex-shrink-0"><Ico size={28} /></span> })()}
-            <h3 className="font-display text-3xl leading-none tracking-wide" style={{ color: pt.accentHex }}>
+    <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
+      <div className={`${pt?.color ?? 'bg-ns-surface-2'} p-6`}>
+        {pt ? (
+          <>
+            {(() => { const Ico = getPersonalityIcon(pt.slug); return <span style={{ color: pt.accentHex }} className="block mb-3"><Ico size={36} /></span> })()}
+            <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-1">
+              Your Movie Personality
+            </p>
+            <h3 className="font-display text-3xl tracking-wider mb-2" style={{ color: pt.accentHex }}>
               {pt.name}
             </h3>
-          </div>
-          <p className="mt-3 max-w-2xl font-body text-sm leading-relaxed text-ns-muted">{pt.description}</p>
+            <p className="text-ns-muted text-xs font-body leading-relaxed">{pt.description}</p>
 
-          {st && (
-            <p className="mt-3 font-body text-sm text-ns-muted">Also: {st.name}</p>
-          )}
+            {st && (
+              <div className="mt-3 flex items-center gap-2">
+                {(() => { const Ico = getPersonalityIcon(st.slug); return <Ico size={16} className="text-ns-muted/60" /> })()}
+                <span className="text-ns-muted text-xs font-body">Also: {st.name}</span>
+              </div>
+            )}
 
-          {/* Traits */}
-          {pt.traits.length > 0 && (
-            <p className="mt-3 font-body text-sm text-ns-text">{pt.traits.join(' · ')}</p>
-          )}
-
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-ns-border pt-3">
-            <Link
-              href={`/profile/${username}`}
-              className="inline-flex items-center gap-1 font-heading text-sm text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text"
+            {/* Traits */}
+            <div className="flex flex-wrap gap-1.5 mt-4">
+              {pt.traits.map(t => (
+                <span
+                  key={t}
+                  className="px-2.5 py-1 rounded-full text-[11px] font-body border"
+                  style={{ color: pt.accentHex, borderColor: `${pt.accentHex}40`, background: `${pt.accentHex}10` }}
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-4">
+            <FilmIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
+            <p className="text-ns-muted text-sm font-body mb-4">
+              Your Movie Personality hasn&apos;t been discovered yet.
+            </p>
+            <button
+              onClick={assign}
+              disabled={loading}
+              className="px-6 py-2.5 bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium rounded-xl hover:bg-ns-secondary/90 transition-colors disabled:opacity-50"
             >
-              View Public Profile <ArrowRightIcon size={11} />
-            </Link>
-            <Button variant="ghost" size="sm" onClick={assign} disabled={loading} className="min-h-10">
-              {loading ? 'Refreshing...' : 'Refresh'}
-            </Button>
+              {loading ? 'Analyzing...' : 'Discover My Personality'}
+            </button>
           </div>
-        </>
-      ) : (
-        <div>
-          <p className="font-body text-sm text-ns-muted">
-            Your Movie Personality hasn&apos;t been discovered yet.
-          </p>
-          <Button variant="secondary" onClick={assign} disabled={loading} className="mt-4">
-            {loading ? 'Analyzing...' : 'Discover My Personality'}
-          </Button>
+        )}
+      </div>
+
+      {pt && (
+        <div className="px-5 py-4 flex items-center justify-between border-t border-ns-border">
+          <Link
+            href={`/profile/${username}`}
+            className="text-ns-muted text-xs font-body hover:text-ns-text transition-colors flex items-center gap-0.5"
+          >
+            View Public Profile <ArrowRightIcon size={11} />
+          </Link>
+          <button
+            onClick={assign}
+            disabled={loading}
+            className="text-ns-muted/50 text-xs font-body hover:text-ns-muted transition-colors disabled:opacity-30"
+          >
+            {loading ? 'Refreshing...' : 'Refresh'}
+          </button>
         </div>
       )}
-    </Section>
+    </div>
   )
 }

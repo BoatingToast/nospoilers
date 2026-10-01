@@ -7,23 +7,33 @@ interface Props {
   movieTitle:   string
 }
 
-function Stat({ value, label, valueClass = 'text-ns-text' }: { value: number; label: string; valueClass?: string }) {
+function Stat({ value, label }: { value: string | number; label: string }) {
   return (
-    <div className="min-w-0">
-      <dd className={`font-display text-2xl leading-none tracking-wide ${valueClass}`}>
-        {value.toLocaleString()}
-      </dd>
-      <dt className="mt-1 font-body text-[11px] uppercase tracking-widest text-ns-muted">{label}</dt>
+    <div className="text-center px-4 first:pl-0 last:pr-0">
+      <p className="font-display text-2xl tracking-wider text-ns-secondary-readable leading-none">
+        {typeof value === 'number' ? value.toLocaleString() : value}
+      </p>
+      <p className="text-ns-muted/60 text-[10px] font-body tracking-wide mt-1">{label}</p>
     </div>
   )
 }
 
-export default function RoomStats({ memberCount, messageCount, onlineCount }: Props) {
+export default function RoomStats({ memberCount, messageCount, onlineCount, movieTitle }: Props) {
   return (
-    <dl className="flex flex-wrap items-start gap-x-6 gap-y-2">
-      {onlineCount > 0 && <Stat value={onlineCount} label="Online" valueClass="text-emerald-400" />}
+    <div className="flex items-center gap-0 divide-x divide-ns-border">
+      {onlineCount > 0 && (
+        <div className="text-center pr-4">
+          <div className="flex items-center gap-1.5 justify-center">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <p className="font-display text-2xl tracking-wider text-emerald-400 leading-none">
+              {onlineCount.toLocaleString()}
+            </p>
+          </div>
+          <p className="text-ns-muted/60 text-[10px] font-body tracking-wide mt-1">Online</p>
+        </div>
+      )}
       <Stat value={memberCount}  label="Members"  />
       <Stat value={messageCount} label="Messages" />
-    </dl>
+    </div>
   )
 }

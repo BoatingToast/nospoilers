@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import Section from '@/components/ui/Section'
 import {
   RatingsIcon, WatchlistIcon, TopFiveIcon,
   AchievementsIcon, FriendsIcon, SpoilerZoneIcon, MovieDnaIcon,
@@ -122,48 +121,46 @@ function activityCopy(e: ActivityEvent): { text: string; link?: string; poster?:
 function EventRow({ e }: { e: ActivityEvent }) {
   const { text, link, poster } = activityCopy(e)
   const inner = (
-    <div className="flex min-h-12 items-center gap-3 py-3">
-      {/* Poster thumbnail, or a plain icon */}
-      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded">
+    <div className="flex items-center gap-3 px-4 py-3 hover:bg-ns-bg/30 transition-colors group">
+      {/* Icon or poster */}
+      <div className="w-8 h-8 rounded-lg overflow-hidden bg-ns-bg/50 border border-ns-border/40 flex items-center justify-center flex-shrink-0">
         {poster ? (
           <Image
             src={`https://image.tmdb.org/t/p/w92${poster}`}
             alt=""
             width={32} height={32}
-            className="h-full w-full object-cover"
+            className="object-cover w-full h-full"
           />
         ) : (
           <ActivityIcon type={e.type} />
         )}
       </div>
-      <p className="line-clamp-2 min-w-0 flex-1 font-body text-sm leading-snug text-ns-text">{text}</p>
-      <p className="flex-shrink-0 font-body text-xs text-ns-muted">{timeAgo(e.createdAt)}</p>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-body text-ns-text leading-snug line-clamp-2">{text}</p>
+        <p className="text-[10px] font-body text-ns-muted/40 mt-0.5">{timeAgo(e.createdAt)}</p>
+      </div>
     </div>
   )
 
   if (link) {
-    return (
-      <li className="border-t border-ns-border">
-        <Link href={link} className="block transition-colors hover:bg-ns-surface">{inner}</Link>
-      </li>
-    )
+    return <Link href={link} className="block">{inner}</Link>
   }
-  return <li className="border-t border-ns-border">{inner}</li>
+  return <div>{inner}</div>
 }
 
 function Skeleton() {
   return (
-    <ul>
+    <div className="divide-y divide-ns-border/20">
       {[1, 2, 3].map(i => (
-        <li key={i} className="flex animate-pulse items-center gap-3 border-t border-ns-border py-3">
-          <div className="h-8 w-8 flex-shrink-0 rounded bg-ns-surface-2" />
+        <div key={i} className="flex items-center gap-3 px-4 py-3 animate-pulse">
+          <div className="w-8 h-8 rounded-lg bg-ns-border flex-shrink-0" />
           <div className="flex-1 space-y-1.5">
-            <div className="h-2.5 w-3/4 rounded bg-ns-surface-2" />
-            <div className="h-2 w-1/4 rounded bg-ns-surface-2" />
+            <div className="h-2.5 bg-ns-border rounded w-3/4" />
+            <div className="h-2 bg-ns-border/50 rounded w-1/4" />
           </div>
-        </li>
+        </div>
       ))}
-    </ul>
+    </div>
   )
 }
 
@@ -182,19 +179,26 @@ export default function MyActivityWidget() {
   }, [])
 
   return (
-    <Section title="My Activity">
+    <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3.5 border-b border-ns-border/50">
+        <span className="text-xs font-body font-semibold text-ns-text uppercase tracking-wide">
+          My Activity
+        </span>
+      </div>
+
       {loading ? (
         <Skeleton />
       ) : events.length === 0 ? (
-        <div className="border-t border-ns-border pt-4">
-          <p className="font-body text-sm text-ns-text">No recent activity</p>
-          <p className="mt-1 font-body text-sm text-ns-muted">Rate a movie to get started</p>
+        <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+          <p className="text-ns-muted/50 text-xs font-body">No recent activity</p>
+          <p className="text-ns-muted/30 text-[10px] font-body mt-1">Rate a movie to get started</p>
         </div>
       ) : (
-        <ul className="border-b border-ns-border">
+        <div className="divide-y divide-ns-border/20">
           {events.map(e => <EventRow key={e.id} e={e} />)}
-        </ul>
+        </div>
       )}
-    </Section>
+    </div>
   )
 }

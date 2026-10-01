@@ -11,8 +11,7 @@
 
 
 import { useEffect, useRef, useState } from 'react'
-import { ClapperboardIcon, CloseIcon } from '@/components/icons'
-import Badge from '@/components/ui/Badge'
+import { ClapperboardIcon, CloseIcon, FriendsIcon } from '@/components/icons'
 
 interface IcebreakerPlayer {
   id: string
@@ -148,15 +147,21 @@ export default function MovieNightIcebreaker({ players }: Props) {
 
   return (
     <>
-      <section className="mb-12 min-w-0 border-t-2 border-ns-text pt-4">
-        <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
-          <div className="min-w-0">
+      <section className="relative mb-6 overflow-hidden rounded-3xl border border-ns-warning/20 bg-ns-surface">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-ns-warning/10 via-transparent to-ns-secondary/5" />
+        <div className="relative flex flex-col items-start justify-between gap-5 p-5 sm:flex-row sm:items-center sm:p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border border-ns-warning/25 bg-ns-warning/10">
+              <FriendsIcon size={23} className="text-ns-warning" />
+            </div>
             <div>
-              <div className="flex flex-wrap items-center gap-3">
-                <h2 className="font-display text-3xl leading-none tracking-wide text-white sm:text-4xl">Movie Night Spotlight</h2>
-                <Badge variant="warning">New</Badge>
+              <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                <h2 className="text-lg font-heading text-white">Movie Night Spotlight</h2>
+                <span className="rounded-full border border-ns-warning/20 bg-ns-warning/10 px-2 py-0.5 text-[10px] font-body font-semibold uppercase tracking-wider text-ns-warning">
+                  New
+                </span>
               </div>
-              <p className="mt-2 max-w-xl text-sm font-body leading-relaxed text-ns-muted">
+              <p className="max-w-xl text-sm font-body leading-relaxed text-ns-muted">
                 Pass one screen around for a quick icebreaker before opening a live voting room.
               </p>
               {gamePlayers.length < 2 && (
@@ -172,7 +177,7 @@ export default function MovieNightIcebreaker({ players }: Props) {
             type="button"
             onClick={startGame}
             disabled={gamePlayers.length < 2}
-            className="inline-flex min-h-10 flex-shrink-0 items-center gap-2 rounded border border-ns-text/70 px-5 py-2.5 text-sm font-heading font-semibold text-ns-text transition-colors hover:bg-ns-text hover:text-ns-bg disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex flex-shrink-0 items-center gap-2 rounded-xl bg-ns-warning px-5 py-2.5 text-sm font-body font-semibold text-ns-bg transition-all hover:-translate-y-0.5 hover:bg-ns-warning/90 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
           >
             <ClapperboardIcon size={16} />
             Start a Round
@@ -182,7 +187,7 @@ export default function MovieNightIcebreaker({ players }: Props) {
 
       {isOpen && question && (
         <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="movie-night-spotlight-title"
@@ -191,28 +196,30 @@ export default function MovieNightIcebreaker({ players }: Props) {
           <div
             ref={dialogRef}
             tabIndex={-1}
-            className="relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded border border-ns-border border-t-2 border-t-ns-warning bg-ns-surface p-5 sm:p-8"
+            className="relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-ns-warning/25 bg-ns-surface p-5 text-center shadow-2xl sm:p-8"
             onClick={event => event.stopPropagation()}
           >
+            <div className="pointer-events-none absolute -right-14 -top-14 h-36 w-36 rounded-full bg-ns-warning/10 blur-2xl" />
+
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center text-ns-muted transition-colors hover:text-white"
+              className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-ns-bg/80 text-ns-muted transition-colors hover:text-white"
               aria-label="Close game"
             >
               <CloseIcon size={16} />
             </button>
 
-            <h2 id="movie-night-spotlight-title" className="max-w-md pr-10 text-2xl font-heading leading-snug text-white sm:text-3xl">
-              {question}
-            </h2>
-            <p className="mt-3 text-sm font-body font-semibold text-ns-warning">
+            <p className="text-[10px] font-body font-semibold uppercase tracking-[0.24em] text-ns-warning">
               {revealed ? 'The group has spoken' : `Vote ${Math.min(totalVotes + 1, gamePlayers.length)} of ${gamePlayers.length}`}
             </p>
+            <h2 id="movie-night-spotlight-title" className="mx-auto mt-4 max-w-md text-2xl font-heading leading-snug text-white sm:text-3xl">
+              {question}
+            </h2>
 
             {!revealed ? (
               <>
-                <p className="mt-1 text-sm font-body text-ns-muted">
+                <p className="mt-3 text-xs font-body text-ns-muted">
                   Pass the screen around. Each person secretly taps one name.
                 </p>
 
@@ -223,16 +230,16 @@ export default function MovieNightIcebreaker({ players }: Props) {
                       type="button"
                       onClick={() => voteFor(player.id)}
                       disabled={allVotesIn}
-                      className="min-h-12 rounded border border-ns-border px-3 py-2.5 text-sm font-body font-semibold text-white transition-colors hover:border-ns-warning/60 disabled:cursor-not-allowed disabled:opacity-45"
+                      className="min-h-12 rounded-xl border border-ns-border bg-ns-bg/45 px-3 py-2.5 text-sm font-body font-semibold text-white transition-all hover:-translate-y-0.5 hover:border-ns-warning/45 hover:bg-ns-warning/5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
                     >
                       {player.label}
                     </button>
                   ))}
                 </div>
 
-                <div className="mt-5 h-1 overflow-hidden bg-ns-bg">
+                <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-ns-bg">
                   <div
-                    className="h-full bg-ns-warning transition-all duration-300"
+                    className="h-full rounded-full bg-ns-warning transition-all duration-300"
                     style={{ width: `${(totalVotes / gamePlayers.length) * 100}%` }}
                   />
                 </div>
@@ -242,7 +249,7 @@ export default function MovieNightIcebreaker({ players }: Props) {
                     type="button"
                     onClick={() => setVotes({})}
                     disabled={totalVotes === 0}
-                    className="min-h-10 rounded border border-ns-border px-3 py-2.5 text-sm font-body text-ns-muted transition-colors hover:text-white disabled:opacity-40"
+                    className="rounded-xl border border-ns-border px-3 py-2.5 text-sm font-body text-ns-muted transition-colors hover:text-white disabled:opacity-40"
                   >
                     Reset
                   </button>
@@ -250,29 +257,32 @@ export default function MovieNightIcebreaker({ players }: Props) {
                     type="button"
                     onClick={() => setRevealed(true)}
                     disabled={!allVotesIn}
-                    className="min-h-10 rounded bg-ns-warning px-3 py-2.5 text-sm font-body font-semibold text-ns-bg transition-colors hover:bg-ns-warning/90 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-xl bg-ns-warning px-3 py-2.5 text-sm font-body font-semibold text-ns-bg transition-colors hover:bg-ns-warning/90 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Reveal Group Pick
                   </button>
                 </div>
               </>
             ) : (
-              <div className="mt-6">
-                <div className="border-t-2 border-ns-warning pt-4">
-                  <p className="font-display text-4xl leading-none tracking-wider text-white">
+              <div className="mt-6 animate-[fadeIn_250ms_ease-out]">
+                <div className="rounded-2xl border border-ns-warning/25 bg-ns-warning/10 p-5">
+                  <p className="text-[10px] font-body font-semibold uppercase tracking-[0.2em] text-ns-warning">
+                    In the spotlight
+                  </p>
+                  <p className="mt-2 font-display text-4xl tracking-wider text-white">
                     {winners.map(player => player.label).join(' & ')}
                   </p>
-                  <p className="mt-2 text-sm font-body text-ns-muted">
-                    In the spotlight · {highestVoteCount} {highestVoteCount === 1 ? 'vote' : 'votes'}
+                  <p className="mt-1 text-xs font-body text-ns-muted">
+                    {highestVoteCount} {highestVoteCount === 1 ? 'vote' : 'votes'}
                   </p>
                 </div>
 
-                <div className="mt-5 border-t border-ns-border">
+                <div className="mt-4 space-y-2 text-left">
                   {gamePlayers
                     .slice()
                     .sort((a, b) => (votes[b.id] ?? 0) - (votes[a.id] ?? 0))
                     .map(player => (
-                      <div key={player.id} className="flex items-center gap-3 border-b border-ns-border py-2">
+                      <div key={player.id} className="flex items-center gap-3 rounded-xl border border-ns-border bg-ns-bg/35 px-3 py-2">
                         <span className="min-w-0 flex-1 truncate text-xs font-body text-ns-muted">
                           {player.label}
                         </span>
@@ -284,7 +294,7 @@ export default function MovieNightIcebreaker({ players }: Props) {
                 <button
                   type="button"
                   onClick={drawQuestion}
-                  className="mt-5 min-h-10 w-full rounded bg-ns-warning px-4 py-2.5 text-sm font-body font-semibold text-ns-bg transition-colors hover:bg-ns-warning/90"
+                  className="mt-5 w-full rounded-xl bg-ns-warning px-4 py-2.5 text-sm font-body font-semibold text-ns-bg transition-colors hover:bg-ns-warning/90"
                 >
                   Next Question
                 </button>

@@ -4,7 +4,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { tmdbImageUrl } from '@/lib/utils'
 import VoteButtons from './VoteButtons'
-import Badge from '@/components/ui/Badge'
 import type { EnrichedCollectionData } from '@/types'
 import { CollectionsIcon } from '@/components/icons'
 
@@ -15,11 +14,11 @@ interface Props {
   rank?:      number   // for trending list
 }
 
-function scoreVariant(score: number) {
-  if (score > 20)  return 'success' as const
-  if (score > 0)   return 'secondary' as const
-  if (score === 0) return 'muted' as const
-  return 'danger' as const
+function scoreColor(score: number) {
+  if (score > 20)  return 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
+  if (score > 0)   return 'text-ns-secondary-readable border-ns-secondary/30 bg-ns-secondary/10'
+  if (score === 0) return 'text-ns-muted border-ns-border bg-ns-surface'
+  return 'text-red-400 border-red-500/30 bg-red-500/10'
 }
 
 export default function EnrichedCollectionCard({
@@ -29,16 +28,18 @@ export default function EnrichedCollectionCard({
   rank,
 }: Props) {
   return (
-    <div className="group flex min-w-0 flex-col">
-      {/* Cover */}
-      <Link href={`/collections/${collection.id}`} className="relative mb-3 block">
-        <div className="relative aspect-[2/3] overflow-hidden rounded border border-ns-border bg-ns-surface transition-colors group-hover:border-ns-text/60">
+    <div className="group flex flex-col">
+      {/* Poster + cover */}
+      <Link href={`/collections/${collection.id}`} className="block relative mb-3">
+        <div className="aspect-[2/3] rounded-xl overflow-hidden bg-ns-surface border border-ns-border
+                        group-hover:border-ns-secondary/30 transition-all duration-300
+                        group-hover:shadow-[0_0_20px_rgb(var(--ns-secondary)/0.08)] relative">
           {collection.coverPath ? (
             <Image
               src={tmdbImageUrl(collection.coverPath, 'w342')}
               alt={collection.title}
               fill
-              className="object-cover"
+              className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 220px"
             />
           ) : (
@@ -47,35 +48,51 @@ export default function EnrichedCollectionCard({
             </div>
           )}
 
-          {/* Rank tag */}
+          {/* Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-ns-bg/90 via-ns-bg/20 to-transparent" />
+
+          {/* Rank badge */}
           {rank !== undefined && (
-            <span className="absolute left-0 top-0 bg-ns-bg px-1.5 py-0.5 font-body text-[11px] font-bold text-ns-secondary-readable">
-              #{rank}
-            </span>
+            <div className="absolute top-2 left-2 w-7 h-7 rounded-full bg-ns-bg/85 backdrop-blur-sm
+                            flex items-center justify-center border border-ns-secondary/30">
+              <span className="text-ns-secondary-readable text-[11px] font-body font-bold">#{rank}</span>
+            </div>
           )}
+
+          {/* Score badge */}
+          {collection.score !== 0 && (
+            <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full border text-[10px] font-body font-semibold
+                             ${scoreColor(collection.score)}`}>
+              {collection.score > 0 ? '+' : ''}{collection.score}
+            </div>
+          )}
+
+          {!collection.isPublic && (
+            <div className="absolute top-2 right-2">
+              <span className="bg-ns-bg/80 text-ns-muted text-[9px] font-body px-1.5 py-0.5 rounded-full border border-ns-border">
+                Private
+              </span>
+            </div>
+          )}
+
+          {/* Film count bottom-left */}
+          <div className="absolute bottom-3 left-3">
+            <span className="text-ns-secondary-readable text-xs font-body font-medium">
+              {collection.movieCount} film{collection.movieCount !== 1 ? 's' : ''}
+            </span>
+          </div>
         </div>
       </Link>
 
       {/* Info */}
       <Link href={`/collections/${collection.id}`}>
-        <h3 className="mb-0.5 truncate font-body text-sm font-semibold leading-tight text-ns-text transition-colors group-hover:text-ns-secondary-readable">
+        <h3 className="text-ns-text text-sm font-body font-semibold truncate group-hover:text-ns-secondary-readable transition-colors leading-tight mb-0.5">
           {collection.title}
         </h3>
       </Link>
 
-      <p className="font-body text-xs text-ns-muted">
+      <p className="text-ns-muted text-xs font-body mb-1.5">
         {isOwner ? 'My collection' : `by @${collection.username}`}
-      </p>
-      <p className="mb-2 mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 font-body text-xs text-ns-muted">
-        <span>
-          {collection.movieCount} film{collection.movieCount !== 1 ? 's' : ''}
-          {!collection.isPublic && ' · Private'}
-        </span>
-        {collection.score !== 0 && (
-          <Badge variant={scoreVariant(collection.score)}>
-            {collection.score > 0 ? '+' : ''}{collection.score}
-          </Badge>
-        )}
       </p>
 
       {/* Vote row */}

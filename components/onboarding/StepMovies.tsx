@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { tmdbImageUrl, formatYear } from '@/lib/utils'
 import Button from '@/components/ui/Button'
-import PageHeader from '@/components/ui/PageHeader'
 import type { TMDbMovie } from '@/types'
 import TasteImport from '@/components/settings/TasteImport'
 
@@ -99,29 +98,27 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
   const canProceed = selected.length >= MIN
 
   return (
-    <div className="w-full min-w-0">
-      <PageHeader
-        title="FAVORITE FILMS"
-        lede={<>Search for and select {MIN}–{MAX} movies you love. These shape your entire Movie DNA.</>}
-      />
+    <div className="w-full max-w-2xl mx-auto">
+      <div className="mb-8">
+        <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-text mb-2">
+          FAVORITE FILMS
+        </h2>
+        <p className="text-ns-muted font-body text-sm">
+          Search for and select {MIN}–{MAX} movies you love. These shape your entire Movie DNA.
+        </p>
+      </div>
 
-      <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-      <div className="min-w-0">
-      <div className="mb-8 border-b border-ns-border pb-4">
+      <div className="mb-6">
         <button
           type="button"
-          aria-expanded={showImport}
           onClick={() => setShowImport(value => !value)}
-          className="group flex min-h-10 w-full items-start justify-between gap-4 text-left"
+          className="w-full rounded-2xl border border-ns-secondary/25 bg-ns-secondary/5 px-5 py-4 text-left transition-colors hover:border-ns-secondary/45 hover:bg-ns-secondary/10"
         >
-          <span className="min-w-0">
-            <span className="block text-sm font-body font-semibold text-ns-secondary-readable underline underline-offset-4 group-hover:text-ns-text">Already use Letterboxd or IMDb?</span>
-            <span className="mt-1 block text-xs font-body text-ns-muted">Import your history and we&apos;ll suggest favorites from your highest ratings.</span>
-          </span>
-          <span aria-hidden="true" className="font-body text-sm text-ns-muted">{showImport ? '↑' : '↓'}</span>
+          <span className="block text-sm font-body font-semibold text-ns-secondary-readable">Already use Letterboxd or IMDb?</span>
+          <span className="mt-1 block text-xs font-body text-ns-muted">Import your history and we&apos;ll suggest favorites from your highest ratings.</span>
         </button>
         {showImport && (
-          <div className="mt-5">
+          <div className="mt-3">
             <TasteImport
               compact
               onImported={favorites => {
@@ -134,7 +131,7 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
 
       {/* Search input */}
       <div className="relative mb-8">
-        <div className="flex items-center gap-3 bg-ns-surface border border-ns-border rounded px-4 py-3
+        <div className="flex items-center gap-3 bg-ns-surface border border-ns-border rounded-xl px-4 py-3
                         focus-within:border-ns-secondary/40 transition-colors">
           {searching ? (
             <svg className="animate-spin w-4 h-4 text-ns-muted flex-shrink-0" fill="none" viewBox="0 0 24 24">
@@ -154,7 +151,7 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
             onFocus={() => results.length > 0 && setOpen(true)}
             placeholder="Search for a movie..."
             disabled={selected.length >= MAX}
-            className="min-w-0 flex-1 bg-transparent text-ns-text placeholder:text-ns-muted/40 text-sm font-body focus:outline-none"
+            className="flex-1 bg-transparent text-ns-text placeholder:text-ns-muted/40 text-sm font-body focus:outline-none"
           />
           <span className={`text-xs font-body flex-shrink-0 ${selected.length >= MIN ? 'text-ns-secondary-readable' : 'text-ns-muted/50'}`}>
             {selected.length}/{MAX}
@@ -164,7 +161,7 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
         {/* Search error */}
         {searchErr && (
           <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-ns-surface border border-red-500/30
-                          rounded px-4 py-3 flex items-start gap-2.5">
+                          rounded-xl px-4 py-3 flex items-start gap-2.5">
             <svg className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
             </svg>
@@ -176,8 +173,8 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
         {open && results.length > 0 && (
           <div
             ref={dropdownRef}
-            className="absolute left-0 right-0 top-full mt-2 z-50 bg-ns-surface border border-ns-text/70
-                       rounded overflow-hidden divide-y divide-ns-border"
+            className="absolute left-0 right-0 top-full mt-2 z-50 bg-ns-surface border border-ns-border
+                       rounded-xl overflow-hidden shadow-2xl shadow-black/60"
           >
             {results.map(movie => {
               const isSelected = !!selected.find(m => m.tmdbId === movie.id)
@@ -218,10 +215,10 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
 
       {/* Selected grid */}
       {selected.length > 0 ? (
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+        <div className="grid grid-cols-5 sm:grid-cols-5 gap-3 mb-8">
           {selected.map(movie => (
             <div key={movie.tmdbId} className="relative group">
-              <div className="aspect-[2/3] rounded overflow-hidden bg-ns-surface border border-ns-border">
+              <div className="aspect-[2/3] rounded-lg overflow-hidden bg-ns-surface border border-ns-border">
                 <Image
                   src={tmdbImageUrl(movie.posterPath, 'w185')}
                   alt={movie.title}
@@ -239,28 +236,29 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
                   <path d="M18 6 6 18M6 6l12 12"/>
                 </svg>
               </button>
-              <p className="text-ns-muted text-[11px] font-body mt-1 text-center truncate leading-tight">
+              <p className="text-ns-muted text-[10px] font-body mt-1 text-center truncate leading-tight">
                 {movie.title}
               </p>
             </div>
           ))}
           {/* Empty slots */}
           {selected.length < MIN && Array.from({ length: MIN - selected.length }).map((_, i) => (
-            <div key={`empty-${i}`} className="aspect-[2/3] rounded border border-dashed border-ns-border flex items-center justify-center">
-              <span className="text-ns-muted text-lg">+</span>
+            <div key={`empty-${i}`} className="aspect-[2/3] rounded-lg border border-dashed border-ns-border/50 flex items-center justify-center">
+              <span className="text-ns-muted/30 text-lg">+</span>
             </div>
           ))}
         </div>
       ) : (
-        <p className="border-t border-ns-border py-4 text-ns-muted text-sm font-body">
-          Search above and select at least {MIN} films you love
-        </p>
+        <div className="border border-dashed border-ns-border rounded-2xl p-10 text-center mb-8">
+          <p className="text-ns-muted/50 text-sm font-body">
+            Search above and select at least {MIN} films you love
+          </p>
+        </div>
       )}
-      </div>
 
       {/* Status + CTA */}
-      <div className="min-w-0 border-t-2 border-ns-text pt-4 lg:sticky lg:top-6 lg:self-start">
-        <p className="mb-4 text-ns-muted text-sm font-body">
+      <div className="flex items-center justify-between">
+        <p className="text-ns-muted text-sm font-body">
           {selected.length < MIN
             ? `${MIN - selected.length} more to go`
             : `${selected.length} selected — looking great`}
@@ -274,7 +272,6 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
         >
           Continue →
         </Button>
-      </div>
       </div>
     </div>
   )

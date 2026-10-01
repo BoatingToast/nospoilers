@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import Badge from '@/components/ui/Badge'
-import Button from '@/components/ui/Button'
+import Link from 'next/link'
 
 interface Props {
   username:            string
@@ -20,12 +19,13 @@ interface Props {
 function Toast({ message, type }: { message: string; type: 'error' | 'success' }) {
   return (
     <div
-      className={`pointer-events-none fixed bottom-6 left-1/2 z-[9999] max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded border
-                  bg-ns-surface px-4 py-2.5 font-body text-sm
+      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] px-4 py-2.5 rounded-xl
+                  text-sm font-body shadow-2xl pointer-events-none
                   ${type === 'error'
-                    ? 'border-ns-danger/40 text-ns-danger'
-                    : 'border-ns-secondary/40 text-ns-secondary-readable'
+                    ? 'bg-red-900/90 border border-red-500/40 text-red-200'
+                    : 'bg-ns-surface border border-ns-secondary/40 text-ns-secondary-readable'
                   }`}
+      style={{ animation: 'szFadeIn 0.2s ease-out' }}
     >
       {message}
     </div>
@@ -130,14 +130,11 @@ export default function FollowButton({
 
   // ── Not authed ────────────────────────────────────────────────────────────
 
-  // Shared Button has two compact sizes; `lg` keeps the roomier one.
-  const buttonSize = size === 'sm' ? 'sm' : 'md'
-
   if (status === 'loading') {
     // Skeleton while session loads
     return (
-      <div className={`animate-pulse rounded bg-ns-border/40 ${
-        size === 'sm' ? 'h-8 w-16' : size === 'lg' ? 'h-10 w-24' : 'h-10 w-20'
+      <div className={`rounded-lg bg-ns-border/40 animate-pulse ${
+        size === 'sm' ? 'w-16 h-7' : size === 'lg' ? 'w-24 h-10' : 'w-20 h-9'
       }`} />
     )
   }
@@ -145,9 +142,14 @@ export default function FollowButton({
   if (!session?.user?.id) {
     // Show a link-style prompt rather than a dead button
     return (
-      <Button variant="secondary" size={buttonSize} href="/login">
+      <Link
+        href="/login"
+        className={`font-body font-semibold border transition-all duration-200
+          ${size === 'sm' ? 'px-3 py-1.5 text-xs rounded-lg' : 'px-4 py-2 text-sm rounded-xl'}
+          bg-ns-secondary/10 text-ns-secondary-readable border-ns-secondary/40 hover:bg-ns-secondary hover:text-ns-secondary-foreground hover:border-ns-secondary`}
+      >
         + Follow
-      </Button>
+      </Link>
     )
   }
 
@@ -155,19 +157,20 @@ export default function FollowButton({
 
   if (session.user.name === username) return null
 
+  const sizes = {
+    sm: 'px-3 py-1.5 text-xs rounded-lg',
+    md: 'px-4 py-2 text-sm rounded-xl',
+    lg: 'px-6 py-2.5 text-sm rounded-xl',
+  }
+  const cls = sizes[size]
+
   // ── Friend badge (shown when mutually followed) ───────────────────────────
 
   const friendBadge = isFriend && (
-    <Badge variant="secondary" size="md">
+    <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-body
+                     bg-ns-secondary/10 border border-ns-secondary/30 text-ns-secondary-readable">
       <FriendsStarIcon />
       Friends
-    </Badge>
-  )
-
-  const busy = (
-    <span className="inline-flex items-center gap-1.5">
-      <span className="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent" />
-      …
     </span>
   )
 
@@ -175,29 +178,45 @@ export default function FollowButton({
     <>
       {toast && <Toast message={toast.message} type={toast.type} />}
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         {friendBadge}
 
         {following ? (
-          <Button
-            variant={hovered ? 'danger' : 'outline'}
-            size={buttonSize}
+          <button
             onClick={toggle}
             disabled={loading}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
+            className={`${cls} font-body font-medium border transition-all duration-200 disabled:opacity-40
+              ${hovered
+                ? 'border-red-500/50 text-red-400 bg-red-500/8'
+                : 'border-ns-border/60 text-ns-muted bg-transparent hover:border-ns-border'
+              }`}
           >
-            {loading ? busy : hovered ? 'Unfollow' : '✓ Following'}
-          </Button>
+            {loading ? (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                …
+              </span>
+            ) : hovered ? 'Unfollow' : '✓ Following'}
+          </button>
         ) : (
-          <Button
-            variant={justFollow ? 'primary' : 'secondary'}
-            size={buttonSize}
+          <button
             onClick={toggle}
             disabled={loading}
+            className={`${cls} font-body font-semibold border transition-all duration-200 disabled:opacity-40
+              ${justFollow
+                ? 'bg-ns-secondary text-ns-secondary-foreground border-ns-secondary scale-105 shadow-lg shadow-ns-secondary/25'
+                : 'bg-ns-secondary/10 text-ns-secondary-readable border-ns-secondary/40 hover:bg-ns-secondary hover:text-ns-secondary-foreground hover:border-ns-secondary hover:shadow-md hover:shadow-ns-secondary/20 active:scale-[0.97]'
+              }`}
           >
-            {loading ? busy : '+ Follow'}
-          </Button>
+            {loading ? (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                …
+              </span>
+            ) : '+ Follow'}
+          </button>
         )}
       </div>
     </>

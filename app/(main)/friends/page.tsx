@@ -8,9 +8,6 @@ import FriendRecs from '@/components/friends/FriendRecs'
 import SocialHubNav from '@/components/social/SocialHubNav'
 import SocialListPage from '@/components/social/SocialListPage'
 import Avatar from '@/components/ui/Avatar'
-import Button from '@/components/ui/Button'
-import PageHeader from '@/components/ui/PageHeader'
-import Section from '@/components/ui/Section'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
@@ -32,49 +29,56 @@ export default async function FriendsPage() {
   ])
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
-      <PageHeader
-        title="Friends"
-        lede={<>{friendCount} friend{friendCount !== 1 ? 's' : ''} · Discover movies through people you trust</>}
-        className="mb-6"
-      >
-        <Button variant="primary" href="/friends/find" className="w-full sm:w-auto">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-heading text-white mb-1">Friends</h1>
+          <p className="text-ns-muted text-sm font-body">
+            {friendCount} friend{friendCount !== 1 ? 's' : ''} · Discover movies through people you trust
+          </p>
+        </div>
+        <Link
+          href="/friends/find"
+          className="px-5 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium hover:bg-amber-400 hover:text-ns-bg transition-colors flex-shrink-0"
+        >
           Find people
-        </Button>
-      </PageHeader>
+        </Link>
+      </div>
 
       <SocialHubNav active="friends" />
 
       {/* Pending requests */}
       {pending.received.length > 0 && (
-        <Section
-          title="Friend Requests"
-          action={<span className="font-body text-sm text-ns-muted">{pending.received.length} waiting</span>}
-          className="mb-10"
-        >
-          <div className="border-b border-ns-border">
+        <div className="mb-8 bg-ns-surface border border-ns-secondary/20 rounded-2xl p-5">
+          <p className="text-ns-secondary-readable text-xs tracking-widest uppercase font-body mb-4">
+            Friend Requests · {pending.received.length}
+          </p>
+          <div className="space-y-3">
             {pending.received.map(req => (
               <PendingRequestRow key={req.requestId} req={req} />
             ))}
           </div>
-        </Section>
+        </div>
       )}
 
-      <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <div className="min-w-0 space-y-10">
-          {/* Friend-based recs */}
-          {friendCount > 0 && <FriendRecs />}
-
-          {/* Canonical searchable friends directory. */}
-          <Section title="Your Friends">
-            <SocialListPage mode="friends" embedded showNavigation={false} />
-          </Section>
+      {/* Friend-based recs */}
+      {friendCount > 0 && (
+        <div className="mb-8">
+          <FriendRecs />
         </div>
+      )}
 
-        {/* Activity Feed */}
-        <Section title="Friend Activity">
-          <FriendsFeed />
-        </Section>
+      {/* Canonical searchable friends directory. */}
+      <div className="mb-8">
+        <SocialListPage mode="friends" embedded showNavigation={false} />
+      </div>
+
+      {/* Activity Feed */}
+      <div>
+        <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">Friend Activity</p>
+        <FriendsFeed />
       </div>
     </div>
   )
@@ -84,10 +88,10 @@ function PendingRequestRow({ req }: { req: { requestId: string; username: string
   // This is a server component — buttons need to be client-side
   // We'll render this as a link to avoid making the whole page client
   return (
-    <div className="flex min-h-[56px] flex-wrap items-center justify-between gap-3 border-t border-ns-border py-3">
-      <Link href={`/profile/${req.username}`} className="flex min-w-0 items-center gap-3">
+    <div className="flex items-center justify-between gap-3">
+      <Link href={`/profile/${req.username}`} className="flex items-center gap-2">
         <Avatar src={req.avatarUrl} username={req.username} size="sm" />
-        <span className="truncate font-body text-sm text-ns-text">@{req.username}</span>
+        <span className="text-sm font-body text-white">@{req.username}</span>
       </Link>
       <PendingActions requestId={req.requestId} username={req.username} />
     </div>

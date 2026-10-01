@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { FriendsIcon } from '@/components/icons'
 import Avatar from '@/components/ui/Avatar'
-import Button from '@/components/ui/Button'
-import Section from '@/components/ui/Section'
 
 interface FriendRow {
   id:           string
@@ -18,43 +17,55 @@ interface FriendRow {
 function FriendItem({ f }: { f: FriendRow }) {
   const displayName = f.displayName ?? f.username
   return (
-    <li className="flex items-center gap-3 border-t border-ns-border py-3">
-      <Avatar src={f.avatarUrl} username={f.username} size="sm" href />
+    <div className="flex items-center gap-3 px-4 py-3 hover:bg-ns-bg/30 transition-colors group">
+      {/* Avatar */}
+      <Avatar
+        src={f.avatarUrl}
+        username={f.username}
+        size="sm"
+        href
+        className="ring-2 ring-ns-border/40 group-hover:ring-ns-secondary/30 transition-all"
+      />
 
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-body text-sm font-semibold leading-tight text-ns-text">
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-body font-semibold text-ns-text truncate leading-tight">
           {displayName}
         </p>
         {f.personality ? (
-          <p className="mt-0.5 truncate font-body text-xs text-ns-secondary-readable">{f.personality}</p>
+          <p className="text-[10px] font-body text-ns-secondary-readable/60 truncate mt-0.5">{f.personality}</p>
         ) : (
-          <p className="mt-0.5 truncate font-body text-xs text-ns-muted">@{f.username}</p>
+          <p className="text-[10px] font-body text-ns-muted/40 truncate mt-0.5">@{f.username}</p>
         )}
       </div>
 
+      {/* View Profile button */}
       <Link
         href={`/profile/${f.username}`}
-        className="flex-shrink-0 whitespace-nowrap font-body text-xs text-ns-muted underline underline-offset-4 transition-colors hover:text-ns-text"
+        className="flex-shrink-0 text-[10px] font-body text-ns-muted/50 hover:text-ns-secondary-readable
+                   border border-ns-border/50 hover:border-ns-secondary/40
+                   px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap"
       >
         View Profile
       </Link>
-    </li>
+    </div>
   )
 }
 
 function Skeleton() {
   return (
-    <ul>
+    <div className="divide-y divide-ns-border/20">
       {[1, 2, 3].map(i => (
-        <li key={i} className="flex animate-pulse items-center gap-3 border-t border-ns-border py-3">
-          <div className="h-9 w-9 flex-shrink-0 rounded-full bg-ns-surface-2" />
+        <div key={i} className="flex items-center gap-3 px-4 py-3 animate-pulse">
+          <div className="w-9 h-9 rounded-full bg-ns-border flex-shrink-0" />
           <div className="flex-1 space-y-1.5">
-            <div className="h-3 w-1/3 rounded bg-ns-surface-2" />
-            <div className="h-2.5 w-1/2 rounded bg-ns-surface-2" />
+            <div className="h-3 bg-ns-border rounded w-1/3" />
+            <div className="h-2.5 bg-ns-border/50 rounded w-1/2" />
           </div>
-        </li>
+          <div className="h-6 w-20 bg-ns-border/40 rounded-lg" />
+        </div>
       ))}
-    </ul>
+    </div>
   )
 }
 
@@ -83,35 +94,61 @@ export default function DashboardFriendsCard() {
   }, [])
 
   return (
-    <Section title="Friends" href="/friends/find" linkLabel="Find more →">
+    <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3.5 border-b border-ns-border/50">
+        <div className="flex items-center gap-2">
+          <FriendsIcon size={15} className="text-ns-secondary-readable/70" />
+          <span className="text-xs font-body font-semibold text-ns-text uppercase tracking-wide">
+            Friends
+          </span>
+        </div>
+        <Link
+          href="/friends/find"
+          className="text-[10px] font-body text-ns-muted/50 hover:text-ns-secondary-readable transition-colors"
+        >
+          Find more →
+        </Link>
+      </div>
+
+      {/* List */}
       {loading ? (
         <Skeleton />
       ) : friends.length === 0 ? (
-        <div className="border-t border-ns-border pt-4">
-          <p className="font-body text-sm text-ns-text">No friends yet</p>
-          <p className="mt-1 font-body text-sm leading-relaxed text-ns-muted">
+        <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
+          <div className="w-11 h-11 rounded-2xl bg-ns-border/30 flex items-center justify-center mb-3">
+            <FriendsIcon size={20} className="text-ns-muted/30" />
+          </div>
+          <p className="text-ns-muted/60 text-sm font-body mb-1">No friends yet</p>
+          <p className="text-ns-muted/40 text-xs font-body mb-3">
             When someone you follow follows you back, you become friends automatically.
           </p>
-          <Button variant="outline" size="sm" href="/friends/find" className="mt-4 min-h-10">
+          <Link
+            href="/friends/find"
+            className="text-xs font-body text-ns-secondary-readable/80 hover:text-ns-secondary-readable
+                       border border-ns-secondary/30 hover:border-ns-secondary/60
+                       px-4 py-1.5 rounded-full transition-colors"
+          >
             Find Friends
-          </Button>
+          </Link>
         </div>
       ) : (
-        <ul className="border-b border-ns-border">
+        <div className="divide-y divide-ns-border/20">
           {friends.map(f => <FriendItem key={f.id} f={f} />)}
-        </ul>
+        </div>
       )}
 
+      {/* Footer */}
       {!loading && friends.length > 0 && (
-        <p className="pt-3">
+        <div className="border-t border-ns-border/40 px-4 py-2.5">
           <Link
             href="/friends"
-            className="font-body text-sm text-ns-muted underline underline-offset-4 transition-colors hover:text-ns-text"
+            className="text-xs font-body text-ns-muted/50 hover:text-ns-secondary-readable transition-colors"
           >
             View all friends →
           </Link>
-        </p>
+        </div>
       )}
-    </Section>
+    </div>
   )
 }

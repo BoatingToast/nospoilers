@@ -79,14 +79,6 @@ export default function VoteButtons({
     })
   }
 
-  const btn = 'inline-flex min-h-10 items-center justify-center gap-1.5 rounded border px-3 font-body text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40'
-  const upClass = userVote === 'upvote'
-    ? 'bg-ns-success/15 border-ns-success/40 text-ns-success'
-    : 'border-ns-border text-ns-muted hover:border-ns-success/40 hover:text-ns-success'
-  const downClass = userVote === 'downvote'
-    ? 'bg-ns-danger/15 border-ns-danger/40 text-ns-danger'
-    : 'border-ns-border text-ns-muted hover:border-ns-danger/40 hover:text-ns-danger'
-
   if (compact) {
     return (
       <div className="flex items-center gap-1.5">
@@ -94,7 +86,11 @@ export default function VoteButtons({
           onClick={() => handleVote('upvote')}
           disabled={!isAuthed || isOwner || pending}
           title={isOwner ? 'Cannot vote on your own collection' : 'Upvote'}
-          className={`${btn} ${upClass}`}
+          className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-xs font-body transition-all
+            ${userVote === 'upvote'
+              ? 'bg-ns-success/15 border-ns-success/40 text-ns-success'
+              : 'border-ns-border text-ns-muted hover:border-ns-success/30 hover:text-ns-success'
+            } disabled:cursor-not-allowed disabled:opacity-40`}
         >
           <UpIcon active={userVote === 'upvote'} />
           <span>{votes.upvotes}</span>
@@ -104,7 +100,11 @@ export default function VoteButtons({
           onClick={() => handleVote('downvote')}
           disabled={!isAuthed || isOwner || pending}
           title={isOwner ? 'Cannot vote on your own collection' : 'Downvote'}
-          className={`${btn} ${downClass}`}
+          className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-xs font-body transition-all
+            ${userVote === 'downvote'
+              ? 'bg-ns-danger/15 border-ns-danger/40 text-ns-danger'
+              : 'border-ns-border text-ns-muted hover:border-ns-danger/30 hover:text-ns-danger'
+            } disabled:cursor-not-allowed disabled:opacity-40`}
         >
           <DownIcon active={userVote === 'downvote'} />
           <span>{votes.downvotes}</span>
@@ -113,35 +113,50 @@ export default function VoteButtons({
     )
   }
 
-  // Full-size version (collection detail page): one row with the net score between
+  // Full-size version (collection detail page)
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-col items-center gap-2">
       {/* Upvote */}
       <button
         onClick={() => handleVote('upvote')}
         disabled={!isAuthed || isOwner || pending}
         title={isOwner ? 'Cannot vote on your own collection' : undefined}
-        className={`${btn} min-h-11 text-sm ${upClass}`}
+        className={`group w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5
+          border transition-all duration-200
+          ${userVote === 'upvote'
+            ? 'bg-ns-success/15 border-ns-success/50 text-ns-success shadow-[0_0_12px_rgb(var(--ns-success)/0.15)]'
+            : 'border-ns-border text-ns-muted hover:border-ns-success/40 hover:text-ns-success hover:bg-ns-success/5'
+          } disabled:cursor-not-allowed disabled:opacity-40`}
       >
-        <UpIcon active={userVote === 'upvote'} size={16} />
-        <span>{votes.upvotes}</span>
+        <UpIcon active={userVote === 'upvote'} size={18} />
+        <span className="text-[11px] font-body font-semibold leading-none">{votes.upvotes}</span>
       </button>
 
-      {/* Net score */}
-      <span className={`min-w-[2.5rem] text-center font-body text-sm font-semibold
-        ${votes.score > 0 ? 'text-ns-success' : votes.score < 0 ? 'text-ns-danger' : 'text-ns-muted'}`}>
+      {/* Net score pill */}
+      <div className={`px-2.5 py-1 rounded-full border text-xs font-body font-semibold text-center min-w-[40px]
+        ${votes.score > 0
+          ? 'bg-ns-success/10 border-ns-success/20 text-ns-success'
+          : votes.score < 0
+          ? 'bg-ns-danger/10 border-ns-danger/20 text-ns-danger'
+          : 'bg-ns-surface border-ns-border text-ns-muted'
+        }`}>
         {votes.score > 0 ? '+' : ''}{votes.score}
-      </span>
+      </div>
 
       {/* Downvote */}
       <button
         onClick={() => handleVote('downvote')}
         disabled={!isAuthed || isOwner || pending}
         title={isOwner ? 'Cannot vote on your own collection' : undefined}
-        className={`${btn} min-h-11 text-sm ${downClass}`}
+        className={`group w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5
+          border transition-all duration-200
+          ${userVote === 'downvote'
+            ? 'bg-ns-danger/15 border-ns-danger/50 text-ns-danger shadow-[0_0_12px_rgb(var(--ns-danger)/0.15)]'
+            : 'border-ns-border text-ns-muted hover:border-ns-danger/40 hover:text-ns-danger hover:bg-ns-danger/5'
+          } disabled:cursor-not-allowed disabled:opacity-40`}
       >
-        <DownIcon active={userVote === 'downvote'} size={16} />
-        <span>{votes.downvotes}</span>
+        <span className="text-[11px] font-body font-semibold leading-none">{votes.downvotes}</span>
+        <DownIcon active={userVote === 'downvote'} size={18} />
       </button>
     </div>
   )

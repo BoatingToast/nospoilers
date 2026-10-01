@@ -1,10 +1,9 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  distDir: process.env.NOSPOILERS_BUILD_DIR || '.next',
   async headers() {
     const privatePages = [
-      '/login', '/register', '/onboarding/:path*', '/dashboard/:path*', '/creator/:path*', '/lab/:path*',
+      '/login', '/register', '/onboarding/:path*', '/dashboard/:path*', '/creator/:path*',
       '/search', '/settings/:path*', '/notifications/:path*', '/watchlist', '/history',
       '/ratings', '/my-recommendations', '/wrapped', '/achievements', '/friends/:path*',
       '/social/:path*', '/compatibility/:path*', '/plot-passport', '/spoiler-zones',

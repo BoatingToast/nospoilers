@@ -1,7 +1,6 @@
 'use client'
 
 import Button from '@/components/ui/Button'
-import PageHeader from '@/components/ui/PageHeader'
 import {
   EmotionIcon, SuspenseIcon, SearchIcon, CompassIcon, EyeIcon,
   HumorIcon, ActionIcon, HeartIcon, MovieDnaIcon, ClapperboardIcon,
@@ -38,56 +37,60 @@ export default function StepGenres({ selected, setSelected, onNext, onBack }: St
   }
 
   return (
-    <div className="w-full min-w-0">
-      <PageHeader
-        title="YOUR GENRES"
-        lede="Select all the genres you genuinely enjoy. No wrong answers."
-      />
+    <div className="w-full max-w-2xl mx-auto">
+      <div className="mb-8">
+        <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-text mb-2">
+          YOUR GENRES
+        </h2>
+        <p className="text-ns-muted font-body text-sm">
+          Select all the genres you genuinely enjoy. No wrong answers.
+        </p>
+      </div>
 
-      <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <div className="grid min-w-0 grid-cols-1 gap-x-6 border-t border-ns-border sm:grid-cols-2">
-          {GENRES.map(genre => {
-            const active = selected.includes(genre.id)
-            return (
-              <button
-                key={genre.id}
-                onClick={() => toggle(genre.id)}
-                className={`flex min-h-12 w-full cursor-pointer select-none items-center gap-3 border-b border-ns-border py-3 text-left
-                           transition-colors duration-200
-                           ${active
-                             ? 'text-ns-secondary-readable'
-                             : 'text-ns-muted hover:text-ns-text'
-                           }`}
-              >
-                <genre.Icon size={20} />
-                <span className="flex-1 text-sm font-body font-medium">{genre.label}</span>
-                {active && (
-                  <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-10">
+        {GENRES.map(genre => {
+          const active = selected.includes(genre.id)
+          return (
+            <button
+              key={genre.id}
+              onClick={() => toggle(genre.id)}
+              className={`relative flex flex-col items-center justify-center gap-2 p-5 rounded-2xl
+                         border transition-all duration-200 cursor-pointer select-none
+                         ${active
+                           ? 'bg-ns-secondary/10 border-ns-secondary text-ns-secondary-readable shadow-[0_0_20px_rgb(var(--ns-secondary)/0.1)]'
+                           : 'bg-ns-surface border-ns-border text-ns-muted hover:border-ns-muted/40 hover:text-ns-text'
+                         }`}
+            >
+              <genre.Icon size={24} />
+              <span className="text-sm font-body font-medium">{genre.label}</span>
+              {active && (
+                <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-ns-secondary flex items-center justify-center">
+                  <svg width="8" height="8" fill="none" stroke="rgb(var(--ns-bg))" strokeWidth="3" viewBox="0 0 24 24">
                     <path d="M20 6L9 17l-5-5"/>
                   </svg>
-                )}
-              </button>
-            )
-          })}
-        </div>
+                </div>
+              )}
+            </button>
+          )
+        })}
+      </div>
 
-        <div className="min-w-0 border-t-2 border-ns-text pt-4 lg:sticky lg:top-6 lg:self-start">
-          <p className="text-ns-muted text-sm font-body">
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="lg" onClick={onBack}>
+          ← Back
+        </Button>
+        <div className="flex items-center gap-4">
+          <span className="text-ns-muted text-sm font-body">
             {selected.length} selected
-          </p>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <Button variant="ghost" size="lg" onClick={onBack}>
-              ← Back
-            </Button>
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={onNext}
-              disabled={selected.length === 0}
-            >
-              Continue →
-            </Button>
-          </div>
+          </span>
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={onNext}
+            disabled={selected.length === 0}
+          >
+            Continue →
+          </Button>
         </div>
       </div>
     </div>

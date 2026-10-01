@@ -64,7 +64,7 @@ export default function RatingWidget({ movie }: Props) {
   if (status === 'unauthenticated') return null
   if (loading) {
     return (
-      <div className="h-10 w-32 rounded bg-ns-surface border border-ns-border animate-pulse" />
+      <div className="h-10 w-32 rounded-xl bg-ns-surface border border-ns-border animate-pulse" />
     )
   }
 
@@ -89,16 +89,16 @@ export default function RatingWidget({ movie }: Props) {
         /* Rated state */
         <button
           onClick={() => setModal('quick')}
-          className="group flex min-h-10 items-center gap-2.5 px-3 py-2 rounded
-                     border border-ns-border hover:border-ns-text
-                     transition-colors duration-150"
+          className="group flex items-center gap-2.5 px-3 py-2 rounded-xl
+                     bg-ns-surface border border-ns-border hover:border-ns-secondary/40
+                     transition-all duration-150"
         >
           {/* Score badge */}
           <span className={`font-display text-xl tracking-wider ${scoreColor(rating.score)}`}>
             {rating.score}
           </span>
           <div className="flex flex-col items-start">
-            <span className="text-[11px] text-ns-muted font-body leading-tight">Your rating</span>
+            <span className="text-[10px] text-ns-muted font-body leading-tight">Your rating</span>
             <span className={`text-xs font-body font-medium leading-tight ${scoreColor(rating.score)}`}>
               {scoreLabel(rating.score)}
             </span>
@@ -118,11 +118,11 @@ export default function RatingWidget({ movie }: Props) {
         /* Unrated state */
         <button
           onClick={() => setModal('quick')}
-          className="flex min-h-10 items-center gap-2 px-3 py-2 rounded
-                     border border-ns-border
-                     text-ns-text text-sm font-heading
-                     hover:border-ns-text
-                     transition-colors duration-150"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl
+                     bg-ns-surface border border-dashed border-ns-border
+                     text-ns-muted text-sm font-body
+                     hover:border-ns-secondary/40 hover:text-ns-text
+                     transition-all duration-150"
         >
           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>

@@ -79,7 +79,7 @@ function EditOverlay({ px }: { px: number }) {
         <circle cx="12" cy="13" r="4"/>
       </svg>
       {px >= 64 && (
-        <span className="text-white text-[11px] font-body mt-1 tracking-wide">Change</span>
+        <span className="text-white text-[9px] font-body mt-1 tracking-wide">Change</span>
       )}
     </div>
   )

@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useTransition, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import Button from '@/components/ui/Button'
-import PageHeader from '@/components/ui/PageHeader'
-import Section from '@/components/ui/Section'
+import Link from 'next/link'
 import NextFavoriteHero from './NextFavoriteHero'
 import CuratedRecCard   from './CuratedRecCard'
 import RecPersonaSection from './RecPersonaSection'
@@ -99,13 +97,15 @@ function isCuratedRecGroups(value: unknown): value is CuratedRecGroups {
 
 function HeroSkeleton() {
   return (
-    <div className="flex animate-pulse gap-6 border-t-2 border-ns-text pt-4" style={{ minHeight: 220 }}>
-      <div className="aspect-[2/3] w-28 rounded bg-ns-surface-2 sm:w-40" />
-      <div className="flex-1 space-y-3 py-2">
-        <div className="h-2 w-32 rounded bg-ns-surface-2" />
-        <div className="h-6 w-2/3 rounded bg-ns-surface-2" />
-        <div className="h-3 w-full rounded bg-ns-surface-2" />
-        <div className="h-3 w-4/5 rounded bg-ns-surface-2" />
+    <div className="rounded-3xl border border-ns-border bg-ns-surface animate-pulse" style={{ minHeight: 220 }}>
+      <div className="h-full p-8 flex gap-6">
+        <div className="w-40 aspect-[2/3] bg-ns-border rounded-xl" />
+        <div className="flex-1 space-y-3 py-2">
+          <div className="h-2 bg-ns-border rounded w-32" />
+          <div className="h-6 bg-ns-border rounded w-2/3" />
+          <div className="h-3 bg-ns-border rounded w-full" />
+          <div className="h-3 bg-ns-border rounded w-4/5" />
+        </div>
       </div>
     </div>
   )
@@ -116,9 +116,9 @@ function ShelfSkeleton() {
     <div className="flex gap-4 overflow-hidden">
       {Array.from({ length: 5 }).map((_, i) => (
         <div key={i} className="w-[140px] flex-shrink-0 animate-pulse">
-          <div className="mb-2 h-[210px] w-[140px] rounded bg-ns-surface-2" />
-          <div className="mb-1 h-3 w-4/5 rounded bg-ns-surface-2" />
-          <div className="h-2 w-2/5 rounded bg-ns-surface-2" />
+          <div className="w-[140px] h-[210px] rounded-xl bg-ns-border mb-2" />
+          <div className="h-3 bg-ns-border rounded w-4/5 mb-1" />
+          <div className="h-2 bg-ns-border rounded w-2/5" />
         </div>
       ))}
     </div>
@@ -137,24 +137,37 @@ function SectionShelf({ items, section, topTraits }: ShelfProps) {
   const showTraits = section.key === 'dnaBasedPicks' && topTraits.length > 0
 
   return (
-    <Section title={section.title} note={section.tagline}>
-      {/* DNA top traits */}
-      {showTraits && (
-        <p className="-mt-2 mb-5 font-body text-sm text-ns-secondary-readable">
-          {topTraits.map((t, index) => (
-            <span key={t.label}>
-              {index > 0 && <span className="text-ns-muted"> · </span>}
-              {t.label} {t.score.toFixed(1)}
-            </span>
-          ))}
-        </p>
-      )}
+    <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
+      {/* Header */}
+      <div className="px-5 py-4 border-b border-ns-border">
+        <div className="flex items-center gap-2 mb-0.5">
+          <section.Icon size={16} className="text-ns-secondary-readable flex-shrink-0" />
+          <h2 className="text-sm font-heading text-white">{section.title}</h2>
+        </div>
+        <p className="text-[11px] font-body text-ns-muted">{section.tagline}</p>
+
+        {/* DNA top traits pills */}
+        {showTraits && (
+          <div className="flex gap-1.5 mt-2 flex-wrap">
+            {topTraits.map(t => (
+              <span
+                key={t.label}
+                className="text-[9px] font-body text-ns-secondary-readable bg-ns-secondary/10 border border-ns-secondary/20 px-2 py-0.5 rounded-full"
+              >
+                {t.label} {t.score.toFixed(1)}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Shelf */}
       {items.length === 0 ? (
-        <p className="border-t border-ns-border py-6 font-body text-sm text-ns-muted">{section.empty}</p>
+        <div className="px-5 py-8 text-center">
+          <p className="text-ns-muted font-body text-sm">{section.empty}</p>
+        </div>
       ) : (
-        <div className="scrollbar-hide flex gap-4 overflow-x-auto pb-2">
+        <div className="flex gap-3 overflow-x-auto p-4 scrollbar-hide">
           {items.map(rec => (
             <div key={rec.tmdbId} className="flex-shrink-0">
               <CuratedRecCard rec={rec} />
@@ -162,7 +175,7 @@ function SectionShelf({ items, section, topTraits }: ShelfProps) {
           ))}
         </div>
       )}
-    </Section>
+    </div>
   )
 }
 
@@ -254,83 +267,106 @@ export default function RecommendationCenterClient() {
       groups.dnaBasedPicks.length + groups.expandYourTaste.length + groups.rediscoverClassics.length
     : 0
 
-  const hero = recLoading ? (
-    <HeroSkeleton />
-  ) : groups?.nextFavorite ? (
-    <NextFavoriteHero
-      rec={groups.nextFavorite}
-      onFeedback={handleFeedback}
-    />
-  ) : null
-
   return (
-    <div className="mx-auto max-w-6xl space-y-12 px-4 py-8 sm:px-6">
-      <PageHeader
-        title="Recommendation Center"
-        lede={recLoading
-          ? 'Loading your personalised picks…'
-          : recommendations.status === 'error'
-            ? 'Your personalised picks could not be loaded'
-            : totalPicks === 0
-              ? 'Your recommendation profile is ready for more movie signals'
-              : `${totalPicks} personalised recommendations powered by your Movie DNA`
-        }
-      />
-
-      <MoodControls onApply={handleMoodApply} loading={recLoading} />
-
-      {/* ─── NEXT FAVORITE beside the accuracy aside ───────────────────────── */}
-      <div className={hero ? 'grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]' : 'min-w-0'}>
-        {hero}
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      {/* Page header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-heading text-white mb-2">
+            Recommendation Center
+          </h1>
+          <p className="text-ns-muted font-body text-sm">
+            {recLoading
+              ? 'Loading your personalised picks…'
+              : recommendations.status === 'error'
+                ? 'Your personalised picks could not be loaded'
+                : totalPicks === 0
+                  ? 'Your recommendation profile is ready for more movie signals'
+                  : `${totalPicks} personalised recommendations powered by your Movie DNA`
+            }
+          </p>
+        </div>
         <RecAccuracyWidget />
       </div>
 
+      <MoodControls onApply={handleMoodApply} loading={recLoading} />
+
       {/* ─── Movie DNA teaser — same reusable card as Dashboard/profiles ───── */}
       {(dnaLoading || dnaProfile) && (
-        <div className="min-w-0">
+        <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
           <MovieDNACard profile={dnaProfile} loading={dnaLoading} compact />
         </div>
       )}
 
-      {/* ─── Based On Your Ratings ─────────────────────────────────────────── */}
+      {/* ─── 🎯 NEXT FAVORITE hero ─────────────────────────────────────────── */}
+      {recLoading ? (
+        <HeroSkeleton />
+      ) : groups?.nextFavorite ? (
+        <NextFavoriteHero
+          rec={groups.nextFavorite}
+          onFeedback={handleFeedback}
+        />
+      ) : null}
+
+      {/* ─── ⭐ Based On Your Ratings ────────────────────────────────────────── */}
       <BasedOnRatingsSection />
 
-      {/* ─── Because Your Friends Loved It ─────────────────────────────────── */}
+      {/* ─── 🤝 Because Your Friends Loved It ───────────────────────────────── */}
       <FriendRecs />
 
       {/* ─── 5 rec sections ────────────────────────────────────────────────── */}
       {recommendations.status === 'error' ? (
-        <div className="border-t-2 border-ns-danger pt-4" role="alert">
-          <p className="mb-1 font-heading text-base text-ns-text">Recommendations couldn&apos;t load</p>
-          <p className="mb-4 max-w-2xl font-body text-sm text-ns-muted">
+        <div
+          className="rounded-2xl border border-dashed border-ns-danger/30 bg-ns-surface px-6 py-10 text-center"
+          role="alert"
+        >
+          <p className="mb-1 font-heading text-base text-white">Recommendations couldn&apos;t load</p>
+          <p className="mb-4 font-body text-sm text-ns-muted">
             We could not reach the recommendation service. Your taste profile and ratings are safe.
           </p>
-          <Button variant="primary" onClick={() => setRecRequest(request => request + 1)}>
+          <button
+            type="button"
+            onClick={() => setRecRequest(request => request + 1)}
+            className="rounded-lg bg-ns-secondary px-4 py-2 font-body text-sm font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-surface"
+          >
             Try again
-          </Button>
+          </button>
         </div>
       ) : recLoading ? (
-        <div className="space-y-12" aria-busy="true" aria-label="Loading recommendation shelves">
+        <div className="space-y-6" aria-busy="true" aria-label="Loading recommendation shelves">
           {SECTIONS.map(s => (
-            <div key={s.key} className="border-t-2 border-ns-text pt-4">
-              <div className="mb-5 h-6 w-48 animate-pulse rounded bg-ns-surface-2" />
+            <div key={s.key} className="bg-ns-surface border border-ns-border rounded-2xl p-5">
+              <div className="h-3 bg-ns-border rounded w-40 mb-4 animate-pulse" />
               <ShelfSkeleton />
             </div>
           ))}
         </div>
       ) : totalPicks === 0 ? (
-        <div className="border-t-2 border-ns-text pt-4" role="status">
-          <p className="mb-1 font-heading text-lg text-ns-text">Your next picks need a little more signal</p>
-          <p className="mb-5 max-w-lg font-body text-sm leading-relaxed text-ns-muted">
+        <div
+          className="rounded-2xl border border-dashed border-ns-border bg-ns-surface px-6 py-10 text-center"
+          role="status"
+        >
+          <p className="mb-1 font-heading text-lg text-white">Your next picks need a little more signal</p>
+          <p className="mx-auto mb-5 max-w-lg font-body text-sm leading-relaxed text-ns-muted">
             Nothing matched yet, but the recommendation service loaded successfully. Rate a few films or update your favorites to shape your Movie DNA.
           </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button variant="primary" href="/ratings">Rate films</Button>
-            <Button variant="secondary" href="/onboarding">Update favorites</Button>
+          <div className="flex flex-col justify-center gap-3 sm:flex-row">
+            <Link
+              href="/ratings"
+              className="rounded-lg bg-ns-secondary px-4 py-2 font-body text-sm font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-surface"
+            >
+              Rate films
+            </Link>
+            <Link
+              href="/onboarding"
+              className="rounded-lg border border-ns-border px-4 py-2 font-body text-sm text-ns-text transition-colors hover:border-ns-muted hover:bg-ns-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-surface"
+            >
+              Update favorites
+            </Link>
           </div>
         </div>
       ) : (
-        <div className="space-y-12">
+        <div className="space-y-6">
           {SECTIONS.map(s => (
             <SectionShelf
               key={s.key}
@@ -344,8 +380,8 @@ export default function RecommendationCenterClient() {
 
       {/* ─── Personas ──────────────────────────────────────────────────────── */}
       {perLoading ? (
-        <div className="animate-pulse border-t-2 border-ns-text pt-4">
-          <div className="mb-5 h-6 w-48 rounded bg-ns-surface-2" />
+        <div className="bg-ns-surface border border-ns-border rounded-2xl p-5 animate-pulse">
+          <div className="h-3 bg-ns-border rounded w-48 mb-4" />
           <ShelfSkeleton />
         </div>
       ) : (

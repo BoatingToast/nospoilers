@@ -344,7 +344,7 @@ export default function ProCharacterScene({ config }: ProCharacterSceneProps) {
 
   return (
     <div ref={mountRef} className="relative h-full min-h-[470px] w-full" data-testid="pro-character-scene">
-      <div className="pointer-events-none absolute inset-0 grid min-h-[470px] place-items-center text-[11px] uppercase tracking-[0.2em] text-ns-muted">
+      <div className="pointer-events-none absolute inset-0 grid min-h-[470px] place-items-center text-[10px] uppercase tracking-[0.2em] text-ns-muted">
         Initializing 3D identity…
       </div>
     </div>

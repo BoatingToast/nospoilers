@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Avatar from '@/components/ui/Avatar'
-import Button from '@/components/ui/Button'
 import { PinIcon, TheoryIcon } from '@/components/icons'
 import type { SZMessageData, SZReactionGroup } from '@/types'
 
@@ -36,7 +35,7 @@ function renderContent(content: string) {
       const username = part.slice(1)
       return (
         <Link key={i} href={`/profile/${username}`}
-          className="font-medium text-ns-secondary-readable underline-offset-4 transition-colors hover:underline">
+          className="text-ns-secondary-readable hover:text-amber-400 transition-colors font-medium">
           {part}
         </Link>
       )
@@ -57,15 +56,14 @@ function ReactionPill({
   return (
     <button
       onClick={() => onToggle(reaction.emoji)}
-      aria-pressed={reaction.userReacted}
-      className={`inline-flex min-h-7 items-center gap-1 rounded-sm border px-2 font-body text-xs transition-colors
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-body transition-all
         ${reaction.userReacted
-          ? 'border-ns-secondary/40 bg-ns-secondary/10 text-ns-secondary-readable'
-          : 'border-ns-border text-ns-muted hover:border-ns-text hover:text-ns-text'
+          ? 'bg-ns-secondary/15 border border-ns-secondary/40 text-ns-secondary-readable'
+          : 'bg-ns-surface border border-ns-border text-ns-muted hover:border-ns-secondary/30 hover:text-ns-text'
         }`}
     >
       <span>{reaction.emoji}</span>
-      <span className="text-[11px]">{reaction.count}</span>
+      <span className="text-[10px]">{reaction.count}</span>
     </button>
   )
 }
@@ -96,8 +94,9 @@ function ReactionRow({
       {!expanded && overflow > 0 && (
         <button
           onClick={() => setExpanded(true)}
-          className="inline-flex min-h-7 items-center rounded-sm border border-ns-border px-2 font-body text-[11px]
-                     text-ns-muted transition-colors hover:border-ns-text hover:text-ns-text"
+          className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-body
+                     bg-ns-surface border border-ns-border text-ns-muted/70
+                     hover:border-ns-secondary/30 hover:text-ns-text transition-all"
         >
           +{overflow}
         </button>
@@ -105,8 +104,9 @@ function ReactionRow({
       {expanded && overflow > 0 && (
         <button
           onClick={() => setExpanded(false)}
-          className="inline-flex min-h-7 items-center rounded-sm border border-ns-border px-2 font-body text-[11px]
-                     text-ns-muted transition-colors hover:border-ns-text hover:text-ns-text"
+          className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-body
+                     bg-ns-surface border border-ns-border text-ns-muted/50
+                     hover:border-ns-secondary/20 hover:text-ns-muted transition-all"
         >
           less
         </button>
@@ -122,14 +122,15 @@ const REACTION_EMOJI = ['🔥', '💀', '🤯', '😭', '👀', '❤️', '👏'
 function EmojiPicker({ onSelect, onClose }: { onSelect: (e: string) => void; onClose: () => void }) {
   return (
     <div
-      className="absolute bottom-full right-0 z-20 mb-1 flex gap-1 rounded border border-ns-border bg-ns-surface p-2"
+      className="absolute bottom-full mb-1 left-0 bg-ns-surface border border-ns-border rounded-xl p-2
+                 flex gap-1 shadow-xl z-20"
       onMouseLeave={onClose}
     >
       {REACTION_EMOJI.map(e => (
         <button
           key={e}
           onClick={() => { onSelect(e); onClose() }}
-          className="flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-ns-surface-2"
+          className="text-lg hover:scale-125 transition-transform"
         >
           {e}
         </button>
@@ -153,22 +154,22 @@ function VoteButtons({
     <div className="flex items-center gap-0.5">
       <button
         onClick={() => onVote('upvote')}
-        className={`flex h-8 w-7 items-center justify-center rounded transition-colors
-          ${userVote === 'upvote' ? 'text-ns-secondary-readable' : 'text-ns-muted hover:text-ns-secondary-readable'}`}
+        className={`w-6 h-6 flex items-center justify-center rounded transition-colors
+          ${userVote === 'upvote' ? 'text-ns-secondary-readable' : 'text-ns-muted/40 hover:text-ns-secondary-readable'}`}
         title="Upvote"
       >
         <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 2L2 22h20L12 2z"/>
         </svg>
       </button>
-      <span className={`text-[11px] font-body font-medium min-w-[18px] text-center
-        ${score > 0 ? 'text-ns-secondary-readable' : score < 0 ? 'text-red-400/80' : 'text-ns-muted'}`}>
+      <span className={`text-[10px] font-body font-medium min-w-[18px] text-center
+        ${score > 0 ? 'text-ns-secondary-readable' : score < 0 ? 'text-red-400/80' : 'text-ns-muted/40'}`}>
         {score > 0 ? `+${score}` : score}
       </span>
       <button
         onClick={() => onVote('downvote')}
-        className={`flex h-8 w-7 items-center justify-center rounded transition-colors
-          ${userVote === 'downvote' ? 'text-red-400' : 'text-ns-muted hover:text-red-400'}`}
+        className={`w-6 h-6 flex items-center justify-center rounded transition-colors
+          ${userVote === 'downvote' ? 'text-red-400' : 'text-ns-muted/40 hover:text-red-400'}`}
         title="Downvote"
       >
         <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24">
@@ -231,18 +232,20 @@ export default function MessageItem({
 
   if (message.isDeleted) {
     return (
-      <div className="border-t border-ns-border py-3">
-        <p className="font-body text-xs italic text-ns-muted">[Message deleted]</p>
+      <div className="flex items-start gap-3 px-4 py-2.5 opacity-40">
+        <div className="w-8 h-8 flex-shrink-0" />
+        <p className="text-ns-muted text-xs font-body italic">[Message deleted]</p>
       </div>
     )
   }
 
   if (collapsed) {
     return (
-      <div className="border-t border-ns-border py-1">
+      <div className="flex items-center gap-3 px-4 py-2 opacity-50">
+        <div className="w-8 h-8 flex-shrink-0" />
         <button
           onClick={() => setCollapsed(false)}
-          className="min-h-10 text-left font-body text-xs italic text-ns-muted transition-colors hover:text-ns-text"
+          className="text-xs font-body text-ns-muted/60 italic hover:text-ns-muted transition-colors"
         >
           [Low-quality message — click to expand]
         </button>
@@ -252,26 +255,30 @@ export default function MessageItem({
 
   if (passportLocked) {
     return (
-      <div className="border-t border-ns-border py-3">
+      <div className="mx-4 my-2 rounded-xl border border-ns-secondary/20 bg-ns-secondary/5 px-4 py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <p className="font-heading text-sm font-semibold text-ns-secondary-readable">Locked by your Plot Passport</p>
-            <p className="mt-1 font-body text-xs text-ns-muted">
+          <div>
+            <p className="text-xs font-heading font-semibold text-ns-secondary-readable">Locked by your Plot Passport</p>
+            <p className="mt-1 text-[11px] font-body text-ns-muted">
               This {message.spoilerLevel === 'ending' ? 'ending discussion' : 'mid-movie discussion'} unlocks at {message.unlockAtProgress}% progress.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {currentUser && (
-              <Button variant="secondary" size="sm" href="/plot-passport" className="min-h-10">
+              <Link href="/plot-passport" className="rounded-lg bg-ns-secondary px-3 py-1.5 text-[10px] font-heading font-semibold text-ns-secondary-foreground">
                 Update progress
-              </Button>
+              </Link>
             )}
-            <Button variant="outline" size="sm" onClick={revealSpoiler} disabled={revealLoading} className="min-h-10">
+            <button
+              onClick={revealSpoiler}
+              disabled={revealLoading}
+              className="rounded-lg border border-ns-secondary/30 px-3 py-1.5 text-[10px] font-heading font-semibold text-ns-secondary-readable hover:bg-ns-secondary/10 disabled:opacity-50"
+            >
               {revealLoading ? 'Revealing…' : 'Reveal anyway'}
-            </Button>
+            </button>
           </div>
           {revealError && (
-            <p className="font-body text-xs text-red-400">Could not reveal this message. Try again.</p>
+            <p className="text-[10px] font-body text-red-400">Could not reveal this message. Try again.</p>
           )}
         </div>
       </div>
@@ -283,8 +290,9 @@ export default function MessageItem({
       id={`msg-${message.id}`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => { setShowActions(false); setShowEmoji(false) }}
-      className={`group relative flex min-w-0 items-start gap-3 border-t border-ns-border py-3 transition-colors
-        ${isHighlighted ? 'bg-ns-secondary/10' : 'hover:bg-ns-surface'}
+      className={`group relative flex items-start gap-3 px-4 py-2.5 transition-colors
+        ${isHighlighted ? 'bg-ns-secondary/5 ring-1 ring-ns-secondary/20 rounded-xl' : 'hover:bg-ns-surface/40'}
+        ${isFriend ? 'border-l-2 border-ns-secondary/30 pl-3' : ''}
       `}
     >
       {/* Avatar */}
@@ -297,8 +305,8 @@ export default function MessageItem({
 
         {/* Friend badge */}
         {isFriend && (
-          <span className="mb-0.5 inline-flex items-center gap-1 font-body text-[11px] text-ns-secondary-readable">
-            <svg aria-hidden="true" width="8" height="8" fill="currentColor" viewBox="0 0 20 20">
+          <span className="inline-flex items-center gap-1 text-[9px] font-body text-ns-secondary-readable/70 mb-0.5">
+            <svg width="8" height="8" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
             </svg>
             Your Friend
@@ -307,7 +315,7 @@ export default function MessageItem({
 
         {/* Theory badge */}
         {message.isTheory && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-body text-violet-400/70 mb-0.5 ml-2">
+          <span className="inline-flex items-center gap-1 text-[9px] font-body text-violet-400/70 mb-0.5 ml-2">
             <TheoryIcon size={10} strokeWidth={1.75} className="text-violet-400/70" />
             Theory
           </span>
@@ -316,17 +324,17 @@ export default function MessageItem({
         {/* Header row */}
         <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
           <Link href={`/profile/${message.username}`}
-            className="font-heading text-sm font-semibold text-ns-text transition-colors hover:text-ns-secondary-readable">
+            className="text-sm font-body font-semibold text-ns-text hover:text-ns-secondary-readable transition-colors">
             @{message.username}
           </Link>
-          <span className="font-body text-[11px] text-ns-muted" title={fullTime(message.createdAt)}>
+          <span className="text-[10px] font-body text-ns-muted/50" title={fullTime(message.createdAt)}>
             {timeAgo(message.createdAt)}
           </span>
           {message.editedAt && (
-            <span className="font-body text-[11px] italic text-ns-muted">edited</span>
+            <span className="text-[10px] font-body text-ns-muted/40 italic">edited</span>
           )}
           {message.isPinned && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-body text-ns-secondary-readable/60 tracking-wide">
+            <span className="inline-flex items-center gap-1 text-[9px] font-body text-ns-secondary-readable/60 tracking-wide">
               <PinIcon size={9} strokeWidth={1.75} />
               {message.pinnedLabel ?? 'Pinned'}
             </span>
@@ -336,7 +344,7 @@ export default function MessageItem({
         {/* Reply preview */}
         {message.parentPreview && (
           <div className="flex items-start gap-2 mb-1.5 pl-2 border-l-2 border-ns-border">
-            <p className="font-body text-xs leading-snug text-ns-muted line-clamp-2">
+            <p className="text-xs font-body text-ns-muted/60 leading-snug line-clamp-2">
               <span className="text-ns-secondary-readable/70 font-medium">@{message.parentPreview.username}</span>
               {': '}
               {message.parentPreview.content}
@@ -358,7 +366,7 @@ export default function MessageItem({
 
       {/* Floating action bar (on hover) */}
       {showActions && (
-        <div className="absolute right-0 top-1 z-10 flex items-center gap-0.5 rounded border border-ns-border bg-ns-bg px-1 py-0.5">
+        <div className="absolute right-3 top-1 flex items-center gap-0.5 bg-ns-surface border border-ns-border rounded-xl px-1.5 py-1 shadow-lg z-10">
 
           {/* Vote */}
           <VoteButtons
@@ -372,7 +380,7 @@ export default function MessageItem({
           <div className="relative">
             <button
               onClick={() => setShowEmoji(v => !v)}
-              className="flex h-8 w-8 items-center justify-center rounded text-ns-muted hover:text-ns-secondary-readable transition-colors"
+              className="w-7 h-7 flex items-center justify-center rounded text-ns-muted/60 hover:text-ns-secondary-readable transition-colors"
               title="React"
             >
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -391,7 +399,7 @@ export default function MessageItem({
           {/* Reply */}
           <button
             onClick={() => onReply(message)}
-            className="flex h-8 w-8 items-center justify-center rounded text-ns-muted hover:text-ns-secondary-readable transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded text-ns-muted/60 hover:text-ns-secondary-readable transition-colors"
             title="Reply"
           >
             <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -404,7 +412,7 @@ export default function MessageItem({
             <>
               <button
                 onClick={() => onEdit(message)}
-                className="flex h-8 w-8 items-center justify-center rounded text-ns-muted hover:text-ns-text transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded text-ns-muted/60 hover:text-ns-text transition-colors"
                 title="Edit"
               >
                 <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -413,7 +421,7 @@ export default function MessageItem({
               </button>
               <button
                 onClick={() => onDelete(message.id)}
-                className="flex h-8 w-8 items-center justify-center rounded text-ns-muted hover:text-red-400 transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded text-ns-muted/60 hover:text-red-400 transition-colors"
                 title="Delete"
               >
                 <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

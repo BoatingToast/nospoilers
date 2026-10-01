@@ -1,6 +1,5 @@
 import { publicPageMetadata } from '@/lib/seo'
 import Link from 'next/link'
-import PageHeader from '@/components/ui/PageHeader'
 import Footer from '@/components/landing/Footer'
 
 export const metadata = publicPageMetadata({
@@ -14,20 +13,25 @@ const UPDATED = 'July 13, 2026'
 export default function ExtensionPrivacyPage() {
   return (
     <main className="min-h-screen bg-ns-bg text-ns-text">
-      <div className="mx-auto w-full min-w-0 max-w-6xl px-4 pb-16 pt-8 sm:px-6 sm:pt-12">
+      <div className="mx-auto max-w-3xl px-6 py-14 sm:py-20">
         <Link
           href="/"
-          className="mb-8 inline-flex min-h-10 items-center font-display text-xl tracking-widest text-ns-text transition-colors hover:text-ns-secondary-readable"
+          className="text-xs font-heading font-semibold uppercase tracking-[0.22em] text-ns-secondary-readable transition-colors hover:text-white"
         >
           NoSpoilers
         </Link>
 
-        <PageHeader
-          title="NoSpoilers Shield Privacy Policy"
-          lede={<>How the NoSpoilers Shield Chrome extension handles your information. Last updated: {UPDATED}</>}
-        />
+        <header className="mt-8 border-b border-ns-border pb-10">
+          <p className="text-xs font-heading font-semibold uppercase tracking-[0.2em] text-ns-muted">
+            Chrome extension
+          </p>
+          <h1 className="mt-3 font-display text-4xl tracking-wide sm:text-5xl">
+            NoSpoilers Shield Privacy Policy
+          </h1>
+          <p className="mt-4 text-sm leading-7 text-ns-muted">Last updated: {UPDATED}</p>
+        </header>
 
-        <div className="mt-10 border-b border-ns-border text-sm leading-7 text-ns-muted">
+        <div className="space-y-10 py-10 text-sm leading-7 text-ns-muted">
           <PolicySection title="Summary">
             <p>
               NoSpoilers Shield identifies and obscures likely movie and television spoilers on webpages.
@@ -105,7 +109,7 @@ export default function ExtensionPrivacyPage() {
           <PolicySection title="Contact">
             <p>
               Questions about this policy can be sent to{' '}
-              <a className="break-words text-ns-secondary-readable underline underline-offset-4 hover:text-white" href="mailto:nospoilers641@gmail.com">
+              <a className="text-ns-secondary-readable hover:text-white" href="mailto:nospoilers641@gmail.com">
                 nospoilers641@gmail.com
               </a>.
             </p>
@@ -119,9 +123,9 @@ export default function ExtensionPrivacyPage() {
 
 function PolicySection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="grid min-w-0 gap-3 border-t border-ns-border py-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] md:gap-10">
-      <h2 className="font-display text-2xl leading-none tracking-wide text-ns-text sm:text-3xl">{title}</h2>
-      <div className="min-w-0 max-w-2xl">{children}</div>
+    <section>
+      <h2 className="font-heading text-lg font-semibold text-ns-text">{title}</h2>
+      <div className="mt-3">{children}</div>
     </section>
   )
 }

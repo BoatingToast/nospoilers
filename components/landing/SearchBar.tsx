@@ -19,9 +19,10 @@ export default function SearchBar({ initialValue = '' }: { initialValue?: string
   }
 
   return (
-    <form onSubmit={handleSubmit} className="relative w-full min-w-0 max-w-xl">
-      <div className="flex w-full min-w-0 items-center gap-0 overflow-hidden rounded border border-ns-border bg-ns-surface
-                      transition-colors duration-150 focus-within:border-ns-text">
+    <form onSubmit={handleSubmit} className="relative mx-auto w-full min-w-0 max-w-xl">
+      <div className="flex w-full min-w-0 items-center gap-0 rounded-2xl border border-ns-border bg-ns-surface
+                      overflow-hidden focus-within:border-ns-secondary/40 focus-within:shadow-[0_0_20px_rgb(var(--ns-secondary)/0.1)]
+                      transition-all duration-300">
         {/* Search icon */}
         <div className="flex-shrink-0 pl-4 text-ns-muted sm:pl-5">
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -44,7 +45,7 @@ export default function SearchBar({ initialValue = '' }: { initialValue?: string
         <button
           type="submit"
           disabled={!query.trim()}
-          className="m-1.5 min-h-10 flex-shrink-0 rounded bg-ns-secondary px-3 py-2.5 text-sm font-semibold text-ns-secondary-foreground sm:px-5 font-body
+          className="m-1.5 flex-shrink-0 rounded-xl bg-ns-secondary px-3 py-2.5 text-sm font-semibold text-ns-secondary-foreground sm:px-5 font-body
                      hover:bg-amber-400 hover:text-ns-bg transition-colors disabled:opacity-40
                      disabled:cursor-not-allowed"
         >

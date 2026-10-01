@@ -56,23 +56,24 @@ export default function ProfileRatingsTab({ username }: { username: string }) {
 
   if (blocked) {
     return (
-      <p className="flex items-center gap-2 border-t border-ns-border py-6 text-sm font-body text-ns-muted">
-        <LockIcon size={16} className="flex-shrink-0" /> This user's ratings are private.
-      </p>
+      <div className="py-20 text-center">
+        <LockIcon size={40} className="text-ns-muted/40 mx-auto mb-3" />
+        <p className="text-ns-muted font-body text-sm">This user's ratings are private.</p>
+      </div>
     )
   }
 
   return (
     <div>
       {/* Sort controls */}
-      <div className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-1">
+      <div className="flex items-center gap-2 mb-6">
         <span className="text-ns-muted text-xs font-body">Sort:</span>
         {(['date', 'score_desc', 'score_asc'] as Sort[]).map(s => (
           <button
             key={s}
             onClick={() => setSort(s)}
-            className={`min-h-[40px] text-sm font-body underline-offset-4 transition-colors
-              ${sort === s ? 'text-ns-secondary-readable underline' : 'text-ns-muted hover:text-ns-text hover:underline'}`}
+            className={`px-3 py-1 rounded-full text-xs font-body transition-colors border
+              ${sort === s ? 'bg-ns-secondary/10 border-ns-secondary/40 text-ns-secondary-readable' : 'border-ns-border text-ns-muted hover:text-ns-text'}`}
           >
             {s === 'date' ? 'Recent' : s === 'score_desc' ? 'Highest' : 'Lowest'}
           </button>
@@ -83,19 +84,22 @@ export default function ProfileRatingsTab({ username }: { username: string }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="aspect-[2/3] bg-ns-border rounded mb-2" />
+              <div className="aspect-[2/3] bg-ns-border rounded-xl mb-2" />
               <div className="h-3 bg-ns-border rounded w-4/5 mb-1" />
               <div className="h-2 bg-ns-border rounded w-2/5" />
             </div>
           ))}
         </div>
       ) : ratings.length === 0 ? (
-        <p className="border-t border-ns-border py-6 text-sm font-body text-ns-muted">No ratings yet.</p>
+        <div className="py-20 text-center">
+          <FilmIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
+          <p className="text-ns-muted font-body text-sm">No ratings yet.</p>
+        </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {ratings.map(r => (
             <Link key={r.tmdbId} href={`/movie/${r.tmdbId}`} className="group">
-              <div className="relative aspect-[2/3] rounded overflow-hidden bg-ns-border mb-2">
+              <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-ns-border mb-2">
                 {r.posterPath ? (
                   <Image
                     src={tmdbImageUrl(r.posterPath, 'w342')}
@@ -110,12 +114,12 @@ export default function ProfileRatingsTab({ username }: { username: string }) {
                   </div>
                 )}
                 {/* Score badge */}
-                <div className="absolute top-2 right-2 bg-black/70 rounded-sm px-1.5 py-0.5">
+                <div className="absolute top-2 right-2 bg-black/70 rounded-full px-2 py-0.5">
                   <span className={`text-xs font-body font-bold ${scoreColor(r.score)}`}>{r.score}</span>
                 </div>
               </div>
               <p className="text-xs font-body text-white line-clamp-1 group-hover:text-ns-secondary-readable transition-colors">{r.title}</p>
-              <p className="text-[11px] font-body text-ns-muted mt-0.5">{timeAgo(r.createdAt)}</p>
+              <p className="text-[10px] font-body text-ns-muted mt-0.5">{timeAgo(r.createdAt)}</p>
             </Link>
           ))}
         </div>

@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from 'recharts'
 import Badge from '@/components/ui/Badge'
-import Section from '@/components/ui/Section'
+import { MovieDnaIcon } from '@/components/icons'
 import type { DNAScores, MovieDnaProfile } from '@/types'
 
 interface MovieDNACardProps {
@@ -38,7 +38,7 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
       <span className="text-ns-muted text-xs font-body w-20 text-right flex-shrink-0">{label}</span>
       <div className="flex-1 h-1.5 bg-ns-border rounded-full overflow-hidden">
         <div
-          className="h-full bg-ns-secondary rounded-full"
+          className="h-full bg-gradient-to-r from-ns-secondary/60 to-ns-secondary rounded-full transition-all duration-700"
           style={{ width: `${(value / 10) * 100}%` }}
         />
       </div>
@@ -49,21 +49,22 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
 
 function CardShell({ children }: { children: React.ReactNode }) {
   return (
-    <Section
-      title="MOVIE DNA"
-      action={<Badge variant="secondary" className="uppercase tracking-wider">Generated</Badge>}
-    >
+    <div>
+      <div className="flex items-center gap-3 mb-6">
+        <h2 className="font-display text-2xl tracking-wider text-ns-text">MOVIE DNA</h2>
+        <Badge variant="secondary" className="uppercase tracking-wider">Generated</Badge>
+      </div>
       {children}
-    </Section>
+    </div>
   )
 }
 
 function Skeleton() {
   return (
     <CardShell>
-      <div className="grid animate-pulse grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
-        <div className="h-64 rounded bg-ns-surface-2" />
-        <div className="h-64 rounded bg-ns-surface-2" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-pulse">
+        <div className="bg-ns-surface border border-ns-border rounded-2xl h-64" />
+        <div className="bg-ns-surface border border-ns-border rounded-2xl h-64" />
       </div>
     </CardShell>
   )
@@ -71,11 +72,14 @@ function Skeleton() {
 
 function EmptyState({ username }: { username?: string }) {
   return (
-    <p className="border-t border-ns-border py-8 font-body text-sm text-ns-muted">
-      {username
-        ? `@${username} hasn't rated any films yet.`
-        : 'Rate a few films or set your Top 5 to generate your Movie DNA.'}
-    </p>
+    <div className="py-16 text-center">
+      <MovieDnaIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
+      <p className="text-ns-muted font-body text-sm">
+        {username
+          ? `@${username} hasn't rated any films yet.`
+          : 'Rate a few films or set your Top 5 to generate your Movie DNA.'}
+      </p>
+    </div>
   )
 }
 
@@ -121,11 +125,11 @@ export default function MovieDNACard({ profile, loading = false, compact = false
         </div>
       )}
 
-      <div className={`grid grid-cols-1 ${compact ? '' : 'md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]'} gap-8`}>
+      <div className={`grid grid-cols-1 ${compact ? '' : 'sm:grid-cols-2'} gap-6`}>
 
         {/* Radar chart */}
-        <div className="min-w-0 border-t border-ns-border pt-4">
-          <h3 className="mb-4 font-heading text-sm font-semibold text-ns-text">Profile</h3>
+        <div className="bg-ns-surface border border-ns-border rounded-2xl p-6 flex flex-col items-center">
+          <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-4">Profile</p>
           <ResponsiveContainer width="100%" height={compact ? 200 : 240}>
             <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
               <PolarGrid stroke="rgb(var(--ns-border))" />
@@ -158,8 +162,8 @@ export default function MovieDNACard({ profile, loading = false, compact = false
 
         {/* Score bars */}
         {!compact && (
-          <div className="min-w-0 border-t border-ns-border pt-4">
-            <h3 className="mb-5 font-heading text-sm font-semibold text-ns-text">Breakdown</h3>
+          <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
+            <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-5">Breakdown</p>
             <div className="flex flex-col gap-4">
               {LABELS.map(({ key, label }) => (
                 <ScoreBar key={key} label={label} value={scores[key]} />

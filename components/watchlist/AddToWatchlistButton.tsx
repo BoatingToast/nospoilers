@@ -105,7 +105,7 @@ export default function AddToWatchlistButton({ movie, compact = false }: Props) 
       <button
         onClick={handleClick}
         disabled={loading}
-        className={`flex items-center gap-1.5 rounded font-body text-sm font-medium transition-colors
+        className={`flex items-center gap-1.5 rounded-xl font-body text-sm font-medium transition-all
           ${compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2'}
           ${status === 'watched'
             ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
@@ -130,7 +130,7 @@ export default function AddToWatchlistButton({ movie, compact = false }: Props) 
       {status && !loading && (
         <button
           onClick={handleRemove}
-          className="w-6 h-6 flex items-center justify-center text-ns-muted hover:text-red-400 transition-colors text-sm"
+          className="w-6 h-6 rounded-full flex items-center justify-center text-ns-muted/40 hover:text-red-400 hover:bg-red-500/10 transition-colors text-xs"
           title="Remove from watchlist"
         >
           ×

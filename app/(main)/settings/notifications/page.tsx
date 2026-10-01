@@ -3,10 +3,8 @@
 import { useState, useEffect } from 'react'
 import {
   FriendsIcon, PersonIcon, CollectionsIcon, ReviewsIcon,
-  AchievementsIcon, MovieDnaIcon, RecsIcon,
+  AchievementsIcon, MovieDnaIcon, RecsIcon, NotificationsIcon,
 } from '@/components/icons'
-import PageHeader from '@/components/ui/PageHeader'
-import Badge from '@/components/ui/Badge'
 import type { NotificationPrefs } from '@/services/notifications'
 
 // ── Toggle switch ─────────────────────────────────────────────────────────────
@@ -56,12 +54,14 @@ function PrefRow({
   saving:      boolean
 }) {
   return (
-    <div className="flex min-h-10 items-center justify-between gap-4 border-b border-ns-border py-4">
-      <div className="flex min-w-0 flex-1 items-start gap-3">
-        <span className="mt-0.5 flex-shrink-0">{icon}</span>
-        <div className="min-w-0 flex-1">
+    <div className="flex items-center justify-between gap-4 py-4">
+      <div className="flex items-start gap-3 flex-1 min-w-0">
+        <div className="w-9 h-9 rounded-xl bg-ns-bg/50 border border-ns-border/40 flex items-center justify-center flex-shrink-0 mt-0.5">
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0">
           <p className="text-sm font-body font-semibold text-ns-text leading-tight">{label}</p>
-          <p className="text-xs font-body text-ns-muted mt-0.5 leading-snug">{description}</p>
+          <p className="text-xs font-body text-ns-muted/60 mt-0.5 leading-snug">{description}</p>
         </div>
       </div>
       <Toggle checked={value} onChange={onChange} disabled={saving} />
@@ -173,18 +173,31 @@ export default function NotificationSettingsPage() {
   ]
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-6xl px-4 pb-16 pt-8 sm:px-6 sm:pt-12">
-      <PageHeader title="Notification Settings" lede="Choose what you want to hear about">
-        <p className="font-body text-sm text-ns-muted">Changes are saved automatically.</p>
-        {saved && <Badge variant="secondary" size="md">Saved</Badge>}
-      </PageHeader>
+    <div className="max-w-xl mx-auto px-4 py-10">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-8">
+        <div className="w-10 h-10 rounded-2xl bg-ns-secondary/10 border border-ns-secondary/20 flex items-center justify-center">
+          <NotificationsIcon size={18} className="text-ns-secondary-readable" />
+        </div>
+        <div>
+          <h1 className="text-xl font-heading font-bold text-ns-text">Notification Settings</h1>
+          <p className="text-xs font-body text-ns-muted/60 mt-0.5">Choose what you want to hear about</p>
+        </div>
+        {saved && (
+          <span className="ml-auto text-xs font-body text-ns-secondary-readable/80 bg-ns-secondary/10 px-3 py-1 rounded-full">
+            Saved
+          </span>
+        )}
+      </div>
 
-      <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      {/* Prefs card */}
+      <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
         {loading ? (
           // Skeleton
-          <div className="border-t border-ns-border">
+          <div className="divide-y divide-ns-border/30 px-5">
             {[1,2,3,4,5,6,7,8].map(i => (
-              <div key={i} className="flex items-center gap-3 border-b border-ns-border py-4 animate-pulse">
+              <div key={i} className="flex items-center gap-3 py-4 animate-pulse">
+                <div className="w-9 h-9 rounded-xl bg-ns-border/50 flex-shrink-0" />
                 <div className="flex-1 space-y-1.5">
                   <div className="h-3.5 bg-ns-border/50 rounded w-1/3" />
                   <div className="h-2.5 bg-ns-border/30 rounded w-2/3" />
@@ -194,7 +207,7 @@ export default function NotificationSettingsPage() {
             ))}
           </div>
         ) : (
-          <div className="border-t border-ns-border">
+          <div className="divide-y divide-ns-border/30 px-5">
             {rows.map(r => (
               <PrefRow
                 key={r.key}
@@ -209,6 +222,10 @@ export default function NotificationSettingsPage() {
           </div>
         )}
       </div>
+
+      <p className="text-xs font-body text-ns-muted/40 mt-4 text-center">
+        Changes are saved automatically.
+      </p>
     </div>
   )
 }

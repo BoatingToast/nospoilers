@@ -3,33 +3,52 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { DnaEvolution, DNAScores } from '@/types'
-import Section from '@/components/ui/Section'
+import {
+  MovieDnaIcon,
+  SuspenseIcon,
+  EmotionIcon,
+  ComplexityIcon,
+  HumorIcon,
+  RealismIcon,
+  ActionIcon,
+  DarknessIcon,
+  ArrowRightIcon,
+  type IconProps,
+} from '@/components/icons'
 
 // ─── Label map ────────────────────────────────────────────────────────────────
 
-const DIM_LABELS: Record<keyof DNAScores, string> = {
-  suspenseScore:        'Suspense',
-  emotionalImpactScore: 'Emotional Impact',
-  complexityScore:      'Complexity',
-  humorScore:           'Humor',
-  realismScore:         'Realism',
-  actionScore:          'Action',
-  darknessScore:        'Darkness',
+const DIM_LABELS: Record<keyof DNAScores, { label: string; Icon: React.ComponentType<IconProps> }> = {
+  suspenseScore:        { label: 'Suspense',         Icon: SuspenseIcon   },
+  emotionalImpactScore: { label: 'Emotional Impact', Icon: EmotionIcon    },
+  complexityScore:      { label: 'Complexity',       Icon: ComplexityIcon },
+  humorScore:           { label: 'Humor',            Icon: HumorIcon      },
+  realismScore:         { label: 'Realism',          Icon: RealismIcon    },
+  actionScore:          { label: 'Action',           Icon: ActionIcon     },
+  darknessScore:        { label: 'Darkness',         Icon: DarknessIcon   },
 }
 
-// ─── Delta row ────────────────────────────────────────────────────────────────
+// ─── Delta pill ───────────────────────────────────────────────────────────────
 
-function DeltaRow({ dim, delta }: { dim: keyof DNAScores; delta: number }) {
+function DeltaPill({ dim, delta }: { dim: keyof DNAScores; delta: number }) {
+  const { label, Icon } = DIM_LABELS[dim]
   const positive = delta > 0
   const abs      = Math.abs(delta).toFixed(1)
 
   return (
-    <li className="flex items-baseline justify-between gap-4 border-t border-ns-border py-2.5 font-body text-sm">
-      <span className="text-ns-text">{DIM_LABELS[dim]}</span>
-      <span className={`font-medium tabular-nums ${positive ? 'text-emerald-400' : 'text-rose-400'}`}>
+    <div className={`
+      flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-body border
+      ${positive
+        ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
+        : 'bg-rose-500/10 border-rose-500/25 text-rose-400'
+      }
+    `}>
+      <Icon size={12} className="flex-shrink-0" />
+      <span className="text-white/80">{label}</span>
+      <span className="font-medium">
         {positive ? '+' : '−'}{abs}
       </span>
-    </li>
+    </div>
   )
 }
 
@@ -37,17 +56,17 @@ function DeltaRow({ dim, delta }: { dim: keyof DNAScores; delta: number }) {
 
 function Skeleton() {
   return (
-    <div className="animate-pulse space-y-3 border-t-2 border-ns-text pt-4">
-      <div className="h-6 w-48 rounded bg-ns-surface-2" />
-      <div className="h-3 w-64 rounded bg-ns-surface-2" />
-      <div className="h-24 rounded bg-ns-surface-2" />
+    <div className="bg-ns-surface border border-ns-border rounded-2xl p-5 animate-pulse space-y-3">
+      <div className="h-3 bg-ns-border rounded w-48" />
+      <div className="flex gap-2 flex-wrap">
+        {[1, 2, 3].map(i => <div key={i} className="h-6 bg-ns-border rounded-full w-28" />)}
+      </div>
+      <div className="h-2 bg-ns-border rounded w-64" />
     </div>
   )
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-
-const TITLE = 'Your Taste Is Evolving'
 
 export default function DnaEvolutionWidget() {
   const [data,    setData]    = useState<DnaEvolution | null>(null)
@@ -67,10 +86,15 @@ export default function DnaEvolutionWidget() {
     if (!data || data.ratingCount < 5) return null
 
     return (
-      <Section
-        title={TITLE}
-        note="Keep rating movies — we'll show how your DNA changes over time as you build your profile."
-      />
+      <div className="bg-ns-surface border border-ns-border rounded-2xl p-5">
+        <div className="flex items-center gap-2 mb-1">
+          <MovieDnaIcon size={16} className="text-ns-secondary-readable flex-shrink-0" />
+          <h2 className="text-sm font-heading text-white">Your Taste Is Evolving</h2>
+        </div>
+        <p className="text-xs font-body text-ns-muted">
+          Keep rating movies — we&apos;ll show how your DNA changes over time as you build your profile.
+        </p>
+      </div>
     )
   }
 
@@ -81,47 +105,54 @@ export default function DnaEvolutionWidget() {
   const sorted = [...deltaEntries].sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
 
   return (
-    <Section
-      title={TITLE}
-      note={
-        <>
-          Based on {data.ratingCount} rating{data.ratingCount === 1 ? '' : 's'} · DNA updated
-          {data.snapshotAt ? ` since ${new Date(data.snapshotAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}
-        </>
-      }
-      href="/my-recommendations"
-      linkLabel="See recs →"
-    >
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-10">
-        {/* Deltas */}
-        <ul className="border-b border-ns-border">
-          {sorted.slice(0, 6).map(([dim, delta]) => (
-            <DeltaRow key={dim} dim={dim} delta={delta} />
-          ))}
-        </ul>
-
-        {/* Top influencers */}
-        {data.topInfluencers.length > 0 && (
-          <div className="min-w-0">
-            <h3 className="border-t border-ns-border pt-2.5 font-heading text-sm font-semibold text-ns-text">
-              Top rated this period
-            </h3>
-            <ul className="mt-2">
-              {data.topInfluencers.slice(0, 4).map(film => (
-                <li key={film.tmdbId}>
-                  <Link
-                    href={`/movie/${film.tmdbId}`}
-                    className="flex items-baseline justify-between gap-4 py-1.5 font-body text-sm text-ns-muted transition-colors hover:text-ns-text"
-                  >
-                    <span className="truncate">{film.title}</span>
-                    <span className="font-medium tabular-nums text-ns-secondary-readable">{film.score}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+    <div className="bg-ns-surface border border-ns-border rounded-2xl p-5 space-y-4">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <MovieDnaIcon size={16} className="text-ns-secondary-readable flex-shrink-0" />
+            <h2 className="text-sm font-heading text-white">Your Taste Is Evolving</h2>
           </div>
-        )}
+          <p className="text-[11px] font-body text-ns-muted">
+            Based on {data.ratingCount} rating{data.ratingCount === 1 ? '' : 's'} · DNA updated
+            {data.snapshotAt ? ` since ${new Date(data.snapshotAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}
+          </p>
+        </div>
+        <Link
+          href="/my-recommendations"
+          className="text-[11px] font-body text-ns-secondary-readable hover:text-ns-secondary-readable/80 transition-colors flex-shrink-0 flex items-center gap-1"
+        >
+          See recs <ArrowRightIcon size={11} />
+        </Link>
       </div>
-    </Section>
+
+      {/* Delta pills */}
+      <div className="flex flex-wrap gap-2">
+        {sorted.slice(0, 6).map(([dim, delta]) => (
+          <DeltaPill key={dim} dim={dim} delta={delta} />
+        ))}
+      </div>
+
+      {/* Top influencers */}
+      {data.topInfluencers.length > 0 && (
+        <div>
+          <p className="text-[10px] font-body text-ns-muted mb-2 uppercase tracking-wide">
+            Top rated this period
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            {data.topInfluencers.slice(0, 4).map(film => (
+              <Link
+                key={film.tmdbId}
+                href={`/movie/${film.tmdbId}`}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+              >
+                <span className="text-[10px] font-body text-white/70 truncate max-w-[100px]">{film.title}</span>
+                <span className="text-[10px] font-body text-ns-secondary-readable font-medium">{film.score}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

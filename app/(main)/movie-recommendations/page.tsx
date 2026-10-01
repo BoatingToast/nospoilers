@@ -1,8 +1,5 @@
 import Link from 'next/link'
 import { publicPageMetadata } from '@/lib/seo'
-import Button from '@/components/ui/Button'
-import PageHeader from '@/components/ui/PageHeader'
-import Section from '@/components/ui/Section'
 
 export const metadata = publicPageMetadata({
   title: 'Movie Recommendations — Find Your Next Watch',
@@ -58,61 +55,45 @@ const questions = [
 
 export default function MovieRecommendationsPage() {
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
-      <PageHeader
-        title="MOVIE RECOMMENDATIONS "
-        accent="WITHOUT SPOILERS"
-        lede={
-          <>
-            What movie should you watch tonight? Start with what you enjoy, how much time you have,
-            and how much you want to know before the opening scene. NoSpoilers helps you compare
-            films without needing to read a full plot summary.
-          </>
-        }
-      >
-        <Button variant="primary" size="lg" href="/discover" className="w-full sm:w-auto">
+    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-20">
+      <header className="max-w-3xl">
+        <p className="mb-4 text-xs uppercase tracking-[0.2em] text-ns-secondary-readable">NoSpoilers movie guide</p>
+        <h1 className="font-display text-5xl leading-none tracking-wide sm:text-7xl">MOVIE RECOMMENDATIONS WITHOUT SPOILERS</h1>
+        <p className="mt-6 text-lg leading-8 text-ns-muted">
+          What movie should you watch tonight? Start with what you enjoy, how much time you have,
+          and how much you want to know before the opening scene. NoSpoilers helps you compare
+          films without needing to read a full plot summary.
+        </p>
+        <Link href="/discover" className="mt-8 inline-flex rounded-xl bg-ns-secondary px-6 py-3 text-sm font-semibold text-ns-secondary-foreground hover:bg-ns-secondary/85">
           Find your next movie
-        </Button>
-      </PageHeader>
+        </Link>
+      </header>
 
-      <Section headingId="choose-a-movie" title="HOW TO FIND A MOVIE YOU WILL ENJOY" className="mt-14">
-        <ol>
+      <section aria-labelledby="choose-a-movie" className="mt-16">
+        <h2 id="choose-a-movie" className="font-display text-3xl tracking-wide sm:text-4xl">HOW TO FIND A MOVIE YOU WILL ENJOY</h2>
+        <ol className="mt-8 grid gap-6 sm:grid-cols-2">
           {steps.map((step, index) => (
-            <li
-              key={step.title}
-              className="grid gap-x-10 gap-y-2 border-t border-ns-border py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]"
-            >
-              <h3 className="flex gap-3 font-heading text-lg font-semibold text-ns-text">
-                <span className="text-ns-secondary-readable" aria-hidden="true">0{index + 1}</span>
-                <span className="min-w-0">{step.title}</span>
-              </h3>
-              <div className="min-w-0">
-                <p className="text-sm leading-7 text-ns-muted">{step.text}</p>
-                <Link
-                  href={step.href}
-                  className="mt-2 inline-flex min-h-10 items-center text-sm font-semibold text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text"
-                >
-                  {step.link}
-                </Link>
-              </div>
+            <li key={step.title} className="rounded-2xl border border-ns-border bg-ns-surface/40 p-6">
+              <p className="mb-4 text-xs tracking-widest text-ns-secondary-readable">0{index + 1}</p>
+              <h3 className="font-heading text-lg font-semibold">{step.title}</h3>
+              <p className="mt-3 text-sm leading-7 text-ns-muted">{step.text}</p>
+              <Link href={step.href} className="mt-5 inline-block text-sm font-semibold text-ns-secondary-readable underline-offset-4 hover:underline">{step.link} →</Link>
             </li>
           ))}
         </ol>
-      </Section>
+      </section>
 
-      <Section headingId="recommendation-questions" title="QUESTIONS ABOUT FINDING YOUR NEXT WATCH" className="mt-14">
-        <div>
+      <section aria-labelledby="recommendation-questions" className="mt-16">
+        <h2 id="recommendation-questions" className="font-display text-3xl tracking-wide sm:text-4xl">QUESTIONS ABOUT FINDING YOUR NEXT WATCH</h2>
+        <div className="mt-6 divide-y divide-ns-border">
           {questions.map(item => (
-            <div
-              key={item.question}
-              className="grid gap-x-10 gap-y-2 border-t border-ns-border py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]"
-            >
-              <h3 className="font-heading text-lg font-semibold text-ns-text">{item.question}</h3>
-              <p className="text-sm leading-7 text-ns-muted">{item.answer}</p>
+            <div key={item.question} className="py-6">
+              <h3 className="font-heading text-lg font-semibold">{item.question}</h3>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-ns-muted">{item.answer}</p>
             </div>
           ))}
         </div>
-      </Section>
+      </section>
     </div>
   )
 }

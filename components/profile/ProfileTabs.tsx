@@ -40,7 +40,7 @@ function TabSkeleton() {
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="animate-pulse">
-          <div className="aspect-[2/3] bg-ns-border rounded mb-2" />
+          <div className="aspect-[2/3] bg-ns-border rounded-xl mb-2" />
           <div className="h-3 bg-ns-border rounded w-4/5" />
         </div>
       ))}
@@ -54,15 +54,14 @@ export default function ProfileTabs({ username, ratingCount, watchlistCount }: P
   return (
     <div>
       {/* Tab bar */}
-      <div className="mb-6 grid grid-cols-2 border-b border-ns-border sm:flex sm:gap-6">
+      <div className="flex gap-1 border-b border-ns-border mb-6 overflow-x-auto scrollbar-hide">
         {TABS.map(({ key, label, Icon }) => {
           const isActive = active === key
-          const count = key === 'ratings' ? ratingCount : key === 'watchlist' ? watchlistCount : 0
           return (
             <button
               key={key}
               onClick={() => setActive(key)}
-              className={`-mb-px flex min-h-[44px] items-center gap-1.5 border-b-2 py-3 text-sm font-heading whitespace-nowrap transition-colors
+              className={`flex items-center gap-1.5 px-4 py-3 text-sm font-body whitespace-nowrap border-b-2 transition-colors
                 ${isActive
                   ? 'border-ns-secondary text-white'
                   : 'border-transparent text-ns-muted hover:text-ns-text'
@@ -70,8 +69,11 @@ export default function ProfileTabs({ username, ratingCount, watchlistCount }: P
             >
               <Icon size={15} className={isActive ? 'text-ns-secondary-readable' : 'text-current'} />
               {label}
-              {count > 0 && (
-                <span className="text-xs font-body text-ns-muted">{count}</span>
+              {key === 'ratings'   && ratingCount    > 0 && (
+                <span className="text-[10px] bg-ns-border px-1.5 py-0.5 rounded-full text-ns-muted">{ratingCount}</span>
+              )}
+              {key === 'watchlist' && watchlistCount > 0 && (
+                <span className="text-[10px] bg-ns-border px-1.5 py-0.5 rounded-full text-ns-muted">{watchlistCount}</span>
               )}
             </button>
           )

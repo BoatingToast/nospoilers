@@ -1,7 +1,5 @@
 'use client'
 
-import Button from '@/components/ui/Button'
-
 interface Props {
   movieTitle: string
   onEnter:    () => void
@@ -9,26 +7,51 @@ interface Props {
 
 export default function SpoilerZoneGate({ movieTitle, onEnter }: Props) {
   return (
-    <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:items-end lg:gap-10">
-      <div className="min-w-0">
-        <h3 className="font-display text-3xl leading-none tracking-wide text-ns-text sm:text-4xl">
+    <div className="max-w-lg mx-auto py-4">
+      {/* Card */}
+      <div className="relative overflow-hidden bg-ns-surface border border-ns-warning/25 rounded-2xl p-10 text-center
+                      shadow-[0_0_60px_-15px_rgb(var(--ns-warning)/0.15)]">
+
+        {/* Glow bg */}
+        <div className="absolute inset-0 bg-gradient-to-b from-ns-warning/5 to-transparent pointer-events-none" />
+
+        {/* Warning icon */}
+        <div className="relative w-16 h-16 mx-auto mb-6 rounded-full bg-ns-warning/10 border border-ns-warning/30
+                        flex items-center justify-center">
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            strokeWidth="1.75" className="text-ns-warning">
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+          </svg>
+        </div>
+
+        <h3 className="relative font-display text-2xl tracking-widest text-ns-text mb-3">
           ENTER THE SPOILER ZONE?
         </h3>
-        <p className="mt-3 font-body text-base text-ns-text">
-          Everything inside may contain full spoilers for{' '}
-          <span className="break-words font-semibold text-ns-secondary-readable">{movieTitle}</span>
+
+        <p className="relative text-ns-muted font-body text-sm mb-1">
+          Everything inside may contain full spoilers for
         </p>
-        <p className="mt-3 max-w-2xl font-body text-sm leading-relaxed text-ns-muted">
+        <p className="relative text-ns-secondary-readable font-body font-semibold text-base mb-6 truncate px-4">
+          {movieTitle}
+        </p>
+
+        <div className="relative w-full h-px bg-ns-border mb-6" />
+
+        <p className="relative text-ns-muted/70 font-body text-xs leading-relaxed mb-8 max-w-sm mx-auto">
           The Spoiler Zone is an open discussion room for people who have already watched this film.
           Plot twists, endings, and theories are fair game inside.
         </p>
-      </div>
 
-      <div className="min-w-0 border-t border-ns-border pt-4">
-        <Button variant="primary" size="lg" onClick={onEnter} className="w-full sm:w-auto">
+        <button
+          onClick={onEnter}
+          className="relative px-10 py-3.5 rounded-xl bg-ns-warning text-black font-body font-bold text-sm
+                     hover:bg-ns-warning active:scale-95 transition-all duration-150 shadow-lg shadow-ns-warning/20"
+        >
           Enter Spoiler Zone
-        </Button>
-        <p className="mt-3 font-body text-xs text-ns-muted">
+        </button>
+
+        <p className="relative mt-4 text-[10px] font-body text-ns-muted/40 tracking-wide">
           We&apos;ll remember your choice for this movie
         </p>
       </div>

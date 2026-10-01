@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import CollectionSearchBar from './CollectionSearchBar'
 import EnrichedCollectionCard from './EnrichedCollectionCard'
 import type { EnrichedCollectionData } from '@/types'
+import { SearchIcon, CollectionsIcon } from '@/components/icons'
 
 export default function CollectionSearchClient() {
   const router       = useRouter()
@@ -74,12 +75,12 @@ export default function CollectionSearchClient() {
 
       {/* Loading */}
       {loading && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="mb-3 aspect-[2/3] rounded bg-ns-border" />
-              <div className="mb-1.5 h-3 w-4/5 rounded bg-ns-border" />
-              <div className="h-2.5 w-2/5 rounded bg-ns-border" />
+              <div className="aspect-[2/3] rounded-xl bg-ns-border mb-3" />
+              <div className="h-3 bg-ns-border rounded w-4/5 mb-1.5" />
+              <div className="h-2.5 bg-ns-border rounded w-2/5" />
             </div>
           ))}
         </div>
@@ -87,7 +88,7 @@ export default function CollectionSearchClient() {
 
       {/* Results grid */}
       {!loading && results.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {results.map(col => (
             <EnrichedCollectionCard key={col.id} collection={col} showVotes />
           ))}
@@ -96,9 +97,10 @@ export default function CollectionSearchClient() {
 
       {/* Empty */}
       {!loading && searched && results.length === 0 && (
-        <div className="border-t border-ns-border py-8">
-          <p className="mb-1 font-body text-sm font-medium text-ns-text">No collections found</p>
-          <p className="font-body text-sm text-ns-muted">
+        <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
+          <SearchIcon size={44} className="text-ns-secondary-readable/40 mx-auto mb-4" />
+          <p className="text-ns-text font-body font-medium text-sm mb-1">No collections found</p>
+          <p className="text-ns-muted font-body text-xs">
             Try a different title, creator username, or movie name.
           </p>
         </div>
@@ -106,9 +108,12 @@ export default function CollectionSearchClient() {
 
       {/* Initial state */}
       {!loading && !searched && (
-        <p className="border-t border-ns-border py-8 font-body text-sm text-ns-muted">
-          Search by collection title, creator, or a movie title in the collection.
-        </p>
+        <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
+          <CollectionsIcon size={44} className="text-ns-secondary-readable/40 mx-auto mb-4" />
+          <p className="text-ns-muted font-body text-sm">
+            Search by collection title, creator, or a movie title in the collection.
+          </p>
+        </div>
       )}
     </div>
   )

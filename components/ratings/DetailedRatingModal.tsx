@@ -129,25 +129,27 @@ export default function DetailedRatingModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative z-10 w-full max-w-lg bg-ns-bg border border-ns-border border-t-2 border-t-ns-text rounded
-                      overflow-hidden max-h-[92vh] flex flex-col">
+      <div className="relative z-10 w-full max-w-lg bg-ns-bg border border-ns-border rounded-2xl
+                      shadow-2xl shadow-black/80 overflow-hidden max-h-[92vh] flex flex-col">
+        {/* Gold strip */}
+        <div className="h-0.5 w-full bg-gradient-to-r from-ns-secondary/0 via-ns-secondary to-ns-secondary/0 flex-shrink-0" />
 
         {/* Scrollable body */}
         <div className="overflow-y-auto flex-1 p-6 space-y-7">
 
           {/* Header */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h2 className="font-display text-3xl tracking-wide text-ns-text leading-none">
-                {movie.title.toUpperCase()}
-              </h2>
-              <p className="text-ns-muted text-sm font-body mt-2">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-ns-secondary-readable text-[10px] tracking-widest uppercase font-body mb-1">
                 Detailed Rating
               </p>
+              <h2 className="font-display text-2xl tracking-wider text-ns-text leading-tight">
+                {movie.title.toUpperCase()}
+              </h2>
             </div>
-            <button onClick={onClose} className="-mr-2 -mt-2 flex h-10 w-10 flex-shrink-0 items-center justify-center text-ns-muted hover:text-ns-text transition-colors">
+            <button onClick={onClose} className="text-ns-muted hover:text-ns-text transition-colors mt-1">
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M18 6L6 18M6 6l12 12"/>
               </svg>
@@ -155,27 +157,27 @@ export default function DetailedRatingModal({
           </div>
 
           {/* ── Section 1: Overall Rating ── */}
-          <div className="border-t border-ns-border pt-4">
-            <p className="text-ns-text text-sm font-heading font-semibold mb-4">
+          <div>
+            <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-4">
               Overall Rating
             </p>
             <div className="flex flex-col items-center gap-1">
               <ScoreDial value={score} onChange={setScore} size={160} />
-              <p className="text-ns-muted text-xs font-body text-center mt-1">
+              <p className="text-ns-muted/60 text-[11px] font-body text-center mt-1">
                 Your final verdict — 1 to 100
               </p>
             </div>
           </div>
 
           {/* ── Section 2: Advanced Preferences ── */}
-          <div className="border-t border-ns-border pt-4">
+          <div>
             <div className="flex items-baseline justify-between mb-1">
-              <p className="text-ns-text text-sm font-heading font-semibold">
+              <p className="text-ns-muted text-xs tracking-widest uppercase font-body">
                 Advanced Preferences
               </p>
-              <span className="text-ns-muted text-xs font-body">Optional</span>
+              <span className="text-ns-muted/50 text-[10px] font-body normal-case">Optional</span>
             </div>
-            <p className="text-ns-muted text-xs font-body mb-4 leading-relaxed">
+            <p className="text-ns-muted/70 text-[11px] font-body mb-4 leading-relaxed">
               These dimensions help us understand <em>why</em> you liked a movie.
               They do not affect your overall rating.
             </p>
@@ -193,9 +195,9 @@ export default function DetailedRatingModal({
           </div>
 
           {/* ── Notes ── */}
-          <div className="space-y-2 border-t border-ns-border pt-4">
-            <p className="text-ns-text text-sm font-heading font-semibold">
-              Notes <span className="text-xs font-body font-normal text-ns-muted">(optional)</span>
+          <div className="space-y-2">
+            <p className="text-ns-muted text-xs tracking-widest uppercase font-body">
+              Notes <span className="normal-case text-[10px]">(optional)</span>
             </p>
             <textarea
               value={review}
@@ -203,26 +205,26 @@ export default function DetailedRatingModal({
               rows={3}
               placeholder="What stood out? What didn't work?"
               maxLength={500}
-              className="w-full bg-ns-surface border border-ns-border rounded px-3 py-2.5
+              className="w-full bg-ns-surface border border-ns-border rounded-xl px-3 py-2.5
                          text-ns-text text-sm font-body placeholder:text-ns-muted/40 resize-none
                          focus:outline-none focus:border-ns-secondary/40 transition-colors"
             />
-            <p className="text-ns-muted text-[11px] font-body text-right">
+            <p className="text-ns-muted/40 text-[10px] font-body text-right">
               {review.length}/500
             </p>
           </div>
 
-          {error && <p className="text-red-400 text-xs font-body">{error}</p>}
+          {error && <p className="text-red-400 text-xs font-body text-center">{error}</p>}
         </div>
 
         {/* Sticky footer */}
-        <div className="flex-shrink-0 p-4 border-t border-ns-border bg-ns-bg">
+        <div className="flex-shrink-0 p-4 pt-0 border-t border-ns-border bg-ns-bg">
           <div className="flex gap-3">
             {existing && (
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="px-4 py-3 rounded border border-red-500/30 text-red-400/70
+                className="px-4 py-3 rounded-xl border border-red-500/30 text-red-400/70
                            font-body text-sm hover:text-red-400 hover:border-red-500/50
                            transition-colors disabled:opacity-50"
               >
@@ -232,8 +234,8 @@ export default function DetailedRatingModal({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex-1 py-3 rounded bg-ns-secondary text-ns-secondary-foreground font-heading font-semibold
-                         text-sm hover:bg-ns-text hover:text-ns-bg disabled:opacity-50
+              className="flex-1 py-3 rounded-xl bg-ns-secondary text-ns-secondary-foreground font-body font-semibold
+                         text-sm tracking-wide hover:bg-amber-400 disabled:opacity-50
                          transition-colors"
             >
               {saving ? 'Saving…' : existing ? 'Update Rating' : 'Save Rating'}

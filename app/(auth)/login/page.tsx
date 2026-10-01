@@ -1,21 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import Input from '@/components/ui/Input'
 import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
-import { readCallbackUrl, withCallbackUrl } from '@/lib/callback-url'
 
 export default function LoginPage() {
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
-  const [callbackUrl, setCallbackUrl] = useState<string | null>(null)
-
-  useEffect(() => { setCallbackUrl(readCallbackUrl()) }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -42,7 +38,11 @@ export default function LoginPage() {
       // Hard navigation so the browser sends the freshly-set session cookie with the
       // request, middleware evaluates onboardingCompleted, and ALL server components
       // re-render in authenticated state.
-      window.location.assign(readCallbackUrl() ?? '/discover')
+      const requestedDestination = new URLSearchParams(window.location.search).get('callbackUrl')
+      const safeDestination = requestedDestination?.startsWith('/') && !requestedDestination.startsWith('//')
+        ? requestedDestination
+        : '/discover'
+      window.location.assign(safeDestination)
     } catch {
       setError('Could not reach NoSpoilers. Check your connection and try again.')
     } finally {
@@ -51,23 +51,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto grid w-full min-w-0 max-w-6xl gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:items-start">
-      <h1 className="min-w-0 font-display text-[clamp(3rem,12.5vw,7rem)] leading-[0.86] tracking-wide text-ns-text">
-        WELCOME{' '}
-        <span className="block text-ns-secondary-readable">BACK</span>
-      </h1>
+    <div className="w-full max-w-md">
+      <div className="mb-8">
+        <h1 className="font-display text-4xl tracking-wider text-ns-text mb-2">WELCOME BACK</h1>
+        <p className="text-ns-muted font-body text-sm">Sign in to your NoSpoilers account.</p>
+      </div>
 
-      <div className="min-w-0 border-t-2 border-ns-text pt-5">
-      <p className="font-body text-base leading-relaxed text-ns-text sm:text-lg">Sign in to your NoSpoilers account.</p>
-
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4" aria-describedby={error ? 'login-error' : undefined}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4" aria-describedby={error ? 'login-error' : undefined}>
         {error && (
           <div
             id="login-error"
             role="alert"
             aria-live="assertive"
             aria-atomic="true"
-            className="border-l-2 border-ns-danger py-1 pl-3 font-body text-sm text-ns-danger"
+            className="p-3 rounded-xl bg-ns-danger/10 border border-ns-danger/20 text-ns-danger text-sm font-body"
           >
             {error}
           </div>
@@ -109,13 +106,12 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <p className="mt-6 border-t border-ns-border pt-4 font-body text-sm text-ns-muted">
+      <p className="text-center text-ns-muted text-sm font-body mt-6">
         Don&apos;t have an account?{' '}
-        <Link href={withCallbackUrl('/register', callbackUrl)} className="text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text">
+        <Link href="/register" className="text-ns-secondary-readable hover:underline">
           Create one
         </Link>
       </p>
-      </div>
     </div>
   )
 }

@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import type { EnrichedRec } from '@/services/curated-recs'
-import Badge from '@/components/ui/Badge'
 import {
   CloseIcon, StarIcon, MovieDnaIcon,
   ComplexityIcon, EmotionIcon, SuspenseIcon, DarknessIcon,
@@ -52,22 +51,22 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
 
       {/* Panel */}
       <div
-        className="relative bg-ns-surface border border-ns-border rounded max-w-md w-full max-h-[85vh] overflow-y-auto"
+        className="relative bg-ns-surface border border-ns-border rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="sticky top-0 bg-ns-surface border-b border-ns-border px-5 py-4 flex items-center justify-between">
-          <div className="min-w-0">
-            <h3 className="text-lg font-heading font-semibold text-ns-text leading-tight line-clamp-1">
-              {rec.title}
-            </h3>
-            <p className="mt-0.5 text-xs font-body text-ns-muted">
+          <div>
+            <p className="text-[10px] font-body text-ns-secondary-readable uppercase tracking-widest mb-0.5">
               Why We Recommend
             </p>
+            <h3 className="text-base font-heading text-white leading-tight line-clamp-1">
+              {rec.title}
+            </h3>
           </div>
           <button
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center text-ns-muted hover:text-ns-text transition-colors ml-3 flex-shrink-0"
+            className="text-ns-muted hover:text-white transition-colors p-1 ml-3 flex-shrink-0"
           >
             <CloseIcon size={18} />
           </button>
@@ -75,10 +74,10 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
 
         <div className="p-5 space-y-5">
           {/* Match score */}
-          <div className="flex items-end gap-4 border-b-2 border-ns-text pb-4">
-            <span className="font-display text-5xl leading-none tracking-wide text-ns-secondary-readable">{rec.matchScore}%</span>
+          <div className="flex items-center gap-3 bg-ns-secondary/10 border border-ns-secondary/30 rounded-xl p-4">
+            <span className="text-3xl font-heading text-ns-secondary-readable">{rec.matchScore}%</span>
             <div>
-              <p className="text-xs font-body text-ns-text font-semibold">Overall Match</p>
+              <p className="text-xs font-body text-ns-secondary-readable font-semibold">Overall Match</p>
               <p className="text-xs font-body text-ns-muted">
                 {rec.matchScore >= 90 ? 'Exceptional fit for your taste DNA'
                   : rec.matchScore >= 75 ? 'Strong alignment with your preferences'
@@ -108,15 +107,15 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
                         </div>
                         <span className="text-xs font-mono text-ns-secondary-readable">{matchPct}% match</span>
                       </div>
-                      <div className="h-1.5 bg-ns-border overflow-hidden">
+                      <div className="h-1.5 bg-ns-border rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-ns-secondary"
+                          className={`h-full bg-gradient-to-r ${meta.color} rounded-full transition-all duration-700`}
                           style={{ width: `${matchPct}%` }}
                         />
                       </div>
                       <div className="flex justify-between mt-0.5">
-                        <span className="text-[11px] text-ns-muted">You: {trait.yourScore.toFixed(1)}</span>
-                        <span className="text-[11px] text-ns-muted">Film: {trait.movieScore.toFixed(1)}</span>
+                        <span className="text-[10px] text-ns-muted">You: {trait.yourScore.toFixed(1)}</span>
+                        <span className="text-[10px] text-ns-muted">Film: {trait.movieScore.toFixed(1)}</span>
                       </div>
                     </div>
                   )
@@ -135,7 +134,7 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
                 {rec.matchedFavorites.map(fav => (
                   <div key={fav} className="flex items-center gap-2 text-xs font-body text-ns-text">
                     <StarIcon size={12} className="text-ns-secondary-readable flex-shrink-0" />
-                    <span>Because you liked <strong className="text-ns-text">{fav}</strong></span>
+                    <span>Because you liked <strong className="text-white">{fav}</strong></span>
                   </div>
                 ))}
               </div>
@@ -151,7 +150,7 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
               <div className="space-y-1.5">
                 {rec.matchedRatings.map(rating => (
                   <div key={`${rating.title}-${rating.score}`} className="flex items-center justify-between gap-3 text-xs font-body">
-                    <span className="text-ns-text">Because you rated <strong className="text-ns-text">{rating.title}</strong></span>
+                    <span className="text-ns-text">Because you rated <strong className="text-white">{rating.title}</strong></span>
                     <span className="text-ns-secondary-readable font-mono flex-shrink-0">{rating.score}/100</span>
                   </div>
                 ))}
@@ -164,7 +163,7 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
               <h4 className="text-xs font-body text-ns-muted uppercase tracking-wider mb-2">
                 Your Recommendation Feedback
               </h4>
-              <p className="text-xs font-body text-ns-text border-l-2 border-ns-border pl-3">
+              <p className="text-xs font-body text-ns-text bg-white/5 rounded-lg px-3 py-2.5 border border-ns-border">
                 You liked {rec.matchedLikedPicks.join(' and ')}, so this result follows that signal.
               </p>
             </section>
@@ -178,9 +177,12 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
               </h4>
               <div className="flex flex-wrap gap-1.5">
                 {rec.matchedGenres.map(g => (
-                  <Badge key={g} variant="secondary">
+                  <span
+                    key={g}
+                    className="text-[10px] font-body text-ns-secondary-readable bg-ns-secondary/10 border border-ns-secondary/20 px-2 py-0.5 rounded-full"
+                  >
                     {g}
-                  </Badge>
+                  </span>
                 ))}
               </div>
             </section>
@@ -192,7 +194,7 @@ export default function RecBreakdownModal({ rec, onClose }: Props) {
               <h4 className="text-xs font-body text-ns-muted uppercase tracking-wider mb-2">
                 Your Rating Pattern
               </h4>
-              <p className="text-xs font-body text-ns-text border-l-2 border-ns-border pl-3">
+              <p className="text-xs font-body text-ns-text bg-white/5 rounded-lg px-3 py-2.5 border border-ns-border">
                 {rec.ratingInsight}
               </p>
             </section>

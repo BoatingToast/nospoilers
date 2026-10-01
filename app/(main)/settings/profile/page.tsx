@@ -4,9 +4,6 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Avatar from '@/components/ui/Avatar'
-import Button from '@/components/ui/Button'
-import PageHeader from '@/components/ui/PageHeader'
-import Section from '@/components/ui/Section'
 import AvatarUploadModal from '@/components/profile/AvatarUploadModal'
 
 // ── Genre list ────────────────────────────────────────────────────────────────
@@ -34,12 +31,10 @@ function Field({
   children: React.ReactNode
 }) {
   return (
-    <div className="grid gap-2 border-b border-ns-border py-4 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-6">
-      <div className="min-w-0">
-        <label className="block text-sm font-body font-medium text-ns-text">{label}</label>
-        {hint && <p className="mt-1 text-xs font-body text-ns-muted">{hint}</p>}
-      </div>
-      <div className="min-w-0">{children}</div>
+    <div className="space-y-1.5">
+      <label className="block text-xs font-body text-ns-muted tracking-wide uppercase">{label}</label>
+      {children}
+      {hint && <p className="text-[11px] font-body text-ns-muted/50">{hint}</p>}
     </div>
   )
 }
@@ -62,7 +57,7 @@ function TextInput({
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       maxLength={maxLength}
-      className="w-full min-w-0 bg-ns-surface border border-ns-border rounded px-4 py-2.5 text-sm font-body
+      className="w-full bg-ns-surface border border-ns-border rounded-xl px-4 py-2.5 text-sm font-body
                  text-ns-text placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-secondary/40 transition-colors"
     />
   )
@@ -212,19 +207,19 @@ export default function EditProfilePage() {
   if (!session) return null
 
   return (
-    <div className="min-h-screen pb-28">
-      <div className="mx-auto w-full min-w-0 max-w-6xl px-4 pt-8 sm:px-6 sm:pt-12">
+    <div className="min-h-screen pb-24">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6">
 
-        <PageHeader
-          title="EDIT PROFILE"
-          lede="Settings for how you appear to other film lovers, and the taste details shown on your profile."
-        />
-
-        <div className="mt-10 grid min-w-0 gap-12 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        {/* Header */}
+        <div className="pt-2 pb-8 border-b border-ns-border mb-10">
+          <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-2">Settings</p>
+          <h1 className="font-display text-5xl tracking-wider text-ns-text">EDIT PROFILE</h1>
+        </div>
 
         {/* ── Avatar section ───────────────────────────────────────────── */}
-        <Section title="Profile Photo" className="lg:order-2 lg:self-start">
-          <div className="flex flex-wrap items-center gap-6">
+        <section className="mb-10">
+          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-5">Profile Photo</p>
+          <div className="flex items-center gap-6">
             <Avatar
               src={profile.avatarUrl}
               username={profile.username}
@@ -235,8 +230,8 @@ export default function EditProfilePage() {
             <div>
               <button
                 onClick={() => setShowCropModal(true)}
-                className="min-h-10 rounded border border-ns-text/70 px-4 py-2 font-heading text-sm font-semibold text-ns-text
-                           transition-colors hover:bg-ns-text hover:text-ns-bg"
+                className="px-4 py-2 rounded-xl border border-ns-secondary/30 text-ns-secondary-readable text-sm font-body
+                           hover:border-ns-secondary/60 hover:bg-ns-secondary/5 transition-all"
               >
                 Change Photo
               </button>
@@ -255,23 +250,21 @@ export default function EditProfilePage() {
                       setError(err instanceof Error ? err.message : 'Failed to remove photo')
                     }
                   }}
-                  className="mt-2 block min-h-10 text-xs font-body text-ns-muted underline underline-offset-4 transition-colors hover:text-red-400"
+                  className="block mt-2 text-xs font-body text-ns-muted/60 hover:text-red-400 transition-colors"
                 >
                   Remove photo
                 </button>
               )}
-              <p className="text-xs font-body text-ns-muted">
+              <p className="text-[11px] font-body text-ns-muted/50 mt-2">
                 JPG, PNG or WEBP · Max 5 MB
               </p>
             </div>
           </div>
-        </Section>
-
-        <div className="min-w-0 space-y-12 lg:order-1">
+        </section>
 
         {/* ── Basic info ───────────────────────────────────────────────── */}
-        <Section title="Basic Info">
-          <div className="border-t border-ns-border">
+        <section className="mb-10 space-y-5">
+          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Basic Info</p>
 
           <Field label="Username" hint="Your username cannot be changed.">
             <TextInput
@@ -298,11 +291,11 @@ export default function EditProfilePage() {
                 placeholder="Tell other film lovers about yourself…"
                 maxLength={500}
                 rows={3}
-                className="w-full bg-ns-surface border border-ns-border rounded px-4 py-3 text-sm font-body
+                className="w-full bg-ns-surface border border-ns-border rounded-xl px-4 py-3 text-sm font-body
                            text-ns-text placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-secondary/40
                            transition-colors resize-none"
               />
-              <span className="absolute bottom-2.5 right-3 text-[11px] font-body text-ns-muted">
+              <span className="absolute bottom-2.5 right-3 text-[10px] font-body text-ns-muted/40">
                 {profile.bio.length}/500
               </span>
             </div>
@@ -316,15 +309,14 @@ export default function EditProfilePage() {
               maxLength={80}
             />
           </Field>
-          </div>
-        </Section>
+        </section>
 
         {/* ── Film taste ───────────────────────────────────────────────── */}
-        <Section title="Film Taste">
-          <div className="border-t border-ns-border">
+        <section className="mb-10 space-y-5">
+          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Film Taste</p>
 
           <Field label="Favorite Genres" hint="Select as many as you like.">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mt-1">
               {ALL_GENRES.map(genre => {
                 const selected = profile.favoriteGenres.includes(genre)
                 return (
@@ -332,7 +324,7 @@ export default function EditProfilePage() {
                     key={genre}
                     type="button"
                     onClick={() => toggleGenre(genre)}
-                    className={`min-h-10 rounded px-3 py-1.5 text-xs font-body capitalize transition-colors border ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-body capitalize transition-all border ${
                       selected
                         ? 'bg-ns-secondary text-ns-secondary-foreground border-ns-secondary font-medium'
                         : 'border-ns-border text-ns-muted hover:border-ns-muted/40'
@@ -349,7 +341,7 @@ export default function EditProfilePage() {
             <select
               value={profile.favoriteDecade}
               onChange={e => set('favoriteDecade', e.target.value)}
-              className="w-full bg-ns-surface border border-ns-border rounded px-4 py-2.5 text-sm font-body
+              className="w-full bg-ns-surface border border-ns-border rounded-xl px-4 py-2.5 text-sm font-body
                          text-ns-text focus:outline-none focus:border-ns-secondary/40 transition-colors"
             >
               <option value="">— Select a decade —</option>
@@ -374,16 +366,15 @@ export default function EditProfilePage() {
               maxLength={80}
             />
           </Field>
-          </div>
-        </Section>
+        </section>
 
         {/* ── Social links ─────────────────────────────────────────────── */}
-        <Section title="Social Links">
-          <div className="border-t border-ns-border">
+        <section className="mb-12 space-y-5">
+          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Social Links</p>
 
           <Field label="Letterboxd">
             <div className="flex items-center gap-2">
-              <span className="text-ns-muted text-sm font-body whitespace-nowrap">letterboxd.com/</span>
+              <span className="text-ns-muted/50 text-sm font-body whitespace-nowrap">letterboxd.com/</span>
               <TextInput
                 value={profile.letterboxdUrl}
                 onChange={v => set('letterboxdUrl', v)}
@@ -395,7 +386,7 @@ export default function EditProfilePage() {
 
           <Field label="X / Twitter">
             <div className="flex items-center gap-2">
-              <span className="text-ns-muted text-sm font-body">x.com/</span>
+              <span className="text-ns-muted/50 text-sm font-body">x.com/</span>
               <TextInput
                 value={profile.twitterUrl}
                 onChange={v => set('twitterUrl', v)}
@@ -407,7 +398,7 @@ export default function EditProfilePage() {
 
           <Field label="Instagram">
             <div className="flex items-center gap-2">
-              <span className="text-ns-muted text-sm font-body whitespace-nowrap">instagram.com/</span>
+              <span className="text-ns-muted/50 text-sm font-body whitespace-nowrap">instagram.com/</span>
               <TextInput
                 value={profile.instagramUrl}
                 onChange={v => set('instagramUrl', v)}
@@ -416,15 +407,11 @@ export default function EditProfilePage() {
               />
             </div>
           </Field>
-          </div>
-        </Section>
-
-        </div>
-        </div>
+        </section>
 
         {/* ── Save bar ─────────────────────────────────────────────────── */}
-        <div className="fixed bottom-0 left-0 right-0 z-10 border-t-2 border-ns-text bg-ns-bg px-4 py-3 sm:px-6">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="fixed bottom-0 left-0 right-0 bg-ns-bg/95 backdrop-blur-md border-t border-ns-border px-4 py-4 z-10">
+          <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
             {error && (
               <p className="text-red-400 text-xs font-body flex-1 truncate">{error}</p>
             )}
@@ -434,12 +421,20 @@ export default function EditProfilePage() {
             {!error && !saved && <span className="flex-1" />}
 
             <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={() => router.push(`/profile/${profile.username}`)}>
+              <button
+                onClick={() => router.push(`/profile/${profile.username}`)}
+                className="px-4 py-2.5 rounded-xl border border-ns-border text-ns-muted text-sm font-body hover:text-ns-text transition-colors"
+              >
                 View Profile
-              </Button>
-              <Button variant="primary" onClick={handleSave} disabled={saving}>
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-6 py-2.5 bg-ns-secondary text-ns-secondary-foreground rounded-xl text-sm font-body font-medium
+                           hover:bg-ns-secondary/90 transition-colors disabled:opacity-60"
+              >
                 {saving ? 'Saving…' : 'Save Changes'}
-              </Button>
+              </button>
             </div>
           </div>
         </div>

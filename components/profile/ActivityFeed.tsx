@@ -32,19 +32,19 @@ function timeAgo(iso: string): string {
 
 export default function ActivityFeed({ events, username }: Props) {
   return (
-    <div className="min-w-0 border-t-2 border-ns-text pt-4">
-      <h3 className="font-heading text-sm font-semibold text-ns-text mb-3">
+    <div className="bg-ns-surface border border-ns-border rounded-2xl p-5">
+      <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">
         Activity
-      </h3>
-      <div className="flex flex-col">
+      </p>
+      <div className="flex flex-col gap-3">
         {events.map(event => (
-          <div key={event.id} className="flex items-start gap-3 border-t border-ns-border py-3">
+          <div key={event.id} className="flex items-start gap-3">
             {(() => { const Ico = EVENT_ICONS[event.type] ?? FilmIcon; return <Ico size={14} className="text-ns-secondary-readable/70 flex-shrink-0 mt-0.5" /> })()}
             <div className="flex-1 min-w-0">
-              <p className="text-ns-text text-sm font-body leading-snug">
+              <p className="text-ns-text text-xs font-body leading-snug">
                 {formatActivityEvent(event, username)}
               </p>
-              <p className="text-ns-muted/50 text-[11px] font-body mt-0.5">
+              <p className="text-ns-muted/50 text-[10px] font-body mt-0.5">
                 {timeAgo(event.createdAt)}
               </p>
             </div>

@@ -16,10 +16,10 @@ interface Option {
 }
 
 const OPTIONS: Option[] = [
-  { value: 'liked',          Icon: ThumbUpIcon,   label: 'Like',       active: 'bg-ns-success/10 border-ns-success/40 text-ns-success' },
+  { value: 'liked',          Icon: ThumbUpIcon,   label: 'Like',       active: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400' },
   { value: 'watched',        Icon: EyeIcon,       label: 'Watched',    active: 'bg-ns-secondary/15 border-ns-secondary/40 text-ns-secondary-readable' },
   { value: 'not_interested', Icon: ThumbDownIcon, label: 'Not for me', active: 'bg-ns-muted/10 border-ns-muted/40 text-ns-muted' },
-  { value: 'dismissed',      Icon: CloseIcon,     label: 'Dismiss',    active: 'bg-ns-danger/10 border-ns-danger/40 text-ns-danger' },
+  { value: 'dismissed',      Icon: CloseIcon,     label: 'Dismiss',    active: 'bg-red-500/10 border-red-500/40 text-red-400' },
 ]
 
 export default function FeedbackButtons({ recommendationId, initialFeedback }: Props) {
@@ -49,10 +49,10 @@ export default function FeedbackButtons({ recommendationId, initialFeedback }: P
           onClick={() => submit(value)}
           disabled={loading !== null}
           title={label}
-          className={`flex min-h-10 min-w-10 items-center justify-center gap-1 px-2.5 py-1 rounded border text-[11px] font-body transition-colors
+          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] font-body transition-all
             ${feedback === value
               ? active
-              : 'border-ns-border text-ns-muted hover:border-ns-text hover:text-ns-text'
+              : 'border-ns-border text-ns-muted/50 hover:border-ns-muted/30 hover:text-ns-muted'
             }
             ${loading === value ? 'opacity-50' : ''}
           `}

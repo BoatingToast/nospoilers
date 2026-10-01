@@ -1,6 +1,6 @@
 import MovieCard from '@/components/ui/MovieCard'
 import RefreshButton from '@/components/ui/RefreshButton'
-import Section from '@/components/ui/Section'
+import { WarningIcon } from '@/components/icons'
 import { getTrendingMovies } from '@/services/tmdb'
 import type { TMDbMovie } from '@/types'
 
@@ -21,42 +21,66 @@ export default async function FeaturedMovies() {
   const result = await getMovies()
 
   return (
-    <div className="min-w-0 overflow-hidden bg-ns-bg px-4 py-14 sm:px-6 sm:py-20">
-      <Section
-        title="FEATURED FILMS"
-        note="Trending this week. Discover without spoilers."
-        className="mx-auto w-full max-w-6xl"
-      >
+    <section className="bg-ns-bg py-24 px-6 overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+
+        {/* Section header */}
+        <div className="flex items-end justify-between mb-10">
+          <div>
+            <p className="text-ns-secondary-readable text-xs tracking-[0.2em] uppercase font-body mb-2">
+              Trending this week
+            </p>
+            <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-text">
+              FEATURED FILMS
+            </h2>
+          </div>
+          <p className="text-ns-muted text-sm font-body hidden sm:block">
+            Discover without spoilers
+          </p>
+        </div>
+
+        {/* Movie cards scroll row */}
         {result.status === 'error' ? (
           <FeaturedMoviesError />
         ) : result.movies.length > 0 ? (
-          <div
-            className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-4
-                       scrollbar-hide sm:-mx-6 sm:scroll-px-6 sm:px-6"
-            aria-label="Featured films"
-          >
-            {result.movies.map(movie => (
-              <MovieCard key={movie.id} movie={movie} size="md" />
-            ))}
+          <div>
+            <div
+              className="flex snap-x snap-mandatory scroll-px-6 gap-4 overflow-x-auto pb-4
+                         scrollbar-hide -mx-6 px-6"
+              aria-label="Featured films"
+            >
+              {result.movies.map(movie => (
+                <MovieCard key={movie.id} movie={movie} size="md" />
+              ))}
+            </div>
+            <p className="mt-1 text-center text-[10px] font-body uppercase tracking-[0.18em] text-ns-muted/60 sm:hidden">
+              Swipe to explore
+            </p>
           </div>
         ) : (
           <EmptyFeaturedMovies />
         )}
-      </Section>
-    </div>
+      </div>
+    </section>
   )
 }
 
 function FeaturedMoviesError() {
   return (
-    <div className="border-t border-ns-danger/40 pt-5" role="alert">
+    <div
+      className="flex min-h-48 flex-col items-center justify-center rounded-2xl border border-dashed border-ns-danger/30 bg-ns-surface px-6 py-10 text-center"
+      role="alert"
+    >
+      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-ns-danger/10 text-ns-danger">
+        <WarningIcon size={19} />
+      </div>
       <h3 className="font-heading text-lg text-ns-text">Featured films are off-screen</h3>
       <p className="mt-1 max-w-md font-body text-sm leading-relaxed text-ns-muted">
         Trending titles could not be loaded right now. The rest of NoSpoilers is still ready to explore.
       </p>
       <RefreshButton
         label="Try loading films again"
-        className="mt-5 inline-flex min-h-10 items-center rounded border border-ns-text/70 px-5 py-2.5 font-heading text-sm font-semibold text-ns-text transition-colors hover:bg-ns-text hover:text-ns-bg disabled:cursor-wait disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary-readable focus-visible:ring-offset-2 focus-visible:ring-offset-ns-bg"
+        className="mt-5 rounded-lg bg-ns-secondary px-4 py-2 font-body text-xs font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/85 disabled:cursor-wait disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-surface"
       />
     </div>
   )
@@ -64,7 +88,7 @@ function FeaturedMoviesError() {
 
 function EmptyFeaturedMovies() {
   return (
-    <div className="border-t border-ns-border pt-5">
+    <div className="flex min-h-48 flex-col items-center justify-center rounded-2xl border border-dashed border-ns-border bg-ns-surface px-6 py-10 text-center">
       <h3 className="font-heading text-lg text-ns-text">A new lineup is coming soon</h3>
       <p className="mt-1 max-w-md font-body text-sm text-ns-muted">
         There are no featured films in this week&apos;s slate yet.

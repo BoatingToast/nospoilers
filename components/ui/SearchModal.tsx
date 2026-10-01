@@ -92,15 +92,15 @@ export default function SearchModal() {
         type="button"
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
-        className="flex min-h-10 w-full min-w-0 items-center gap-3 px-4 py-2 border border-ns-border
-                   rounded text-ns-muted text-sm font-body hover:border-ns-text transition-colors
+        className="flex w-full min-w-0 items-center gap-3 px-4 py-2.5 bg-ns-surface border border-ns-border
+                   rounded-xl text-ns-muted text-sm font-body hover:border-ns-muted/40 transition-colors
                    sm:w-auto sm:min-w-[200px]"
       >
         <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
         <span className="min-w-0 truncate">Search movies and people...</span>
-        <span className="ml-auto hidden rounded-sm border border-ns-border px-1.5 py-0.5 text-[11px] text-ns-muted min-[360px]:block">⌘K</span>
+        <span className="ml-auto hidden rounded bg-ns-border px-1.5 py-0.5 text-[10px] text-ns-muted/60 min-[360px]:block">⌘K</span>
       </button>
 
       {/* Modal overlay */}
@@ -109,11 +109,11 @@ export default function SearchModal() {
           className="fixed inset-0 z-[100] flex items-start justify-center pt-[12vh] px-4"
           onClick={handleClose}
         >
-          <div className="absolute inset-0 bg-ns-bg/90" />
+          <div className="absolute inset-0 bg-ns-bg/80 backdrop-blur-sm" />
 
           <div
-            className="relative w-full max-w-xl bg-ns-surface border border-ns-border border-t-2 border-t-ns-text rounded
-                       overflow-hidden"
+            className="relative w-full max-w-xl bg-ns-surface border border-ns-border rounded-2xl
+                       shadow-2xl shadow-black/80 overflow-hidden"
             onClick={e => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -142,7 +142,7 @@ export default function SearchModal() {
                 autoComplete="off"
                 className="min-w-0 flex-1 bg-transparent text-ns-text placeholder:text-ns-muted/50 text-sm font-body focus:outline-none"
               />
-              <button type="button" onClick={handleClose} aria-label="Close search" className="-my-2 -mr-2 flex h-10 min-w-10 items-center justify-center text-ns-muted hover:text-ns-text text-xs font-body">
+              <button type="button" onClick={handleClose} aria-label="Close search" className="text-ns-muted hover:text-ns-text text-xs font-body">
                 ESC
               </button>
             </div>
@@ -153,14 +153,14 @@ export default function SearchModal() {
             {hasResults && !loading && !error && (
               <div className="max-h-[60vh] overflow-y-auto">
                 {movies.length > 0 && (
-                  <div className="px-4 pb-1 pt-2">
-                    <h3 className="text-ns-muted text-[11px] tracking-widest uppercase font-body py-1.5">Movies</h3>
+                  <div className="p-2">
+                    <h3 className="text-ns-muted/60 text-[10px] tracking-widest uppercase font-body px-2 py-1.5">Movies</h3>
                     {movies.map(movie => (
                       <Link
                         key={movie.id}
                         href={`/movie/${movie.id}`}
                         onClick={handleClose}
-                        className="group flex items-center gap-3 border-t border-ns-border py-2.5 transition-colors"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-ns-surface-2 transition-colors"
                       >
                         <div className="w-8 h-12 rounded overflow-hidden bg-ns-border flex-shrink-0">
                           <Image
@@ -171,7 +171,7 @@ export default function SearchModal() {
                           />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-ns-text text-sm font-body font-medium truncate group-hover:text-ns-secondary-readable transition-colors">{movie.title}</p>
+                          <p className="text-ns-text text-sm font-body font-medium truncate">{movie.title}</p>
                           <p className="text-ns-muted text-xs font-body">{formatYear(movie.release_date)}</p>
                         </div>
                         {movie.vote_average > 0 && (
@@ -185,14 +185,14 @@ export default function SearchModal() {
                 )}
 
                 {people.length > 0 && (
-                  <div className="px-4 pb-1 pt-2 border-t-2 border-ns-text/70">
-                    <h3 className="text-ns-muted text-[11px] tracking-widest uppercase font-body py-1.5">People</h3>
+                  <div className="p-2 border-t border-ns-border">
+                    <h3 className="text-ns-muted/60 text-[10px] tracking-widest uppercase font-body px-2 py-1.5">People</h3>
                     {people.map(person => (
                       <Link
                         key={person.id}
                         href={`/actor/${person.id}`}
                         onClick={handleClose}
-                        className="group flex items-center gap-3 border-t border-ns-border py-2.5 transition-colors"
+                        className="group flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-ns-surface-2 transition-colors"
                       >
                         <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-ns-border">
                           {person.profile_path ? (
@@ -218,18 +218,18 @@ export default function SearchModal() {
             )}
 
             {loading && (
-              <div className="px-4 py-5 text-sm font-body text-ns-muted">
+              <div className="p-6 text-center text-xs font-body text-ns-muted">
                 Searching for &ldquo;{normalizedQuery}&rdquo;…
               </div>
             )}
 
             {error && !loading && (
-              <div className="px-4 py-5" role="alert">
+              <div className="p-8 text-center" role="alert">
                 <p className="text-sm font-body text-red-400">{error}</p>
                 <button
                   type="button"
                   onClick={() => search(query)}
-                  className="mt-4 min-h-11 rounded bg-ns-secondary px-4 py-2 text-sm font-heading font-semibold text-ns-secondary-foreground"
+                  className="mt-4 min-h-11 rounded-xl bg-ns-secondary px-4 py-2 text-xs font-body font-semibold text-ns-secondary-foreground"
                 >
                   Try again
                 </button>
@@ -237,23 +237,23 @@ export default function SearchModal() {
             )}
 
             {normalizedQuery && !loading && !error && !hasResults && (
-              <div className="px-4 py-5 text-ns-muted text-sm font-body">
+              <div className="p-8 text-center text-ns-muted text-sm font-body">
                 No results for &ldquo;{normalizedQuery}&rdquo;
               </div>
             )}
 
             {!normalizedQuery && !error && (
-              <div className="px-4 py-5 text-ns-muted text-sm font-body">
+              <div className="p-6 text-center text-ns-muted/50 text-xs font-body">
                 Search for any movie, actor, or director
               </div>
             )}
 
             {hasResults && !loading && !error && (
-              <div className="border-t border-ns-border px-4">
+              <div className="border-t border-ns-border p-2">
                 <Link
                   href={`/search?q=${encodeURIComponent(normalizedQuery)}`}
                   onClick={handleClose}
-                  className="flex min-h-11 items-center text-sm font-body font-semibold text-ns-secondary-readable underline underline-offset-4 transition-colors hover:text-ns-text"
+                  className="flex min-h-11 items-center justify-center rounded-xl text-xs font-body font-semibold text-ns-secondary-readable transition-colors hover:bg-ns-secondary/10"
                 >
                   View all results for &ldquo;{normalizedQuery}&rdquo;
                 </Link>

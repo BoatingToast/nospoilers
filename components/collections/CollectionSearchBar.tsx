@@ -79,15 +79,15 @@ export default function CollectionSearchBar({
             onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="w-full rounded border border-ns-border bg-ns-surface py-3.5 pl-10 pr-24
-                       font-body text-sm text-ns-text placeholder:text-ns-muted/50
-                       focus:border-ns-text focus:outline-none transition-colors"
+            className="w-full bg-ns-surface border border-ns-border rounded-2xl pl-10 pr-14 py-3.5
+                       text-ns-text font-body text-sm placeholder:text-ns-muted/50
+                       focus:outline-none focus:border-ns-secondary/40 transition-colors"
           />
           {query && (
             <button
               type="button"
               onClick={() => { setQuery(''); setSuggestions([]); setShowDropdown(false); inputRef.current?.focus() }}
-              className="absolute right-14 top-1/2 flex h-10 w-8 -translate-y-1/2 items-center justify-center text-ns-muted transition-colors hover:text-ns-text"
+              className="absolute right-12 top-1/2 -translate-y-1/2 text-ns-muted hover:text-ns-text transition-colors"
             >
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M18 6L6 18M6 6l12 12"/>
@@ -95,8 +95,8 @@ export default function CollectionSearchBar({
             </button>
           )}
           <button type="submit"
-            className="absolute right-1.5 top-1/2 h-10 -translate-y-1/2 rounded bg-ns-secondary px-3.5 font-heading text-sm
-                       font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-text hover:text-ns-bg">
+            className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-ns-secondary text-ns-secondary-foreground
+                       rounded-lg text-xs font-body font-medium hover:bg-ns-secondary/90 transition-colors">
             Go
           </button>
         </div>
@@ -104,7 +104,8 @@ export default function CollectionSearchBar({
 
       {/* Suggestions dropdown */}
       {showDropdown && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded border border-ns-border bg-ns-surface">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-ns-surface border border-ns-border rounded-2xl
+                        shadow-2xl shadow-black/60 overflow-hidden z-50">
           {suggestions.map((s, i) => (
             <Link
               key={s.id}
@@ -114,7 +115,7 @@ export default function CollectionSearchBar({
                 ${i === activeIdx
                   ? 'bg-ns-secondary/10 text-ns-secondary-readable'
                   : 'text-ns-muted hover:bg-ns-surface/80 hover:text-ns-text'
-                } ${i > 0 ? 'border-t border-ns-border' : ''}`}
+                } ${i > 0 ? 'border-t border-ns-border/50' : ''}`}
             >
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <rect x="3" y="3" width="7" height="18" rx="1"/>
@@ -122,7 +123,7 @@ export default function CollectionSearchBar({
               </svg>
               <div className="flex-1 min-w-0">
                 <p className="text-ns-text text-sm font-body font-medium truncate">{s.title}</p>
-                <p className="text-ns-muted text-xs font-body">by @{s.username}</p>
+                <p className="text-ns-muted/60 text-[11px] font-body">by @{s.username}</p>
               </div>
               <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
                 className="flex-shrink-0 opacity-40">

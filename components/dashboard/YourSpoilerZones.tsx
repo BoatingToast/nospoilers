@@ -3,9 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link                from 'next/link'
 import SpoilerZoneCard     from './SpoilerZoneCard'
-import Badge   from '@/components/ui/Badge'
-import Button  from '@/components/ui/Button'
-import Section from '@/components/ui/Section'
+import { SpoilerZoneIcon } from '@/components/icons'
 import { getSupabasePublicClient } from '@/lib/supabase-client'
 import type { SZMembership } from '@/types'
 
@@ -32,12 +30,13 @@ function sortMemberships(list: SZMembership[]): SZMembership[] {
 
 function CardSkeleton() {
   return (
-    <div className="animate-pulse overflow-hidden rounded border border-ns-border">
-      <div className="h-36 bg-ns-surface-2" />
-      <div className="space-y-3 p-4">
-        <div className="h-4 w-3/4 rounded bg-ns-surface-2" />
-        <div className="h-3 w-1/2 rounded bg-ns-surface-2" />
-        <div className="mt-1 h-8 rounded bg-ns-surface-2" />
+    <div className="rounded-2xl border border-ns-border/50 bg-ns-surface/40 overflow-hidden animate-pulse">
+      <div className="h-36 bg-ns-surface" />
+      <div className="p-4 space-y-3">
+        <div className="h-4 bg-ns-surface rounded w-3/4" />
+        <div className="h-3 bg-ns-surface rounded w-1/2" />
+        <div className="h-3 bg-ns-surface rounded w-1/3" />
+        <div className="h-8 bg-ns-surface rounded-xl mt-1" />
       </div>
     </div>
   )
@@ -47,16 +46,30 @@ function CardSkeleton() {
 
 function EmptyState() {
   return (
-    <div className="border-t border-ns-border pt-4">
-      <h3 className="font-heading text-base font-semibold text-ns-text">
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="relative mb-6">
+        <div className="w-20 h-20 rounded-full bg-ns-surface border border-ns-border flex items-center justify-center">
+          <SpoilerZoneIcon size={36} className="text-ns-muted/30" />
+        </div>
+        <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-ns-secondary/10 border border-ns-secondary/20 flex items-center justify-center">
+          <span className="text-ns-secondary-readable text-xs font-bold">+</span>
+        </div>
+      </div>
+      <h3 className="font-body font-semibold text-ns-text mb-2">
         You&apos;re not part of any Spoiler Zones yet
       </h3>
-      <p className="mt-1 max-w-xl font-body text-sm leading-relaxed text-ns-muted">
+      <p className="text-sm font-body text-ns-muted/60 mb-6 max-w-xs leading-relaxed">
         Join a Spoiler Zone from any movie page to discuss freely with other fans — spoilers welcome.
       </p>
-      <Button variant="secondary" href="/spoiler-zones" className="mt-4">
+      <Link
+        href="/spoiler-zones"
+        className="inline-flex items-center gap-2.5 px-6 py-3 rounded-xl font-body font-bold text-sm
+                   bg-ns-secondary text-ns-secondary-foreground hover:bg-amber-400 hover:text-ns-bg active:scale-[0.97]
+                   transition-all duration-200 shadow-lg shadow-ns-secondary/20"
+      >
+        <SpoilerZoneIcon size={16} strokeWidth={2.5} />
         Browse Popular Discussions
-      </Button>
+      </Link>
     </div>
   )
 }
@@ -175,35 +188,50 @@ export default function YourSpoilerZones() {
   const activeCount  = memberships.filter(m => m.isActive).length
 
   return (
-    <Section
-      title="YOUR SPOILER ZONES"
-      note="Continue the conversation."
-      action={
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          {totalUnread > 0 && (
-            <Badge variant="secondary" className="tabular-nums">
-              {totalUnread > 99 ? '99+' : totalUnread}
-            </Badge>
-          )}
+    <section className="space-y-6">
+      {/* Section header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+            <SpoilerZoneIcon size={20} className="text-ns-secondary-readable" />
+            <h2 className="font-display text-xl tracking-widest text-ns-secondary-readable">YOUR SPOILER ZONES</h2>
+            {totalUnread > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5
+                               rounded-full bg-ns-secondary text-ns-secondary-foreground text-[10px] font-bold tabular-nums
+                               shadow-sm shadow-ns-secondary/30">
+                {totalUnread > 99 ? '99+' : totalUnread}
+              </span>
+            )}
+          </div>
+          <p className="text-ns-muted/60 text-sm font-body ml-8">Continue the conversation.</p>
+        </div>
+
+        <div className="flex items-center gap-3 flex-shrink-0">
           {activeCount > 0 && (
-            <span className="font-body text-xs text-ns-secondary-readable">
-              {activeCount} active
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ns-secondary opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-ns-secondary" />
+              </span>
+              <span className="text-[11px] font-body text-ns-secondary-readable/80">
+                {activeCount} active
+              </span>
+            </div>
           )}
           {lastRefresh && (
-            <span className="hidden font-body text-xs text-ns-muted sm:inline">
+            <span className="text-[10px] font-body text-ns-muted/30 hidden sm:inline">
               Updated {new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit' }).format(lastRefresh)}
             </span>
           )}
           <Link
             href="/spoiler-zones"
-            className="font-heading text-sm text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text"
+            className="text-xs font-body text-ns-muted/60 hover:text-ns-secondary-readable transition-colors"
           >
             Browse all →
           </Link>
         </div>
-      }
-    >
+      </div>
+
       {/* Content */}
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -212,13 +240,13 @@ export default function YourSpoilerZones() {
       ) : memberships.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="space-y-8">
+        <>
           {/* Pinned row (if any) */}
           {memberships.some(m => m.pinned) && (
-            <div>
-              <h3 className="mb-3 font-heading text-sm font-semibold text-ns-text">
+            <div className="space-y-2">
+              <p className="text-[10px] font-body text-ns-muted/40 tracking-widest uppercase ml-0.5">
                 Pinned
-              </h3>
+              </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {memberships
                   .filter(m => m.pinned)
@@ -231,11 +259,11 @@ export default function YourSpoilerZones() {
 
           {/* All zones grid */}
           {memberships.some(m => !m.pinned) && (
-            <div>
+            <div className="space-y-2">
               {memberships.some(m => m.pinned) && (
-                <h3 className="mb-3 font-heading text-sm font-semibold text-ns-text">
+                <p className="text-[10px] font-body text-ns-muted/40 tracking-widest uppercase ml-0.5">
                   All Zones
-                </h3>
+                </p>
               )}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {memberships
@@ -248,16 +276,18 @@ export default function YourSpoilerZones() {
           )}
 
           {/* Footer link */}
-          <p className="border-t border-ns-border pt-3">
+          <div className="text-center pt-2">
             <Link
               href="/spoiler-zones"
-              className="font-body text-sm text-ns-muted underline underline-offset-4 transition-colors hover:text-ns-text"
+              className="inline-flex items-center gap-2 text-xs font-body text-ns-muted/50
+                         hover:text-ns-secondary-readable transition-colors"
             >
+              <SpoilerZoneIcon size={12} />
               Browse popular discussions
             </Link>
-          </p>
-        </div>
+          </div>
+        </>
       )}
-    </Section>
+    </section>
   )
 }

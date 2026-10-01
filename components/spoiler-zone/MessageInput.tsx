@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { TheoryIcon } from '@/components/icons'
-import Button from '@/components/ui/Button'
 import type { SZMessageData } from '@/types'
 
 const REACTION_EMOJI = ['🔥', '💀', '🤯', '😭', '👀', '❤️', '👏', '🎬']
@@ -37,12 +36,12 @@ function MentionDropdown({
 }) {
   if (suggestions.length === 0) return null
   return (
-    <div className="absolute bottom-full left-0 z-20 mb-1 w-48 overflow-hidden rounded border border-ns-border bg-ns-surface">
+    <div className="absolute bottom-full mb-1 left-0 w-48 bg-ns-surface border border-ns-border rounded-xl overflow-hidden shadow-xl z-20">
       {suggestions.map(u => (
         <button
           key={u}
           onMouseDown={e => { e.preventDefault(); onSelect(u) }}
-          className="min-h-10 w-full border-t border-ns-border px-3 text-left font-body text-sm text-ns-text transition-colors first:border-t-0 hover:bg-ns-surface-2"
+          className="w-full text-left px-3 py-2 text-xs font-body text-ns-text hover:bg-ns-secondary/10 hover:text-ns-secondary-readable transition-colors"
         >
           @{u}
         </button>
@@ -186,34 +185,40 @@ export default function MessageInput({
   // Non-member gate
   if (!isMember) {
     return (
-      <div className="flex flex-shrink-0 flex-col gap-3 border-t-2 border-ns-text py-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="font-body text-sm text-ns-muted">
+      <div className="border-t border-ns-border bg-ns-bg/80 backdrop-blur-sm px-4 py-4 text-center">
+        <p className="text-xs font-body text-ns-muted mb-2">
           Join this Spoiler Zone to post messages and react.
         </p>
-        <Button variant="secondary" size="sm" onClick={onJoinClick} className="min-h-10">
-          <svg aria-hidden="true" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+        <button
+          onClick={onJoinClick}
+          className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-body font-bold
+                     bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/40
+                     hover:bg-ns-secondary hover:text-ns-secondary-foreground hover:shadow-md hover:shadow-ns-secondary/20
+                     active:scale-95 transition-all duration-200"
+        >
+          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <line x1="12" y1="5"  x2="12" y2="19" />
             <line x1="5"  y1="12" x2="19" y2="12" />
           </svg>
           Join Spoiler Zone
-        </Button>
+        </button>
       </div>
     )
   }
 
   return (
-    <div className="flex-shrink-0 border-t-2 border-ns-text pb-1 pt-3">
+    <div className="border-t border-ns-border bg-ns-bg/80 backdrop-blur-sm px-4 pt-3 pb-4">
 
       {/* Reply preview strip */}
       {replyTo && !isEdit && (
-        <div className="mb-2 flex items-start gap-2 border-l-2 border-ns-border pl-2">
+        <div className="flex items-start gap-2 mb-2 pl-2 border-l-2 border-ns-secondary/40 bg-ns-surface/40 rounded-r-lg py-1.5 pr-2">
           <div className="flex-1 min-w-0">
-            <p className="mb-0.5 font-body text-[11px] text-ns-secondary-readable">Replying to @{replyTo.username}</p>
-            <p className="truncate font-body text-xs text-ns-muted">{replyTo.content}</p>
+            <p className="text-[10px] font-body text-ns-secondary-readable/70 mb-0.5">Replying to @{replyTo.username}</p>
+            <p className="text-xs font-body text-ns-muted/70 truncate">{replyTo.content}</p>
           </div>
           <button
             onClick={onCancelReply}
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-ns-muted transition-colors hover:text-ns-text"
+            className="text-ns-muted/40 hover:text-ns-muted transition-colors mt-0.5 flex-shrink-0"
             aria-label="Cancel reply"
           >
             <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -226,10 +231,10 @@ export default function MessageInput({
       {/* Edit mode indicator */}
       {isEdit && (
         <div className="flex items-center gap-2 mb-2">
-          <span className="font-body text-xs text-ns-secondary-readable">Editing message</span>
+          <span className="text-[10px] font-body text-ns-secondary-readable/70">Editing message</span>
           <button
             onClick={() => { onCancelEdit(); setValue('') }}
-            className="font-body text-xs text-ns-muted underline underline-offset-4 transition-colors hover:text-ns-text"
+            className="text-[10px] font-body text-ns-muted/60 hover:text-ns-muted underline transition-colors"
           >
             Cancel
           </button>
@@ -237,23 +242,22 @@ export default function MessageInput({
       )}
 
       {/* Input row */}
-      <div className="relative flex items-end gap-1 sm:gap-2">
+      <div className="relative flex items-end gap-2">
 
         {/* Theory toggle */}
         {!isEdit && (
           <button
             onClick={() => setIsTheory(v => !v)}
             title="Mark as theory"
-            aria-pressed={isTheory}
-            className={`flex h-10 w-8 flex-shrink-0 items-center justify-center rounded border transition-colors sm:w-10
-              ${isTheory ? 'border-violet-500/30 text-violet-400' : 'border-transparent text-ns-muted hover:text-ns-text'}`}
+            className={`flex-shrink-0 w-8 h-8 mb-0.5 rounded-lg flex items-center justify-center transition-colors
+              ${isTheory ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30' : 'text-ns-muted/40 hover:text-ns-muted'}`}
           >
             <TheoryIcon size={14} strokeWidth={isTheory ? 2.5 : 2} />
           </button>
         )}
 
         {/* Mention suggestions */}
-        <div className="relative min-w-0 flex-1">
+        <div className="relative flex-1">
           <MentionDropdown suggestions={mentionSuggestions} onSelect={handleMentionSelect} />
 
           <textarea
@@ -270,9 +274,9 @@ export default function MessageInput({
                 : 'Add to the discussion… (Enter to send, Shift+Enter for newline)'
             }
             rows={1}
-            className="block w-full resize-none rounded border border-ns-border bg-ns-surface px-3 py-2.5
-                       font-body text-sm text-ns-text placeholder:text-ns-muted
-                       transition-colors focus:border-ns-text focus:outline-none
+            className="w-full resize-none bg-ns-surface border border-ns-border rounded-xl px-4 py-2.5
+                       text-sm font-body text-ns-text placeholder:text-ns-muted/40
+                       focus:outline-none focus:border-ns-secondary/40 transition-colors
                        disabled:opacity-50 disabled:cursor-not-allowed
                        scrollbar-hide leading-relaxed"
             style={{ minHeight: '42px', maxHeight: '160px' }}
@@ -284,7 +288,7 @@ export default function MessageInput({
           <button
             onClick={() => setShowEmoji(v => !v)}
             disabled={disabled || sending}
-            className="flex h-10 w-8 items-center justify-center rounded text-ns-muted transition-colors hover:text-ns-text disabled:opacity-40 sm:w-10"
+            className="w-8 h-8 mb-0.5 flex items-center justify-center rounded-lg text-ns-muted/50 hover:text-ns-secondary-readable transition-colors disabled:opacity-40"
             title="Emoji"
           >
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -293,12 +297,12 @@ export default function MessageInput({
             </svg>
           </button>
           {showEmoji && (
-            <div className="absolute bottom-full right-0 z-20 mb-1 flex max-w-[calc(100vw-2rem)] flex-wrap gap-1 rounded border border-ns-border bg-ns-surface p-2">
+            <div className="absolute bottom-full mb-1 right-0 bg-ns-surface border border-ns-border rounded-xl p-2 flex gap-1 shadow-xl z-20">
               {REACTION_EMOJI.map(e => (
                 <button
                   key={e}
                   onMouseDown={ev => { ev.preventDefault(); insertEmoji(e) }}
-                  className="flex h-8 w-8 items-center justify-center rounded text-lg hover:bg-ns-surface-2"
+                  className="text-lg hover:scale-125 transition-transform"
                 >
                   {e}
                 </button>
@@ -311,9 +315,9 @@ export default function MessageInput({
         <button
           onClick={handleSubmit}
           disabled={!value.trim() || sending || disabled}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded bg-ns-secondary text-ns-secondary-foreground
-                     transition-colors duration-150 hover:bg-ns-text hover:text-ns-bg
-                     disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex-shrink-0 w-9 h-9 mb-0.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground flex items-center justify-center
+                     hover:bg-amber-400 active:scale-95 transition-all duration-150
+                     disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100"
           title={isEdit ? 'Save' : 'Send'}
         >
           {sending ? (
@@ -336,13 +340,13 @@ export default function MessageInput({
       {/* Character counter + error */}
       <div className="flex items-center justify-between mt-1 min-h-[14px]">
         {sendError ? (
-          <p className="text-[11px] font-body text-red-400">{sendError}</p>
+          <p className="text-[10px] font-body text-red-400">{sendError}</p>
         ) : (
           <span />
         )}
         {value.length > 0 && (
-          <span className={`text-[11px] font-body tabular-nums
-            ${charsLeft < 100 ? 'text-amber-400' : charsLeft < 0 ? 'text-red-400' : 'text-ns-muted'}`}>
+          <span className={`text-[10px] font-body tabular-nums
+            ${charsLeft < 100 ? 'text-amber-400' : charsLeft < 0 ? 'text-red-400' : 'text-ns-muted/40'}`}>
             {charsLeft}
           </span>
         )}

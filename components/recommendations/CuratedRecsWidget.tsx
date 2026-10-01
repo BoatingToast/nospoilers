@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import Section from '@/components/ui/Section'
+import Link from 'next/link'
 import CuratedRecCard from './CuratedRecCard'
 import type { EnrichedRec, CuratedRecGroups } from '@/services/curated-recs'
 import { useDashboardRecommendations } from './DashboardRecommendationsProvider'
 import {
-  RecsIcon, FilmIcon, MovieDnaIcon, TrendingIcon, CalendarIcon,
+  RecsIcon, FilmIcon, MovieDnaIcon, TrendingIcon, CalendarIcon, ArrowRightIcon,
   type IconProps,
 } from '@/components/icons'
 
@@ -68,9 +68,9 @@ function Skeleton() {
     <div className="flex gap-4 overflow-hidden">
       {Array.from({ length: 5 }).map((_, i) => (
         <div key={i} className="w-[170px] flex-shrink-0 animate-pulse">
-          <div className="mb-3 h-[255px] w-[170px] rounded bg-ns-surface-2" />
-          <div className="mb-1.5 h-3 w-4/5 rounded bg-ns-surface-2" />
-          <div className="h-2.5 w-2/5 rounded bg-ns-surface-2" />
+          <div className="w-[170px] h-[255px] rounded-xl bg-ns-border mb-3" />
+          <div className="h-3 bg-ns-border rounded w-4/5 mb-1.5" />
+          <div className="h-2.5 bg-ns-border rounded w-2/5" />
         </div>
       ))}
     </div>
@@ -82,12 +82,14 @@ function Skeleton() {
 function GroupShelf({ items, tab }: { items: EnrichedRec[]; tab: TabConfig }) {
   if (items.length === 0) {
     return (
-      <p className="py-6 font-body text-sm text-ns-muted">{tab.emptyMsg}</p>
+      <div className="border border-dashed border-ns-border rounded-xl p-8 text-center">
+        <p className="text-ns-muted font-body text-sm">{tab.emptyMsg}</p>
+      </div>
     )
   }
 
   return (
-    <div className="scrollbar-hide flex gap-4 overflow-x-auto pb-3">
+    <div className="flex gap-4 overflow-x-auto pb-3 -mx-6 px-6 scrollbar-hide">
       {items.map(rec => (
         <CuratedRecCard key={rec.tmdbId} rec={rec} />
       ))}
@@ -110,42 +112,61 @@ export default function CuratedRecsWidget() {
     : {}
 
   return (
-    <Section
-      title="WE THINK YOU'D LIKE"
-      note={<>Powered by your Movie DNA · {loading ? '…' : totalRecs(groups)} personalised picks</>}
-      href="/my-recommendations"
-      linkLabel="Full center"
-    >
-      {/* Tabs */}
-      <div className="scrollbar-hide mb-5 flex overflow-x-auto border-b border-ns-border">
-        {TABS.map(tab => {
-          const count   = groupCounts[tab.key] ?? 0
-          const isActive = tab.key === activeTab
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key as RecArrayKey)}
-              className={`-mb-px flex min-h-10 flex-shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 py-2.5 pr-5 font-heading text-sm transition-colors
-                          ${isActive
-                            ? 'border-ns-text text-ns-text'
-                            : 'border-transparent text-ns-muted hover:text-ns-text'
-                          }`}
-            >
-              <span className="hidden sm:inline">{tab.label}</span>
-              <span className="inline sm:hidden">{tab.label.split(' ')[0]}</span>
-              {!loading && count > 0 && (
-                <span className={`text-xs ${isActive ? 'text-ns-secondary-readable' : 'text-ns-muted'}`}>
-                  {count}
-                </span>
-              )}
-            </button>
-          )
-        })}
+    <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
+      {/* Widget header */}
+      <div className="flex items-start justify-between mb-5">
+        <div>
+          <p className="text-ns-secondary-readable text-[10px] tracking-widest uppercase font-body mb-1 flex items-center gap-1.5">
+            <RecsIcon size={11} /> Curated For You
+          </p>
+          <h2 className="font-display text-2xl tracking-wider text-ns-text">
+            WE THINK YOU'D LIKE
+          </h2>
+          <p className="text-ns-muted text-[11px] font-body mt-0.5">
+            Powered by your Movie DNA · {loading ? '…' : totalRecs(groups)} personalised picks
+          </p>
+        </div>
+        <Link href="/my-recommendations"
+          className="text-ns-secondary-readable text-xs font-body hover:text-amber-400 transition-colors flex-shrink-0">
+          Full center <ArrowRightIcon size={11} className="inline-block" />
+        </Link>
       </div>
 
-      {/* What this shelf is */}
+      {/* Tabs */}
+      <div className="flex gap-0 overflow-x-auto -mx-6 px-6 mb-5 scrollbar-hide">
+        <div className="flex gap-1 border-b border-ns-border w-full pb-0">
+          {TABS.map(tab => {
+            const count   = groupCounts[tab.key] ?? 0
+            const isActive = tab.key === activeTab
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key as RecArrayKey)}
+                className={`flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-body whitespace-nowrap
+                            border-b-2 -mb-px transition-all duration-150 flex-shrink-0
+                            ${isActive
+                              ? 'border-ns-secondary text-ns-secondary-readable'
+                              : 'border-transparent text-ns-muted hover:text-ns-text'
+                            }`}
+              >
+                <tab.Icon size={14} className="flex-shrink-0" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="inline sm:hidden">{tab.label.split(' ')[0]}</span>
+                {!loading && count > 0 && (
+                  <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-body
+                                    ${isActive ? 'bg-ns-secondary/20 text-ns-secondary-readable' : 'bg-ns-border text-ns-muted/60'}`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Tab eyebrow */}
       {!loading && currentItems.length > 0 && (
-        <p className="mb-4 font-body text-sm text-ns-muted">
+        <p className="text-ns-muted/60 text-[10px] tracking-widest uppercase font-body mb-4">
           {currentTab.eyebrow}
         </p>
       )}
@@ -154,17 +175,19 @@ export default function CuratedRecsWidget() {
       {loading ? (
         <Skeleton />
       ) : loadError ? (
-        <p className="py-6 font-body text-sm text-ns-muted">
-          Could not load recommendations.{' '}
-          <button onClick={retry}
-            className="text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text">
-            Try again
-          </button>
-        </p>
+        <div className="border border-dashed border-ns-border rounded-xl p-8 text-center">
+          <p className="text-ns-muted font-body text-sm">
+            Could not load recommendations.{' '}
+            <button onClick={retry}
+              className="text-ns-secondary-readable hover:text-amber-400 transition-colors">
+              Try again
+            </button>
+          </p>
+        </div>
       ) : (
         <GroupShelf items={currentItems} tab={currentTab} />
       )}
-    </Section>
+    </div>
   )
 }
 

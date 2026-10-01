@@ -9,8 +9,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { SearchIcon } from '@/components/icons'
-import Button from '@/components/ui/Button'
+import { SearchIcon, FriendsIcon, PersonIcon } from '@/components/icons'
 import UserSocialCard, { type SocialUser }     from './UserSocialCard'
 import SocialHubNav from './SocialHubNav'
 
@@ -30,14 +29,22 @@ const SORT_LABELS: Record<SortKey, string> = {
 
 function CardSkeleton() {
   return (
-    <div className="flex animate-pulse items-center gap-4 border-t border-ns-border py-4">
-      <div className="h-12 w-12 flex-shrink-0 rounded-full bg-ns-border" />
+    <div className="bg-ns-surface border border-ns-border/60 rounded-2xl p-4 flex items-center gap-4 animate-pulse">
+      <div className="w-[52px] h-[52px] rounded-full bg-ns-border flex-shrink-0" />
       <div className="flex-1 space-y-2">
-        <div className="h-3.5 w-1/3 rounded bg-ns-border" />
-        <div className="h-2.5 w-1/4 rounded bg-ns-border/60" />
-        <div className="h-2.5 w-1/2 rounded bg-ns-border/40" />
+        <div className="h-3.5 bg-ns-border rounded w-1/3" />
+        <div className="h-2.5 bg-ns-border/60 rounded w-1/4" />
+        <div className="h-5 bg-ns-border/40 rounded-full w-24 mt-1" />
+        <div className="flex gap-2 mt-1">
+          <div className="h-4 bg-ns-border/40 rounded-full w-12" />
+          <div className="h-4 bg-ns-border/40 rounded-full w-12" />
+          <div className="h-4 bg-ns-border/40 rounded-full w-14" />
+        </div>
       </div>
-      <div className="h-8 w-20 rounded bg-ns-border" />
+      <div className="flex flex-col gap-2 items-end">
+        <div className="h-7 w-20 bg-ns-border rounded-xl" />
+        <div className="h-3 w-16 bg-ns-border/40 rounded" />
+      </div>
     </div>
   )
 }
@@ -47,39 +54,50 @@ function CardSkeleton() {
 function EmptyState({ mode, hasSearch }: { mode: Mode; hasSearch: boolean }) {
   if (hasSearch) {
     return (
-      <div className="border-t border-ns-border py-8">
-        <p className="font-body text-sm text-ns-muted">No results for that search</p>
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <SearchIcon size={32} className="text-ns-muted/20 mb-4" />
+        <p className="text-ns-muted/60 font-body text-sm">No results for that search</p>
       </div>
     )
   }
 
-  const configs: Record<Mode, { heading: string; sub: string; cta: { label: string; href: string } }> = {
+  const configs: Record<Mode, { icon: React.ReactNode; heading: string; sub: string; cta: { label: string; href: string } }> = {
     followers: {
+      icon:    <PersonIcon size={28} className="text-ns-muted/25" />,
       heading: 'No one is following you yet',
       sub:     'Share your profile to get your first followers.',
       cta:     { label: 'Find People', href: '/friends/find' },
     },
     following: {
+      icon:    <FriendsIcon size={28} className="text-ns-muted/25" />,
       heading: "You're not following anyone yet",
       sub:     'Start following people to build your network.',
       cta:     { label: 'Discover Members', href: '/friends/find' },
     },
     friends: {
+      icon:    <FriendsIcon size={28} className="text-ns-muted/25" />,
       heading: 'No movie friends yet',
       sub:     'Accepted friend requests and movie connections will show up here.',
       cta:     { label: 'Find users with similar Movie DNA', href: '/friends/find' },
     },
   }
 
-  const { heading, sub, cta } = configs[mode]
+  const { icon, heading, sub, cta } = configs[mode]
 
   return (
-    <div className="border-t border-ns-border py-8">
-      <p className="font-body text-base font-semibold text-ns-text">{heading}</p>
-      <p className="mt-1 max-w-md font-body text-sm text-ns-muted">{sub}</p>
-      <Button variant="secondary" href={cta.href} className="mt-5 w-full sm:w-auto">
+    <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+      <div className="w-16 h-16 rounded-2xl bg-ns-border/30 flex items-center justify-center mb-5">
+        {icon}
+      </div>
+      <p className="text-ns-text font-body text-base font-semibold mb-2">{heading}</p>
+      <p className="text-ns-muted/60 font-body text-sm mb-6 max-w-xs">{sub}</p>
+      <Link
+        href={cta.href}
+        className="px-5 py-2.5 rounded-xl text-sm font-body font-semibold
+                   bg-ns-secondary text-ns-secondary-foreground hover:bg-amber-400 hover:text-ns-bg transition-colors"
+      >
         {cta.label}
-      </Button>
+      </Link>
     </div>
   )
 }
@@ -104,18 +122,18 @@ function Toolbar({
   onOnlyFriends:(v: boolean) => void
 }) {
   return (
-    <div className="mb-5 flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3 mb-5">
       {/* Search */}
-      <div className="relative min-w-0 flex-1 basis-full sm:basis-0 sm:min-w-[200px]">
-        <SearchIcon size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ns-muted" />
+      <div className="relative flex-1 min-w-[200px]">
+        <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ns-muted/40 pointer-events-none" />
         <input
           type="text"
           value={search}
           onChange={e => onSearch(e.target.value)}
           placeholder={`Search ${mode === 'friends' ? 'friends' : mode === 'followers' ? 'followers' : 'following'}…`}
-          className="min-h-[40px] w-full rounded border border-ns-border bg-ns-surface py-2.5 pl-9 pr-4
-                     font-body text-sm text-ns-text placeholder:text-ns-muted/60
-                     transition-colors focus:border-ns-text focus:outline-none"
+          className="w-full pl-9 pr-4 py-2.5 bg-ns-surface border border-ns-border/60
+                     rounded-xl text-sm font-body text-ns-text placeholder:text-ns-muted/40
+                     focus:outline-none focus:border-ns-secondary/40 transition-colors"
         />
       </div>
 
@@ -123,8 +141,9 @@ function Toolbar({
       <select
         value={sort}
         onChange={e => onSort(e.target.value as SortKey)}
-        className="min-h-[40px] cursor-pointer rounded border border-ns-border bg-ns-surface px-3 py-2.5
-                   font-body text-sm text-ns-text transition-colors focus:border-ns-text focus:outline-none"
+        className="px-3 py-2.5 bg-ns-surface border border-ns-border/60 rounded-xl
+                   text-sm font-body text-ns-muted/80 focus:outline-none focus:border-ns-secondary/40
+                   transition-colors cursor-pointer"
       >
         {(Object.entries(SORT_LABELS) as [SortKey, string][]).map(([k, v]) => (
           <option key={k} value={k}>{v}</option>
@@ -135,12 +154,13 @@ function Toolbar({
       {mode === 'following' && (
         <button
           onClick={() => onOnlyFriends(!onlyFriends)}
-          className={`min-h-[40px] rounded border px-3 py-2.5 font-heading text-sm font-semibold transition-colors
+          className={`px-3 py-2.5 rounded-xl text-xs font-body font-semibold border transition-all
             ${onlyFriends
-              ? 'border-ns-text bg-ns-text text-ns-bg'
-              : 'border-ns-border text-ns-muted hover:border-ns-text hover:text-ns-text'
+              ? 'bg-ns-secondary/15 text-ns-secondary-readable border-ns-secondary/40'
+              : 'bg-ns-surface text-ns-muted/60 border-ns-border/60 hover:border-ns-secondary/30'
             }`}
         >
+          <FriendsIcon size={12} className="inline mr-1.5" />
           Only Friends
         </button>
       )}
@@ -238,14 +258,14 @@ export default function SocialListPage({
       : 'following'
 
   return (
-    <div className={embedded ? 'min-w-0' : 'mx-auto w-full max-w-6xl px-4 py-8 sm:px-6'}>
+    <div className={embedded ? '' : 'max-w-2xl mx-auto px-4 sm:px-6 py-8'}>
       {showNavigation && <SocialHubNav active={mode} />}
 
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <p className="font-body text-sm text-ns-muted">
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <p className="text-[10px] font-body uppercase tracking-[0.18em] text-ns-muted">
           {loading ? 'Loading connections…' : `${total.toLocaleString()} ${countLabel}`}
         </p>
-        <Link href="/friends/find" className="font-heading text-sm text-ns-secondary-readable underline underline-offset-4 transition-colors hover:text-ns-text">
+        <Link href="/friends/find" className="text-xs font-body text-ns-secondary-readable transition-colors hover:text-amber-400">
           Find people →
         </Link>
       </div>
@@ -262,14 +282,14 @@ export default function SocialListPage({
 
       {/* List */}
       {loading ? (
-        <div className="border-b border-ns-border">
+        <div className="space-y-3">
           {[1, 2, 3, 4, 5].map(i => <CardSkeleton key={i} />)}
         </div>
       ) : users.length === 0 ? (
         <EmptyState mode={mode} hasSearch={!!debouncedSearch} />
       ) : (
         <>
-          <div className="border-b border-ns-border">
+          <div className="space-y-3">
             {users.map(u => (
               <UserSocialCard
                 key={u.id}
@@ -281,10 +301,22 @@ export default function SocialListPage({
 
           {/* Load More */}
           {hasMore && (
-            <div className="mt-6">
-              <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="w-full sm:w-auto">
-                {loadingMore ? 'Loading…' : 'Load More'}
-              </Button>
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="px-6 py-2.5 rounded-xl text-sm font-body font-semibold
+                           bg-ns-surface border border-ns-border/60
+                           text-ns-muted/70 hover:text-ns-secondary-readable hover:border-ns-secondary/40
+                           transition-all disabled:opacity-40"
+              >
+                {loadingMore ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-ns-muted/40 border-t-ns-secondary rounded-full animate-spin" />
+                    Loading…
+                  </span>
+                ) : 'Load More'}
+              </button>
             </div>
           )}
         </>

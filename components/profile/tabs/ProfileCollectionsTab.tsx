@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { tmdbImageUrl } from '@/lib/utils'
-import { LockIcon } from '@/components/icons'
-import Card from '@/components/ui/Card'
+import { LockIcon, CollectionsIcon } from '@/components/icons'
 
 interface CollectionItem {
   id:             string
@@ -35,9 +35,10 @@ export default function ProfileCollectionsTab({ username }: { username: string }
 
   if (blocked) {
     return (
-      <p className="flex items-center gap-2 border-t border-ns-border py-6 text-sm font-body text-ns-muted">
-        <LockIcon size={16} className="flex-shrink-0" /> This user's collections are private.
-      </p>
+      <div className="py-20 text-center">
+        <LockIcon size={40} className="text-ns-muted/40 mx-auto mb-3" />
+        <p className="text-ns-muted font-body text-sm">This user's collections are private.</p>
+      </div>
     )
   }
 
@@ -45,7 +46,7 @@ export default function ProfileCollectionsTab({ username }: { username: string }
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="animate-pulse bg-ns-surface border border-ns-border rounded p-4 h-28" />
+          <div key={i} className="animate-pulse bg-ns-surface border border-ns-border rounded-2xl p-4 h-28" />
         ))}
       </div>
     )
@@ -53,19 +54,22 @@ export default function ProfileCollectionsTab({ username }: { username: string }
 
   if (collections.length === 0) {
     return (
-      <p className="border-t border-ns-border py-6 text-sm font-body text-ns-muted">No public collections yet.</p>
+      <div className="py-20 text-center">
+        <CollectionsIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
+        <p className="text-ns-muted font-body text-sm">No public collections yet.</p>
+      </div>
     )
   }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {collections.map(c => (
-        <Card key={c.id} href={`/collections/${c.id}`} interactive className="group block min-w-0 p-4">
+        <Link key={c.id} href={`/collections/${c.id}`} className="group bg-ns-surface border border-ns-border rounded-2xl p-4 hover:border-ns-secondary/40 transition-colors">
           <div className="flex items-start gap-3">
             {/* Preview posters strip */}
             <div className="flex -space-x-3 flex-shrink-0">
               {c.previewPosters.slice(0, 3).map((poster, i) => (
-                <div key={i} className="w-10 h-14 rounded-sm overflow-hidden border-2 border-ns-surface bg-ns-border" style={{ zIndex: 3 - i }}>
+                <div key={i} className="w-10 h-14 rounded-lg overflow-hidden border-2 border-ns-surface bg-ns-border" style={{ zIndex: 3 - i }}>
                   {poster && (
                     <Image
                       src={tmdbImageUrl(poster, 'w185')}
@@ -84,14 +88,14 @@ export default function ProfileCollectionsTab({ username }: { username: string }
                 <p className="text-xs font-body text-ns-muted line-clamp-2 mt-0.5">{c.description}</p>
               )}
               <div className="flex items-center gap-3 mt-2">
-                <span className="text-[11px] font-body text-ns-muted">{c.movieCount} films</span>
+                <span className="text-[10px] font-body text-ns-muted">{c.movieCount} films</span>
                 {c.upvotes > 0 && (
-                  <span className="text-[11px] font-body text-ns-secondary-readable">▲ {c.upvotes}</span>
+                  <span className="text-[10px] font-body text-ns-secondary-readable">▲ {c.upvotes}</span>
                 )}
               </div>
             </div>
           </div>
-        </Card>
+        </Link>
       ))}
     </div>
   )

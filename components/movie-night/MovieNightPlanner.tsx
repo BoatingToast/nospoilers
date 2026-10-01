@@ -8,7 +8,6 @@ import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import PageHeader from '@/components/ui/PageHeader'
 import MovieNightIcebreaker from './MovieNightIcebreaker'
 import { formatYear, tmdbImageUrl } from '@/lib/utils'
 import {
@@ -142,12 +141,13 @@ function scoreCandidate(
 
 function EmptyState({ hasFriends }: { hasFriends: boolean }) {
   return (
-    <div className="min-w-0 border-t-2 border-ns-text pt-4">
-      <h2 className="font-display text-3xl leading-none tracking-wide text-white sm:text-4xl">No group picks yet</h2>
-      <p className="mt-2 text-sm font-body text-ns-muted max-w-md leading-relaxed">
+    <div className="border border-ns-border bg-ns-surface rounded-2xl p-8 text-center">
+      <ClapperboardIcon size={34} className="mx-auto text-ns-secondary-readable mb-3" />
+      <h2 className="text-lg font-heading text-white mb-2">No group picks yet</h2>
+      <p className="text-sm font-body text-ns-muted max-w-md mx-auto leading-relaxed">
         Add films to watchlists, rate a few movies, or generate recommendations to build a better shared pool.
       </p>
-      <div className="mt-5 flex flex-wrap gap-3">
+      <div className="mt-5 flex justify-center gap-3">
         <Button href="/watchlist" variant="secondary" size="sm">
           <WatchlistIcon size={15} />
           Watchlist
@@ -171,11 +171,11 @@ function PickCard({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
   const labels = genreLabels(pick.genreIds)
 
   return (
-    <article className="min-w-0 border-b border-ns-border py-5">
-      <div className="flex gap-4">
+    <article className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
+      <div className="flex gap-4 p-4">
         <Link
           href={`/movie/${pick.tmdbId}`}
-          className="relative w-[82px] h-[123px] sm:w-[104px] sm:h-[156px] rounded overflow-hidden bg-ns-border flex-shrink-0"
+          className="relative w-[82px] h-[123px] sm:w-[104px] sm:h-[156px] rounded-xl overflow-hidden bg-ns-border flex-shrink-0"
         >
           <Image
             src={tmdbImageUrl(pick.posterPath, 'w185')}
@@ -221,14 +221,14 @@ function PickCard({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-x-4 gap-y-1">
+      <div className="border-t border-ns-border px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
           {pick.selectedSupporters.slice(0, 3).map(support => {
             const Icon = supportIcon(support.type)
             return (
               <span
                 key={`${support.userId}-${support.type}`}
-                className="inline-flex items-center gap-1.5 text-xs font-body text-ns-muted"
+                className="inline-flex items-center gap-1.5 text-[11px] font-body text-ns-muted bg-ns-surface-2 border border-ns-border rounded-full px-2 py-1"
               >
                 <Icon size={12} className="text-ns-secondary-readable" />
                 {support.username}
@@ -369,24 +369,32 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
   }
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-6xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
-      <PageHeader
-        title="Movie Night Picker"
-        lede="A group picker ranked from watchlists, recommendations, ratings, and Movie DNA across your selected group."
-      />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <div className="mb-8 flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <ClapperboardIcon size={22} className="text-ns-secondary-readable" />
+            <Badge variant="secondary" className="uppercase tracking-wider">Group Picker</Badge>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-heading text-white">Movie Night Picker</h1>
+          <p className="text-sm font-body text-ns-muted mt-2 max-w-2xl leading-relaxed">
+            Ranked from watchlists, recommendations, ratings, and Movie DNA across your selected group.
+          </p>
+        </div>
 
-      <div className="mb-10 grid grid-cols-3 gap-x-6 border-b border-ns-border">
-        <div className="min-w-0 py-4">
-          <p className="font-display text-3xl leading-none text-white">{selectedCount}</p>
-          <p className="mt-1 text-xs font-body text-ns-muted">Selected</p>
-        </div>
-        <div className="min-w-0 py-4">
-          <p className="font-display text-3xl leading-none text-white">{ranked.length}</p>
-          <p className="mt-1 text-xs font-body text-ns-muted">Fits</p>
-        </div>
-        <div className="min-w-0 py-4">
-          <p className="font-display text-3xl leading-none text-white">{seed.candidates.length}</p>
-          <p className="mt-1 text-xs font-body text-ns-muted">Pool</p>
+        <div className="grid grid-cols-3 gap-3 min-w-full sm:min-w-[360px] lg:min-w-[420px]">
+          <div className="bg-ns-surface border border-ns-border rounded-2xl px-4 py-3">
+            <p className="font-display text-2xl text-white">{selectedCount}</p>
+            <p className="text-[11px] font-body text-ns-muted">Selected</p>
+          </div>
+          <div className="bg-ns-surface border border-ns-border rounded-2xl px-4 py-3">
+            <p className="font-display text-2xl text-white">{ranked.length}</p>
+            <p className="text-[11px] font-body text-ns-muted">Fits</p>
+          </div>
+          <div className="bg-ns-surface border border-ns-border rounded-2xl px-4 py-3">
+            <p className="font-display text-2xl text-white">{seed.candidates.length}</p>
+            <p className="text-[11px] font-body text-ns-muted">Pool</p>
+          </div>
         </div>
       </div>
 
@@ -399,32 +407,38 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
           }))}
       />
 
-      <section className="mb-12 min-w-0 border-t-2 border-ns-text pt-4">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="font-display text-3xl leading-none tracking-wide text-white sm:text-4xl">Make it a live vote</h2>
-              <Badge variant="success">New</Badge>
+      <section className="relative overflow-hidden rounded-3xl border border-ns-secondary/30 bg-ns-surface mb-6">
+        <div className="absolute inset-0 bg-gradient-to-r from-ns-secondary/12 via-transparent to-ns-success/5 pointer-events-none" />
+        <div className="relative p-5 sm:p-7 flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-ns-secondary/10 border border-ns-secondary/30 flex items-center justify-center flex-shrink-0">
+              <FriendsIcon size={23} className="text-ns-secondary-readable" />
             </div>
-            <p className="mt-2 text-sm font-body text-ns-muted leading-relaxed max-w-xl">
-              Open a lobby, gather the group, then start one private ballot for everyone at the same time.
-            </p>
+            <div>
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <h2 className="text-lg font-heading text-white">Make it a live vote</h2>
+                <Badge variant="success">New</Badge>
+              </div>
+              <p className="text-sm font-body text-ns-muted leading-relaxed max-w-xl">
+                Open a lobby, gather the group, then start one private ballot for everyone at the same time.
+              </p>
+            </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 lg:flex-shrink-0">
-            <div className="flex rounded border border-ns-border overflow-hidden focus-within:border-ns-secondary/50">
+          <div className="flex flex-col sm:flex-row gap-3 xl:flex-shrink-0">
+            <div className="flex rounded-xl border border-ns-border bg-ns-surface-2 overflow-hidden focus-within:border-ns-secondary/50">
               <input
                 value={joinCode}
                 onChange={event => setJoinCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
                 onKeyDown={event => { if (event.key === 'Enter') openRoomByCode() }}
                 placeholder="ROOM CODE"
                 aria-label="Room code"
-                className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm font-display tracking-widest sm:w-32 sm:flex-none text-white placeholder:text-ns-muted/50 focus:outline-none"
+                className="w-32 bg-transparent px-3 py-2.5 text-sm font-display tracking-widest text-white placeholder:text-ns-muted/50 focus:outline-none"
               />
               <button
                 type="button"
                 onClick={openRoomByCode}
-                className="min-h-10 px-4 text-sm font-heading text-ns-text border-l border-ns-border hover:bg-ns-text hover:text-ns-bg transition-colors"
+                className="px-3 text-xs font-body text-ns-muted border-l border-ns-border hover:text-white hover:bg-white/5 transition-colors"
               >
                 Join
               </button>
@@ -436,14 +450,14 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
           </div>
         </div>
         {liveError && (
-          <div className="mt-4 border-l-2 border-ns-danger py-1 pl-3 text-sm font-body text-ns-danger">
+          <div className="relative border-t border-ns-danger/20 bg-ns-danger/5 px-5 sm:px-7 py-2.5 text-xs font-body text-ns-danger">
             {liveError}
           </div>
         )}
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-10 items-start">
-        <aside className="min-w-0 border-t-2 border-ns-text pt-4 lg:order-2">
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-6 items-start">
+        <aside className="bg-ns-surface border border-ns-border rounded-2xl p-5 lg:sticky lg:top-24">
           <div className="space-y-6">
             <Input
               id="movie-night-name"
@@ -453,15 +467,15 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
             />
 
             <section>
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-heading font-semibold text-white">Group</h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-heading text-white">Group</h2>
                 <Button href="/friends/find" variant="ghost" size="sm">
                   <FriendsIcon size={14} />
                   Add
                 </Button>
               </div>
 
-              <div className="border-t border-ns-border">
+              <div className="space-y-2">
                 {seed.participants.map(participant => {
                   const selected = selectedIds.has(participant.id)
                   return (
@@ -471,10 +485,10 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                       onClick={() => toggleParticipant(participant.id)}
                       aria-pressed={selected}
                       className={[
-                        'w-full flex min-h-12 items-center gap-3 border-b border-ns-border py-2.5 text-left transition-opacity',
+                        'w-full flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors',
                         selected
-                          ? ''
-                          : 'opacity-60 hover:opacity-100',
+                          ? 'border-ns-secondary/45 bg-ns-secondary/10'
+                          : 'border-ns-border bg-ns-surface-2 hover:border-ns-secondary/30',
                       ].join(' ')}
                     >
                       <Avatar src={participant.avatarUrl} username={participant.username} size="sm" />
@@ -487,7 +501,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                         </span>
                       </span>
                       <span className={[
-                        'w-5 h-5 rounded-sm border flex items-center justify-center flex-shrink-0',
+                        'w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0',
                         selected ? 'border-ns-secondary bg-ns-secondary text-ns-secondary-foreground' : 'border-ns-border',
                       ].join(' ')}>
                         {selected && <CheckIcon size={13} />}
@@ -499,7 +513,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
             </section>
 
             <section>
-              <h2 className="text-sm font-heading font-semibold text-white mb-3">Mood</h2>
+              <h2 className="text-sm font-heading text-white mb-3">Mood</h2>
               <div className="grid grid-cols-2 gap-2">
                 {MOODS.map(option => (
                   <button
@@ -508,10 +522,10 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                     onClick={() => setMood(option.key)}
                     aria-pressed={mood === option.key}
                     className={[
-                      'min-h-10 rounded border px-3 py-2 text-xs font-body transition-colors',
+                      'rounded-xl border px-3 py-2 text-xs font-body transition-colors',
                       mood === option.key
                         ? 'border-ns-secondary/45 bg-ns-secondary/10 text-ns-secondary-readable'
-                        : 'border-ns-border text-ns-muted hover:text-white',
+                        : 'border-ns-border bg-ns-surface-2 text-ns-muted hover:text-white',
                     ].join(' ')}
                   >
                     {option.label}
@@ -521,7 +535,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
             </section>
 
             <section>
-              <h2 className="text-sm font-heading font-semibold text-white mb-3">Runtime</h2>
+              <h2 className="text-sm font-heading text-white mb-3">Runtime</h2>
               <div className="grid grid-cols-4 gap-2">
                 {RUNTIME_OPTIONS.map(option => (
                   <button
@@ -530,10 +544,10 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                     onClick={() => setRuntime(option.value)}
                     aria-pressed={runtime === option.value}
                     className={[
-                      'min-h-10 rounded border px-2 py-2 text-xs font-body transition-colors',
+                      'rounded-lg border px-2 py-2 text-xs font-body transition-colors',
                       runtime === option.value
                         ? 'border-ns-secondary/45 bg-ns-secondary/10 text-ns-secondary-readable'
-                        : 'border-ns-border text-ns-muted hover:text-white',
+                        : 'border-ns-border bg-ns-surface-2 text-ns-muted hover:text-white',
                     ].join(' ')}
                   >
                     {option.label}
@@ -543,7 +557,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
             </section>
 
             <section>
-              <h2 className="text-sm font-heading font-semibold text-white mb-3">Veto Genres</h2>
+              <h2 className="text-sm font-heading text-white mb-3">Veto Genres</h2>
               <div className="flex flex-wrap gap-2">
                 {VETO_GENRES.map(id => {
                   const active = vetoGenres.has(id)
@@ -554,10 +568,10 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                       onClick={() => toggleGenre(id)}
                       aria-pressed={active}
                       className={[
-                        'min-h-10 rounded border px-3 py-1.5 text-xs font-body transition-colors',
+                        'rounded-full border px-3 py-1.5 text-[11px] font-body transition-colors',
                         active
                           ? 'border-ns-danger/40 bg-ns-danger/10 text-ns-danger'
-                          : 'border-ns-border text-ns-muted hover:text-white',
+                          : 'border-ns-border bg-ns-surface-2 text-ns-muted hover:text-white',
                       ].join(' ')}
                     >
                       {GENRE_NAMES[id]}
@@ -567,16 +581,16 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
               </div>
             </section>
 
-            <section className="border-t border-ns-border">
+            <section className="space-y-2">
               <button
                 type="button"
                 onClick={() => setUnseenOnly(v => !v)}
                 aria-pressed={unseenOnly}
-                className="w-full flex min-h-12 items-center justify-between gap-3 border-b border-ns-border py-2.5 text-left"
+                className="w-full flex items-center justify-between gap-3 rounded-xl border border-ns-border bg-ns-surface-2 px-3 py-2.5"
               >
                 <span className="text-sm font-body text-white">No one selected has seen it</span>
                 <span className={[
-                  'w-9 h-5 flex-shrink-0 rounded-full border transition-colors relative',
+                  'w-9 h-5 rounded-full border transition-colors relative',
                   unseenOnly ? 'bg-ns-secondary/30 border-ns-secondary/50' : 'bg-ns-border/40 border-ns-border',
                 ].join(' ')}>
                   <span className={[
@@ -590,11 +604,11 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                 type="button"
                 onClick={() => setAvoidDivisive(v => !v)}
                 aria-pressed={avoidDivisive}
-                className="w-full flex min-h-12 items-center justify-between gap-3 border-b border-ns-border py-2.5 text-left"
+                className="w-full flex items-center justify-between gap-3 rounded-xl border border-ns-border bg-ns-surface-2 px-3 py-2.5"
               >
                 <span className="text-sm font-body text-white">Avoid low consensus picks</span>
                 <span className={[
-                  'w-9 h-5 flex-shrink-0 rounded-full border transition-colors relative',
+                  'w-9 h-5 rounded-full border transition-colors relative',
                   avoidDivisive ? 'bg-ns-secondary/30 border-ns-secondary/50' : 'bg-ns-border/40 border-ns-border',
                 ].join(' ')}>
                   <span className={[
@@ -607,34 +621,34 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
           </div>
         </aside>
 
-        <div className="space-y-12 min-w-0 lg:order-1">
+        <main className="space-y-6 min-w-0">
           {topPick ? (
-            <section className="min-w-0 border-t-2 border-ns-text pt-4">
-              <div className="mb-5 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <h2 className="font-display text-3xl leading-none tracking-wide text-white sm:text-4xl">{topPick.title}</h2>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
+            <section className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
+              <div className="p-5 sm:p-6 border-b border-ns-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
                     <Badge variant="success">Best Fit</Badge>
                     <span className="text-xs font-body text-ns-muted">{topPick.displayScore}% group fit</span>
                   </div>
-                  <p className="text-sm font-body text-ns-muted mt-2">{topPick.groupReason}</p>
+                  <h2 className="text-xl sm:text-2xl font-heading text-white leading-tight">{topPick.title}</h2>
+                  <p className="text-sm font-body text-ns-muted mt-1">{topPick.groupReason}</p>
                 </div>
-                <div className="flex flex-shrink-0 gap-2">
-                  <Button onClick={copyPlan} variant="outline" size="sm">
+                <div className="flex gap-2">
+                  <Button onClick={copyPlan} variant="secondary" size="sm">
                     {copied ? <CheckIcon size={15} /> : <ShareIcon size={15} />}
                     {copied ? 'Copied' : 'Share'}
                   </Button>
-                  <Button href={`/movie/${topPick.tmdbId}`} variant="secondary" size="sm">
+                  <Button href={`/movie/${topPick.tmdbId}`} variant="primary" size="sm">
                     <FilmIcon size={15} />
                     Open
                   </Button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-[180px_minmax(0,1fr)] gap-5">
+              <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-[180px_minmax(0,1fr)] gap-5">
                 <Link
                   href={`/movie/${topPick.tmdbId}`}
-                  className="relative w-full max-w-[180px] aspect-[2/3] rounded overflow-hidden bg-ns-border"
+                  className="relative w-full max-w-[180px] mx-auto md:mx-0 aspect-[2/3] rounded-2xl overflow-hidden bg-ns-border"
                 >
                   <Image
                     src={tmdbImageUrl(topPick.posterPath, 'w342')}
@@ -646,21 +660,21 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                   />
                 </Link>
                 <div className="space-y-4 min-w-0">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 border-y border-ns-border">
-                    <div className="min-w-0 py-3">
-                      <p className="text-2xl leading-none font-display text-white">{formatYear(topPick.releaseDate)}</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="rounded-xl bg-ns-surface-2 border border-ns-border px-3 py-2">
+                      <p className="text-lg font-display text-white">{formatYear(topPick.releaseDate)}</p>
                       <p className="text-[11px] font-body text-ns-muted">Year</p>
                     </div>
-                    <div className="min-w-0 py-3">
-                      <p className="text-2xl leading-none font-display text-white">{topPick.runtime ? `${topPick.runtime}` : 'Any'}</p>
+                    <div className="rounded-xl bg-ns-surface-2 border border-ns-border px-3 py-2">
+                      <p className="text-lg font-display text-white">{topPick.runtime ? `${topPick.runtime}` : 'Any'}</p>
                       <p className="text-[11px] font-body text-ns-muted">Minutes</p>
                     </div>
-                    <div className="min-w-0 py-3">
-                      <p className="text-2xl leading-none font-display text-white">{topPick.selectedSupporters.length}</p>
+                    <div className="rounded-xl bg-ns-surface-2 border border-ns-border px-3 py-2">
+                      <p className="text-lg font-display text-white">{topPick.selectedSupporters.length}</p>
                       <p className="text-[11px] font-body text-ns-muted">Signals</p>
                     </div>
-                    <div className="min-w-0 py-3">
-                      <p className="text-2xl leading-none font-display text-white">{topPick.selectedSeenBy.length}</p>
+                    <div className="rounded-xl bg-ns-surface-2 border border-ns-border px-3 py-2">
+                      <p className="text-lg font-display text-white">{topPick.selectedSeenBy.length}</p>
                       <p className="text-[11px] font-body text-ns-muted">Seen</p>
                     </div>
                   </div>
@@ -687,26 +701,27 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
           ) : seed.candidates.length === 0 ? (
             <EmptyState hasFriends={hasFriends} />
           ) : (
-            <div className="min-w-0 border-t-2 border-ns-text pt-4">
-              <h2 className="font-display text-3xl leading-none tracking-wide text-white sm:text-4xl">No matches under these filters</h2>
-              <p className="mt-2 text-sm font-body text-ns-muted">Relax the runtime, veto, or unseen filters to reopen the pool.</p>
+            <div className="border border-ns-border bg-ns-surface rounded-2xl p-8 text-center">
+              <RecsIcon size={32} className="mx-auto text-ns-secondary-readable mb-3" />
+              <h2 className="text-lg font-heading text-white mb-2">No matches under these filters</h2>
+              <p className="text-sm font-body text-ns-muted">Relax the runtime, veto, or unseen filters to reopen the pool.</p>
             </div>
           )}
 
           {ranked.length > 0 && (
-            <section className="min-w-0 border-t-2 border-ns-text pt-4">
-              <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-                <h2 className="font-display text-3xl leading-none tracking-wide text-white sm:text-4xl">Ranked Picks</h2>
-                <span className="text-sm font-body text-ns-muted">{ranked.length} movies</span>
+            <section className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-heading text-white">Ranked Picks</h2>
+                <span className="text-xs font-body text-ns-muted">{ranked.length} movies</span>
               </div>
-              <div className="border-t border-ns-border">
+              <div className="space-y-3">
                 {ranked.slice(0, 12).map((pick, index) => (
                   <PickCard key={pick.tmdbId} pick={pick} rank={index + 1} />
                 ))}
               </div>
             </section>
           )}
-        </div>
+        </main>
       </div>
     </div>
   )

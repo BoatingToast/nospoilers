@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { authOptions } from '@/lib/auth'
 import SocialListPage from '@/components/social/SocialListPage'
-import PageHeader from '@/components/ui/PageHeader'
 
 export const metadata: Metadata = {
   title: 'Following — NoSpoilers',
@@ -16,8 +15,12 @@ export default async function FollowingPage() {
   if (!session) redirect('/login')
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
-      <PageHeader title="FOLLOWING" lede="People whose movie activity you keep up with." className="mb-6" />
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+      <header className="mb-8">
+        <p className="mb-1 text-[10px] font-body uppercase tracking-[0.18em] text-ns-secondary-readable">Your network</p>
+        <h1 className="font-display text-4xl tracking-wider text-ns-text sm:text-5xl">FOLLOWING</h1>
+        <p className="mt-2 text-sm font-body text-ns-muted">People whose movie activity you keep up with.</p>
+      </header>
       <SocialListPage mode="following" embedded />
     </div>
   )

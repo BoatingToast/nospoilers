@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
-import Button from '@/components/ui/Button'
 
 // Lazy-load the heavy modal — it's not needed until the user clicks
 const CollectionPickerModal = dynamic(() => import('./CollectionPickerModal'), { ssr: false })
@@ -47,16 +46,23 @@ export default function AddToCollectionButton({ movie, compact = false }: Props)
           onClick={() => setOpen(true)}
           title="Add to Collection"
           aria-label={`Add ${movie.title} to a collection`}
-          className="group flex h-11 w-11 flex-shrink-0 items-center justify-center rounded border border-ns-border
-                     text-ns-muted transition-colors hover:border-ns-text hover:text-ns-secondary-readable"
+          className="flex h-11 w-11 items-center justify-center rounded-lg border border-ns-border
+                     text-ns-muted hover:border-ns-secondary/40 hover:text-ns-secondary-readable
+                     transition-all duration-200 group flex-shrink-0"
         >
           <CollectionIcon size={13} />
         </button>
       ) : (
-        <Button variant="outline" onClick={() => setOpen(true)} className="group">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-ns-border
+                     text-ns-muted text-sm font-body hover:border-ns-secondary/40 hover:text-ns-secondary-readable
+                     transition-all duration-200 group"
+        >
           <CollectionIcon size={15} />
           Add to Collection
-        </Button>
+        </button>
       )}
 
       {open && (

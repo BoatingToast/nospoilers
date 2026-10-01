@@ -44,11 +44,6 @@ const config: Config = {
           'chart-7': 'rgb(var(--ns-chart-7) / <alpha-value>)',
         },
       },
-      // Print-like corners. Overriding the scale reshapes every existing
-      // rounded-* in the app at once; rounded-full is left for avatars.
-      borderRadius: {
-        sm: '1px', DEFAULT: '2px', md: '3px', lg: '3px', xl: '4px', '2xl': '6px', '3xl': '8px',
-      },
       fontFamily: {
         display: ['var(--font-bebas)', 'Impact', 'sans-serif'],
         body:    ['var(--font-inter)', 'system-ui', 'sans-serif'],

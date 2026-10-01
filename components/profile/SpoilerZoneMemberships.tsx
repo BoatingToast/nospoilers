@@ -1,6 +1,6 @@
 import Link  from 'next/link'
 import Image from 'next/image'
-import Section from '@/components/ui/Section'
+import { SpoilerZoneIcon } from '@/components/icons'
 import { prisma } from '@/lib/db'
 
 interface Props {
@@ -27,42 +27,50 @@ export default async function SpoilerZoneMemberships({ userId }: Props) {
   const countMap = new Map(memberCounts.map(r => [r.tmdbId, r._count.id]))
 
   return (
-    <Section
-      className="mt-14"
-      title="Spoiler Zones"
-      action={<span className="text-sm font-body text-ns-muted">{memberships.length}</span>}
-    >
-      <ul className="grid min-w-0 grid-cols-1 sm:grid-cols-2 sm:gap-x-10">
+    <div className="bg-ns-surface border border-ns-border rounded-2xl p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <SpoilerZoneIcon size={14} className="text-ns-secondary-readable/70" />
+        <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Spoiler Zones</p>
+        <span className="ml-auto text-[10px] font-body text-ns-muted/50">{memberships.length}</span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
         {memberships.map(m => {
           const memberCount = countMap.get(m.tmdbId) ?? 0
           return (
-            <li key={m.id} className="min-w-0 border-t border-ns-border">
-              <Link
-                href={`/movie/${m.tmdbId}`}
-                className="group flex min-h-[56px] items-center gap-3 py-2"
-              >
-                <div className="relative h-12 w-8 flex-shrink-0 overflow-hidden rounded-sm bg-ns-border">
-                  {m.moviePoster && (
-                    <Image
-                      src={`https://image.tmdb.org/t/p/w200${m.moviePoster}`}
-                      alt=""
-                      fill
-                      sizes="32px"
-                      className="object-cover"
-                    />
-                  )}
+            <Link
+              key={m.id}
+              href={`/movie/${m.tmdbId}`}
+              className="group relative overflow-hidden rounded-xl border border-ns-border
+                         hover:border-ns-secondary/30 transition-all duration-200 hover:scale-[1.02]"
+            >
+              {/* Poster background */}
+              {m.moviePoster ? (
+                <div className="absolute inset-0">
+                  <Image
+                    src={`https://image.tmdb.org/t/p/w200${m.moviePoster}`}
+                    alt=""
+                    fill
+                    className="object-cover opacity-15 group-hover:opacity-25 transition-opacity"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-ns-bg via-ns-bg/80 to-ns-bg/50" />
                 </div>
-                <p className="min-w-0 flex-1 text-sm font-body font-semibold leading-tight text-ns-text line-clamp-2 group-hover:underline underline-offset-4">
+              ) : (
+                <div className="absolute inset-0 bg-ns-bg/50" />
+              )}
+
+              <div className="relative p-3 min-h-[72px] flex flex-col justify-between">
+                <p className="text-[11px] font-body font-semibold text-ns-text leading-tight line-clamp-2">
                   {m.movieTitle}
                 </p>
-                <p className="flex-shrink-0 text-xs font-body text-ns-muted">
+                <p className="text-[9px] font-body text-ns-muted/50 mt-1">
                   {memberCount.toLocaleString()} member{memberCount !== 1 ? 's' : ''}
                 </p>
-              </Link>
-            </li>
+              </div>
+            </Link>
           )
         })}
-      </ul>
-    </Section>
+      </div>
+    </div>
   )
 }

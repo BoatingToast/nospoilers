@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Button from '@/components/ui/Button'
-import Section from '@/components/ui/Section'
+import Link from 'next/link'
 import AchievementBadge from '@/components/achievements/AchievementBadge'
 import XPBar from '@/components/achievements/XPBar'
 import type { UserAchievementData, XPLevel } from '@/types'
@@ -30,27 +29,36 @@ export default function AchievementWidget() {
 
   if (loading) {
     return (
-      <Section title="Achievements">
-        <div className="mb-6 h-2 animate-pulse rounded bg-ns-surface-2" />
+      <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
+        <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">Achievements</p>
+        <div className="h-2 bg-ns-border rounded-full animate-pulse mb-6" />
         <div className="grid grid-cols-6 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex animate-pulse flex-col items-center gap-1.5">
-              <div className="h-10 w-10 rounded-full bg-ns-surface-2" />
-              <div className="h-2 w-full rounded bg-ns-surface-2" />
+            <div key={i} className="flex flex-col items-center gap-1.5 animate-pulse">
+              <div className="w-10 h-10 rounded-full bg-ns-border" />
+              <div className="h-2 bg-ns-border rounded w-full" />
             </div>
           ))}
         </div>
-      </Section>
+      </div>
     )
   }
 
   return (
-    <Section
-      title="Achievements"
-      note={`${earned.length}/${achievements.length}`}
-      href="/achievements"
-      linkLabel="View all →"
-    >
+    <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">
+          Achievements · {earned.length}/{achievements.length}
+        </p>
+        <Link
+          href="/achievements"
+          className="text-ns-muted/50 text-[10px] font-body hover:text-ns-secondary-readable transition-colors"
+        >
+          View all →
+        </Link>
+      </div>
+
       {/* XP bar */}
       {xp && (
         <div className="mb-5">
@@ -66,11 +74,19 @@ export default function AchievementWidget() {
       </div>
 
       {/* View all CTA */}
-      <div className="mt-4 border-t border-ns-border pt-4">
-        <Button variant="outline" href="/achievements" className="w-full sm:w-auto">
+      <div className="mt-4 pt-4 border-t border-ns-border/40">
+        <Link
+          href="/achievements"
+          className="flex items-center justify-center gap-2 w-full py-2 rounded-xl
+                     border border-ns-border/60 text-ns-muted text-xs font-body
+                     hover:border-ns-secondary/30 hover:text-ns-secondary-readable transition-all duration-200"
+        >
           View All Achievements
-        </Button>
+          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </Link>
       </div>
-    </Section>
+    </div>
   )
 }

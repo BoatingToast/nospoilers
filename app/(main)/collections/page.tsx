@@ -4,10 +4,9 @@ import { getUserCollections } from '@/services/collections'
 import CollectionCard from '@/components/collections/CollectionCard'
 import CollectionBrowseClient from '@/components/collections/CollectionBrowseClient'
 import CollectionSearchBar from '@/components/collections/CollectionSearchBar'
-import PageHeader from '@/components/ui/PageHeader'
-import Section from '@/components/ui/Section'
-import Button from '@/components/ui/Button'
+import Link from 'next/link'
 import type { Metadata } from 'next'
+import { CollectionsIcon } from '@/components/icons'
 
 export const metadata: Metadata = { title: 'Collections — NoSpoilers' }
 
@@ -20,37 +19,80 @@ export default async function CollectionsPage() {
 
   return (
     <div className="min-h-screen pb-20">
-      <div className="mx-auto min-w-0 max-w-6xl px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
-        <PageHeader title="COLLECTIONS" lede="Curated movie lists from the community">
-          <div className="w-full min-w-0">
-            <CollectionSearchBar placeholder="Search collections, creators, movies…" />
+        {/* Header */}
+        <div className="flex items-end justify-between mb-6">
+          <div>
+            <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-2 flex items-center gap-1.5">
+              <CollectionsIcon size={11} /> Community
+            </p>
+            <h1 className="font-display text-5xl sm:text-6xl tracking-wider text-ns-text">
+              COLLECTIONS
+            </h1>
+            <p className="text-ns-muted/60 text-sm font-body mt-2">
+              Curated movie lists from the community
+            </p>
           </div>
-          {session && (
-            <Button variant="primary" href="/collections/new" className="w-full sm:w-auto">
-              + New Collection
-            </Button>
-          )}
-          <Button variant="secondary" href="/collections/search" className="w-full sm:w-auto">
-            Search
-          </Button>
-        </PageHeader>
+
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Link
+              href="/collections/search"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-ns-border
+                         text-ns-muted text-sm font-body hover:border-ns-secondary/40 hover:text-ns-secondary-readable
+                         transition-all duration-200"
+            >
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              Search
+            </Link>
+            {session && (
+              <Link
+                href="/collections/new"
+                className="px-5 py-2.5 bg-ns-secondary text-ns-secondary-foreground rounded-xl text-sm font-body font-medium
+                           hover:bg-ns-secondary/90 transition-colors"
+              >
+                + New Collection
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* Quick search */}
+        <div className="mb-10">
+          <CollectionSearchBar placeholder="Search collections, creators, movies…" />
+        </div>
 
         {/* My collections (if logged in and has some) */}
         {session && myCollections.length > 0 && (
-          <Section title="MY COLLECTIONS" href="/collections/new" linkLabel="+ New" className="mt-12">
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          <section className="mb-12">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-display text-2xl tracking-wider text-ns-text">MY COLLECTIONS</h2>
+              <Link href="/collections/new"
+                className="text-ns-secondary-readable text-xs font-body hover:text-amber-400 transition-colors">
+                + New
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               {myCollections.map(col => (
                 <CollectionCard key={col.id} collection={col} isOwner />
               ))}
             </div>
-          </Section>
+          </section>
         )}
 
         {/* Community discovery tabs */}
-        <Section title="COMMUNITY" href="/collections/trending" linkLabel="View trending →" className="mt-12">
+        <section>
+          <div className="flex items-center justify-between mb-0">
+            <h2 className="font-display text-2xl tracking-wider text-ns-text mb-0">COMMUNITY</h2>
+            <Link href="/collections/trending"
+              className="text-ns-secondary-readable text-xs font-body hover:text-amber-400 transition-colors">
+              View trending →
+            </Link>
+          </div>
           <CollectionBrowseClient initialTab="trending" />
-        </Section>
+        </section>
 
       </div>
     </div>

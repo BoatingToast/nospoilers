@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Button from '@/components/ui/Button'
 
 interface Props {
   collectionId: string
@@ -30,13 +29,20 @@ export default function CollectionActions({ collectionId, isPublic }: Props) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <Button variant="outline" onClick={toggleVisibility}>
+    <div className="flex items-center gap-2">
+      <button
+        onClick={toggleVisibility}
+        className="px-3 py-1.5 rounded-xl border border-ns-border text-ns-muted text-xs font-body hover:border-ns-muted/40 hover:text-ns-text transition-colors"
+      >
         {isPublic ? 'Make Private' : 'Make Public'}
-      </Button>
-      <Button variant="danger" onClick={handleDelete} disabled={deleting}>
+      </button>
+      <button
+        onClick={handleDelete}
+        disabled={deleting}
+        className="px-3 py-1.5 rounded-xl border border-red-500/30 text-red-400 text-xs font-body hover:bg-red-500/10 transition-colors disabled:opacity-50"
+      >
         {deleting ? 'Deleting...' : 'Delete'}
-      </Button>
+      </button>
     </div>
   )
 }
