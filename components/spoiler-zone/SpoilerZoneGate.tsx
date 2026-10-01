@@ -32,7 +32,7 @@ export default function SpoilerZoneGate({ movieTitle, onEnter }: Props) {
         <p className="relative text-ns-muted font-body text-sm mb-1">
           Everything inside may contain full spoilers for
         </p>
-        <p className="relative text-ns-secondary font-body font-semibold text-base mb-6 truncate px-4">
+        <p className="relative text-ns-secondary-readable font-body font-semibold text-base mb-6 truncate px-4">
           {movieTitle}
         </p>
 

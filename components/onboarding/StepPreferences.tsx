@@ -4,12 +4,24 @@ import { useState } from 'react'
 import Button from '@/components/ui/Button'
 
 export interface PreferenceAnswers {
-  pacing:       string
-  endings:      string
-  storytelling: string
-  tone:         string
-  complexity:   number
-  plotTwists:   number
+  pacingScale:          number | null
+  endingClosure:        number | null
+  storytellingScale:    number | null
+  toneScale:            number | null
+  complexity:           number
+  plotTwists:           number
+  escapism:             number | null
+  emotionalIntensity:   number | null
+  eraOpenness:          number | null
+  runtimePreference:    number | null
+  popularityPreference: number | null
+  discoveryPreference:  number | null
+  subtitleOpenness:     number | null
+  violenceTolerance:    number | null
+  horrorTolerance:      number | null
+  animationOpenness:    number | null
+  documentaryOpenness:  number | null
+  excludedGenres:       string[]
 }
 
 interface StepPreferencesProps {
@@ -18,99 +30,181 @@ interface StepPreferencesProps {
   loading:  boolean
 }
 
-type RadioOption = { value: string; label: string; sub: string }
+type ScaleKey = Exclude<keyof PreferenceAnswers, 'excludedGenres'>
 
-function RadioGroup({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string
-  options: RadioOption[]
-  value: string
-  onChange: (v: string) => void
-}) {
-  return (
-    <div>
-      <p className="text-ns-text font-body font-medium text-sm mb-3">{label}</p>
-      <div className="flex flex-col sm:flex-row gap-2">
-        {options.map(opt => (
-          <button
-            key={opt.value}
-            onClick={() => onChange(opt.value)}
-            className={`flex-1 text-left px-4 py-3 rounded-xl border transition-all duration-150
-                       ${value === opt.value
-                         ? 'bg-ns-secondary/10 border-ns-secondary'
-                         : 'bg-ns-surface border-ns-border hover:border-ns-muted/40'}`}
-          >
-            <p className={`text-sm font-body font-medium ${value === opt.value ? 'text-ns-secondary' : 'text-ns-text'}`}>
-              {opt.label}
-            </p>
-            <p className="text-ns-muted text-xs font-body mt-0.5">{opt.sub}</p>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function SliderQuestion({
-  label,
-  sublabel,
-  leftLabel,
-  rightLabel,
-  value,
-  onChange,
-}: {
+interface ScaleConfig {
+  key: ScaleKey
   label: string
   sublabel: string
   leftLabel: string
   rightLabel: string
-  value: number
-  onChange: (v: number) => void
+  optional?: boolean
+}
+
+const STORY_SCALES: ScaleConfig[] = [
+  { key: 'pacingScale', label: 'Pacing', sublabel: 'How quickly should a story move?', leftLabel: 'Slow burn', rightLabel: 'Fast-paced', optional: true },
+  { key: 'storytellingScale', label: 'Story Focus', sublabel: 'What pulls you into a film?', leftLabel: 'Characters', rightLabel: 'Plot', optional: true },
+  { key: 'complexity', label: 'Complexity', sublabel: 'How much should a movie make you work?', leftLabel: 'Accessible', rightLabel: 'Layered' },
+  { key: 'plotTwists', label: 'Plot Twists', sublabel: 'How much do you enjoy narrative surprises?', leftLabel: 'Straightforward', rightLabel: 'Surprise me' },
+  { key: 'endingClosure', label: 'Endings', sublabel: 'How much closure do you want?', leftLabel: 'Clear closure', rightLabel: 'Open-ended', optional: true },
+]
+
+const FEELING_SCALES: ScaleConfig[] = [
+  { key: 'toneScale', label: 'Tone', sublabel: 'What atmosphere do you gravitate toward?', leftLabel: 'Light', rightLabel: 'Dark', optional: true },
+  { key: 'escapism', label: 'Realism', sublabel: 'How close should the world feel to real life?', leftLabel: 'Grounded', rightLabel: 'Escapist', optional: true },
+  { key: 'emotionalIntensity', label: 'Emotional Intensity', sublabel: 'How hard should a movie hit?', leftLabel: 'Comforting', rightLabel: 'Intense', optional: true },
+]
+
+const DISCOVERY_SCALES: ScaleConfig[] = [
+  { key: 'eraOpenness', label: 'Era Openness', sublabel: 'How far back should recommendations reach?', leftLabel: 'Recent only', rightLabel: 'Any era', optional: true },
+  { key: 'runtimePreference', label: 'Runtime', sublabel: 'How much time do you like to commit?', leftLabel: 'Short', rightLabel: 'Epic', optional: true },
+  { key: 'popularityPreference', label: 'Popularity', sublabel: 'How established should a pick be?', leftLabel: 'Mainstream', rightLabel: 'Hidden gems', optional: true },
+  { key: 'discoveryPreference', label: 'Discovery', sublabel: 'How far outside your comfort zone should we go?', leftLabel: 'Familiar', rightLabel: 'Experimental', optional: true },
+]
+
+const COMFORT_SCALES: ScaleConfig[] = [
+  { key: 'subtitleOpenness', label: 'Subtitles', sublabel: 'Are international-language films welcome?', leftLabel: 'English only', rightLabel: 'Subtitles welcome', optional: true },
+  { key: 'violenceTolerance', label: 'Graphic Content', sublabel: 'How much violence are you comfortable with?', leftLabel: 'Keep it mild', rightLabel: 'No limit', optional: true },
+  { key: 'horrorTolerance', label: 'Horror', sublabel: 'How much fear do you want in the mix?', leftLabel: 'Avoid horror', rightLabel: 'Love horror', optional: true },
+  { key: 'animationOpenness', label: 'Animation', sublabel: 'How often should animated films appear?', leftLabel: 'Rarely', rightLabel: 'Often', optional: true },
+  { key: 'documentaryOpenness', label: 'Documentaries', sublabel: 'How often should nonfiction appear?', leftLabel: 'Rarely', rightLabel: 'Often', optional: true },
+]
+
+const CORE_SCALES: ScaleConfig[] = [
+  FEELING_SCALES.find(scale => scale.key === 'emotionalIntensity')!,
+  DISCOVERY_SCALES.find(scale => scale.key === 'runtimePreference')!,
+  DISCOVERY_SCALES.find(scale => scale.key === 'discoveryPreference')!,
+  COMFORT_SCALES.find(scale => scale.key === 'subtitleOpenness')!,
+  COMFORT_SCALES.find(scale => scale.key === 'horrorTolerance')!,
+]
+
+const CORE_KEYS = new Set<ScaleKey>(CORE_SCALES.map(scale => scale.key))
+const FINE_TUNE_SCALES = [
+  ...STORY_SCALES,
+  ...FEELING_SCALES,
+  ...DISCOVERY_SCALES,
+  ...COMFORT_SCALES,
+].filter(scale => !CORE_KEYS.has(scale.key))
+
+const AVOIDABLE_GENRES = [
+  'action', 'animation', 'comedy', 'crime', 'documentary', 'drama', 'fantasy',
+  'history', 'horror', 'mystery', 'romance', 'sci-fi', 'thriller', 'war', 'western',
+]
+
+function selectionLabel(value: number | null, left: string, right: string): string {
+  if (value === null) return 'No preference'
+  if (value <= 2) return left
+  if (value <= 4) return `Mostly ${left.toLowerCase()}`
+  if (value <= 6) return 'Balanced'
+  if (value <= 8) return `Mostly ${right.toLowerCase()}`
+  return right
+}
+
+function SliderQuestion({ config, value, onChange }: {
+  config: ScaleConfig
+  value: number | null
+  onChange: (value: number | null) => void
 }) {
   return (
-    <div>
-      <div className="flex items-end justify-between mb-3">
+    <div className="rounded-2xl border border-ns-border bg-ns-surface p-4">
+      <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <p className="text-ns-text font-body font-medium text-sm">{label}</p>
-          <p className="text-ns-muted text-xs font-body mt-0.5">{sublabel}</p>
+          <p className="text-sm font-body font-medium text-ns-text">{config.label}</p>
+          <p className="mt-0.5 text-xs font-body text-ns-muted">{config.sublabel}</p>
         </div>
-        <span className="text-ns-secondary font-display text-xl">{value}</span>
+        <span className="max-w-28 text-right text-[10px] font-body font-semibold uppercase tracking-wide text-ns-secondary-readable">
+          {selectionLabel(value, config.leftLabel, config.rightLabel)}
+        </span>
       </div>
-      <div className="flex items-center gap-3">
-        <span className="text-ns-muted text-xs font-body w-20 text-right">{leftLabel}</span>
-        <input
-          type="range"
-          min={1} max={10}
-          value={value}
-          onChange={e => onChange(Number(e.target.value))}
-          className="flex-1 accent-ns-secondary cursor-pointer"
-        />
-        <span className="text-ns-muted text-xs font-body w-20">{rightLabel}</span>
+      <input
+        type="range"
+        min={1}
+        max={10}
+        value={value ?? 5}
+        aria-label={config.label}
+        aria-valuetext={selectionLabel(value, config.leftLabel, config.rightLabel)}
+        onChange={event => onChange(Number(event.target.value))}
+        className="w-full cursor-pointer accent-ns-secondary"
+      />
+      <div className="mt-1 flex items-start justify-between gap-4 text-[10px] font-body text-ns-muted">
+        <span>{config.leftLabel}</span>
+        <span className="text-right">{config.rightLabel}</span>
       </div>
+      {config.optional && value !== null && (
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="mt-2 text-[10px] font-body text-ns-muted underline decoration-ns-border underline-offset-2 hover:text-ns-text"
+        >
+          Clear preference
+        </button>
+      )}
     </div>
   )
 }
 
+function ScaleSection({ title, description, scales, answers, setAnswer }: {
+  title: string
+  description: string
+  scales: ScaleConfig[]
+  answers: PreferenceAnswers
+  setAnswer: (key: ScaleKey, value: number | null) => void
+}) {
+  return (
+    <section>
+      <div className="mb-3">
+        <h3 className="text-sm font-heading text-white">{title}</h3>
+        <p className="mt-0.5 text-xs font-body text-ns-muted">{description}</p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {scales.map(config => (
+          <SliderQuestion
+            key={config.key}
+            config={config}
+            value={answers[config.key] as number | null}
+            onChange={value => setAnswer(config.key, value)}
+          />
+        ))}
+      </div>
+    </section>
+  )
+}
+
 export default function StepPreferences({ onSubmit, onBack, loading }: StepPreferencesProps) {
+  const [showFineTune, setShowFineTune] = useState(false)
   const [answers, setAnswers] = useState<PreferenceAnswers>({
-    pacing:       '',
-    endings:      '',
-    storytelling: '',
-    tone:         '',
-    complexity:   5,
-    plotTwists:   5,
+    pacingScale: null,
+    endingClosure: null,
+    storytellingScale: null,
+    toneScale: null,
+    complexity: 5,
+    plotTwists: 5,
+    escapism: null,
+    emotionalIntensity: null,
+    eraOpenness: null,
+    runtimePreference: null,
+    popularityPreference: null,
+    discoveryPreference: null,
+    subtitleOpenness: null,
+    violenceTolerance: null,
+    horrorTolerance: null,
+    animationOpenness: null,
+    documentaryOpenness: null,
+    excludedGenres: [],
   })
 
-  function set<K extends keyof PreferenceAnswers>(key: K) {
-    return (val: PreferenceAnswers[K]) =>
-      setAnswers(prev => ({ ...prev, [key]: val }))
+  function setAnswer(key: ScaleKey, value: number | null) {
+    setAnswers(previous => ({ ...previous, [key]: value }))
   }
 
-  const isComplete =
-    answers.pacing && answers.endings && answers.storytelling && answers.tone
+  function toggleExcludedGenre(genre: string) {
+    setAnswers(previous => ({
+      ...previous,
+      excludedGenres: previous.excludedGenres.includes(genre)
+        ? previous.excludedGenres.filter(item => item !== genre)
+        : [...previous.excludedGenres, genre],
+    }))
+  }
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -119,85 +213,88 @@ export default function StepPreferences({ onSubmit, onBack, loading }: StepPrefe
           YOUR PREFERENCES
         </h2>
         <p className="text-ns-muted font-body text-sm">
-          A few quick questions to calibrate your Movie DNA.
+          Five quick choices give us the strongest signals. You can skip any that do not matter to you.
         </p>
       </div>
 
-      <div className="flex flex-col gap-6 mb-10">
-        <RadioGroup
-          label="Pacing — which do you prefer?"
-          value={answers.pacing}
-          onChange={set('pacing')}
-          options={[
-            { value: 'slow_burn',  label: 'Slow Burn',   sub: 'Let it breathe' },
-            { value: 'balanced',   label: 'Balanced',    sub: 'Mix of both'    },
-            { value: 'fast_paced', label: 'Fast-Paced',  sub: 'Keep it moving' },
-          ]}
+      <div className="mb-10 flex flex-col gap-6">
+        <ScaleSection
+          title="The essentials"
+          description="Your time, comfort, and appetite for discovery."
+          scales={CORE_SCALES}
+          answers={answers}
+          setAnswer={setAnswer}
         />
 
-        <RadioGroup
-          label="Endings — which do you prefer?"
-          value={answers.endings}
-          onChange={set('endings')}
-          options={[
-            { value: 'happy',       label: 'Happy',       sub: 'Satisfying resolution' },
-            { value: 'bittersweet', label: 'Bittersweet', sub: 'Earned complexity'     },
-            { value: 'ambiguous',   label: 'Ambiguous',   sub: 'Open to interpretation'},
-          ]}
-        />
+        <section className="overflow-hidden rounded-2xl border border-ns-border bg-ns-surface/45">
+          <button
+            type="button"
+            aria-expanded={showFineTune}
+            aria-controls="fine-tune-preferences"
+            onClick={() => setShowFineTune(open => !open)}
+            className="flex w-full items-center justify-between gap-4 p-4 text-left transition-colors hover:bg-ns-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ns-secondary-readable sm:p-5"
+          >
+            <span>
+              <span className="block text-sm font-heading font-semibold text-ns-text">Fine-tune my taste</span>
+              <span className="mt-1 block text-xs font-body leading-relaxed text-ns-muted">
+                Optional story, tone, era, and content controls — plus genres to avoid.
+              </span>
+            </span>
+            <span aria-hidden="true" className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-ns-border text-ns-secondary-readable transition-transform ${showFineTune ? 'rotate-180' : ''}`}>
+              ↓
+            </span>
+          </button>
 
-        <RadioGroup
-          label="Storytelling — what do you value more?"
-          value={answers.storytelling}
-          onChange={set('storytelling')}
-          options={[
-            { value: 'characters', label: 'Characters', sub: 'Deep, rich people' },
-            { value: 'plot',       label: 'Plot',       sub: 'Story and structure' },
-            { value: 'equal',      label: 'Equal Mix',  sub: 'Both matter equally' },
-          ]}
-        />
+          {showFineTune && (
+            <div id="fine-tune-preferences" className="space-y-8 border-t border-ns-border p-4 sm:p-5">
+              <ScaleSection
+                title="More taste signals"
+                description="These start neutral and can be adjusted now or later in settings."
+                scales={FINE_TUNE_SCALES}
+                answers={answers}
+                setAnswer={setAnswer}
+              />
 
-        <RadioGroup
-          label="Tone — which do you enjoy more?"
-          value={answers.tone}
-          onChange={set('tone')}
-          options={[
-            { value: 'dark',         label: 'Dark',         sub: 'Intense and serious' },
-            { value: 'balanced',     label: 'Balanced',     sub: 'Mix of both'         },
-            { value: 'lighthearted', label: 'Lighthearted', sub: 'Fun and uplifting'   },
-          ]}
-        />
+              <section>
+                <div className="mb-3">
+                  <h3 className="text-sm font-heading text-white">Genres to avoid</h3>
+                  <p className="mt-0.5 text-xs font-body text-ns-muted">Optional hard exclusions. You can change these later.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {AVOIDABLE_GENRES.map(genre => {
+                    const selected = answers.excludedGenres.includes(genre)
+                    return (
+                      <button
+                        type="button"
+                        key={genre}
+                        aria-pressed={selected}
+                        onClick={() => toggleExcludedGenre(genre)}
+                        className={`rounded-full border px-3 py-1.5 text-xs font-body capitalize transition-colors ${
+                          selected
+                            ? 'border-red-400/60 bg-red-500/10 text-red-300'
+                            : 'border-ns-border bg-ns-surface text-ns-muted hover:border-ns-muted/50 hover:text-ns-text'
+                        }`}
+                      >
+                        {selected ? '× ' : ''}{genre}
+                      </button>
+                    )
+                  })}
+                </div>
+              </section>
+            </div>
+          )}
+        </section>
 
-        <SliderQuestion
-          label="Complexity"
-          sublabel="How complex do you like your movies?"
-          leftLabel="Keep it simple"
-          rightLabel="Give me layers"
-          value={answers.complexity}
-          onChange={set('complexity')}
-        />
-
-        <SliderQuestion
-          label="Plot Twists"
-          sublabel="How much do you enjoy plot twists?"
-          leftLabel="Predictable is fine"
-          rightLabel="Surprise me"
-          value={answers.plotTwists}
-          onChange={set('plotTwists')}
-        />
+        {!showFineTune && (
+          <p className="text-center text-xs font-body text-ns-muted">
+            The rest stays neutral for now and can be changed in settings at any time.
+          </p>
+        )}
       </div>
 
       <div className="flex items-center justify-between">
-        <Button variant="ghost" size="lg" onClick={onBack}>
-          ← Back
-        </Button>
-        <Button
-          variant="primary"
-          size="lg"
-          onClick={() => isComplete && onSubmit(answers)}
-          disabled={!isComplete}
-          loading={loading}
-        >
+        <Button variant="ghost" size="lg" onClick={onBack}>← Back</Button>
+        <Button variant="primary" size="lg" onClick={() => onSubmit(answers)} loading={loading}>
           Generate My DNA →
         </Button>
       </div>

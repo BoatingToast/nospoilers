@@ -1,16 +1,18 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect, useTransition, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 import NextFavoriteHero from './NextFavoriteHero'
 import CuratedRecCard   from './CuratedRecCard'
 import RecPersonaSection from './RecPersonaSection'
 import RecAccuracyWidget from './RecAccuracyWidget'
 import BasedOnRatingsSection from './BasedOnRatingsSection'
+import MoodControls from './MoodControls'
 import FriendRecs from '@/components/friends/FriendRecs'
 import MovieDNACard from '@/components/dashboard/MovieDNACard'
 import type { CuratedRecGroups, EnrichedRec } from '@/services/curated-recs'
-import type { RecPersona, MovieDnaProfile } from '@/types'
+import type { RecPersona, MovieDnaProfile, RecommendationMood } from '@/types'
 import {
   RecsIcon, FilmIcon, MovieDnaIcon, TrendingIcon, CalendarIcon,
   type IconProps,
@@ -64,6 +66,33 @@ const SECTIONS: SectionConfig[] = [
   },
 ]
 
+const DEFAULT_RECOMMENDATION_MOOD: RecommendationMood = {
+  intensity: 5,
+  runtime: 5,
+  adventure: 5,
+}
+
+type RecommendationState =
+  | { status: 'loading' }
+  | { status: 'success'; groups: CuratedRecGroups }
+  | { status: 'error' }
+
+const RECOMMENDATION_ARRAY_KEYS = [
+  'weThinkYoudLike',
+  'similarToFavorites',
+  'dnaBasedPicks',
+  'expandYourTaste',
+  'rediscoverClassics',
+] as const
+
+function isCuratedRecGroups(value: unknown): value is CuratedRecGroups {
+  if (!value || typeof value !== 'object') return false
+  const candidate = value as Partial<CuratedRecGroups>
+  return RECOMMENDATION_ARRAY_KEYS.every(key => Array.isArray(candidate[key])) &&
+    Array.isArray(candidate.topTraits) &&
+    (candidate.nextFavorite === null || typeof candidate.nextFavorite === 'object')
+}
+
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 function HeroSkeleton() {
@@ -112,7 +141,7 @@ function SectionShelf({ items, section, topTraits }: ShelfProps) {
       {/* Header */}
       <div className="px-5 py-4 border-b border-ns-border">
         <div className="flex items-center gap-2 mb-0.5">
-          <section.Icon size={16} className="text-ns-secondary flex-shrink-0" />
+          <section.Icon size={16} className="text-ns-secondary-readable flex-shrink-0" />
           <h2 className="text-sm font-heading text-white">{section.title}</h2>
         </div>
         <p className="text-[11px] font-body text-ns-muted">{section.tagline}</p>
@@ -123,7 +152,7 @@ function SectionShelf({ items, section, topTraits }: ShelfProps) {
             {topTraits.map(t => (
               <span
                 key={t.label}
-                className="text-[9px] font-body text-ns-secondary bg-ns-secondary/10 border border-ns-secondary/20 px-2 py-0.5 rounded-full"
+                className="text-[9px] font-body text-ns-secondary-readable bg-ns-secondary/10 border border-ns-secondary/20 px-2 py-0.5 rounded-full"
               >
                 {t.label} {t.score.toFixed(1)}
               </span>
@@ -154,9 +183,10 @@ function SectionShelf({ items, section, topTraits }: ShelfProps) {
 
 export default function RecommendationCenterClient() {
   const { data: session } = useSession()
-  const [groups,   setGroups]   = useState<CuratedRecGroups | null>(null)
   const [personas, setPersonas] = useState<RecPersona[]>([])
-  const [recLoading, setRecLoading] = useState(true)
+  const [recommendations, setRecommendations] = useState<RecommendationState>({ status: 'loading' })
+  const [recRequest, setRecRequest] = useState(0)
+  const [activeMood, setActiveMood] = useState<RecommendationMood>(DEFAULT_RECOMMENDATION_MOOD)
   const [perLoading, setPerLoading] = useState(true)
   const [, startTransition] = useTransition()
 
@@ -164,13 +194,38 @@ export default function RecommendationCenterClient() {
   const [dnaLoading, setDnaLoading] = useState(true)
 
   useEffect(() => {
-    // Fetch curated recs
-    fetch('/api/curated-recs')
-      .then(r => r.json())
-      .then(data => setGroups(data))
-      .catch(() => {})
-      .finally(() => setRecLoading(false))
+    const controller = new AbortController()
+    setRecommendations({ status: 'loading' })
 
+    const query = new URLSearchParams({
+      intensity: String(activeMood.intensity),
+      runtime: String(activeMood.runtime),
+      adventure: String(activeMood.adventure),
+    })
+
+    fetch(`/api/curated-recs?${query}`, { cache: 'no-store', signal: controller.signal })
+      .then(async response => {
+        if (!response.ok) throw new Error('Recommendation request failed')
+        const data: unknown = await response.json()
+        if (!isCuratedRecGroups(data)) throw new Error('Recommendation response was invalid')
+        return data
+      })
+      .then(data => {
+        setRecommendations({ status: 'success', groups: data })
+      })
+      .catch(error => {
+        if (error instanceof DOMException && error.name === 'AbortError') return
+        setRecommendations({ status: 'error' })
+      })
+
+    return () => controller.abort()
+  }, [activeMood, recRequest])
+
+  const handleMoodApply = useCallback((mood: RecommendationMood) => {
+    setActiveMood(mood)
+  }, [])
+
+  useEffect(() => {
     // Fetch personas (can be slow — non-blocking)
     startTransition(() => {
       fetch('/api/recommendations/personas')
@@ -192,19 +247,21 @@ export default function RecommendationCenterClient() {
       .finally(() => setDnaLoading(false))
   }, [session?.user?.name])
 
-  async function handleFeedback(tmdbId: number, feedbackType: string) {
-    // Submit feedback (fire-and-forget for hero card)
+  async function handleFeedback(recommendation: EnrichedRec, feedbackType: string) {
     try {
-      await fetch('/api/recommendations/feedback', {
+      const response = await fetch('/api/recommendations/feedback', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ tmdbId, feedback: feedbackType }),
+        body:    JSON.stringify({ recommendation, feedback: feedbackType }),
       })
+      return response.ok
     } catch {
-      // Non-fatal
+      return false
     }
   }
 
+  const groups = recommendations.status === 'success' ? recommendations.groups : null
+  const recLoading = recommendations.status === 'loading'
   const totalPicks = groups
     ? groups.weThinkYoudLike.length + groups.similarToFavorites.length +
       groups.dnaBasedPicks.length + groups.expandYourTaste.length + groups.rediscoverClassics.length
@@ -221,12 +278,18 @@ export default function RecommendationCenterClient() {
           <p className="text-ns-muted font-body text-sm">
             {recLoading
               ? 'Loading your personalised picks…'
-              : `${totalPicks} personalised recommendations powered by your Movie DNA`
+              : recommendations.status === 'error'
+                ? 'Your personalised picks could not be loaded'
+                : totalPicks === 0
+                  ? 'Your recommendation profile is ready for more movie signals'
+                  : `${totalPicks} personalised recommendations powered by your Movie DNA`
             }
           </p>
         </div>
         <RecAccuracyWidget />
       </div>
+
+      <MoodControls onApply={handleMoodApply} loading={recLoading} />
 
       {/* ─── Movie DNA teaser — same reusable card as Dashboard/profiles ───── */}
       {(dnaLoading || dnaProfile) && (
@@ -252,14 +315,55 @@ export default function RecommendationCenterClient() {
       <FriendRecs />
 
       {/* ─── 5 rec sections ────────────────────────────────────────────────── */}
-      {recLoading ? (
-        <div className="space-y-6">
+      {recommendations.status === 'error' ? (
+        <div
+          className="rounded-2xl border border-dashed border-ns-danger/30 bg-ns-surface px-6 py-10 text-center"
+          role="alert"
+        >
+          <p className="mb-1 font-heading text-base text-white">Recommendations couldn&apos;t load</p>
+          <p className="mb-4 font-body text-sm text-ns-muted">
+            We could not reach the recommendation service. Your taste profile and ratings are safe.
+          </p>
+          <button
+            type="button"
+            onClick={() => setRecRequest(request => request + 1)}
+            className="rounded-lg bg-ns-secondary px-4 py-2 font-body text-sm font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-surface"
+          >
+            Try again
+          </button>
+        </div>
+      ) : recLoading ? (
+        <div className="space-y-6" aria-busy="true" aria-label="Loading recommendation shelves">
           {SECTIONS.map(s => (
             <div key={s.key} className="bg-ns-surface border border-ns-border rounded-2xl p-5">
               <div className="h-3 bg-ns-border rounded w-40 mb-4 animate-pulse" />
               <ShelfSkeleton />
             </div>
           ))}
+        </div>
+      ) : totalPicks === 0 ? (
+        <div
+          className="rounded-2xl border border-dashed border-ns-border bg-ns-surface px-6 py-10 text-center"
+          role="status"
+        >
+          <p className="mb-1 font-heading text-lg text-white">Your next picks need a little more signal</p>
+          <p className="mx-auto mb-5 max-w-lg font-body text-sm leading-relaxed text-ns-muted">
+            Nothing matched yet, but the recommendation service loaded successfully. Rate a few films or update your favorites to shape your Movie DNA.
+          </p>
+          <div className="flex flex-col justify-center gap-3 sm:flex-row">
+            <Link
+              href="/ratings"
+              className="rounded-lg bg-ns-secondary px-4 py-2 font-body text-sm font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-surface"
+            >
+              Rate films
+            </Link>
+            <Link
+              href="/onboarding"
+              className="rounded-lg border border-ns-border px-4 py-2 font-body text-sm text-ns-text transition-colors hover:border-ns-muted hover:bg-ns-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-surface"
+            >
+              Update favorites
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="space-y-6">

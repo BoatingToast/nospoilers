@@ -135,15 +135,25 @@ export function generateDNA(
   }
 
   // 1 ── Questionnaire (highest weight — this is what the user explicitly told us) ──
-  const { pacing, endings, storytelling, tone, complexity, plotTwists } = preferences
+  const {
+    pacing, endings, storytelling, tone, complexity, plotTwists,
+    pacingScale, endingClosure, storytellingScale, toneScale,
+    escapism, emotionalIntensity,
+  } = preferences
 
-  if (pacing === 'slow_burn') {
+  if (pacingScale !== null) {
+    const delta = ((pacingScale - 5) / 5) * 2
+    apply(scores, { actionScore: delta, complexityScore: -delta * 0.5, suspenseScore: delta * 0.25 })
+  } else if (pacing === 'slow_burn') {
     apply(scores, { complexityScore: 2, suspenseScore: 0.5 })
   } else if (pacing === 'fast_paced') {
     apply(scores, { actionScore: 2, complexityScore: -1 })
   }
 
-  if (endings === 'ambiguous') {
+  if (endingClosure !== null) {
+    const delta = ((endingClosure - 5) / 5) * 2
+    apply(scores, { complexityScore: delta, suspenseScore: delta * 0.25, darknessScore: delta * 0.15 })
+  } else if (endings === 'ambiguous') {
     apply(scores, { complexityScore: 2, suspenseScore: 0.5 })
   } else if (endings === 'happy') {
     apply(scores, { humorScore: 0.5, darknessScore: -0.5 })
@@ -151,7 +161,15 @@ export function generateDNA(
     apply(scores, { emotionalImpactScore: 1.5, darknessScore: 0.5 })
   }
 
-  if (storytelling === 'characters') {
+  if (storytellingScale !== null) {
+    const delta = ((storytellingScale - 5) / 5) * 2
+    apply(scores, {
+      complexityScore: delta * 0.6,
+      suspenseScore: delta * 0.3,
+      emotionalImpactScore: -delta * 0.7,
+      realismScore: -delta * 0.2,
+    })
+  } else if (storytelling === 'characters') {
     apply(scores, { emotionalImpactScore: 2, realismScore: 0.5 })
   } else if (storytelling === 'plot') {
     apply(scores, { complexityScore: 1.5, suspenseScore: 0.5 })
@@ -159,7 +177,10 @@ export function generateDNA(
     apply(scores, { complexityScore: 0.5, emotionalImpactScore: 0.5 })
   }
 
-  if (tone === 'dark') {
+  if (toneScale !== null) {
+    const delta = ((toneScale - 5) / 5) * 2.5
+    apply(scores, { darknessScore: delta, humorScore: -delta * 0.6, emotionalImpactScore: delta * 0.35 })
+  } else if (tone === 'dark') {
     apply(scores, { darknessScore: 2.5, emotionalImpactScore: 1 })
   } else if (tone === 'lighthearted') {
     apply(scores, { humorScore: 2, darknessScore: -1.5 })
@@ -170,6 +191,15 @@ export function generateDNA(
   const plotTwistsDelta  = ((plotTwists - 5) / 5) * 2
   apply(scores, { complexityScore: complexityDelta })
   apply(scores, { suspenseScore: plotTwistsDelta, complexityScore: plotTwistsDelta * 0.5 })
+
+  if (escapism !== null) {
+    const delta = ((escapism - 5) / 5) * 2.5
+    apply(scores, { realismScore: -delta, complexityScore: delta * 0.15 })
+  }
+  if (emotionalIntensity !== null) {
+    const delta = ((emotionalIntensity - 5) / 5) * 2.5
+    apply(scores, { emotionalImpactScore: delta, darknessScore: delta * 0.2 })
+  }
 
   // 2 ── Genre preferences ───────────────────────────────────────────────────
   for (const genre of preferences.genres) {

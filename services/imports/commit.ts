@@ -38,7 +38,12 @@ export async function commitTasteImport(userId: string, batchId: string, selecti
   const ids = selected.map(entry => entry.movie.tmdbId)
   const [existingWatchlist, existingRatings] = await Promise.all([
     prisma.watchlistItem.findMany({ where: { userId, tmdbId: { in: ids } } }),
-    prisma.movieRating.findMany({ where: { userId, tmdbId: { in: ids } } }),
+    // Select only the fields the importer consumes. This keeps imports resilient
+    // to legacy MovieRating columns that may differ across deployed databases.
+    prisma.movieRating.findMany({
+      where: { userId, tmdbId: { in: ids } },
+      select: { tmdbId: true, review: true },
+    }),
   ])
   const watchlistById = new Map(existingWatchlist.map(item => [item.tmdbId, item]))
   const ratingById = new Map(existingRatings.map(item => [item.tmdbId, item]))

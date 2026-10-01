@@ -70,7 +70,7 @@ export default function DNAComparison({ dnaDiff, yourUsername, theirUsername }: 
               </div>
 
               <div className="flex justify-between mt-1">
-                <span className="text-ns-secondary text-[10px] font-body">{you.toFixed(1)}</span>
+                <span className="text-ns-secondary-readable text-[10px] font-body">{you.toFixed(1)}</span>
                 <span className="text-violet-400 text-[10px] font-body">{them.toFixed(1)}</span>
               </div>
             </div>

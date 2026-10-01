@@ -30,7 +30,7 @@ export default function ReviewStats({ tmdbId }: Props) {
       {/* Recommend % — hero stat */}
       {stats.recommendPct !== null && (
         <div className="col-span-2 sm:col-span-1 flex flex-col items-start gap-0.5">
-          <p className="font-display text-4xl tracking-wider text-ns-secondary leading-none">
+          <p className="font-display text-4xl tracking-wider text-ns-secondary-readable leading-none">
             {stats.recommendPct}%
           </p>
           <p className="text-ns-muted text-xs font-body">would recommend</p>

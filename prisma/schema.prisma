@@ -18,6 +18,7 @@ model User {
 
   // Profile customisation
   avatarUrl        String?
+  avatarImage      AvatarImage?
   displayName      String?
   bio              String? @db.VarChar(500)
   location         String?
@@ -95,8 +96,57 @@ model User {
   // External taste/history imports (Letterboxd, IMDb)
   importBatches ImportBatch[]
 
+  // Creator uploads
+  uploadedMovies UploadedMovie[]
+  theaterPremieres TheaterPremiere[]
+  theaterAttendance TheaterAttendance[]
+
+  // NoSpoilers Pro launch waitlist
+  proWaitlistEntry ProWaitlistEntry?
+
+  // Taste Lab: saved reasons behind the member's ratings
+  tasteReasonProfile TasteReasonProfile?
+  // Progress-scoped Where Was I? answers. Story progress remains owned by
+  // WatchlistItem / Plot Passport; only derived answers are cached here.
+  resumeAnswerCaches ResumeAnswerCache[]
+
   @@index([email])
   @@index([username])
+}
+
+model AvatarImage {
+  userId      String   @id
+  data        Bytes
+  contentType String   @db.VarChar(32)
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ProWaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+}
+
+// "Why Did I Love That?" in Taste Lab. `evidence` holds only what the member
+// told us directly (answers, feedback, corrections), each with its provenance.
+// Ratings are re-read on every visit and are never copied here.
+model TasteReasonProfile {
+  id           String @id @default(cuid())
+  userId       String @unique
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evidence     Json   @default("[]")
+  notes        Json   @default("{}")
+  confirmedIds Int[]  @default([])
+  // UserPreferences values this profile replaced, so forgetting it can restore them.
+  previousPreferences Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model FavoriteMovie {
@@ -138,8 +188,26 @@ model UserPreferences {
   tone         String
   complexity   Int
   plotTwists   Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  // Fine-grained recommendation controls. Values are 1-10; 5 is neutral.
+  // The legacy string fields above remain for compatibility with social matching.
+  pacingScale          Int?
+  endingClosure        Int?
+  storytellingScale    Int?
+  toneScale            Int?
+  escapism             Int?
+  emotionalIntensity   Int?
+  eraOpenness          Int?
+  runtimePreference    Int?
+  popularityPreference Int?
+  discoveryPreference  Int?
+  subtitleOpenness     Int?
+  violenceTolerance    Int?
+  horrorTolerance      Int?
+  animationOpenness    Int?
+  documentaryOpenness  Int?
+  excludedGenres       String[] @default([])
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model TasteProfile {
@@ -302,6 +370,86 @@ model ImportBatch {
   @@index([userId, status])
 }
 
+// Original films shared by NoSpoilers creators. Video bytes live in Supabase
+// Storage; this row is the source of truth for ownership and upload state.
+model UploadedMovie {
+  id               String    @id @default(cuid())
+  userId           String
+  creator          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title            String    @db.VarChar(120)
+  description      String?   @db.VarChar(1000)
+  releaseYear      Int?
+  tmdbId           Int?
+  originalFileName String    @db.VarChar(255)
+  storagePath      String    @unique
+  mimeType         String
+  fileSize         Int
+  // Merged automatic and creator-supplied viewing options for the selected region.
+  watchProviders   Json      @default("[]")
+  watchRegion      String    @default("US") @db.VarChar(2)
+  status           String    @default("uploading") // uploading | ready
+  uploadedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  premieres        TheaterPremiere[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, uploadedAt(sort: Desc)])
+  @@index([tmdbId])
+}
+
+// Scheduled, shared screenings of creator-owned uploads.
+model TheaterPremiere {
+  id              String   @id @default(cuid())
+  ownerId         String
+  owner           User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  uploadId        String
+  upload          UploadedMovie @relation(fields: [uploadId], references: [id], onDelete: Restrict)
+  title           String   @db.VarChar(120)
+  description     String   @db.VarChar(1000)
+  kind            String
+  startsAt        DateTime
+  endsAt          DateTime
+  durationSeconds Int
+  capacity        Int      @default(48)
+  promoted        Boolean  @default(false)
+  adCopy          String?  @db.VarChar(180)
+  cancelledAt     DateTime?
+  createdAt       DateTime @default(now())
+  attendees       TheaterAttendance[]
+
+  @@index([startsAt])
+  @@index([ownerId, startsAt])
+  @@index([uploadId])
+}
+
+model TheaterAttendance {
+  id          String   @id @default(cuid())
+  premiereId  String
+  premiere    TheaterPremiere @relation(fields: [premiereId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seat        Int
+  avatar      Json
+  joinedAt    DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+  watchedAt   DateTime?
+  rating      Int?
+  ratedAt     DateTime?
+  // Anonymous Audience Lab response. Filmmakers only receive aggregated taste
+  // data and unattributed notes; viewer identity is never returned by the API.
+  recommendScore Int?
+  pacing          String?
+  reactions       String[] @default([])
+  standoutMoment  String?  @db.VarChar(600)
+  improvement     String?  @db.VarChar(600)
+  feedbackAt      DateTime?
+
+  @@unique([premiereId, userId])
+  @@unique([premiereId, seat])
+  @@index([userId, rating])
+}
+
 model Collection {
   id          String   @id @default(cuid())
   userId      String
@@ -426,6 +574,8 @@ model MovieRating {
 
   // Overall score (1-100)
   score Int
+  // Legacy classifier value retained so reconciliation never drops production data.
+  confidence String @default("medium")
 
   // Dimension ratings (1-10 each, optional — descriptive metadata only, never affect score)
   storytelling  Int?
@@ -445,6 +595,17 @@ model MovieRating {
   @@index([userId, score(sort: Desc)])
   @@index([userId, createdAt(sort: Desc)])
   @@index([tmdbId])
+}
+
+// Shared, database-backed request budgets work across serverless instances.
+// Keys are SHA-256 digests; raw identifiers are never persisted.
+model RateLimitBucket {
+  key         String   @id @db.VarChar(128)
+  count       Int      @default(0)
+  windowStart DateTime
+  expiresAt   DateTime
+
+  @@index([expiresAt])
 }
 
 // ─── Phase 8: Friends & Social ───────────────────────────────────────────────
@@ -502,7 +663,7 @@ model Review {
   body        String
   rating      Int? // 1-100, independent from MovieRating
   hasSpoilers Boolean  @default(false)
-  spoilerLevel String  @default("safe") // safe | mid | ending
+  spoilerLevel String   @default("safe") // safe | mid | ending
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -663,7 +824,7 @@ model RecommendationFeedback {
   user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   recommendationId String         @unique
   recommendation   Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
-  feedback         String // 'liked' | 'dismissed' | 'watched' | 'not_interested'
+  feedback         String // 'liked' | 'dismissed' | 'watched' | 'not_interested' | 'watchlist'
   createdAt        DateTime       @default(now())
 
   @@index([userId])
@@ -732,7 +893,7 @@ model MovieNightRoom {
   vetoGenres         Int[]
   unseenOnly         Boolean                     @default(true)
   avoidDivisive      Boolean                     @default(false)
-  status             String                      @default("voting") // voting | matched | closed
+  status             String                      @default("lobby") // lobby | voting | matched | no_match | closed
   matchedCandidateId String?
   matchedCandidate   MovieNightRoomCandidate?    @relation("MatchedCandidate", fields: [matchedCandidateId], references: [id], onDelete: SetNull)
   participants       MovieNightRoomParticipant[]
@@ -800,4 +961,128 @@ model MovieNightVote {
   @@unique([participantId, candidateId])
   @@index([candidateId, value])
   @@index([participantId])
+}
+
+// ─── Where Was I? ───────────────────────────────────────────────────────────
+
+// Licensed or explicitly original story material that can power progress-scoped
+// recaps. catalogId maps to WatchlistItem.tmdbId so Plot Passport remains the
+// single owner of a viewer's progress.
+model ResumeTitle {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  catalogId     Int      @unique
+  title         String
+  format        String // "series" | "film"
+  premise       String   @db.Text
+  sourceVersion Int      @default(1)
+  rightsNote    String   @db.Text
+  totalSeasons  Int?
+  totalEpisodes Int?
+  isDemo        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  checkpoints  ResumeCheckpoint[]
+  evidence     ResumeEvidence[]
+  characters   ResumeCharacter[]
+  answerCaches ResumeAnswerCache[]
+}
+
+model ResumeCheckpoint {
+  id                  String      @id
+  titleId             String
+  title               ResumeTitle @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  ordinal             Int
+  season              Int?
+  episode             Int?
+  filmProgressPercent Int?
+  label               String
+  shortRecap          Json
+  longRecap           Json
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  earliestEvidence   ResumeEvidence[]
+  characterSnapshots ResumeCharacterSnapshot[]
+  answerCaches       ResumeAnswerCache[]
+
+  @@unique([titleId, ordinal])
+  @@unique([titleId, season, episode])
+  @@index([titleId, filmProgressPercent])
+}
+
+model ResumeEvidence {
+  id                   String           @id
+  titleId              String
+  title                ResumeTitle      @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  earliestCheckpointId String
+  earliestCheckpoint   ResumeCheckpoint @relation(fields: [earliestCheckpointId], references: [id], onDelete: Cascade)
+  kind                 String
+  characterKey         String?
+  text                 String           @db.Text
+  sourceLabel          String
+  sourceRef            String
+  sourceExcerpt        String           @db.Text
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@index([titleId, earliestCheckpointId])
+  @@index([titleId, characterKey, kind])
+}
+
+// The stable key is never shown to viewers. All viewer-facing names and facts
+// live in checkpoint-specific snapshots so a later alias cannot leak backward.
+model ResumeCharacter {
+  id        String      @id @default(cuid())
+  titleId   String
+  title     ResumeTitle @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  stableKey String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  snapshots ResumeCharacterSnapshot[]
+
+  @@unique([titleId, stableKey])
+  @@index([titleId])
+}
+
+model ResumeCharacterSnapshot {
+  id                 String           @id
+  characterId        String
+  character          ResumeCharacter  @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  checkpointId       String
+  checkpoint         ResumeCheckpoint @relation(fields: [checkpointId], references: [id], onDelete: Cascade)
+  displayName        String
+  viewerContext      Json
+  relationships      Json
+  characterKnowledge Json
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([characterId, checkpointId])
+  @@index([checkpointId])
+}
+
+model ResumeAnswerCache {
+  id                  String           @id @default(cuid())
+  userId              String
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  titleId             String
+  title               ResumeTitle      @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  checkpointId        String
+  checkpoint          ResumeCheckpoint @relation(fields: [checkpointId], references: [id], onDelete: Cascade)
+  sourceVersion       Int
+  questionHash        String
+  answer              Json
+  method              String
+  model               String?
+  latencyMs           Int
+  inputTokens         Int?
+  outputTokens        Int?
+  estimatedCostMicros Int?
+  createdAt           DateTime         @default(now())
+
+  @@unique([userId, titleId, checkpointId, sourceVersion, questionHash])
+  @@index([userId, titleId, createdAt(sort: Desc)])
 }

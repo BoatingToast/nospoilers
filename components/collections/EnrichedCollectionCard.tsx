@@ -16,7 +16,7 @@ interface Props {
 
 function scoreColor(score: number) {
   if (score > 20)  return 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
-  if (score > 0)   return 'text-ns-secondary border-ns-secondary/30 bg-ns-secondary/10'
+  if (score > 0)   return 'text-ns-secondary-readable border-ns-secondary/30 bg-ns-secondary/10'
   if (score === 0) return 'text-ns-muted border-ns-border bg-ns-surface'
   return 'text-red-400 border-red-500/30 bg-red-500/10'
 }
@@ -55,7 +55,7 @@ export default function EnrichedCollectionCard({
           {rank !== undefined && (
             <div className="absolute top-2 left-2 w-7 h-7 rounded-full bg-ns-bg/85 backdrop-blur-sm
                             flex items-center justify-center border border-ns-secondary/30">
-              <span className="text-ns-secondary text-[11px] font-body font-bold">#{rank}</span>
+              <span className="text-ns-secondary-readable text-[11px] font-body font-bold">#{rank}</span>
             </div>
           )}
 
@@ -77,7 +77,7 @@ export default function EnrichedCollectionCard({
 
           {/* Film count bottom-left */}
           <div className="absolute bottom-3 left-3">
-            <span className="text-ns-secondary text-xs font-body font-medium">
+            <span className="text-ns-secondary-readable text-xs font-body font-medium">
               {collection.movieCount} film{collection.movieCount !== 1 ? 's' : ''}
             </span>
           </div>
@@ -86,7 +86,7 @@ export default function EnrichedCollectionCard({
 
       {/* Info */}
       <Link href={`/collections/${collection.id}`}>
-        <h3 className="text-ns-text text-sm font-body font-semibold truncate group-hover:text-ns-secondary transition-colors leading-tight mb-0.5">
+        <h3 className="text-ns-text text-sm font-body font-semibold truncate group-hover:text-ns-secondary-readable transition-colors leading-tight mb-0.5">
           {collection.title}
         </h3>
       </Link>

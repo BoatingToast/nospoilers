@@ -19,14 +19,15 @@ interface Props { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
-  const col    = await getCollection(id)
+  const session = await getServerSession(authOptions)
+  const col    = await getCollection(id, session?.user?.id ?? null)
   return { title: col ? `${col.title} — NoSpoilers` : 'Collection' }
 }
 
 export default async function CollectionPage({ params }: Props) {
   const { id }  = await params
   const session = await getServerSession(authOptions)
-  const col     = await getCollection(id)
+  const col     = await getCollection(id, session?.user?.id ?? null)
   if (!col) notFound()
 
   const myId   = session?.user?.id ?? null
@@ -103,7 +104,7 @@ export default async function CollectionPage({ params }: Props) {
                 <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-2 flex items-center gap-1.5">
                   by{' '}
                   <Link href={`/profile/${col.username}`}
-                    className="text-ns-secondary hover:text-amber-400 transition-colors">
+                    className="text-ns-secondary-readable hover:text-amber-400 transition-colors">
                     @{col.username}
                   </Link>
                 </p>
@@ -173,7 +174,7 @@ export default async function CollectionPage({ params }: Props) {
               )}
 
               {popScore > 0 && (
-                <span className="text-ns-secondary/70 text-xs font-body">
+                <span className="text-ns-secondary-readable/70 text-xs font-body">
                   {popScore.toFixed(1)} popularity
                 </span>
               )}
@@ -216,7 +217,7 @@ export default async function CollectionPage({ params }: Props) {
                     sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 200px"
                   />
                   <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-ns-bg/80 flex items-center justify-center">
-                    <span className="text-ns-secondary text-[10px] font-body font-bold">{i + 1}</span>
+                    <span className="text-ns-secondary-readable text-[10px] font-body font-bold">{i + 1}</span>
                   </div>
                 </div>
                 <p className="text-ns-muted text-xs font-body mt-2 truncate group-hover:text-ns-text transition-colors">

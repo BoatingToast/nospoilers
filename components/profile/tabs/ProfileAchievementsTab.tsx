@@ -41,7 +41,7 @@ export default function ProfileAchievementsTab({ username }: { username: string 
   if (achievements.length === 0) {
     return (
       <div className="py-20 text-center">
-        <AchievementsIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
+        <AchievementsIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
         <p className="text-ns-muted font-body text-sm">No achievements yet.</p>
       </div>
     )
@@ -62,12 +62,12 @@ export default function ProfileAchievementsTab({ username }: { username: string 
             : 'bg-ns-surface border-ns-border hover:border-ns-muted/40'
           }`}
       >
-        <AchIco size={22} className={`mb-2 ${item.earned ? 'text-ns-secondary' : 'text-ns-muted/40'}`} />
+        <AchIco size={22} className={`mb-2 ${item.earned ? 'text-ns-secondary-readable' : 'text-ns-muted/40'}`} />
         <p className={`text-xs font-body font-medium mb-1 ${item.earned ? 'text-white' : 'text-ns-muted'}`}>
           {def.name}
         </p>
         {item.earned ? (
-          <p className="text-[10px] font-body text-ns-secondary flex items-center gap-0.5">
+          <p className="text-[10px] font-body text-ns-secondary-readable flex items-center gap-0.5">
             <CheckIcon size={10} /> Earned
           </p>
         ) : (
@@ -122,11 +122,11 @@ export default function ProfileAchievementsTab({ username }: { username: string 
               className="bg-ns-surface border border-ns-border rounded-3xl p-8 max-w-sm w-full text-center"
               onClick={e => e.stopPropagation()}
             >
-              {(() => { const Icon = getAchievementIcon(selected.slug); return <Icon size={44} className="text-ns-secondary mx-auto mb-4" /> })()}
+              {(() => { const Icon = getAchievementIcon(selected.slug); return <Icon size={44} className="text-ns-secondary-readable mx-auto mb-4" /> })()}
               <h3 className="font-heading text-white text-xl mb-2">{def.name}</h3>
               <p className="text-ns-muted text-sm font-body mb-4">{def.description}</p>
               {selected.earned ? (
-                <p className="text-ns-secondary text-sm font-body flex items-center justify-center gap-1">
+                <p className="text-ns-secondary-readable text-sm font-body flex items-center justify-center gap-1">
                   <CheckIcon size={13} /> Earned {selected.earnedAt
                     ? new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(selected.earnedAt))
                     : ''}

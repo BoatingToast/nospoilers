@@ -50,7 +50,7 @@ export default function AchievementBadge({ achievement, size = 'md' }: Props) {
         </div>
 
         {/* Name */}
-        <p className={`text-ns-text font-body font-medium leading-tight group-hover:text-ns-secondary transition-colors
+        <p className={`text-ns-text font-body font-medium leading-tight group-hover:text-ns-secondary-readable transition-colors
                        ${sm ? 'text-[10px]' : 'text-xs'}`}>
           {achievement.name}
         </p>

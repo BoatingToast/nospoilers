@@ -17,7 +17,7 @@ interface Option {
 
 const OPTIONS: Option[] = [
   { value: 'liked',          Icon: ThumbUpIcon,   label: 'Like',       active: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400' },
-  { value: 'watched',        Icon: EyeIcon,       label: 'Watched',    active: 'bg-ns-secondary/15 border-ns-secondary/40 text-ns-secondary' },
+  { value: 'watched',        Icon: EyeIcon,       label: 'Watched',    active: 'bg-ns-secondary/15 border-ns-secondary/40 text-ns-secondary-readable' },
   { value: 'not_interested', Icon: ThumbDownIcon, label: 'Not for me', active: 'bg-ns-muted/10 border-ns-muted/40 text-ns-muted' },
   { value: 'dismissed',      Icon: CloseIcon,     label: 'Dismiss',    active: 'bg-red-500/10 border-red-500/40 text-red-400' },
 ]

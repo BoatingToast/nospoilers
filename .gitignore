@@ -1,6 +1,10 @@
 .vercel
 .env*
+!.env.example
 .DS_Store
 node_modules/
 .next/
+.next-*/
 dist/
+playwright-report/
+test-results/

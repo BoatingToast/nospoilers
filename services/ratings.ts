@@ -40,6 +40,32 @@ export interface UpsertRatingInput {
   review?:       string | null
 }
 
+// Keep the response projection limited to the original rating columns. This
+// lets reads continue to work while an additive metadata migration is rolling
+// out, and gives the write path a safe legacy retry below.
+const RATING_DATA_SELECT = {
+  id: true,
+  tmdbId: true,
+  title: true,
+  posterPath: true,
+  releaseDate: true,
+  score: true,
+  storytelling: true,
+  characters: true,
+  entertainment: true,
+  emotion: true,
+  complexity: true,
+  suspense: true,
+  review: true,
+  createdAt: true,
+  updatedAt: true,
+} as const
+
+function isMissingColumnError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null &&
+    'code' in error && error.code === 'P2022'
+}
+
 // ─── CRUD ─────────────────────────────────────────────────────────────────────
 
 export async function upsertRating(
@@ -70,16 +96,34 @@ export async function upsertRating(
     review:        input.review        ?? null,
   }
 
-  const rating = await prisma.movieRating.upsert({
-    where:  { userId_tmdbId: { userId, tmdbId: input.tmdbId } },
-    create: {
-      ...data,
-      ...(metadata ?? { genreIds: [], keywords: [], dnaMetadataVersion: 0 }),
-    },
-    // A temporary TMDb failure must not erase evidence already cached on an
-    // existing rating.
-    update: { ...data, ...(metadata ?? {}), updatedAt: new Date() },
-  })
+  let rating
+  try {
+    rating = await prisma.movieRating.upsert({
+      where:  { userId_tmdbId: { userId, tmdbId: input.tmdbId } },
+      create: {
+        ...data,
+        ...(metadata ?? { genreIds: [], keywords: [], dnaMetadataVersion: 0 }),
+      },
+      // A temporary TMDb failure must not erase evidence already cached on an
+      // existing rating.
+      update: { ...data, ...(metadata ?? {}), updatedAt: new Date() },
+      select: RATING_DATA_SELECT,
+    })
+  } catch (error) {
+    if (!isMissingColumnError(error)) throw error
+
+    // Some production environments historically deployed application code
+    // before running additive Prisma migrations. Save the user's rating using
+    // the legacy columns in that window; once the migration lands, the normal
+    // path above resumes caching metadata and later DNA recalculation hydrates
+    // legacy rows whose metadata version defaults to 0.
+    rating = await prisma.movieRating.upsert({
+      where:  { userId_tmdbId: { userId, tmdbId: input.tmdbId } },
+      create: data,
+      update: { ...data, updatedAt: new Date() },
+      select: RATING_DATA_SELECT,
+    })
+  }
 
   // Keep the request alive until the derived profile is consistent. A DNA
   // failure never rolls back the user's successfully saved rating.
@@ -108,6 +152,7 @@ export async function getRating(
 ): Promise<MovieRatingData | null> {
   const r = await prisma.movieRating.findUnique({
     where: { userId_tmdbId: { userId, tmdbId } },
+    select: RATING_DATA_SELECT,
   })
   return r ? toData(r) : null
 }
@@ -127,6 +172,7 @@ export async function getUserRatings(
       orderBy,
       skip:    (page - 1) * limit,
       take:    limit,
+      select:  RATING_DATA_SELECT,
     }),
     prisma.movieRating.count({ where: { userId } }),
   ])
@@ -368,6 +414,13 @@ async function performTasteProfileRecalc(userId: string): Promise<void> {
           select: {
             genres: true, pacing: true, endings: true, storytelling: true,
             tone: true, complexity: true, plotTwists: true,
+            pacingScale: true, endingClosure: true, storytellingScale: true,
+            toneScale: true, escapism: true, emotionalIntensity: true,
+            eraOpenness: true, runtimePreference: true, popularityPreference: true,
+            discoveryPreference: true, subtitleOpenness: true,
+            violenceTolerance: true, horrorTolerance: true,
+            animationOpenness: true, documentaryOpenness: true,
+            excludedGenres: true,
           },
         },
         onboardingMovies: {
@@ -568,26 +621,33 @@ async function performTasteProfileRecalc(userId: string): Promise<void> {
  * Also returns the set of already-rated tmdbIds to exclude or weight.
  */
 export async function getRatingSignalsForUser(userId: string): Promise<{
-  ratedIds:       Map<number, number>  // tmdbId → score
-  highRatedIds:   Set<number>           // score >= 75
-  lowRatedIds:    Set<number>           // score <= 35
+  ratedIds:     Map<number, number>  // tmdbId → score
+  genreAffinity: Map<number, { average: number; count: number }>
 }> {
   const ratings = await prisma.movieRating.findMany({
     where:   { userId },
-    select:  { tmdbId: true, score: true },
+    select:  { tmdbId: true, score: true, genreIds: true },
   })
 
-  const ratedIds     = new Map<number, number>()
-  const highRatedIds = new Set<number>()
-  const lowRatedIds  = new Set<number>()
+  const ratedIds = new Map<number, number>()
+  const genreTotals = new Map<number, { total: number; count: number }>()
 
   for (const r of ratings) {
     ratedIds.set(r.tmdbId, r.score)
-    if (r.score >= 75) highRatedIds.add(r.tmdbId)
-    if (r.score <= 35) lowRatedIds.add(r.tmdbId)
+    for (const genreId of r.genreIds) {
+      const current = genreTotals.get(genreId) ?? { total: 0, count: 0 }
+      genreTotals.set(genreId, { total: current.total + r.score, count: current.count + 1 })
+    }
   }
 
-  return { ratedIds, highRatedIds, lowRatedIds }
+  const genreAffinity = new Map(
+    [...genreTotals].map(([genreId, evidence]) => [
+      genreId,
+      { average: evidence.total / evidence.count, count: evidence.count },
+    ]),
+  )
+
+  return { ratedIds, genreAffinity }
 }
 
 // ─── Compatibility helper ─────────────────────────────────────────────────────

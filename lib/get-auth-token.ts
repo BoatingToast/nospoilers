@@ -1,24 +1,35 @@
 /**
- * Drop-in replacement for next-auth/jwt's getToken().
+ * Read a NextAuth JWT using the session-cookie name that is actually present
+ * on the request.
  *
- * next-auth's own secureCookie detection is:
- *   (NEXTAUTH_URL?.startsWith("https://")) ?? !!process.env.VERCEL
- * Since NEXTAUTH_URL is set to http://localhost:3000 for local dev, that
- * expression evaluates to the boolean `false` — not undefined — so `??`
- * never falls through to the VERCEL check. On the deployed (HTTPS) site,
- * NextAuth still sets the `__Secure-`-prefixed cookie (its cookie logic
- * derives origin from the request, not NEXTAUTH_URL), but getToken() looks
- * for the unprefixed cookie name and always comes back null — silently
- * treating logged-in users as signed out.
- *
- * Deciding secureCookie from the deployment environment instead keeps both
- * sides in agreement regardless of what NEXTAUTH_URL is set to.
+ * NextAuth can choose either the secure or unprefixed name depending on the
+ * origin it resolves while creating the session. Inferring that choice later
+ * from NODE_ENV is unreliable for production deployments behind a proxy and
+ * can turn a valid signed-in session into a false 401.
  */
 import { getToken as getNextAuthToken, type JWT } from 'next-auth/jwt'
 import type { NextRequest } from 'next/server'
 
-const secureCookie = process.env.NODE_ENV === 'production' || !!process.env.VERCEL
+const SESSION_COOKIE_NAMES = [
+  '__Secure-next-auth.session-token',
+  'next-auth.session-token',
+] as const
 
-export function getToken(options: { req: NextRequest }): Promise<JWT | null> {
-  return getNextAuthToken({ ...options, secureCookie })
+function hasSessionCookie(req: NextRequest, cookieName: string): boolean {
+  return req.cookies.getAll().some(cookie =>
+    cookie.name === cookieName || cookie.name.startsWith(`${cookieName}.`),
+  )
+}
+
+export async function getToken(options: { req: NextRequest }): Promise<JWT | null> {
+  for (const cookieName of SESSION_COOKIE_NAMES) {
+    if (!hasSessionCookie(options.req, cookieName)) continue
+
+    const token = await getNextAuthToken({ ...options, cookieName })
+    if (token) return token
+  }
+
+  // Preserve NextAuth's default behavior for bearer tokens and requests that
+  // do not contain one of the standard session-cookie names.
+  return getNextAuthToken(options)
 }

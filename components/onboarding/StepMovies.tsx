@@ -114,7 +114,7 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
           onClick={() => setShowImport(value => !value)}
           className="w-full rounded-2xl border border-ns-secondary/25 bg-ns-secondary/5 px-5 py-4 text-left transition-colors hover:border-ns-secondary/45 hover:bg-ns-secondary/10"
         >
-          <span className="block text-sm font-body font-semibold text-ns-secondary">Already use Letterboxd or IMDb?</span>
+          <span className="block text-sm font-body font-semibold text-ns-secondary-readable">Already use Letterboxd or IMDb?</span>
           <span className="mt-1 block text-xs font-body text-ns-muted">Import your history and we&apos;ll suggest favorites from your highest ratings.</span>
         </button>
         {showImport && (
@@ -153,7 +153,7 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
             disabled={selected.length >= MAX}
             className="flex-1 bg-transparent text-ns-text placeholder:text-ns-muted/40 text-sm font-body focus:outline-none"
           />
-          <span className={`text-xs font-body flex-shrink-0 ${selected.length >= MIN ? 'text-ns-secondary' : 'text-ns-muted/50'}`}>
+          <span className={`text-xs font-body flex-shrink-0 ${selected.length >= MIN ? 'text-ns-secondary-readable' : 'text-ns-muted/50'}`}>
             {selected.length}/{MAX}
           </span>
         </div>
@@ -202,7 +202,7 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
                     <p className="text-ns-muted text-xs font-body">{formatYear(movie.release_date)}</p>
                   </div>
                   {isSelected && (
-                    <svg className="w-4 h-4 text-ns-secondary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-ns-secondary-readable flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
                     </svg>
                   )}

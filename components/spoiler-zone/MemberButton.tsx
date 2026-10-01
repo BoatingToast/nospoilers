@@ -80,7 +80,7 @@ export default function MemberButton({
     return (
       <div className="flex items-center gap-3">
         <span className="text-xs font-body text-ns-muted/60">
-          <a href="/auth/signin" className="text-ns-secondary hover:text-amber-400 transition-colors underline underline-offset-2">
+          <a href="/auth/signin" className="text-ns-secondary-readable hover:text-amber-400 transition-colors underline underline-offset-2">
             Sign in
           </a>{' '}to join
         </span>
@@ -110,7 +110,7 @@ export default function MemberButton({
                       border transition-all duration-200 overflow-hidden
                       ${showLeave
                         ? 'border-red-500/40 text-red-400 bg-red-500/5'
-                        : 'border-ns-secondary/30 text-ns-secondary bg-ns-secondary/5 hover:bg-ns-secondary/10'}
+                        : 'border-ns-secondary/30 text-ns-secondary-readable bg-ns-secondary/5 hover:bg-ns-secondary/10'}
                       disabled:opacity-50`}
         >
           <CheckIcon size={13} strokeWidth={2.5} />
@@ -129,8 +129,8 @@ export default function MemberButton({
         className={`relative flex items-center gap-2 px-5 py-1.5 rounded-xl text-xs font-body font-bold
                     overflow-hidden transition-all duration-300 disabled:opacity-50
                     ${justJoined
-                      ? 'bg-ns-secondary text-black scale-105 shadow-lg shadow-ns-secondary/20'
-                      : 'bg-ns-secondary/10 text-ns-secondary border border-ns-secondary/40 hover:bg-ns-secondary hover:text-black hover:shadow-md hover:shadow-ns-secondary/20 active:scale-95'
+                      ? 'bg-ns-secondary text-ns-secondary-foreground scale-105 shadow-lg shadow-ns-secondary/20'
+                      : 'bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/40 hover:bg-ns-secondary hover:text-ns-secondary-foreground hover:shadow-md hover:shadow-ns-secondary/20 active:scale-95'
                     }`}
       >
         {working ? (

@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server'
 import { searchMovies, getTrendingMovies } from '@/services/tmdb'
+import { enforceRateLimit } from '@/lib/rate-limit'
 
 export async function GET(req: Request) {
+  const limited = await enforceRateLimit(req, {
+    scope: 'movie-search', limit: 60, windowMs: 60 * 1000,
+  })
+  if (limited) return limited
+
   const { searchParams } = new URL(req.url)
   const query = searchParams.get('q')
   const page  = parseInt(searchParams.get('page') ?? '1', 10)

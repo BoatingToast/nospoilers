@@ -67,7 +67,7 @@ export default function ProfileTabs({ username, ratingCount, watchlistCount }: P
                   : 'border-transparent text-ns-muted hover:text-ns-text'
                 }`}
             >
-              <Icon size={15} className={isActive ? 'text-ns-secondary' : 'text-current'} />
+              <Icon size={15} className={isActive ? 'text-ns-secondary-readable' : 'text-current'} />
               {label}
               {key === 'ratings'   && ratingCount    > 0 && (
                 <span className="text-[10px] bg-ns-border px-1.5 py-0.5 rounded-full text-ns-muted">{ratingCount}</span>

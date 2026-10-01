@@ -36,7 +36,7 @@ export default async function WatchlistPage({ searchParams }: Props) {
             </h1>
             <Link
               href="/plot-passport"
-              className="mb-2 rounded-xl border border-ns-secondary/35 bg-ns-secondary/10 px-4 py-2 text-xs font-heading font-semibold text-ns-secondary transition-colors hover:bg-ns-secondary hover:text-ns-bg"
+              className="mb-2 rounded-xl border border-ns-secondary/35 bg-ns-secondary/10 px-4 py-2 text-xs font-heading font-semibold text-ns-secondary-readable transition-colors hover:bg-ns-secondary hover:text-ns-secondary-foreground"
             >
               Open Plot Passport
             </Link>
@@ -47,7 +47,7 @@ export default async function WatchlistPage({ searchParams }: Props) {
             {[
               { label: 'Total',         value: stats.total,       color: 'text-ns-text' },
               { label: 'Want to Watch', value: stats.wantToWatch, color: 'text-ns-muted' },
-              { label: 'Watching',      value: stats.watching,    color: 'text-ns-secondary' },
+              { label: 'Watching',      value: stats.watching,    color: 'text-ns-secondary-readable' },
               { label: 'Watched',       value: stats.watched,     color: 'text-emerald-400' },
             ].map(s => (
               <div key={s.label}>

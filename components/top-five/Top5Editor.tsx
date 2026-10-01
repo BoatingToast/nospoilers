@@ -66,7 +66,7 @@ function Slot({
                        flex items-center justify-center text-[10px] font-display leading-none
                        border-2 transition-colors ${
                          movie
-                           ? 'bg-ns-bg border-ns-secondary text-ns-secondary'
+                           ? 'bg-ns-bg border-ns-secondary text-ns-secondary-readable'
                            : 'bg-ns-bg border-ns-border text-ns-muted'
                        }`}>
         {position}
@@ -144,7 +144,7 @@ function Slot({
                            : 'border-ns-border hover:border-ns-secondary/50 hover:bg-ns-secondary/5'
                        }`}
         >
-          <span className={`text-xl transition-colors ${isDragOver ? 'text-ns-secondary' : 'text-ns-muted group-hover:text-ns-secondary'}`}>
+          <span className={`text-xl transition-colors ${isDragOver ? 'text-ns-secondary-readable' : 'text-ns-muted group-hover:text-ns-secondary-readable'}`}>
             +
           </span>
           <span className="text-[10px] font-body text-ns-muted group-hover:text-white transition-colors hidden sm:block">
@@ -335,7 +335,7 @@ function HistoryPanel({ onRestore }: { onRestore: (movies: TopFiveEntry[]) => vo
           <button
             onClick={() => restore(snap)}
             disabled={restoring === snap.id}
-            className="text-xs font-heading font-medium text-ns-secondary hover:text-amber-400 transition-colors flex-shrink-0"
+            className="text-xs font-heading font-medium text-ns-secondary-readable hover:text-amber-400 transition-colors flex-shrink-0"
           >
             Restore
           </button>
@@ -614,7 +614,7 @@ export default function Top5Editor({ initialMovies, onSaved, onClose }: Props) {
             <button
               onClick={handleSave}
               disabled={saving || filledCount === 0}
-              className="px-6 py-2 rounded-xl bg-ns-secondary text-ns-bg text-sm font-heading font-semibold
+              className="px-6 py-2 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold
                          hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {saving ? 'Saving…' : 'Save Top 5'}

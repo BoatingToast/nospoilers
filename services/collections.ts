@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db'
 import { awardXP } from './xp'
 import { checkAndUpdateAchievements } from './achievements'
 import type { CollectionData } from '@/types'
+import { canViewCollectionResource } from '@/lib/content-visibility'
 
 // ─── Create ───────────────────────────────────────────────────────────────────
 
@@ -78,12 +79,16 @@ export async function removeMovieFromCollection(collectionId: string, tmdbId: nu
 
 // ─── Fetch single ─────────────────────────────────────────────────────────────
 
-export async function getCollection(id: string): Promise<CollectionData | null> {
+export async function getCollection(
+  id: string,
+  viewerId: string | null = null,
+): Promise<CollectionData | null> {
   const collection = await prisma.collection.findUnique({
     where:   { id },
     include: { movies: { orderBy: [{ position: 'asc' }, { addedAt: 'asc' }] }, user: { select: { username: true } } },
   })
   if (!collection) return null
+  if (!canViewCollectionResource(collection.isPublic, collection.userId, viewerId)) return null
   return toData(collection)
 }
 

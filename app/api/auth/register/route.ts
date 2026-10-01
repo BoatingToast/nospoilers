@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db'
+import { enforceRateLimit } from '@/lib/rate-limit'
 
 export async function POST(req: Request) {
+  const limited = await enforceRateLimit(req, {
+    scope: 'auth-register', limit: 5, windowMs: 60 * 60 * 1000,
+  })
+  if (limited) return limited
+
   try {
     const { email, password, username } = await req.json()
 

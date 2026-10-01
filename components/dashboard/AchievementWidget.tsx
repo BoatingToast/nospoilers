@@ -53,7 +53,7 @@ export default function AchievementWidget() {
         </p>
         <Link
           href="/achievements"
-          className="text-ns-muted/50 text-[10px] font-body hover:text-ns-secondary transition-colors"
+          className="text-ns-muted/50 text-[10px] font-body hover:text-ns-secondary-readable transition-colors"
         >
           View all →
         </Link>
@@ -79,7 +79,7 @@ export default function AchievementWidget() {
           href="/achievements"
           className="flex items-center justify-center gap-2 w-full py-2 rounded-xl
                      border border-ns-border/60 text-ns-muted text-xs font-body
-                     hover:border-ns-secondary/30 hover:text-ns-secondary transition-all duration-200"
+                     hover:border-ns-secondary/30 hover:text-ns-secondary-readable transition-all duration-200"
         >
           View All Achievements
           <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

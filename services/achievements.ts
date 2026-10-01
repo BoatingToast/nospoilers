@@ -196,8 +196,9 @@ export async function checkAndUpdateAchievements(
     })
 
     if (earned && !existing?.earned) {
-      // Award XP, log activity, and notify — all non-blocking
-      void Promise.all([
+      // Complete these writes before returning so serverless runtimes cannot
+      // terminate notification delivery early.
+      await Promise.all([
         awardXP(userId, def.xpReward, 'earned_achievement', { achievementName: def.name }),
         prisma.activityEvent.create({
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

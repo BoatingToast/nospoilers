@@ -12,7 +12,9 @@
 import { prisma } from '@/lib/db'
 import { getMovieRecommendations } from './tmdb'
 import { computeMovieVibe } from './movie-vibe'
-import type { RatingRec, DNAScores } from '@/types'
+import { getRecommendationPreferenceProfile } from './recommendation-preferences'
+import { isCandidateAllowed, preferenceScoreAdjustment } from '@/lib/recommendation-preferences'
+import type { RatingRec, DNAScores, TMDbMovie } from '@/types'
 
 const ANCHOR_THRESHOLD = 85  // minimum score for a film to be an anchor
 const MAX_ANCHORS      = 8   // max films to use as anchors (avoid TMDb rate limits)
@@ -34,7 +36,7 @@ function dnaSimilarity(a: DNAScores, b: DNAScores): number {
 
 export async function getRatingBasedRecs(userId: string): Promise<RatingRec[]> {
   // 1. Fetch user's ratings, taste profile, and watchlist
-  const [ratings, profile, watchlist] = await Promise.all([
+  const [ratings, profile, watchlist, preferenceProfile] = await Promise.all([
     prisma.movieRating.findMany({
       where:   { userId },
       orderBy: { score: 'desc' },
@@ -45,6 +47,7 @@ export async function getRatingBasedRecs(userId: string): Promise<RatingRec[]> {
       where:  { userId },
       select: { tmdbId: true },
     }),
+    getRecommendationPreferenceProfile(userId),
   ])
 
   // Need a taste profile + at least one high-rated film
@@ -83,6 +86,7 @@ export async function getRatingBasedRecs(userId: string): Promise<RatingRec[]> {
     posterPath: string | null
     releaseDate:string | null
     anchorIds:  number[]  // which anchor films recommended this
+    movie:      TMDbMovie
   }
 
   const candidates = new Map<number, CandidateMeta>()
@@ -94,6 +98,7 @@ export async function getRatingBasedRecs(userId: string): Promise<RatingRec[]> {
     for (const movie of result.value.results ?? []) {
       if (seenIds.has(movie.id)) continue
       if (!movie.poster_path)    continue  // require art
+      if (!isCandidateAllowed(movie, preferenceProfile)) continue
 
       const existing = candidates.get(movie.id)
       if (existing) {
@@ -105,6 +110,7 @@ export async function getRatingBasedRecs(userId: string): Promise<RatingRec[]> {
           posterPath:  movie.poster_path,
           releaseDate: movie.release_date ?? null,
           anchorIds:   [anchorTmdbId],
+          movie,
         })
       }
     }
@@ -121,19 +127,23 @@ export async function getRatingBasedRecs(userId: string): Promise<RatingRec[]> {
   for (const candidate of candidates.values()) {
     const movieDNA = computeMovieVibe({
       id:                candidate.tmdbId,
-      genres:            [],
+      genres:            (candidate.movie.genre_ids ?? []).map(id => ({ id, name: '' })),
       runtime:           null,
-      vote_average:      7,
-      vote_count:        200,
-      popularity:        50,
+      vote_average:      candidate.movie.vote_average,
+      vote_count:        candidate.movie.vote_count,
+      popularity:        candidate.movie.popularity,
       release_date:      candidate.releaseDate ?? '',
-      original_language: 'en',
+      original_language: candidate.movie.original_language,
     })
 
     // Bonus for being recommended by multiple anchor films
     const diversityBonus = Math.min(15, (candidate.anchorIds.length - 1) * 5)
     const dnaScore       = dnaSimilarity(userDNA, movieDNA)
-    const matchScore     = Math.min(100, dnaScore + diversityBonus)
+    const preferencePts  = preferenceScoreAdjustment(candidate.movie, preferenceProfile, {
+      movieDNA,
+      sourceStrength: Math.min(1, 0.65 + candidate.anchorIds.length * 0.1),
+    })
+    const matchScore     = Math.max(0, Math.min(100, dnaScore + diversityBonus + preferencePts))
 
     scored.push({ ...candidate, matchScore })
   }

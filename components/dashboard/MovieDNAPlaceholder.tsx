@@ -11,7 +11,7 @@ export default function MovieDNAPlaceholder() {
       <div className="flex items-center gap-3 mb-6">
         <h2 className="font-display text-2xl tracking-wider text-ns-text">MOVIE DNA</h2>
         <span className="px-2 py-0.5 rounded-full bg-ns-secondary/10 border border-ns-secondary/20
-                         text-ns-secondary text-xs font-body tracking-wider uppercase">
+                         text-ns-secondary-readable text-xs font-body tracking-wider uppercase">
           Coming Soon
         </span>
       </div>

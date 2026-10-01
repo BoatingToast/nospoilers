@@ -29,8 +29,21 @@ export async function POST(req: Request) {
     return NextResponse.json(result)
   } catch (error) {
     console.error('[taste-import/commit]', error)
-    const message = error instanceof Error ? error.message : 'Import failed.'
-    const status = message.includes('already been completed') ? 409 : 400
-    return NextResponse.json({ error: message }, { status })
+    const message = error instanceof Error ? error.message : ''
+
+    if (message.includes('already been completed')) {
+      return NextResponse.json({ error: 'This import has already been completed.' }, { status: 409 })
+    }
+    if (message === 'Import preview not found.' ||
+        message === 'Import preview has expired.' ||
+        message === 'Select at least one matched movie to import.') {
+      return NextResponse.json({ error: message }, { status: 400 })
+    }
+
+    // Do not expose Prisma queries or database schema details in the UI.
+    return NextResponse.json(
+      { error: 'We couldn’t import those movies right now. Please try again.' },
+      { status: 500 },
+    )
   }
 }

@@ -2,15 +2,16 @@
 
 Movie discovery platform — find films you'll love without spoilers.
 
-**Stack:** Next.js 15 · TypeScript · Tailwind CSS · Prisma · PostgreSQL · NextAuth · TMDb API
+**Stack:** Next.js 16 · TypeScript · Tailwind CSS · Prisma · PostgreSQL · NextAuth · TMDb API
 
 ---
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 20.9+
 - PostgreSQL running locally (or a connection string from Neon, Supabase, Railway, etc.)
 - TMDb API key — free at https://www.themoviedb.org/settings/api
+- Supabase project for creator movie uploads
 
 ---
 
@@ -35,18 +36,45 @@ Open `.env` and fill in:
 |---|---|
 | `DATABASE_URL` | PostgreSQL connection string |
 | `NEXTAUTH_URL` | `http://localhost:3000` for local dev |
+| `SITE_URL` | Canonical public origin; defaults to `https://www.nospoilers.xyz` |
+| `GOOGLE_SITE_VERIFICATION` | Optional Search Console HTML verification token (the tag's `content` value) |
 | `NEXTAUTH_SECRET` | Run `openssl rand -base64 32` to generate |
 | `TMDB_API_KEY` | From your TMDb account settings |
 | `TMDB_ACCESS_TOKEN` | Read Access Token from TMDb (preferred over API key) |
+| `OPENAI_API_KEY` | Optional, server-only; enables model-assisted evidence selection for Lumi and Where Was I? |
+| `WHERE_WAS_I_MODEL` | Optional Responses API model for evidence selection; defaults to `gpt-4o-mini` |
+| `WHERE_WAS_I_INPUT_COST_PER_MILLION` | Optional current input-token price for answer cost telemetry |
+| `WHERE_WAS_I_OUTPUT_COST_PER_MILLION` | Optional current output-token price for answer cost telemetry |
+| `SUPABASE_URL` | Server-side Supabase project URL for movie storage (also accepts the existing `NEXT_PUBLIC_SUPABASE_URL`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only key used to issue secure upload tokens |
+| `NEXT_PUBLIC_SUPABASE_URL` | Optional Supabase project URL for realtime Spoiler Zone updates |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional public anon key for realtime updates; movie uploads do not require it |
+| `CRON_SECRET` | Separate random secret used to authenticate scheduled cleanup |
+
+Profile pictures are stored in the existing PostgreSQL database. The app creates
+the private Supabase `movie-uploads` bucket automatically when a creator starts
+their first movie upload; access to video bytes must use signed URLs.
+
+For a deployed app, set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the
+hosting project's environment settings for each environment that should support
+uploads, then redeploy. A database connection alone does not provide movie
+storage. Keep the service-role key server-only; never prefix it with
+`NEXT_PUBLIC_`. The browser uploads directly to the single-file signed URL
+returned by the authenticated upload API, so movie bytes do not pass through the
+app's request body limit. The API verifies the stored file before marking it ready.
+
+The storage project's file-size limit must support the advertised 1 GB maximum;
+the private bucket cannot override a lower project-wide limit. If storage is not
+configured, the upload dialog reports unavailability before requesting a file.
 
 ### 3. Set up the database
 
 ```bash
-# Push schema to your database
-npm run db:push
-
-# Or use migrations (recommended for production)
+# Create a development migration after changing the Prisma schema
 npm run db:migrate
+
+# Apply committed migrations in production
+npm run db:deploy
 ```
 
 ### 4. Run locally
@@ -56,6 +84,24 @@ npm run dev
 ```
 
 Open http://localhost:3000
+
+### Where Was I? demo
+
+Apply the committed migration and ingest the explicitly fictional six-episode
+demo before opening `/where-was-i`:
+
+```bash
+npm run db:deploy
+npm run ingest:where-was-i
+npm run dev
+```
+
+The feature works without an AI key using its deterministic extractive fallback.
+With `OPENAI_API_KEY` set, the Responses API can select only from evidence that
+the server already filtered to the authenticated viewer's Plot Passport
+checkpoint; the server validates those IDs and renders the stored evidence text.
+See [`docs/where-was-i.md`](docs/where-was-i.md) for the threat model, ingestion
+format, rollback behavior, and demo script.
 
 ### Chrome extension
 
@@ -110,12 +156,22 @@ nospoilers/
 |---|---|
 | `npm run dev` | Start dev server at localhost:3000 |
 | `npm run build` | Production build |
+| `npm run lint` | Run the Next.js and TypeScript ESLint rules |
+| `npm run typecheck` | Check TypeScript without emitting files |
+| `npm run check` | Run lint, typecheck, unit tests, and a production build |
 | `npm run start` | Start production server |
 | `npm run db:push` | Sync Prisma schema to database (no migration file) |
 | `npm run db:migrate` | Create & run a migration |
+| `npm run db:deploy` | Apply committed migrations without creating new ones |
 | `npm run db:studio` | Open Prisma Studio at localhost:5555 |
 | `npm run db:generate` | Regenerate Prisma client after schema changes |
+| `npm run ingest:where-was-i` | Validate and ingest the original Where Was I? demo corpus |
+| `npm run eval:where-was-i` | Run the deterministic adversarial leakage/usefulness evaluation |
+| `npm run test:where-was-i` | Run Where Was I? boundary and cache-isolation unit tests |
+| `npm run test:e2e` | Run hermetic Playwright journeys in desktop and mobile Chromium |
+| `npm run test:e2e:ui` | Open Playwright's interactive test runner |
 | `npm run test:extension` | Run the extension classifier and manifest tests |
+| `npm run test:unit` | Run all application and extension unit tests |
 | `npm run package:extension` | Validate and package the Chrome Web Store upload ZIP |
 
 ---
@@ -130,9 +186,88 @@ nospoilers/
 | `POST` | `/api/auth/register` | Create new user |
 | `POST` | `/api/auth/[...nextauth]` | NextAuth sign in/out |
 
+### End-to-end tests
+
+Install Chromium once with `npx playwright install chromium`, then run
+`npm run test:e2e`. The suite starts NoSpoilers and a local TMDb fixture server,
+so it does not need a real TMDb key or database. Set `E2E_BASE_URL` to run the
+same journeys against an already-running environment instead.
+
+### NoSpoilers Theater
+
+Open `/theater` to spawn in the first-person multiplex lobby. Use arrow keys or
+WASD to walk, drag to look around, and press **E** or **Enter theater** at a door.
+The on-screen direction buttons support touch devices. Eight rooms are available;
+empty rooms can be explored without signing in, and Showtimes provides direct
+access to premieres. `/theater/preview` opens an empty screening room.
+
+Approved Pro preview accounts can schedule a completed Creator Studio upload at
+`/theater/new`. The form checks browser playback and reads its runtime, accepts a
+film or trailer, and stores the scheduled time in UTC. Optional promotions appear
+in the lobby Showtimes panel; these are included preview placements, not external
+paid ad campaigns. Creator access and upload ownership are checked on the server.
+
+Apply the `20260906000000_nospoilers_theater` migration with `npm run db:deploy`
+before enabling premieres. Theater uses the existing private Supabase upload
+bucket and server-only signed URLs. A viewer only receives a stream URL after
+reserving a seat and while the scheduled premiere is live. All viewers synchronize
+to the server's start time, including late arrivals. Rooms poll every five seconds
+and show the saved Pro avatar of each present attendee; reservations survive
+reconnects, and presence expires after 45 seconds away.
+
+Creators get a 3D room overview and aggregate ratings. After playback, attendees
+must submit a 1–5 star rating to finish the screening or join another premiere.
+The requirement is persisted in the database and survives reloads; it does not
+prevent closing the browser. The experience supports desktop and touch navigation,
+fullscreen, and a flat video fallback, but does not implement WebXR headset mode.
+
+Theater policy tests are included in `npm run test:unit`. Run the browser journeys
+with `npm run test:e2e -- e2e/theater.spec.ts`.
+
 ---
 
 ## TMDb Note
 
 If you have a **Read Access Token** (Bearer token), set `TMDB_ACCESS_TOKEN`.
 If you only have an **API key**, set `TMDB_API_KEY` — the service layer handles both automatically.
+
+## Search indexing and SEO
+
+Public movie and actor pages have individual canonical URLs, descriptions, and
+social previews. The homepage identifies NoSpoilers with WebSite and Organization
+structured data; movie pages describe only visible film facts and breadcrumbs.
+Movie descriptions omit plot summaries and taglines. `/movie-recommendations`
+provides a public guide to discovery, Movie DNA, and spoiler controls.
+
+`/sitemap.xml` refreshes hourly and includes the main public pages and a deduplicated
+set of movies from the trending, popular, top-rated, and now-playing catalogs.
+It remains available if a catalog fails, and excludes accounts, internal search,
+and private member tools. `/robots.txt` advertises it. Account and internal search
+routes send `X-Robots-Tag: noindex, follow`; crawling stays allowed so search
+engines can read that directive. Vercel non-production deployments send noindex
+for all routes. Canonicals always use `SITE_URL`, independent of the auth URL.
+
+After deploying:
+
+1. Verify the URL-prefix property `https://www.nospoilers.xyz/` in Google Search
+   Console using the included `public/googlec5f614f004ed0fab.html` file. Keep this
+   file deployed after verification to retain ownership. Alternatively, verify
+   the `nospoilers.xyz` domain property using DNS, or set
+   `GOOGLE_SITE_VERIFICATION` to a Search Console HTML tag token before rebuilding.
+2. Submit `https://www.nospoilers.xyz/sitemap.xml` in Search Console.
+3. Inspect the homepage, `/discover`, `/movie-recommendations`, and a movie URL.
+   Check the rendered page and request indexing for those representative pages.
+4. Validate the homepage and movie structured data with Google's Rich Results
+   Test or Schema.org's validator. Movie facts alone do not guarantee a rich result.
+5. Monitor indexed pages, impressions, clicks, and query positions. Start with
+   branded queries, spoiler-free movie recommendations, and specific film titles.
+   Add useful original guides and earn relevant links over time; technical SEO
+   does not guarantee a first-place ranking for broad queries such as “movies.”
+
+Reference: [Google's SEO Starter Guide](https://developers.google.com/search/docs/fundamentals/seo-starter-guide)
+and [sitemap submission guidance](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap).
+
+Verification: `npm run test:unit` includes SEO parsing and spoiler-safety checks;
+`npm run test:e2e -- e2e/seo.spec.ts --project=desktop-chromium` checks crawler HTML,
+canonicals, structured data, sitemap, noindex headers, missing movies, and the
+social preview using the local TMDb fixtures.

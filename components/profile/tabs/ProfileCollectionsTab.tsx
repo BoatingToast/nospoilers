@@ -55,7 +55,7 @@ export default function ProfileCollectionsTab({ username }: { username: string }
   if (collections.length === 0) {
     return (
       <div className="py-20 text-center">
-        <CollectionsIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
+        <CollectionsIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
         <p className="text-ns-muted font-body text-sm">No public collections yet.</p>
       </div>
     )
@@ -83,14 +83,14 @@ export default function ProfileCollectionsTab({ username }: { username: string }
               ))}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-body text-white group-hover:text-ns-secondary transition-colors line-clamp-1">{c.title}</p>
+              <p className="text-sm font-body text-white group-hover:text-ns-secondary-readable transition-colors line-clamp-1">{c.title}</p>
               {c.description && (
                 <p className="text-xs font-body text-ns-muted line-clamp-2 mt-0.5">{c.description}</p>
               )}
               <div className="flex items-center gap-3 mt-2">
                 <span className="text-[10px] font-body text-ns-muted">{c.movieCount} films</span>
                 {c.upvotes > 0 && (
-                  <span className="text-[10px] font-body text-ns-secondary">▲ {c.upvotes}</span>
+                  <span className="text-[10px] font-body text-ns-secondary-readable">▲ {c.upvotes}</span>
                 )}
               </div>
             </div>

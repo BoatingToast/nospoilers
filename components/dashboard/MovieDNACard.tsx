@@ -42,7 +42,7 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
           style={{ width: `${(value / 10) * 100}%` }}
         />
       </div>
-      <span className="text-ns-secondary text-xs font-body w-6 flex-shrink-0">{value}</span>
+      <span className="text-ns-secondary-readable text-xs font-body w-6 flex-shrink-0">{value}</span>
     </div>
   )
 }
@@ -73,7 +73,7 @@ function Skeleton() {
 function EmptyState({ username }: { username?: string }) {
   return (
     <div className="py-16 text-center">
-      <MovieDnaIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
+      <MovieDnaIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
       <p className="text-ns-muted font-body text-sm">
         {username
           ? `@${username} hasn't rated any films yet.`

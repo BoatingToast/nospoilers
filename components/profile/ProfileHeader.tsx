@@ -48,7 +48,7 @@ export default function ProfileHeader({
       {/* Stats row */}
       <div className="flex gap-8 mt-6">
         <div className="text-center">
-          <p className="font-display text-3xl tracking-wider text-ns-secondary">{followerCount}</p>
+          <p className="font-display text-3xl tracking-wider text-ns-secondary-readable">{followerCount}</p>
           <p className="text-ns-muted text-xs font-body mt-0.5">Followers</p>
         </div>
         <div className="text-center">

@@ -197,9 +197,10 @@ export async function getFriends(userId: string): Promise<FriendSummary[]> {
 // ─── List pending requests ────────────────────────────────────────────────────
 
 export interface PendingRequest {
-  id:       string
-  username: string
-  sentAt:   string
+  id:        string
+  username:  string
+  avatarUrl: string | null
+  sentAt:    string
   requestId: string
 }
 
@@ -210,12 +211,12 @@ export async function getPendingRequests(userId: string): Promise<{
   const [received, sent] = await Promise.all([
     prisma.friendRequest.findMany({
       where:   { receiverId: userId, status: 'pending' },
-      include: { sender: { select: { id: true, username: true } } },
+      include: { sender: { select: { id: true, username: true, avatarUrl: true } } },
       orderBy: { createdAt: 'desc' },
     }),
     prisma.friendRequest.findMany({
       where:   { senderId: userId, status: 'pending' },
-      include: { receiver: { select: { id: true, username: true } } },
+      include: { receiver: { select: { id: true, username: true, avatarUrl: true } } },
       orderBy: { createdAt: 'desc' },
     }),
   ])
@@ -224,12 +225,14 @@ export async function getPendingRequests(userId: string): Promise<{
     received: received.map(r => ({
       id:        r.sender.id,
       username:  r.sender.username,
+      avatarUrl: r.sender.avatarUrl ?? null,
       sentAt:    r.createdAt.toISOString(),
       requestId: r.id,
     })),
     sent: sent.map(r => ({
       id:        r.receiver.id,
       username:  r.receiver.username,
+      avatarUrl: r.receiver.avatarUrl ?? null,
       sentAt:    r.createdAt.toISOString(),
       requestId: r.id,
     })),

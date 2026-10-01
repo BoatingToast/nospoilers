@@ -65,8 +65,8 @@ export default function PopularSpoilerZonesPage() {
         {/* Header */}
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-2">
-            <SpoilerZoneIcon size={28} className="text-ns-secondary" />
-            <h1 className="font-display text-3xl tracking-widest text-ns-secondary">SPOILER ZONES</h1>
+            <SpoilerZoneIcon size={28} className="text-ns-secondary-readable" />
+            <h1 className="font-display text-3xl tracking-widest text-ns-secondary-readable">SPOILER ZONES</h1>
           </div>
           <p className="text-ns-muted/60 font-body text-base ml-11">
             The most active discussions happening right now. Spoilers welcome.
@@ -131,7 +131,7 @@ function PopularCard({ zone }: { zone: PopularZone }) {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ns-secondary opacity-75" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-ns-secondary" />
             </span>
-            <span className="text-[9px] font-body text-ns-secondary font-medium bg-black/40 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
+            <span className="text-[9px] font-body text-ns-secondary-readable font-medium bg-black/40 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
               Active
             </span>
           </div>
@@ -159,8 +159,8 @@ function PopularCard({ zone }: { zone: PopularZone }) {
           <span>{timeAgo(zone.lastActivity)}</span>
         </div>
         <div className="w-full text-center py-1.5 rounded-lg text-[11px] font-body font-semibold
-                        bg-ns-secondary/10 text-ns-secondary border border-ns-secondary/20
-                        group-hover:bg-ns-secondary group-hover:text-black group-hover:border-ns-secondary
+                        bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/20
+                        group-hover:bg-ns-secondary group-hover:text-ns-secondary-foreground group-hover:border-ns-secondary
                         transition-all duration-200">
           Open Zone
         </div>

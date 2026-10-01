@@ -7,6 +7,7 @@
 
 import type { SZMessageData, SZReactionGroup, SpoilerLevel } from '@/types'
 import { canViewSpoilerLevel, requiredProgressForLevel } from '@/lib/plot-passport'
+import { redactLockedText } from '@/lib/content-visibility'
 
 export const VALID_SPOILER_LEVELS: SpoilerLevel[] = ['safe', 'mid', 'ending', 'theory', 'behind']
 
@@ -45,7 +46,13 @@ export type MsgRow = {
   reactions:   { emoji: string; userId: string }[]
   votes:       { type: string; userId: string }[]
   _count:      { replies: number }
-  parent?:     { id: string; user: { username: string }; content: string } | null
+  parent?:     {
+    id: string
+    userId: string
+    spoilerLevel: string
+    user: { username: string }
+    content: string
+  } | null
 }
 
 export function formatMessage(
@@ -55,13 +62,20 @@ export function formatMessage(
 ): SZMessageData {
   const viewerUnlocked = msg.userId === currentUserId ||
     canViewSpoilerLevel(msg.spoilerLevel, viewerProgress)
+  const parentViewerUnlocked = msg.parent
+    ? msg.parent.userId === currentUserId ||
+      canViewSpoilerLevel(msg.parent.spoilerLevel, viewerProgress)
+    : false
   return {
     id:            msg.id,
     tmdbId:        msg.tmdbId,
     userId:        msg.userId,
     username:      msg.user.username,
     avatarUrl:     msg.user.avatarUrl,
-    content:       msg.content,
+    // Locked content must never cross the server boundary. The client can make
+    // a separate, explicit reveal request if the viewer chooses to bypass the
+    // Plot Passport warning.
+    content:       redactLockedText(msg.content, viewerUnlocked),
     editedAt:      msg.editedAt?.toISOString() ?? null,
     isDeleted:     msg.isDeleted,
     isTheory:      msg.isTheory,
@@ -73,7 +87,9 @@ export function formatMessage(
       ? {
           id: msg.parent.id,
           username: msg.parent.user.username,
-          content: viewerUnlocked ? msg.parent.content.slice(0, 120) : 'Locked by Plot Passport',
+          content: parentViewerUnlocked
+            ? redactLockedText(msg.parent.content.slice(0, 120), true)
+            : 'Locked by Plot Passport',
         }
       : null,
     isPinned:      msg.isPinned,
@@ -93,7 +109,7 @@ export const MSG_INCLUDE = {
   _count:    { select: { replies: true } },
   parent: {
     select: {
-      id: true, content: true,
+      id: true, userId: true, spoilerLevel: true, content: true,
       user: { select: { username: true } },
     },
   },

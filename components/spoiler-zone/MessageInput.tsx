@@ -41,7 +41,7 @@ function MentionDropdown({
         <button
           key={u}
           onMouseDown={e => { e.preventDefault(); onSelect(u) }}
-          className="w-full text-left px-3 py-2 text-xs font-body text-ns-text hover:bg-ns-secondary/10 hover:text-ns-secondary transition-colors"
+          className="w-full text-left px-3 py-2 text-xs font-body text-ns-text hover:bg-ns-secondary/10 hover:text-ns-secondary-readable transition-colors"
         >
           @{u}
         </button>
@@ -192,8 +192,8 @@ export default function MessageInput({
         <button
           onClick={onJoinClick}
           className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-body font-bold
-                     bg-ns-secondary/10 text-ns-secondary border border-ns-secondary/40
-                     hover:bg-ns-secondary hover:text-black hover:shadow-md hover:shadow-ns-secondary/20
+                     bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/40
+                     hover:bg-ns-secondary hover:text-ns-secondary-foreground hover:shadow-md hover:shadow-ns-secondary/20
                      active:scale-95 transition-all duration-200"
         >
           <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -213,7 +213,7 @@ export default function MessageInput({
       {replyTo && !isEdit && (
         <div className="flex items-start gap-2 mb-2 pl-2 border-l-2 border-ns-secondary/40 bg-ns-surface/40 rounded-r-lg py-1.5 pr-2">
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-body text-ns-secondary/70 mb-0.5">Replying to @{replyTo.username}</p>
+            <p className="text-[10px] font-body text-ns-secondary-readable/70 mb-0.5">Replying to @{replyTo.username}</p>
             <p className="text-xs font-body text-ns-muted/70 truncate">{replyTo.content}</p>
           </div>
           <button
@@ -231,7 +231,7 @@ export default function MessageInput({
       {/* Edit mode indicator */}
       {isEdit && (
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-body text-ns-secondary/70">Editing message</span>
+          <span className="text-[10px] font-body text-ns-secondary-readable/70">Editing message</span>
           <button
             onClick={() => { onCancelEdit(); setValue('') }}
             className="text-[10px] font-body text-ns-muted/60 hover:text-ns-muted underline transition-colors"
@@ -288,7 +288,7 @@ export default function MessageInput({
           <button
             onClick={() => setShowEmoji(v => !v)}
             disabled={disabled || sending}
-            className="w-8 h-8 mb-0.5 flex items-center justify-center rounded-lg text-ns-muted/50 hover:text-ns-secondary transition-colors disabled:opacity-40"
+            className="w-8 h-8 mb-0.5 flex items-center justify-center rounded-lg text-ns-muted/50 hover:text-ns-secondary-readable transition-colors disabled:opacity-40"
             title="Emoji"
           >
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -315,7 +315,7 @@ export default function MessageInput({
         <button
           onClick={handleSubmit}
           disabled={!value.trim() || sending || disabled}
-          className="flex-shrink-0 w-9 h-9 mb-0.5 rounded-xl bg-ns-secondary text-black flex items-center justify-center
+          className="flex-shrink-0 w-9 h-9 mb-0.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground flex items-center justify-center
                      hover:bg-amber-400 active:scale-95 transition-all duration-150
                      disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100"
           title={isEdit ? 'Save' : 'Send'}

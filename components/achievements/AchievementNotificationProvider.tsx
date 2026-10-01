@@ -122,7 +122,7 @@ export default function AchievementNotificationProvider() {
 
             {/* Text */}
             <div className="flex-1 min-w-0">
-              <p className="text-ns-secondary text-[10px] font-body tracking-widest uppercase mb-0.5">
+              <p className="text-ns-secondary-readable text-[10px] font-body tracking-widest uppercase mb-0.5">
                 Achievement Unlocked!
               </p>
               <p className="text-ns-text text-sm font-body font-medium truncate">
@@ -145,7 +145,7 @@ export default function AchievementNotificationProvider() {
               </button>
               <button
                 onClick={() => { setModalItem(notif.achievement); dismiss(notif.id) }}
-                className="text-ns-secondary text-[10px] font-body hover:text-ns-secondary/70 transition-colors whitespace-nowrap"
+                className="text-ns-secondary-readable text-[10px] font-body hover:text-ns-secondary-readable/70 transition-colors whitespace-nowrap"
               >
                 View →
               </button>

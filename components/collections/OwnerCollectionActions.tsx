@@ -56,7 +56,7 @@ export default function OwnerCollectionActions({
         <button
           onClick={() => setShowEdit(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-ns-border
-                     text-ns-muted text-xs font-body hover:border-ns-secondary/40 hover:text-ns-secondary transition-colors"
+                     text-ns-muted text-xs font-body hover:border-ns-secondary/40 hover:text-ns-secondary-readable transition-colors"
         >
           <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -69,7 +69,7 @@ export default function OwnerCollectionActions({
         <a
           href={`/collections/${collectionId}/analytics`}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-ns-border
-                     text-ns-muted text-xs font-body hover:border-ns-secondary/40 hover:text-ns-secondary transition-colors"
+                     text-ns-muted text-xs font-body hover:border-ns-secondary/40 hover:text-ns-secondary-readable transition-colors"
         >
           <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M3 3v18h18"/><path d="M7 12l4-4 4 4 4-4"/>

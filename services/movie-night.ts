@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { GENRE_NAMES, generateTasteSummary } from './dna'
+import { getMovieById } from './tmdb'
 import type {
   DNAScores,
   MovieNightCandidate,
@@ -22,6 +23,7 @@ type MovieSnapshot = {
 
 const MAX_FRIENDS = 8
 const MAX_CANDIDATES = 36
+const METADATA_CONCURRENCY = 6
 
 function dnaFromProfile(profile: {
   suspenseScore: number
@@ -139,6 +141,37 @@ function finalizeScore(candidate: MovieNightCandidate, participantCount: number)
   }
 }
 
+async function hydrateCandidateMetadata(candidates: MovieNightCandidate[]): Promise<MovieNightCandidate[]> {
+  const hydrated = [...candidates]
+
+  for (let start = 0; start < hydrated.length; start += METADATA_CONCURRENCY) {
+    const batch = hydrated.slice(start, start + METADATA_CONCURRENCY)
+    const details = await Promise.all(batch.map(async candidate => {
+      if (candidate.genreIds.length > 0 && candidate.runtime && candidate.voteAverage) return candidate
+
+      try {
+        const movie = await getMovieById(candidate.tmdbId)
+        return {
+          ...candidate,
+          genreIds: candidate.genreIds.length > 0 ? candidate.genreIds : movie.genres.map(genre => genre.id),
+          runtime: candidate.runtime ?? movie.runtime ?? null,
+          voteAverage: candidate.voteAverage ?? movie.vote_average ?? null,
+        }
+      } catch {
+        // Filtering treats missing metadata conservatively, so a temporary
+        // TMDb failure cannot let an overlong or vetoed movie slip through.
+        return candidate
+      }
+    }))
+
+    details.forEach((candidate, index) => {
+      hydrated[start + index] = candidate
+    })
+  }
+
+  return hydrated
+}
+
 export async function getMovieNightSeed(userId: string): Promise<MovieNightSeed> {
   const friendships = await prisma.friendship.findMany({
     where: {
@@ -208,6 +241,9 @@ export async function getMovieNightSeed(userId: string): Promise<MovieNightSeed>
         title: true,
         posterPath: true,
         releaseDate: true,
+        genreIds: true,
+        runtime: true,
+        voteAverage: true,
         score: true,
       },
     }),
@@ -285,9 +321,11 @@ export async function getMovieNightSeed(userId: string): Promise<MovieNightSeed>
     if (!user) continue
 
     addSeen(seen, rating.tmdbId, { userId: user.id, username: user.username })
+    const existingCandidate = candidates.get(rating.tmdbId)
+    if (existingCandidate) upsertCandidate(candidates, rating)
     if (rating.score < 85) continue
 
-    const candidate = upsertCandidate(candidates, { ...rating, genreIds: [] })
+    const candidate = upsertCandidate(candidates, rating)
     addSupport(candidate, supportFor(
       'high_rating',
       user,
@@ -319,11 +357,12 @@ export async function getMovieNightSeed(userId: string): Promise<MovieNightSeed>
     .filter(candidate => candidate.supporters.length > 0)
     .sort((a, b) => b.baseScore - a.baseScore)
     .slice(0, MAX_CANDIDATES)
+  const hydrated = await hydrateCandidateMetadata(finalized)
 
   return {
     viewerId: userId,
     participants,
-    candidates: finalized,
+    candidates: hydrated,
     generatedAt: new Date().toISOString(),
   }
 }

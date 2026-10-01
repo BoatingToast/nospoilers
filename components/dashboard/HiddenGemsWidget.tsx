@@ -45,7 +45,7 @@ export default function HiddenGemsWidget() {
           <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Hidden Gems</p>
           <p className="text-ns-muted/50 text-[10px] font-body">High quality · Low profile</p>
         </div>
-        <Link href="/discover" className="text-ns-secondary text-xs font-body hover:text-ns-secondary/80 transition-colors">
+        <Link href="/discover" className="text-ns-secondary-readable text-xs font-body hover:text-ns-secondary-readable/80 transition-colors">
           Discover more →
         </Link>
       </div>
@@ -63,7 +63,7 @@ export default function HiddenGemsWidget() {
                   sizes="(max-width: 640px) 33vw, 120px"
                 />
                 <div className="absolute top-1.5 right-1.5 bg-ns-bg/80 backdrop-blur-sm rounded-full px-1.5 py-0.5">
-                  <span className="text-ns-secondary text-[9px] font-body font-bold flex items-center gap-0.5">
+                  <span className="text-ns-secondary-readable text-[9px] font-body font-bold flex items-center gap-0.5">
                     <StarIcon size={8} />{gem.vote_average.toFixed(1)}
                   </span>
                 </div>

@@ -17,7 +17,7 @@ export default function ProfileRatingStats({ stats, isOwnProfile, username }: Pr
       <div className="bg-ns-surface border border-dashed border-ns-border rounded-2xl p-5 text-center">
         <p className="text-ns-muted text-xs font-body mb-2">No film ratings yet</p>
         <Link href="/ratings"
-          className="text-ns-secondary text-xs font-body hover:text-ns-secondary/70 transition-colors">
+          className="text-ns-secondary-readable text-xs font-body hover:text-ns-secondary-readable/70 transition-colors">
           Start rating films →
         </Link>
       </div>
@@ -32,7 +32,7 @@ export default function ProfileRatingStats({ stats, isOwnProfile, username }: Pr
         <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Film Ratings</p>
         {isOwnProfile && (
           <Link href="/ratings"
-            className="text-ns-secondary text-[10px] font-body hover:text-ns-secondary/70 transition-colors">
+            className="text-ns-secondary-readable text-[10px] font-body hover:text-ns-secondary-readable/70 transition-colors">
             View all →
           </Link>
         )}
@@ -55,7 +55,7 @@ export default function ProfileRatingStats({ stats, isOwnProfile, username }: Pr
         </div>
         {stats.perfectScores > 0 && (
           <div>
-            <span className="font-display text-3xl tracking-wider text-ns-secondary">
+            <span className="font-display text-3xl tracking-wider text-ns-secondary-readable">
               {stats.perfectScores}
             </span>
             <span className="text-ns-muted text-xs font-body ml-1">perfect</span>

@@ -202,7 +202,11 @@ export async function getRelatedCollections(
     where:   { id: collectionId },
     include: { movies: { select: { tmdbId: true } } },
   })
-  if (!source || source.movies.length === 0) return []
+  if (
+    !source ||
+    (!source.isPublic && source.userId !== userId) ||
+    source.movies.length === 0
+  ) return []
 
   const tmdbIds = source.movies.map(m => m.tmdbId)
 

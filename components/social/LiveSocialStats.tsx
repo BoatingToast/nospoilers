@@ -76,7 +76,7 @@ export default function LiveSocialStats({
     href:  string
   }) => (
     <Link href={href} className="group">
-      <p className="font-display text-3xl tracking-wider text-ns-secondary group-hover:text-amber-400 transition-colors">
+      <p className="font-display text-3xl tracking-wider text-ns-secondary-readable group-hover:text-amber-400 transition-colors">
         {value.toLocaleString()}
       </p>
       <p className="text-ns-muted text-xs font-body mt-0.5">{label}</p>
@@ -85,9 +85,9 @@ export default function LiveSocialStats({
 
   return (
     <>
-      <Stat value={counts.followers} label="Followers" href="/social/followers" />
-      <Stat value={counts.following} label="Following" href="/social/following" />
-      <Stat value={counts.friends}   label="Friends"   href="/social/friends"   />
+      <Stat value={counts.followers} label="Followers" href="/friends/followers" />
+      <Stat value={counts.following} label="Following" href="/friends/following" />
+      <Stat value={counts.friends}   label="Friends"   href="/friends" />
     </>
   )
 }

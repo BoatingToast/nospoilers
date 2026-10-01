@@ -44,14 +44,14 @@ export default function WatchlistTab() {
             onClick={() => setStatus(t.value)}
             className={`px-4 py-1.5 rounded-full text-sm font-body transition-colors border
               ${status === t.value
-                ? 'bg-ns-secondary/10 border-ns-secondary/40 text-ns-secondary'
+                ? 'bg-ns-secondary/10 border-ns-secondary/40 text-ns-secondary-readable'
                 : 'border-ns-border text-ns-muted hover:text-ns-text'}`}
           >
             {t.label}
           </button>
         ))}
         <div className="flex-1" />
-        <Link href="/watchlist" className="text-xs font-body text-ns-muted hover:text-ns-secondary transition-colors self-center flex items-center gap-0.5">
+        <Link href="/watchlist" className="text-xs font-body text-ns-muted hover:text-ns-secondary-readable transition-colors self-center flex items-center gap-0.5">
           Full page <ArrowRightIcon size={11} />
         </Link>
       </div>
@@ -64,9 +64,9 @@ export default function WatchlistTab() {
         </div>
       ) : items.length === 0 ? (
         <div className="py-16 text-center">
-          <WatchlistIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
+          <WatchlistIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
           <p className="text-ns-muted font-body text-sm">Nothing here yet.</p>
-          <Link href="/discover" className="text-ns-secondary text-sm font-body hover:text-amber-400 transition-colors mt-2 inline-flex items-center gap-1">
+          <Link href="/discover" className="text-ns-secondary-readable text-sm font-body hover:text-amber-400 transition-colors mt-2 inline-flex items-center gap-1">
             Discover films <ArrowRightIcon size={13} />
           </Link>
         </div>

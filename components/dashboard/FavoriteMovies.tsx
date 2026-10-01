@@ -38,7 +38,7 @@ export default function FavoriteMovies() {
           <h2 className="font-display text-2xl tracking-wider text-ns-text">TOP 5 FILMS</h2>
           <button
             onClick={() => setEditing(true)}
-            className="text-xs font-heading font-medium text-ns-secondary hover:text-amber-400 transition-colors flex items-center gap-1.5"
+            className="text-xs font-heading font-medium text-ns-secondary-readable hover:text-amber-400 transition-colors flex items-center gap-1.5"
           >
             <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round"
@@ -56,14 +56,14 @@ export default function FavoriteMovies() {
           </div>
         ) : movies.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-ns-border p-10 text-center">
-            <FilmIcon size={40} className="text-ns-secondary/40 mx-auto mb-3" />
+            <FilmIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
             <p className="font-heading font-medium text-white mb-1">No Top 5 set yet</p>
             <p className="text-ns-muted text-sm font-body mb-5">
               Your Top 5 films are the strongest influence on your Movie DNA and recommendations.
             </p>
             <button
               onClick={() => setEditing(true)}
-              className="px-5 py-2 rounded-xl bg-ns-secondary text-ns-bg text-sm font-heading font-semibold hover:bg-amber-400 transition-colors"
+              className="px-5 py-2 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold hover:bg-amber-400 hover:text-ns-bg transition-colors"
             >
               Choose Your Top 5
             </button>
@@ -75,7 +75,7 @@ export default function FavoriteMovies() {
                 {/* Rank badge */}
                 <div className="absolute -top-2 -left-1 z-10 w-7 h-7 rounded-full bg-ns-bg border-2 border-ns-secondary
                                 flex items-center justify-center shadow-lg">
-                  <span className="text-ns-secondary font-display text-[9px] leading-none">{m.position}</span>
+                  <span className="text-ns-secondary-readable font-display text-[9px] leading-none">{m.position}</span>
                 </div>
 
                 {/* Poster */}
@@ -116,7 +116,7 @@ export default function FavoriteMovies() {
                              hover:border-ns-secondary/40 hover:bg-ns-secondary/5 flex items-center justify-center
                              transition-all cursor-pointer group"
                 >
-                  <span className="text-ns-muted text-xl group-hover:text-ns-secondary transition-colors">+</span>
+                  <span className="text-ns-muted text-xl group-hover:text-ns-secondary-readable transition-colors">+</span>
                 </button>
               </div>
             ))}
@@ -125,8 +125,8 @@ export default function FavoriteMovies() {
 
         {movies.length > 0 && (
           <p className="text-[10px] font-body text-ns-muted text-center mt-3">
-            Your Top 5 contributes <span className="text-ns-secondary">35%</span> of your Movie DNA ·{' '}
-            <button onClick={() => setEditing(true)} className="text-ns-secondary hover:text-amber-400 transition-colors">
+            Your Top 5 contributes <span className="text-ns-secondary-readable">35%</span> of your Movie DNA ·{' '}
+            <button onClick={() => setEditing(true)} className="text-ns-secondary-readable hover:text-amber-400 transition-colors">
               Edit order
             </button>
           </p>

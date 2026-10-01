@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense, lazy, type ReactNode } from 'react'
+import { useState, Suspense, lazy, type KeyboardEvent, type ReactNode } from 'react'
 import type { MovieDnaProfile } from '@/types'
 import {
   DashboardIcon,
@@ -9,6 +9,7 @@ import {
   AchievementsIcon,
   FriendsIcon,
   MovieDnaIcon,
+  RecsIcon,
   WrappedIcon,
 } from '@/components/icons'
 
@@ -23,7 +24,15 @@ const WrappedTab      = lazy(() => import('./tabs/WrappedTab'))
 
 // ─── Tab definitions ──────────────────────────────────────────────────────────
 
-type TabKey = 'overview' | 'watchlist' | 'ratings' | 'achievements' | 'friends' | 'dna' | 'wrapped'
+type TabKey =
+  | 'overview'
+  | 'recommendations'
+  | 'watchlist'
+  | 'ratings'
+  | 'friends'
+  | 'dna'
+  | 'achievements'
+  | 'wrapped'
 
 interface TabDef {
   key:   TabKey
@@ -33,11 +42,12 @@ interface TabDef {
 
 const TABS: TabDef[] = [
   { key: 'overview',     label: 'Overview',     Icon: DashboardIcon     },
+  { key: 'recommendations', label: 'For You',  Icon: RecsIcon          },
   { key: 'watchlist',    label: 'Watchlist',    Icon: WatchlistIcon     },
   { key: 'ratings',      label: 'Ratings',      Icon: RatingsIcon       },
-  { key: 'achievements', label: 'Achievements', Icon: AchievementsIcon  },
   { key: 'friends',      label: 'Friends',      Icon: FriendsIcon       },
   { key: 'dna',          label: 'Movie DNA',    Icon: MovieDnaIcon      },
+  { key: 'achievements', label: 'Achievements', Icon: AchievementsIcon  },
   { key: 'wrapped',      label: 'Wrapped',      Icon: WrappedIcon       },
 ]
 
@@ -56,33 +66,69 @@ function TabSkeleton() {
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
-  overview:  ReactNode
+  overview: ReactNode
+  recommendations: ReactNode
+  friendsExtras: ReactNode
+  dnaExtras: ReactNode
   dnaProfile: MovieDnaProfile | null
-  username:  string
+  username: string
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function DashboardTabs({ overview, dnaProfile, username }: Props) {
+export default function DashboardTabs({
+  overview,
+  recommendations,
+  friendsExtras,
+  dnaExtras,
+  dnaProfile,
+  username,
+}: Props) {
   const [active, setActive] = useState<TabKey>('overview')
+
+  function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, key: TabKey) {
+    const currentIndex = TABS.findIndex(tab => tab.key === key)
+    let nextIndex: number | null = null
+
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % TABS.length
+    if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + TABS.length) % TABS.length
+    if (event.key === 'Home') nextIndex = 0
+    if (event.key === 'End') nextIndex = TABS.length - 1
+    if (nextIndex === null) return
+
+    event.preventDefault()
+    const nextKey = TABS[nextIndex].key
+    setActive(nextKey)
+    requestAnimationFrame(() => document.getElementById(`dashboard-tab-${nextKey}`)?.focus())
+  }
 
   return (
     <div>
       {/* Tab bar */}
-      <div className="flex gap-0.5 border-b border-ns-border mb-8 overflow-x-auto scrollbar-hide -mx-1 px-1">
+      <div
+        role="tablist"
+        aria-label="Dashboard sections"
+        className="flex gap-0.5 border-b border-ns-border mb-8 overflow-x-auto scrollbar-hide -mx-1 px-1"
+      >
         {TABS.map(({ key, label, Icon }) => {
           const isActive = active === key
           return (
             <button
               key={key}
+              id={`dashboard-tab-${key}`}
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`dashboard-panel-${key}`}
+              tabIndex={isActive ? 0 : -1}
               onClick={() => setActive(key)}
+              onKeyDown={event => handleTabKeyDown(event, key)}
               className={`flex items-center gap-1.5 px-3 py-3 text-sm font-body whitespace-nowrap border-b-2 transition-colors flex-shrink-0
                 ${isActive
                   ? 'border-ns-secondary text-white'
                   : 'border-transparent text-ns-muted hover:text-ns-text'
                 }`}
             >
-              <Icon size={16} className={isActive ? 'text-ns-secondary' : 'text-current'} />
+              <Icon size={16} className={isActive ? 'text-ns-secondary-readable' : 'text-current'} />
               <span className="hidden sm:inline">{label}</span>
             </button>
           )
@@ -90,18 +136,26 @@ export default function DashboardTabs({ overview, dnaProfile, username }: Props)
       </div>
 
       {/* Tab content */}
-      {active === 'overview' && overview}
-
-      {active !== 'overview' && (
-        <Suspense fallback={<TabSkeleton />}>
-          {active === 'watchlist'    && <WatchlistTab />}
-          {active === 'ratings'      && <RatingsTab />}
-          {active === 'achievements' && <AchievementsTab />}
-          {active === 'friends'      && <FriendsFeedTab />}
-          {active === 'dna'          && <MovieDNATab dnaProfile={dnaProfile} username={username} />}
-          {active === 'wrapped'      && <WrappedTab />}
-        </Suspense>
-      )}
+      <div
+        id={`dashboard-panel-${active}`}
+        role="tabpanel"
+        aria-labelledby={`dashboard-tab-${active}`}
+        tabIndex={0}
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary-readable/60"
+      >
+        {active === 'overview' && overview}
+        {active === 'recommendations' && recommendations}
+        {!['overview', 'recommendations'].includes(active) && (
+          <Suspense fallback={<TabSkeleton />}>
+            {active === 'watchlist'    && <WatchlistTab />}
+            {active === 'ratings'      && <RatingsTab />}
+            {active === 'achievements' && <AchievementsTab />}
+            {active === 'friends'      && <FriendsFeedTab extras={friendsExtras} />}
+            {active === 'dna'          && <MovieDNATab dnaProfile={dnaProfile} username={username} extras={dnaExtras} />}
+            {active === 'wrapped'      && <WrappedTab />}
+          </Suspense>
+        )}
+      </div>
     </div>
   )
 }

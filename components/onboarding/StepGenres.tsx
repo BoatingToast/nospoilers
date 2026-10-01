@@ -57,7 +57,7 @@ export default function StepGenres({ selected, setSelected, onNext, onBack }: St
               className={`relative flex flex-col items-center justify-center gap-2 p-5 rounded-2xl
                          border transition-all duration-200 cursor-pointer select-none
                          ${active
-                           ? 'bg-ns-secondary/10 border-ns-secondary text-ns-secondary shadow-[0_0_20px_rgb(var(--ns-secondary)/0.1)]'
+                           ? 'bg-ns-secondary/10 border-ns-secondary text-ns-secondary-readable shadow-[0_0_20px_rgb(var(--ns-secondary)/0.1)]'
                            : 'bg-ns-surface border-ns-border text-ns-muted hover:border-ns-muted/40 hover:text-ns-text'
                          }`}
             >

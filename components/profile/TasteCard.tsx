@@ -46,10 +46,10 @@ export default function TasteCard({ username, personality, dnaScores, topMovies 
     : []
 
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-ns-border bg-ns-surface">
       {/* Card preview */}
       <div
-        className="relative p-5 pb-4 overflow-hidden"
+        className="relative flex-1 overflow-hidden p-5 pb-4"
         style={{ background: 'linear-gradient(135deg, rgb(var(--ns-bg)) 0%, rgb(var(--ns-surface)) 100%)' }}
       >
         {/* Accent glow */}
@@ -63,12 +63,12 @@ export default function TasteCard({ username, personality, dnaScores, topMovies 
         {/* Header */}
         <div className="flex items-start justify-between relative z-10">
           <div>
-            <p className="text-[10px] tracking-widest text-ns-secondary font-body mb-1">NOSPOILERS</p>
+            <p className="text-[10px] tracking-widest text-ns-secondary-readable font-body mb-1">NOSPOILERS</p>
             <p className="text-ns-muted text-[10px] font-body">@{username}</p>
           </div>
           {personality
             ? (() => { const Ico = getPersonalityIcon(personality.slug); return <span style={{ color: personality.accentHex }}><Ico size={22} /></span> })()
-            : <FilmIcon size={22} className="text-ns-secondary/60" />}
+            : <FilmIcon size={22} className="text-ns-secondary-readable/60" />}
         </div>
 
         {/* Personality */}
@@ -85,7 +85,7 @@ export default function TasteCard({ username, personality, dnaScores, topMovies 
             <p className="text-ns-muted text-[9px] tracking-widest uppercase font-body mb-1">Top Films</p>
             {topMovies.map((title, i) => (
               <p key={i} className="text-ns-text text-[11px] font-body leading-snug">
-                <span className="text-ns-secondary mr-1">{i + 1}.</span>{title}
+                <span className="text-ns-secondary-readable mr-1">{i + 1}.</span>{title}
               </p>
             ))}
           </div>
@@ -118,7 +118,7 @@ export default function TasteCard({ username, personality, dnaScores, topMovies 
         <button
           onClick={share}
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-ns-secondary/10 border border-ns-secondary/20
-                     text-ns-secondary text-xs font-body hover:bg-ns-secondary/20 transition-colors"
+                     text-ns-secondary-readable text-xs font-body hover:bg-ns-secondary/20 transition-colors"
         >
           <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/>

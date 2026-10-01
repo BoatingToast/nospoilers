@@ -83,7 +83,7 @@ export default function PrivacySettings() {
                   onClick={() => setSettings(s => ({ ...s, [field.key]: value }))}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-body border transition-colors
                     ${settings[field.key] === value
-                      ? 'bg-ns-secondary/10 border-ns-secondary/40 text-ns-secondary'
+                      ? 'bg-ns-secondary/10 border-ns-secondary/40 text-ns-secondary-readable'
                       : 'border-ns-border text-ns-muted hover:text-ns-text hover:border-ns-muted/40'
                     }`}
                 >
@@ -105,7 +105,7 @@ export default function PrivacySettings() {
         <button
           onClick={save}
           disabled={saving}
-          className="px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-bg text-sm font-body font-medium hover:bg-amber-400 transition-colors disabled:opacity-50"
+          className="px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors disabled:opacity-50"
         >
           {saving ? 'Saving…' : 'Save Privacy Settings'}
         </button>

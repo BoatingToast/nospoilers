@@ -4,7 +4,9 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import Input from '@/components/ui/Input'
+import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
+
 export default function LoginPage() {
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
@@ -13,28 +15,39 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (loading) return
     setError('')
     setLoading(true)
 
-    const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    })
+    try {
+      const result = await signIn('credentials', {
+        email: email.trim(),
+        password,
+        redirect: false,
+      })
 
-    setLoading(false)
+      if (result?.error) {
+        setError('Invalid email or password.')
+        return
+      }
+      if (!result?.ok) {
+        setError('Sign in is temporarily unavailable. Please try again.')
+        return
+      }
 
-    if (result?.error) {
-      setError('Invalid email or password.')
-      return
+      // Hard navigation so the browser sends the freshly-set session cookie with the
+      // request, middleware evaluates onboardingCompleted, and ALL server components
+      // re-render in authenticated state.
+      const requestedDestination = new URLSearchParams(window.location.search).get('callbackUrl')
+      const safeDestination = requestedDestination?.startsWith('/') && !requestedDestination.startsWith('//')
+        ? requestedDestination
+        : '/discover'
+      window.location.assign(safeDestination)
+    } catch {
+      setError('Could not reach NoSpoilers. Check your connection and try again.')
+    } finally {
+      setLoading(false)
     }
-
-    // Hard navigation so the browser sends the freshly-set session cookie with the
-    // request, middleware evaluates onboardingCompleted, and ALL server components
-    // re-render in authenticated state. Avoids the race between router.push() and
-    // router.refresh() in Next.js App Router (refresh acts on the current URL and
-    // can cancel an in-flight push).
-    window.location.href = '/discover'
   }
 
   return (
@@ -44,9 +57,15 @@ export default function LoginPage() {
         <p className="text-ns-muted font-body text-sm">Sign in to your NoSpoilers account.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4" aria-describedby={error ? 'login-error' : undefined}>
         {error && (
-          <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-body">
+          <div
+            id="login-error"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            className="p-3 rounded-xl bg-ns-danger/10 border border-ns-danger/20 text-ns-danger text-sm font-body"
+          >
             {error}
           </div>
         )}
@@ -57,20 +76,29 @@ export default function LoginPage() {
           label="Email"
           placeholder="you@example.com"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={event => {
+            setEmail(event.target.value)
+            if (error) setError('')
+          }}
           required
           autoComplete="email"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? 'login-error' : undefined}
         />
 
-        <Input
+        <PasswordInput
           id="password"
-          type="password"
           label="Password"
           placeholder="••••••••"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={event => {
+            setPassword(event.target.value)
+            if (error) setError('')
+          }}
           required
           autoComplete="current-password"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? 'login-error' : undefined}
         />
 
         <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full mt-2">
@@ -80,7 +108,7 @@ export default function LoginPage() {
 
       <p className="text-center text-ns-muted text-sm font-body mt-6">
         Don&apos;t have an account?{' '}
-        <Link href="/register" className="text-ns-secondary hover:underline">
+        <Link href="/register" className="text-ns-secondary-readable hover:underline">
           Create one
         </Link>
       </p>

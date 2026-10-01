@@ -1,6 +1,7 @@
 // ─── TMDb ────────────────────────────────────────────────────────────────────
 
 export interface TMDbMovie {
+  adult?: boolean
   id: number
   title: string
   overview: string
@@ -12,9 +13,11 @@ export interface TMDbMovie {
   genre_ids: number[]
   popularity: number
   original_language: string
+  runtime?: number | null
 }
 
 export interface TMDbMovieDetail {
+  adult?: boolean
   id: number
   title: string
   overview: string
@@ -67,6 +70,28 @@ export interface TMDbPerson {
   media_type: 'person'
 }
 
+export interface TMDbPersonDetail {
+  id: number
+  name: string
+  biography: string
+  birthday: string | null
+  deathday: string | null
+  place_of_birth: string | null
+  profile_path: string | null
+  known_for_department: string
+}
+
+export interface TMDbPersonMovieCredit extends TMDbMovie {
+  character: string
+  credit_id: string
+  order: number
+}
+
+export interface TMDbPersonMovieCredits {
+  id: number
+  cast: TMDbPersonMovieCredit[]
+}
+
 export interface TMDbSearchResponse {
   page: number
   results: TMDbMovie[]
@@ -74,11 +99,57 @@ export interface TMDbSearchResponse {
   total_results: number
 }
 
+export interface TMDbWatchProvider {
+  display_priority: number
+  logo_path: string | null
+  provider_id: number
+  provider_name: string
+}
+
+export interface TMDbWatchProviderRegion {
+  link: string
+  flatrate?: TMDbWatchProvider[]
+  free?: TMDbWatchProvider[]
+  ads?: TMDbWatchProvider[]
+  rent?: TMDbWatchProvider[]
+  buy?: TMDbWatchProvider[]
+}
+
+export interface TMDbWatchProvidersResponse {
+  id: number
+  results: Record<string, TMDbWatchProviderRegion>
+}
+
+export interface TMDbVideo {
+  id: string
+  iso_639_1: string
+  iso_3166_1: string
+  key: string
+  name: string
+  official: boolean
+  published_at: string
+  site: string
+  size: number
+  type: string
+}
+
+export interface TMDbVideosResponse {
+  id: number
+  results: TMDbVideo[]
+}
+
 export interface TMDbMultiSearchResponse {
   page: number
   results: Array<(TMDbMovie & { media_type: 'movie' }) | (TMDbPerson & { media_type: 'person' })>
   total_pages: number
   total_results: number
+}
+
+export interface SearchApiResponse {
+  query: string
+  movies: TMDbMovie[]
+  people: TMDbPerson[]
+  totalResults: number
 }
 
 // ─── User / Profile ───────────────────────────────────────────────────────────
@@ -115,6 +186,28 @@ export interface PreferencesInput {
   tone: string
   complexity: number
   plotTwists: number
+  pacingScale: number | null
+  endingClosure: number | null
+  storytellingScale: number | null
+  toneScale: number | null
+  escapism: number | null
+  emotionalIntensity: number | null
+  eraOpenness: number | null
+  runtimePreference: number | null
+  popularityPreference: number | null
+  discoveryPreference: number | null
+  subtitleOpenness: number | null
+  violenceTolerance: number | null
+  horrorTolerance: number | null
+  animationOpenness: number | null
+  documentaryOpenness: number | null
+  excludedGenres: string[]
+}
+
+export interface RecommendationMood {
+  intensity: number
+  runtime: number
+  adventure: number
 }
 
 export interface DNAScores {
@@ -469,6 +562,7 @@ export interface FriendSummary {
 export interface PendingRequest {
   id:        string
   username:  string
+  avatarUrl: string | null
   sentAt:    string
   requestId: string
 }
@@ -569,7 +663,7 @@ export interface MovieNightLiveState {
   code:            string
   name:            string
   mood:            string
-  status:          'voting' | 'matched' | 'closed'
+  status:          'lobby' | 'voting' | 'matched' | 'no_match' | 'closed'
   expiresAt:       string
   participantId:   string | null
   participantCount: number

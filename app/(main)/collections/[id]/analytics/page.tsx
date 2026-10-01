@@ -9,9 +9,8 @@ import type { Metadata } from 'next'
 interface Props { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params
-  const col    = await getCollection(id)
-  return { title: col ? `Analytics — ${col.title}` : 'Analytics' }
+  await params
+  return { title: 'Collection Analytics — NoSpoilers' }
 }
 
 export default async function CollectionAnalyticsPage({ params }: Props) {
@@ -19,7 +18,7 @@ export default async function CollectionAnalyticsPage({ params }: Props) {
   const session   = await getServerSession(authOptions)
   if (!session) redirect('/login')
 
-  const col = await getCollection(id)
+  const col = await getCollection(id, session.user.id)
   if (!col) notFound()
 
   // Only the owner can see analytics

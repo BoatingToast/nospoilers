@@ -14,7 +14,7 @@ const CollectionPickerModal = dynamic(() => import('./CollectionPickerModal'), {
 export default function EmptyCollectionCTA() {
   return (
     <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-      <FilmIcon size={44} className="text-ns-secondary/40 mx-auto mb-4" />
+      <FilmIcon size={44} className="text-ns-secondary-readable/40 mx-auto mb-4" />
       <p className="text-ns-text font-body font-medium text-sm mb-1">No movies yet</p>
       <p className="text-ns-muted font-body text-xs mb-6">
         Search for a movie and use the &ldquo;Add to Collection&rdquo; button on its page.
@@ -22,7 +22,7 @@ export default function EmptyCollectionCTA() {
       <div className="flex items-center justify-center gap-3 flex-wrap">
         <a
           href="/search"
-          className="px-4 py-2 bg-ns-secondary text-ns-bg rounded-xl text-sm font-body font-medium
+          className="px-4 py-2 bg-ns-secondary text-ns-secondary-foreground rounded-xl text-sm font-body font-medium
                      hover:bg-amber-400 transition-colors"
         >
           Search Movies
@@ -30,7 +30,7 @@ export default function EmptyCollectionCTA() {
         <a
           href="/discover"
           className="px-4 py-2 bg-ns-surface border border-ns-border text-ns-muted rounded-xl
-                     text-sm font-body hover:border-ns-secondary/40 hover:text-ns-secondary transition-colors"
+                     text-sm font-body hover:border-ns-secondary/40 hover:text-ns-secondary-readable transition-colors"
         >
           Discover Films
         </a>
