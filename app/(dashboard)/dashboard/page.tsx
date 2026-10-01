@@ -15,7 +15,6 @@ import DashboardRecommendationsProvider from '@/components/recommendations/Dashb
 import RecAccuracyWidget    from '@/components/recommendations/RecAccuracyWidget'
 import DashboardTabs        from '@/components/dashboard/DashboardTabs'
 import QuickActions         from '@/components/dashboard/QuickActions'
-import UploadMovieSection   from '@/components/dashboard/UploadMovieSection'
 import YourSpoilerZones        from '@/components/dashboard/YourSpoilerZones'
 import FriendsActivityWidget   from '@/components/dashboard/FriendsActivityWidget'
 import DashboardFriendsCard    from '@/components/dashboard/DashboardFriendsCard'
@@ -159,19 +158,6 @@ export default async function DashboardPage() {
     </>
   )
 
-  const creator = (
-    <div className="space-y-6">
-      <div>
-        <p className="text-[10px] font-body uppercase tracking-[0.2em] text-ns-secondary-readable">Creator Studio</p>
-        <h1 className="mt-1 font-display text-3xl tracking-wider text-ns-text sm:text-4xl">SHARE YOUR FILM</h1>
-        <p className="mt-2 max-w-2xl text-sm font-body leading-relaxed text-ns-muted">
-          Upload and publish a film you made without mixing creator tools into your everyday viewing dashboard.
-        </p>
-      </div>
-      <UploadMovieSection />
-    </div>
-  )
-
   return (
     <DashboardRecommendationsProvider>
       <DashboardTabs
@@ -179,7 +165,6 @@ export default async function DashboardPage() {
         recommendations={recommendations}
         friendsExtras={friendsExtras}
         dnaExtras={dnaExtras}
-        creator={creator}
         dnaProfile={dnaProfile}
         username={user.username}
       />

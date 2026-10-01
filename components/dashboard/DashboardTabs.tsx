@@ -10,7 +10,6 @@ import {
   FriendsIcon,
   MovieDnaIcon,
   RecsIcon,
-  UploadMovieIcon,
   WrappedIcon,
 } from '@/components/icons'
 
@@ -34,7 +33,6 @@ type TabKey =
   | 'dna'
   | 'achievements'
   | 'wrapped'
-  | 'creator'
 
 interface TabDef {
   key:   TabKey
@@ -51,7 +49,6 @@ const TABS: TabDef[] = [
   { key: 'dna',          label: 'Movie DNA',    Icon: MovieDnaIcon      },
   { key: 'achievements', label: 'Achievements', Icon: AchievementsIcon  },
   { key: 'wrapped',      label: 'Wrapped',      Icon: WrappedIcon       },
-  { key: 'creator',      label: 'Creator Studio', Icon: UploadMovieIcon },
 ]
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
@@ -73,7 +70,6 @@ interface Props {
   recommendations: ReactNode
   friendsExtras: ReactNode
   dnaExtras: ReactNode
-  creator: ReactNode
   dnaProfile: MovieDnaProfile | null
   username: string
 }
@@ -85,7 +81,6 @@ export default function DashboardTabs({
   recommendations,
   friendsExtras,
   dnaExtras,
-  creator,
   dnaProfile,
   username,
 }: Props) {
@@ -150,9 +145,7 @@ export default function DashboardTabs({
       >
         {active === 'overview' && overview}
         {active === 'recommendations' && recommendations}
-        {active === 'creator' && creator}
-
-        {!['overview', 'recommendations', 'creator'].includes(active) && (
+        {!['overview', 'recommendations'].includes(active) && (
           <Suspense fallback={<TabSkeleton />}>
             {active === 'watchlist'    && <WatchlistTab />}
             {active === 'ratings'      && <RatingsTab />}

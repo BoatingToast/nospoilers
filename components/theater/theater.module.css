@@ -29,6 +29,6 @@
 .control { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; border-radius: 8px; color: #ded8e8; transition: background .15s; }
 .control:hover { background: #ffffff12; }
 .control:focus-visible, .button:focus-visible { outline: 2px solid #ddbd86; outline-offset: 3px; }
-.dialog { width: min(440px, calc(100vw - 32px)); border: 1px solid #ddbd8640; border-radius: 22px; padding: 32px; background: #17121f; color: #f4efe7; box-shadow: 0 24px 100px #0008; }
+.dialog { width: min(680px, calc(100vw - 32px)); max-height: calc(100svh - 32px); overflow-y: auto; border: 1px solid #ddbd8640; border-radius: 22px; padding: 32px; background: #17121f; color: #f4efe7; box-shadow: 0 24px 100px #0008; }
 .dialog::backdrop { background: #05040cd9; backdrop-filter: blur(14px); }
 @media (prefers-reduced-motion: reduce) { .button { transition: none; } }

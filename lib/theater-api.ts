@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { hasProAccess } from '@/lib/pro-access'
+import { AudienceLabValidationError } from '@/lib/audience-lab'
 import { TheaterError } from '@/lib/theater'
 
 export async function theaterUser() {
@@ -16,6 +17,7 @@ export function theaterJson(value: unknown, status = 200) {
 
 export function theaterApiError(error: unknown) {
   if (error instanceof TheaterError) return theaterJson({ error: error.message }, error.status)
+  if (error instanceof AudienceLabValidationError) return theaterJson({ error: error.message }, 400)
   if (error instanceof SyntaxError) return theaterJson({ error: 'Invalid request body.' }, 400)
   console.error('[theater]', error)
   return theaterJson({ error: 'Theater is temporarily unavailable. Please try again.' }, 503)

@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import UploadMovieSection from '@/components/dashboard/UploadMovieSection'
+import AudienceLabDashboard from '@/components/creator/AudienceLabDashboard'
+import FilmmakerStudioMap from '@/components/creator/FilmmakerStudioMap'
 import { ArrowRightIcon, CheckIcon, UploadMovieIcon } from '@/components/icons'
 
-export const metadata: Metadata = { title: 'Creator Studio — NoSpoilers' }
+export const metadata: Metadata = { title: 'Filmmaker Studio — NoSpoilers' }
 
 const uploadDetails = [
   'MP4, MOV, M4V, or WEBM up to 1 GB',
@@ -27,19 +29,22 @@ export default function CreatorPage() {
             <UploadMovieIcon size={23} />
           </span>
           <div>
-            <p className="text-[10px] font-body uppercase tracking-[0.22em] text-ns-secondary-readable">Creator Studio</p>
-            <h1 className="mt-1 font-display text-4xl tracking-wider text-ns-text sm:text-6xl">SHARE YOUR FILM</h1>
+            <p className="text-[10px] font-body uppercase tracking-[0.22em] text-ns-secondary-readable">Filmmaker Studio</p>
+            <h1 className="mt-1 font-display text-4xl tracking-wider text-ns-text sm:text-6xl">BUILD YOUR AUDIENCE</h1>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed font-body text-ns-muted">
-              Upload a film you made and give the NoSpoilers community a safe way to discover it.
+              Test your film with real viewers, learn who it connects with, and keep control of your work.
             </p>
           </div>
         </div>
       </header>
 
-      <UploadMovieSection />
+      <FilmmakerStudioMap />
+      <AudienceLabDashboard />
+
+      <section id="films" className="scroll-mt-28"><UploadMovieSection /></section>
 
       <Link href="/theater/new" className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#ddbd86]/25 bg-[#ddbd86]/5 p-6 transition-colors hover:border-[#ddbd86]/50">
-        <div><p className="text-[9px] uppercase tracking-[.2em] text-[#ddbd86]">NoSpoilers Pro · Theater</p><h2 className="mt-2 font-heading text-lg font-semibold text-ns-text">Give your film an opening night.</h2><p className="mt-2 max-w-xl text-xs leading-6 text-ns-muted">Schedule a film or trailer premiere, promote it in Theater, and watch your audience arrive in a shared 3D cinema.</p></div>
+        <div><p className="text-[9px] uppercase tracking-[.2em] text-[#ddbd86]">NoSpoilers Pro · Theater</p><h2 className="mt-2 font-heading text-lg font-semibold text-ns-text">Give your film an opening night.</h2><p className="mt-2 max-w-xl text-xs leading-6 text-ns-muted">Schedule a private film or trailer screening, watch your audience arrive, then turn their responses into market proof.</p></div>
         <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#ddbd86]">Host a premiere <ArrowRightIcon size={14} /></span>
       </Link>
 

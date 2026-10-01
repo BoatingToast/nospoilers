@@ -436,6 +436,14 @@ model TheaterAttendance {
   watchedAt   DateTime?
   rating      Int?
   ratedAt     DateTime?
+  // Anonymous Audience Lab response. Filmmakers only receive aggregated taste
+  // data and unattributed notes; viewer identity is never returned by the API.
+  recommendScore Int?
+  pacing          String?
+  reactions       String[] @default([])
+  standoutMoment  String?  @db.VarChar(600)
+  improvement     String?  @db.VarChar(600)
+  feedbackAt      DateTime?
 
   @@unique([premiereId, userId])
   @@unique([premiereId, seat])

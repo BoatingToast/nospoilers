@@ -12,7 +12,7 @@ export default function CreatorStudioLink() {
       </span>
       <span className="min-w-0">
         <span className="block text-[10px] font-body uppercase tracking-[0.16em] text-ns-muted">Made a movie?</span>
-        <span className="block text-xs font-heading font-semibold text-ns-text">Open Creator Studio</span>
+        <span className="block text-xs font-heading font-semibold text-ns-text">Open Filmmaker Studio</span>
       </span>
       <ArrowRightIcon size={14} className="ml-auto text-ns-muted transition-transform group-hover:translate-x-0.5 group-hover:text-ns-secondary-readable" />
     </Link>

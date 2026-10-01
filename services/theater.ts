@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client'
+import { parseAudienceFeedback } from '@/lib/audience-lab'
 import { prisma } from '@/lib/db'
 import { getSupabaseAdmin } from '@/lib/supabase-storage'
 import { MOVIE_UPLOAD_BUCKET } from '@/lib/movie-uploads'
@@ -150,6 +151,25 @@ export async function theaterAction(id: string, userId: string, value: unknown) 
     // A repeated submission is idempotent. A creator never rates their own film.
     await prisma.theaterAttendance.updateMany({ where: { id: attendance.id, rating: null }, data: { rating, ratedAt: new Date() } })
     return { ok: true }
+  }
+  if (body.action === 'feedback') {
+    const feedback = parseAudienceFeedback(body)
+    if (!attendance.watchedAt || status !== 'ended' || premiere.ownerId === userId) {
+      throw new TheaterError('Audience feedback opens after the screening for viewers who attended playback.', 409)
+    }
+    const result = await prisma.$transaction(async tx => {
+      const updated = await tx.theaterAttendance.updateMany({
+        where: { id: attendance.id, rating: null },
+        data: { ...feedback, ratedAt: new Date(), feedbackAt: new Date() },
+      })
+      if (updated.count) {
+        await tx.xPEvent.create({
+          data: { userId, amount: 25, reason: 'audience_feedback', meta: { premiereId: id, movieTitle: premiere.title } },
+        })
+      }
+      return updated.count
+    })
+    return { ok: true, xpAwarded: result ? 25 : 0 }
   }
   if (body.action === 'leave') {
     if (requiresTheaterRating({ isOwner: premiere.ownerId === userId, watchedAt: attendance.watchedAt, rating: attendance.rating, status })) {

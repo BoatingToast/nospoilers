@@ -41,6 +41,7 @@ const NAV_LINKS: NavLink[] = [
   { href: '/collections',        label: 'Collections', authRequired: false },
   { href: '/my-recommendations', label: 'Recs',        authRequired: true, highlight: true },
   { href: '/movie-night',        label: 'Movie Night', authRequired: true  },
+  { href: '/creator',            label: 'Filmmakers',  authRequired: true  },
   { href: '/pro',                label: 'Pro',          authRequired: false },
 ]
 
@@ -56,6 +57,7 @@ const DROPDOWN_ITEMS: DropdownItem[] = [
   { href: '/dashboard',         label: 'Dashboard',        Icon: DashboardIcon    },
   { href: '/movie-night',       label: 'Movie Night',      Icon: ClapperboardIcon },
   { href: '/theater',           label: 'Theater · Pro',    Icon: ClapperboardIcon },
+  { href: '/creator',           label: 'Filmmaker Studio', Icon: ClapperboardIcon },
   { href: '/plot-passport',     label: 'Plot Passport',    Icon: LockIcon         },
   { href: '/where-was-i',       label: 'Where Was I?',     Icon: EyeIcon          },
   { href: '/watchlist',         label: 'Watchlist',        Icon: WatchlistIcon    },
