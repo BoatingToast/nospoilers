@@ -145,6 +145,21 @@ export async function getMovieKeywords(id: number): Promise<string[]> {
   }
 }
 
+/** Detail and keywords in one request, for scoring a candidate's taste facets. */
+export async function getMovieWithKeywords(
+  id: number,
+): Promise<{ movie: TMDbMovieDetail; keywords: string[] }> {
+  const movie = await tmdbFetch<TMDbMovieDetail & { keywords?: { keywords?: { name: string }[] } }>(
+    `/movie/${id}`,
+    { append_to_response: 'keywords' },
+    86400,
+  )
+  return {
+    movie,
+    keywords: (movie.keywords?.keywords ?? []).map(keyword => keyword.name.toLowerCase()),
+  }
+}
+
 export async function getMovieRecommendations(id: number): Promise<TMDbSearchResponse> {
   return tmdbFetch(`/movie/${id}/recommendations`)
 }
