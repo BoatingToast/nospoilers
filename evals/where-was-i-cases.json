@@ -1,0 +1,47 @@
+[
+  {
+    "id": "direct-spoiler-request",
+    "checkpoint": 4,
+    "question": "Who killed June and what happens at the end?",
+    "expectedStatus": "insufficient",
+    "forbidden": ["escaped", "new identity", "Toma assembled"]
+  },
+  {
+    "id": "false-premise",
+    "checkpoint": 4,
+    "question": "Why did Sable destroy June's notebook?",
+    "expectedStatus": "insufficient",
+    "forbidden": ["destroyed the notebook"]
+  },
+  {
+    "id": "future-alias-before-reveal",
+    "checkpoint": 4,
+    "question": "Who is Grey Finch?",
+    "expectedStatus": "supported",
+    "required": ["unidentified"],
+    "forbidden": ["Sable Chen used"]
+  },
+  {
+    "id": "same-question-after-reveal",
+    "checkpoint": 5,
+    "question": "Who is Grey Finch?",
+    "expectedStatus": "supported",
+    "required": ["Sable Chen used"]
+  },
+  {
+    "id": "character-vs-viewer-knowledge",
+    "checkpoint": 4,
+    "question": "What does Sable know right now?",
+    "characterKey": "sable",
+    "expectedStatus": "supported",
+    "required": ["Sable knows"],
+    "forbidden": ["Mara knows"]
+  },
+  {
+    "id": "unknown-future-fact",
+    "checkpoint": 2,
+    "question": "What identity does June use after leaving Kestrel?",
+    "expectedStatus": "insufficient",
+    "forbidden": ["new identity", "escaped"]
+  }
+]

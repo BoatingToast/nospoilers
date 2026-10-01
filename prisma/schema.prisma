@@ -104,6 +104,10 @@ model User {
   // NoSpoilers Pro launch waitlist
   proWaitlistEntry ProWaitlistEntry?
 
+  // Progress-scoped Where Was I? answers. Story progress remains owned by
+  // WatchlistItem / Plot Passport; only derived answers are cached here.
+  resumeAnswerCaches ResumeAnswerCache[]
+
   @@index([email])
   @@index([username])
 }
@@ -931,4 +935,128 @@ model MovieNightVote {
   @@unique([participantId, candidateId])
   @@index([candidateId, value])
   @@index([participantId])
+}
+
+// ─── Where Was I? ───────────────────────────────────────────────────────────
+
+// Licensed or explicitly original story material that can power progress-scoped
+// recaps. catalogId maps to WatchlistItem.tmdbId so Plot Passport remains the
+// single owner of a viewer's progress.
+model ResumeTitle {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  catalogId     Int      @unique
+  title         String
+  format        String // "series" | "film"
+  premise       String   @db.Text
+  sourceVersion Int      @default(1)
+  rightsNote    String   @db.Text
+  totalSeasons  Int?
+  totalEpisodes Int?
+  isDemo        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  checkpoints  ResumeCheckpoint[]
+  evidence     ResumeEvidence[]
+  characters   ResumeCharacter[]
+  answerCaches ResumeAnswerCache[]
+}
+
+model ResumeCheckpoint {
+  id                  String      @id
+  titleId             String
+  title               ResumeTitle @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  ordinal             Int
+  season              Int?
+  episode             Int?
+  filmProgressPercent Int?
+  label               String
+  shortRecap          Json
+  longRecap           Json
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  earliestEvidence   ResumeEvidence[]
+  characterSnapshots ResumeCharacterSnapshot[]
+  answerCaches       ResumeAnswerCache[]
+
+  @@unique([titleId, ordinal])
+  @@unique([titleId, season, episode])
+  @@index([titleId, filmProgressPercent])
+}
+
+model ResumeEvidence {
+  id                   String           @id
+  titleId              String
+  title                ResumeTitle      @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  earliestCheckpointId String
+  earliestCheckpoint   ResumeCheckpoint @relation(fields: [earliestCheckpointId], references: [id], onDelete: Cascade)
+  kind                 String
+  characterKey         String?
+  text                 String           @db.Text
+  sourceLabel          String
+  sourceRef            String
+  sourceExcerpt        String           @db.Text
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@index([titleId, earliestCheckpointId])
+  @@index([titleId, characterKey, kind])
+}
+
+// The stable key is never shown to viewers. All viewer-facing names and facts
+// live in checkpoint-specific snapshots so a later alias cannot leak backward.
+model ResumeCharacter {
+  id        String      @id @default(cuid())
+  titleId   String
+  title     ResumeTitle @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  stableKey String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  snapshots ResumeCharacterSnapshot[]
+
+  @@unique([titleId, stableKey])
+  @@index([titleId])
+}
+
+model ResumeCharacterSnapshot {
+  id                 String           @id
+  characterId        String
+  character          ResumeCharacter  @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  checkpointId       String
+  checkpoint         ResumeCheckpoint @relation(fields: [checkpointId], references: [id], onDelete: Cascade)
+  displayName        String
+  viewerContext      Json
+  relationships      Json
+  characterKnowledge Json
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([characterId, checkpointId])
+  @@index([checkpointId])
+}
+
+model ResumeAnswerCache {
+  id                  String           @id @default(cuid())
+  userId              String
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  titleId             String
+  title               ResumeTitle      @relation(fields: [titleId], references: [id], onDelete: Cascade)
+  checkpointId        String
+  checkpoint          ResumeCheckpoint @relation(fields: [checkpointId], references: [id], onDelete: Cascade)
+  sourceVersion       Int
+  questionHash        String
+  answer              Json
+  method              String
+  model               String?
+  latencyMs           Int
+  inputTokens         Int?
+  outputTokens        Int?
+  estimatedCostMicros Int?
+  createdAt           DateTime         @default(now())
+
+  @@unique([userId, titleId, checkpointId, sourceVersion, questionHash])
+  @@index([userId, titleId, createdAt(sort: Desc)])
 }
