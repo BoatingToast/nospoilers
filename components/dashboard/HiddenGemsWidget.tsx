@@ -7,6 +7,7 @@ import { tmdbImageUrl, formatYear } from '@/lib/utils'
 import AddToWatchlistButton from '@/components/watchlist/AddToWatchlistButton'
 import type { TMDbMovie } from '@/types'
 import { StarIcon } from '@/components/icons'
+import Section from '@/components/ui/Section'
 
 export default function HiddenGemsWidget() {
   const [gems,    setGems]    = useState<TMDbMovie[]>([])
@@ -22,57 +23,47 @@ export default function HiddenGemsWidget() {
 
   if (loading) {
     return (
-      <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
-        <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">Hidden Gems</p>
+      <Section title="Hidden Gems">
         <div className="grid grid-cols-3 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="aspect-[2/3] rounded-xl bg-ns-border mb-2" />
-              <div className="h-2.5 bg-ns-border rounded w-3/4" />
+              <div className="mb-2 aspect-[2/3] rounded bg-ns-surface-2" />
+              <div className="h-2.5 w-3/4 rounded bg-ns-surface-2" />
             </div>
           ))}
         </div>
-      </div>
+      </Section>
     )
   }
 
   if (gems.length === 0) return null
 
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Hidden Gems</p>
-          <p className="text-ns-muted/50 text-[10px] font-body">High quality · Low profile</p>
-        </div>
-        <Link href="/discover" className="text-ns-secondary-readable text-xs font-body hover:text-ns-secondary-readable/80 transition-colors">
-          Discover more →
-        </Link>
-      </div>
-
+    <Section title="Hidden Gems" note="High quality · Low profile" href="/discover" linkLabel="Discover more →">
       <div className="grid grid-cols-3 gap-3">
         {gems.map(gem => (
-          <div key={gem.id} className="group">
+          <div key={gem.id} className="group min-w-0">
             <Link href={`/movie/${gem.id}`}>
-              <div className="aspect-[2/3] rounded-xl overflow-hidden bg-ns-border relative mb-2">
+              <div className="relative mb-2 aspect-[2/3] overflow-hidden rounded border border-ns-border bg-ns-surface-2 transition-colors group-hover:border-ns-text/60">
                 <Image
                   src={tmdbImageUrl(gem.poster_path, 'w185')}
                   alt={gem.title}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="object-cover"
                   sizes="(max-width: 640px) 33vw, 120px"
                 />
-                <div className="absolute top-1.5 right-1.5 bg-ns-bg/80 backdrop-blur-sm rounded-full px-1.5 py-0.5">
-                  <span className="text-ns-secondary-readable text-[9px] font-body font-bold flex items-center gap-0.5">
-                    <StarIcon size={8} />{gem.vote_average.toFixed(1)}
-                  </span>
-                </div>
               </div>
             </Link>
-            <p className="text-ns-muted text-[10px] font-body truncate group-hover:text-ns-text transition-colors">
+            <p className="truncate font-body text-[11px] text-ns-muted transition-colors group-hover:text-ns-text">
               {gem.title}
             </p>
-            <p className="text-ns-muted/40 text-[9px] font-body mb-1.5">{formatYear(gem.release_date)}</p>
+            <p className="mb-1.5 flex items-center gap-1.5 font-body text-[11px] text-ns-muted">
+              {formatYear(gem.release_date)}
+              <span aria-hidden="true">·</span>
+              <span className="inline-flex items-center gap-0.5 font-bold text-ns-secondary-readable">
+                <StarIcon size={8} />{gem.vote_average.toFixed(1)}
+              </span>
+            </p>
             <AddToWatchlistButton
               movie={{
                 tmdbId:      gem.id,
@@ -87,6 +78,6 @@ export default function HiddenGemsWidget() {
           </div>
         ))}
       </div>
-    </div>
+    </Section>
   )
 }

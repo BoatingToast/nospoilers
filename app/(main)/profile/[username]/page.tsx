@@ -14,7 +14,9 @@ import ProfileTop5Section        from '@/components/top-five/ProfileTop5Section'
 import SpoilerZoneMemberships   from '@/components/profile/SpoilerZoneMemberships'
 import { LockIcon, FriendsIcon, RecsIcon } from '@/components/icons'
 import Avatar from '@/components/ui/Avatar'
-import Link from 'next/link'
+import Button from '@/components/ui/Button'
+import PageHeader from '@/components/ui/PageHeader'
+import Section from '@/components/ui/Section'
 import type { Metadata } from 'next'
 import type { DNAScores } from '@/types'
 
@@ -122,16 +124,19 @@ export default async function ProfilePage({ params }: Props) {
     ? user.topFiveMovies
     : user.onboardingMovies.slice(0, 3)
 
+  const genres = user.preferences?.genres ?? []
+
   return (
     <div className="min-h-screen pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 pt-2 sm:px-6">
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
-        <div className="border-b border-ns-border pb-8 pt-2">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="flex items-start gap-5">
-              {/* Avatar */}
-              <div className="flex-shrink-0 mt-1">
+        <PageHeader
+          title={`@${user.username.toUpperCase()}`}
+          className="[&_h1]:[overflow-wrap:anywhere]"
+          lede={
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
                 <Avatar
                   src={user.avatarUrl ?? null}
                   username={user.username}
@@ -139,46 +144,58 @@ export default async function ProfilePage({ params }: Props) {
                   href={false}
                 />
               </div>
-
-              <div>
-                <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-2">Profile</p>
-                <h1 className="font-display text-5xl sm:text-6xl tracking-wider text-ns-text mb-1">
-                  @{user.username.toUpperCase()}
-                </h1>
+              <div className="min-w-0">
                 {user.displayName && (
-                  <p className="text-ns-muted text-sm font-body mb-1">{user.displayName}</p>
+                  <p className="font-heading text-base font-semibold text-ns-text">{user.displayName}</p>
                 )}
                 {user.bio && (
-                  <p className="text-ns-muted/70 text-sm font-body mb-1 max-w-md">{user.bio}</p>
+                  <p className="mt-1 text-sm font-body leading-relaxed text-ns-muted">{user.bio}</p>
                 )}
-                <p className="text-ns-muted/50 text-xs font-body">
+                <p className="mt-1 text-xs font-body text-ns-muted">
                   Member since {new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(user.createdAt)}
                 </p>
               </div>
             </div>
+          }
+        >
+          <div className="w-full min-w-0">
+            {/* Social stats (clickable) */}
+            <div className="border-t border-ns-border pt-4">
+              <SocialStats
+                username={user.username}
+                followerCount={user._count.followers}
+                followingCount={user._count.following}
+                friendCount={friendCount}
+              />
+            </div>
+
+            {/* Movie stats */}
+            <dl className="mt-4 grid grid-cols-3 gap-4 border-t border-ns-border pt-4">
+              {[
+                { label: 'Movies Watched', value: watchedCount },
+                { label: 'Ratings',        value: user._count.movieRatings },
+                { label: 'Collections',    value: user._count.collections },
+              ].map(s => (
+                <div key={s.label} className="min-w-0">
+                  <dd className="font-display text-3xl leading-none tracking-wide text-ns-secondary-readable">{s.value}</dd>
+                  <dt className="mt-1 text-xs font-body text-ns-muted">{s.label}</dt>
+                </div>
+              ))}
+            </dl>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <div className="mt-5 flex flex-col gap-3 border-t border-ns-border pt-4 sm:flex-row sm:flex-wrap sm:items-center">
               {isOwnProfile ? (
                 <>
-                  <Link
-                    href="/settings/profile"
-                    className="px-4 py-2 rounded-xl text-sm font-body border border-ns-border text-ns-muted hover:text-ns-text transition-colors"
-                  >
+                  <Button variant="secondary" href="/settings/profile">
                     Edit Profile
-                  </Link>
-                  <Link
-                    href="/settings/privacy"
-                    className="px-4 py-2 rounded-xl text-sm font-body border border-ns-border text-ns-muted hover:text-ns-text transition-colors flex items-center gap-1.5"
-                  >
+                  </Button>
+                  <Button variant="outline" href="/settings/privacy">
                     <LockIcon size={14} /> Privacy
-                  </Link>
-                  <Link
-                    href="/friends"
-                    className="px-4 py-2 rounded-xl text-sm font-body border border-ns-border text-ns-muted hover:text-ns-text transition-colors flex items-center gap-1.5"
-                  >
+                  </Button>
+                  <Button variant="outline" href="/friends">
                     <FriendsIcon size={14} /> Friends
-                  </Link>
+                  </Button>
                 </>
               ) : session ? (
                 <>
@@ -188,129 +205,91 @@ export default async function ProfilePage({ params }: Props) {
                     initialIsFriend={isFriend}
                     sessionUserId={session.user.id}
                   />
-                  <Link
-                    href={`/compatibility/${user.username}`}
-                    className="px-4 py-2 rounded-xl text-sm font-body border border-ns-secondary/30 text-ns-secondary-readable hover:border-ns-secondary/60 transition-colors flex items-center gap-1.5"
-                  >
+                  <Button variant="secondary" href={`/compatibility/${user.username}`}>
                     <RecsIcon size={14} /> Compare Taste
-                  </Link>
+                  </Button>
                 </>
-              ) : null}
+              ) : (
+                <Button
+                  variant="primary"
+                  href={`/register?callbackUrl=${encodeURIComponent(`/compatibility/${user.username}`)}`}
+                  className="text-center"
+                >
+                  <RecsIcon size={14} className="flex-shrink-0" /> Compare your taste with @{user.username}
+                </Button>
+              )}
             </div>
           </div>
-
-          {/* Social stats (clickable) */}
-          <div className="mt-6">
-            <SocialStats
-              username={user.username}
-              followerCount={user._count.followers}
-              followingCount={user._count.following}
-              friendCount={friendCount}
-            />
-          </div>
-
-          {/* Movie stats */}
-          <div className="flex flex-wrap gap-6 mt-4">
-            {[
-              { label: 'Movies Watched', value: watchedCount },
-              { label: 'Ratings',        value: user._count.movieRatings },
-              { label: 'Collections',    value: user._count.collections },
-            ].map(s => (
-              <div key={s.label}>
-                <p className="font-display text-3xl tracking-wider text-ns-secondary-readable">{s.value}</p>
-                <p className="text-ns-muted text-xs font-body mt-0.5">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        </PageHeader>
 
         {/* ── Top 5 Films ─────────────────────────────────────────────────── */}
-        <div className="mt-10 mb-2">
+        <div className="mt-12">
           <ProfileTop5Section userId={user.id} isOwn={isOwnProfile} />
         </div>
 
         {/* ── Taste profile ───────────────────────────────────────────────── */}
-        <section className="mt-12">
-          <div className="mb-6 flex items-end justify-between gap-6">
-            <div>
-              <p className="mb-2 text-[10px] font-body uppercase tracking-[0.24em] text-ns-secondary-readable">
-                Taste profile
-              </p>
-              <h2 className="font-display text-3xl tracking-wider text-ns-text sm:text-4xl">
-                YOUR MOVIE IDENTITY
-              </h2>
-            </div>
-            <p className="hidden max-w-md text-right text-xs leading-relaxed text-ns-muted sm:block">
-              The personalities, genres, and story traits that shape what you love to watch.
-            </p>
-          </div>
-
-          <div className={`grid grid-cols-1 items-stretch gap-6 ${primaryPersonality ? 'lg:grid-cols-12' : ''}`}>
+        <Section
+          className="mt-14"
+          title="YOUR MOVIE IDENTITY"
+          note="The personalities, genres, and story traits that shape what you love to watch."
+        >
+          <div className={`grid min-w-0 grid-cols-1 gap-10 ${primaryPersonality ? 'lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]' : ''}`}>
             {primaryPersonality && (
-              <div className="lg:col-span-5">
+              <div className="min-w-0">
                 <PersonalityBadge primary={primaryPersonality} secondary={secondaryPersonality} />
+
+                {genres.length > 0 && (
+                  <FavoriteGenres genres={genres} />
+                )}
               </div>
             )}
 
-            <div className={primaryPersonality ? 'lg:col-span-7' : ''}>
+            <div className="min-w-0">
               <TasteCard
                 username={user.username}
                 personality={primaryPersonality}
                 dnaScores={dnaScores}
                 topMovies={identityMovies.map(m => m.title)}
               />
+
+              {!primaryPersonality && genres.length > 0 && (
+                <FavoriteGenres genres={genres} />
+              )}
             </div>
           </div>
+        </Section>
 
-          {(user.preferences?.genres ?? []).length > 0 && (
-            <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-ns-border bg-ns-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-              <div className="sm:max-w-xs">
-                <p className="text-[10px] font-body uppercase tracking-widest text-ns-muted">Favorite Genres</p>
-                <p className="mt-1 text-xs leading-relaxed text-ns-muted/60">
-                  The lanes this taste profile returns to most.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2 sm:justify-end">
-                {(user.preferences?.genres ?? []).map(genre => (
-                  <span key={genre} className="rounded-full border border-ns-border bg-ns-bg/30 px-3 py-1.5 text-xs font-body capitalize text-ns-muted">
-                    {genre}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {dnaProfile && (
-            <div className="mt-6 rounded-3xl border border-ns-border bg-ns-surface p-5 sm:p-7 lg:p-8">
-              <MovieDNACard profile={dnaProfile} username={user.username} />
-            </div>
-          )}
-
-          <div className="mt-6">
-            <SpoilerZoneMemberships userId={user.id} />
+        {dnaProfile && (
+          <div className="mt-14 min-w-0 border-t-2 border-ns-text pt-4">
+            <MovieDNACard profile={dnaProfile} username={user.username} />
           </div>
-        </section>
+        )}
+
+        <SpoilerZoneMemberships userId={user.id} />
 
         {/* ── Movie library ───────────────────────────────────────────────── */}
-        <section className="mt-14">
-          <div className="mb-6">
-            <p className="mb-2 text-[10px] font-body uppercase tracking-[0.24em] text-ns-secondary-readable">
-              Movie library
-            </p>
-            <h2 className="font-display text-3xl tracking-wider text-ns-text sm:text-4xl">
-              WATCHED, SAVED &amp; COLLECTED
-            </h2>
-          </div>
-
-          <div className="rounded-3xl border border-ns-border bg-ns-surface/30 p-4 sm:p-6 lg:p-8">
-            <ProfileTabs
-              username={user.username}
-              ratingCount={user._count.movieRatings}
-              watchlistCount={user._count.watchlistItems}
-            />
-          </div>
-        </section>
+        <Section className="mt-14" title="WATCHED, SAVED & COLLECTED">
+          <ProfileTabs
+            username={user.username}
+            ratingCount={user._count.movieRatings}
+            watchlistCount={user._count.watchlistItems}
+          />
+        </Section>
       </div>
+    </div>
+  )
+}
+
+function FavoriteGenres({ genres }: { genres: string[] }) {
+  return (
+    <div className="mt-6 border-t border-ns-border pt-4">
+      <h3 className="font-heading text-sm font-semibold text-ns-text">Favorite Genres</h3>
+      <p className="mt-1 text-xs font-body leading-relaxed text-ns-muted">
+        The lanes this taste profile returns to most.
+      </p>
+      <p className="mt-3 text-sm font-body capitalize leading-relaxed text-ns-text">
+        {genres.join(' · ')}
+      </p>
     </div>
   )
 }

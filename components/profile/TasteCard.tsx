@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { PersonalityType, DNAScores } from '@/types'
 import { getPersonalityIcon, FilmIcon } from '@/components/icons'
+import Button from '@/components/ui/Button'
 
 interface Props {
   username:    string
@@ -45,86 +46,72 @@ export default function TasteCard({ username, personality, dnaScores, topMovies 
         .map(([key, val]) => ({ label: DNA_LABELS[key] ?? key, value: val }))
     : []
 
+  const accent = personality?.accentHex ?? 'rgb(var(--ns-secondary))'
+  const PersonalityIcon = personality ? getPersonalityIcon(personality.slug) : null
+
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-ns-border bg-ns-surface">
-      {/* Card preview */}
-      <div
-        className="relative flex-1 overflow-hidden p-5 pb-4"
-        style={{ background: 'linear-gradient(135deg, rgb(var(--ns-bg)) 0%, rgb(var(--ns-surface)) 100%)' }}
-      >
-        {/* Accent glow */}
-        {personality && (
-          <div
-            className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20"
-            style={{ background: personality.accentHex }}
-          />
-        )}
-
-        {/* Header */}
-        <div className="flex items-start justify-between relative z-10">
-          <div>
-            <p className="text-[10px] tracking-widest text-ns-secondary-readable font-body mb-1">NOSPOILERS</p>
-            <p className="text-ns-muted text-[10px] font-body">@{username}</p>
-          </div>
-          {personality
-            ? (() => { const Ico = getPersonalityIcon(personality.slug); return <span style={{ color: personality.accentHex }}><Ico size={22} /></span> })()
-            : <FilmIcon size={22} className="text-ns-secondary-readable/60" />}
-        </div>
-
-        {/* Personality */}
-        <div className="mt-3 relative z-10">
-          <p className="text-ns-muted text-[9px] tracking-widest uppercase font-body">Movie Personality</p>
-          <p className="font-display text-xl tracking-wider mt-0.5" style={{ color: personality?.accentHex ?? 'rgb(var(--ns-secondary))' }}>
-            {personality?.name ?? 'Film Lover'}
-          </p>
-        </div>
-
-        {/* Top movies */}
-        {topMovies.length > 0 && (
-          <div className="mt-3 relative z-10">
-            <p className="text-ns-muted text-[9px] tracking-widest uppercase font-body mb-1">Top Films</p>
-            {topMovies.map((title, i) => (
-              <p key={i} className="text-ns-text text-[11px] font-body leading-snug">
-                <span className="text-ns-secondary-readable mr-1">{i + 1}.</span>{title}
-              </p>
-            ))}
-          </div>
-        )}
-
-        {/* DNA highlights */}
-        {topTraits.length > 0 && (
-          <div className="mt-3 relative z-10">
-            <p className="text-ns-muted text-[9px] tracking-widest uppercase font-body mb-1.5">Movie DNA</p>
-            {topTraits.map(trait => (
-              <div key={trait.label} className="flex items-center gap-2 mb-1">
-                <span className="text-ns-muted text-[10px] font-body w-16 flex-shrink-0">{trait.label}</span>
-                <div className="flex-1 h-0.5 bg-ns-border rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${trait.value * 10}%`, background: personality?.accentHex ?? 'rgb(var(--ns-secondary))' }}
-                  />
-                </div>
-                <span className="text-[10px] font-body" style={{ color: personality?.accentHex ?? 'rgb(var(--ns-secondary))' }}>
-                  {Math.round(trait.value * 10)}%
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+    <div className="min-w-0 border-t-2 border-ns-text pt-4">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-body text-ns-muted">
+          <span className="tracking-widest text-ns-secondary-readable">NOSPOILERS</span> · @{username}
+        </p>
+        {PersonalityIcon
+          ? <span style={{ color: accent }}><PersonalityIcon size={22} /></span>
+          : <FilmIcon size={22} className="text-ns-secondary-readable/60" />}
       </div>
 
+      {/* Personality */}
+      <div className="mt-4 border-t border-ns-border pt-3">
+        <p className="text-ns-muted text-[11px] tracking-widest uppercase font-body">Movie Personality</p>
+        <p className="mt-1 font-display text-2xl leading-none tracking-wide" style={{ color: accent }}>
+          {personality?.name ?? 'Film Lover'}
+        </p>
+      </div>
+
+      {/* Top movies */}
+      {topMovies.length > 0 && (
+        <div className="mt-4 border-t border-ns-border pt-3">
+          <p className="text-ns-muted text-[11px] tracking-widest uppercase font-body mb-1.5">Top Films</p>
+          <ol>
+            {topMovies.map((title, i) => (
+              <li key={i} className="text-ns-text text-sm font-body leading-relaxed">
+                <span className="text-ns-secondary-readable mr-1.5">{i + 1}.</span>{title}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {/* DNA highlights */}
+      {topTraits.length > 0 && (
+        <div className="mt-4 border-t border-ns-border pt-3">
+          <p className="text-ns-muted text-[11px] tracking-widest uppercase font-body mb-2">Movie DNA</p>
+          {topTraits.map(trait => (
+            <div key={trait.label} className="flex items-center gap-3 mb-1.5">
+              <span className="text-ns-muted text-xs font-body w-20 flex-shrink-0">{trait.label}</span>
+              <div className="flex-1 h-0.5 bg-ns-border overflow-hidden">
+                <div
+                  className="h-full"
+                  style={{ width: `${trait.value * 10}%`, background: accent }}
+                />
+              </div>
+              <span className="text-xs font-body w-9 text-right" style={{ color: accent }}>
+                {Math.round(trait.value * 10)}%
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Share button */}
-      <div className="p-3 border-t border-ns-border">
-        <button
-          onClick={share}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-ns-secondary/10 border border-ns-secondary/20
-                     text-ns-secondary-readable text-xs font-body hover:bg-ns-secondary/20 transition-colors"
-        >
-          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <div className="mt-5">
+        <Button variant="secondary" onClick={share} className="w-full sm:w-auto">
+          <svg aria-hidden="true" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/>
           </svg>
           {copied ? 'Link copied!' : 'Share Taste Card'}
-        </button>
+        </Button>
       </div>
     </div>
   )

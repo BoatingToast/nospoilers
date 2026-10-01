@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Button from '@/components/ui/Button'
 import { PopularIcon, FriendsIcon, LockIcon, CheckIcon, type IconProps } from '@/components/icons'
 
 type Visibility = 'public' | 'friends' | 'private'
@@ -59,29 +60,32 @@ export default function PrivacySettings() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="border-t border-ns-border">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="animate-pulse bg-ns-surface border border-ns-border rounded-2xl p-5 h-24" />
+          <div key={i} className="h-20 animate-pulse border-b border-ns-border bg-ns-surface/40" />
         ))}
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
-      {FIELDS.map(field => (
-        <div key={field.key} className="bg-ns-surface border border-ns-border rounded-2xl p-5">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
+    <div>
+      <div className="border-t border-ns-border">
+        {FIELDS.map(field => (
+          <div
+            key={field.key}
+            className="grid gap-3 border-b border-ns-border py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-6"
+          >
+            <div className="min-w-0">
               <p className="text-sm font-body text-white font-medium mb-0.5">{field.label}</p>
               <p className="text-xs font-body text-ns-muted">{field.description}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {OPTIONS.map(({ value, label, Icon }) => (
                 <button
                   key={value}
                   onClick={() => setSettings(s => ({ ...s, [field.key]: value }))}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-body border transition-colors
+                  className={`flex min-h-10 items-center gap-1.5 rounded border px-3 py-1.5 text-xs font-body transition-colors
                     ${settings[field.key] === value
                       ? 'bg-ns-secondary/10 border-ns-secondary/40 text-ns-secondary-readable'
                       : 'border-ns-border text-ns-muted hover:text-ns-text hover:border-ns-muted/40'
@@ -93,22 +97,18 @@ export default function PrivacySettings() {
               ))}
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
-      <div className="flex items-center justify-end gap-4 pt-2">
+      <div className="flex flex-wrap items-center justify-end gap-4 pt-5">
         {saved && (
           <span className="text-emerald-400 text-sm font-body flex items-center gap-1">
             <CheckIcon size={14} /> Saved
           </span>
         )}
-        <button
-          onClick={save}
-          disabled={saving}
-          className="px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors disabled:opacity-50"
-        >
+        <Button variant="primary" onClick={save} disabled={saving}>
           {saving ? 'Saving…' : 'Save Privacy Settings'}
-        </button>
+        </Button>
       </div>
     </div>
   )

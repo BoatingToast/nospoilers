@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { tmdbImageUrl } from '@/lib/utils'
-import { RatingsIcon, FilmIcon, ArrowRightIcon } from '@/components/icons'
+import { FilmIcon, ArrowRightIcon } from '@/components/icons'
+import PageHeader from '@/components/ui/PageHeader'
+import Button from '@/components/ui/Button'
 
 interface Rating {
   tmdbId:    number
@@ -43,69 +45,65 @@ export default function RatingsTab() {
   }, [sort])
 
   return (
-    <div>
+    <div className="space-y-8">
       {/* Sort + link */}
-      <div className="flex items-center gap-2 mb-6">
-        <span className="text-ns-muted text-xs font-body">Sort:</span>
+      <PageHeader title="Ratings">
+        <span className="font-body text-sm text-ns-muted">Sort:</span>
         {([
           ['date',       'Recent'  ],
           ['score_desc', 'Highest' ],
           ['score_asc',  'Lowest'  ],
         ] as [Sort, string][]).map(([s, label]) => (
-          <button
+          <Button
             key={s}
+            variant={sort === s ? 'secondary' : 'outline'}
+            size="sm"
+            aria-pressed={sort === s}
             onClick={() => setSort(s)}
-            className={`px-3 py-1 rounded-full text-xs font-body transition-colors border
-              ${sort === s
-                ? 'bg-ns-secondary/10 border-ns-secondary/40 text-ns-secondary-readable'
-                : 'border-ns-border text-ns-muted hover:text-ns-text'}`}
+            className="min-h-10"
           >
             {label}
-          </button>
+          </Button>
         ))}
-        <div className="flex-1" />
-        <Link href="/ratings" className="text-xs font-body text-ns-muted hover:text-ns-secondary-readable transition-colors flex items-center gap-0.5">
+        <Link href="/ratings" className="inline-flex items-center gap-1 font-heading text-sm text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text">
           Full page <ArrowRightIcon size={11} className="inline-block" />
         </Link>
-      </div>
+      </PageHeader>
 
       {loading ? (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
           {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="animate-pulse aspect-[2/3] bg-ns-border rounded-xl" />
+            <div key={i} className="aspect-[2/3] animate-pulse rounded bg-ns-surface-2" />
           ))}
         </div>
       ) : ratings.length === 0 ? (
-        <div className="py-16 text-center">
-          <RatingsIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
-          <p className="text-ns-muted font-body text-sm">No ratings yet.</p>
-          <Link href="/discover" className="text-ns-secondary-readable text-sm font-body hover:text-amber-400 transition-colors mt-2 inline-flex items-center gap-1">
+        <div>
+          <p className="font-body text-sm text-ns-muted">No ratings yet.</p>
+          <Link href="/discover" className="mt-2 inline-flex items-center gap-1 font-heading text-sm text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text">
             Discover films to rate <ArrowRightIcon size={13} />
           </Link>
         </div>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
           {ratings.map(r => (
-            <Link key={r.tmdbId} href={`/movie/${r.tmdbId}`} className="group">
-              <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-ns-border">
+            <Link key={r.tmdbId} href={`/movie/${r.tmdbId}`} className="group min-w-0">
+              <div className="relative aspect-[2/3] overflow-hidden rounded border border-ns-border bg-ns-surface-2 transition-colors group-hover:border-ns-text/60">
                 {r.posterPath ? (
                   <Image
                     src={tmdbImageUrl(r.posterPath, 'w342')}
                     alt={r.title}
                     fill sizes="160px"
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <FilmIcon size={28} className="text-ns-muted/40" />
                   </div>
                 )}
-                <div className="absolute top-1.5 right-1.5 bg-black/70 rounded-full px-1.5 py-0.5">
-                  <span className={`text-[10px] font-body font-bold ${scoreColor(r.score)}`}>{r.score}</span>
-                </div>
               </div>
-              <p className="text-[11px] font-body text-ns-muted mt-1.5 line-clamp-1 group-hover:text-white transition-colors">
-                {r.title}
+              <p className="mt-1.5 flex items-baseline justify-between gap-2 font-body text-[11px] text-ns-muted">
+                <span className="line-clamp-1 transition-colors group-hover:text-ns-text">{r.title}</span>
+                <span className={`flex-shrink-0 font-bold tabular-nums ${scoreColor(r.score)}`}>{r.score}</span>
               </p>
             </Link>
           ))}

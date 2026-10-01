@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link   from 'next/link'
 import Avatar from '@/components/ui/Avatar'
-import { FriendsIcon, CheckIcon } from '@/components/icons'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -64,20 +65,20 @@ function SocialModal({
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-ns-surface border border-ns-border rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl">
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+      <div className="relative flex max-h-[80vh] w-full max-w-md flex-col rounded border border-ns-border border-t-2 border-t-ns-text bg-ns-surface">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-ns-border flex-shrink-0">
-          <div className="flex items-center gap-1">
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-ns-border px-5 pt-2">
+          <div className="flex items-center gap-5">
             {TABS.map(t => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-body transition-colors
+                className={`-mb-px min-h-[44px] border-b-2 font-heading text-sm font-semibold transition-colors
                   ${tab === t.key
-                    ? 'bg-ns-secondary/15 text-ns-secondary-readable border border-ns-secondary/30'
-                    : 'text-ns-muted hover:text-ns-text'
+                    ? 'border-ns-text text-ns-text'
+                    : 'border-transparent text-ns-muted hover:text-ns-text'
                   }`}
               >
                 {t.label}
@@ -86,7 +87,7 @@ function SocialModal({
           </div>
           <button
             onClick={onClose}
-            className="text-ns-muted/60 hover:text-ns-text transition-colors w-7 h-7 flex items-center justify-center rounded-lg hover:bg-ns-bg/50"
+            className="flex h-10 w-10 items-center justify-center text-ns-muted transition-colors hover:text-ns-text"
           >
             ✕
           </button>
@@ -107,20 +108,20 @@ function SocialModal({
               ))}
             </div>
           ) : users.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-              <p className="text-ns-muted/50 font-body text-sm">
+            <div className="px-5 py-8">
+              <p className="font-body text-sm text-ns-muted">
                 {tab === 'followers' ? 'No followers yet' :
                  tab === 'following' ? 'Not following anyone yet' :
                  'No friends yet — follow each other to become friends'}
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-ns-border/30">
+            <div className="divide-y divide-ns-border">
               {users.map(u => (
-                <div key={u.id} className="flex items-center gap-3 px-5 py-3 hover:bg-ns-bg/30 transition-colors">
+                <div key={u.id} className="flex items-center gap-3 px-5 py-3">
                   <Avatar src={u.avatarUrl} username={u.username} size="sm" href />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <Link
                         href={`/profile/${u.username}`}
                         onClick={onClose}
@@ -129,16 +130,11 @@ function SocialModal({
                         @{u.username}
                       </Link>
                       {u.isFriend && (
-                        <span className="inline-flex items-center gap-0.5 text-[9px] font-body
-                                         text-ns-secondary-readable/80 bg-ns-secondary/10 border border-ns-secondary/20
-                                         px-1.5 py-0.5 rounded-full">
-                          <FriendsIcon size={9} />
-                          Friends
-                        </span>
+                        <Badge variant="secondary">Friends</Badge>
                       )}
                     </div>
                     {u.personality && (
-                      <p className="text-[10px] font-body text-ns-muted/60">
+                      <p className="font-body text-xs text-ns-muted">
                         {PERSONALITY_LABELS[u.personality] ?? u.personality}
                         {u.topGenre ? ` · ${u.topGenre}` : ''}
                       </p>
@@ -149,7 +145,7 @@ function SocialModal({
                     <MiniFollowBtn username={u.username} />
                   )}
                   {u.isFollowing && (
-                    <span className="text-[10px] font-body text-ns-muted/50 flex-shrink-0">Following</span>
+                    <span className="flex-shrink-0 font-body text-xs text-ns-muted">Following</span>
                   )}
                 </div>
               ))}
@@ -167,16 +163,11 @@ function MiniFollowBtn({ username }: { username: string }) {
     await fetch(`/api/follow/${username}`, { method: 'POST' })
     setDone(true)
   }
-  if (done) return <span className="text-[10px] font-body text-ns-secondary-readable/70 flex-shrink-0">✓ Following</span>
+  if (done) return <span className="flex-shrink-0 font-body text-xs text-ns-secondary-readable">✓ Following</span>
   return (
-    <button
-      onClick={follow}
-      className="flex-shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-body font-semibold
-                 bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/30 hover:bg-ns-secondary hover:text-ns-secondary-foreground
-                 transition-all duration-200"
-    >
+    <Button variant="secondary" size="sm" onClick={follow} className="flex-shrink-0">
       + Follow
-    </button>
+    </Button>
   )
 }
 
@@ -207,14 +198,14 @@ export default function SocialStats({
 
   return (
     <>
-      <div className="flex items-center gap-6 flex-wrap">
+      <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
         {stats.map(s => (
           <button
             key={s.key}
             onClick={() => setModal(s.key)}
-            className="text-left group"
+            className="group min-h-[40px] text-left"
           >
-            <p className="font-display text-3xl tracking-wider text-ns-secondary-readable group-hover:text-amber-400 transition-colors">
+            <p className="font-display text-3xl tracking-wider text-ns-secondary-readable transition-colors group-hover:text-ns-text">
               {s.value.toLocaleString()}
             </p>
             <p className="text-ns-muted text-xs font-body mt-0.5 group-hover:text-ns-text transition-colors">

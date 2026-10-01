@@ -1,5 +1,6 @@
 'use client'
 
+import Badge from '@/components/ui/Badge'
 import type { TasteImportPreviewItem } from '@/services/imports/types'
 
 interface Props {
@@ -34,18 +35,18 @@ export default function ImportPreview({ items, choices, onChoice }: Props) {
               }
             }
           }}
-          className="flex-shrink-0 text-xs font-body text-ns-secondary-readable hover:text-amber-300 transition-colors"
+          className="flex-shrink-0 text-xs font-body text-ns-secondary-readable underline underline-offset-4 transition-colors hover:text-ns-text"
         >
           Select all
         </button>
       </div>
 
-      <div className="max-h-[34rem] overflow-y-auto rounded-2xl border border-ns-border divide-y divide-ns-border/50 bg-ns-bg/40">
+      <div className="max-h-[34rem] overflow-y-auto border-y border-ns-border divide-y divide-ns-border">
         {items.map(item => {
           const choice = choices[item.rowKey] ?? null
           const disabled = item.candidates.length === 0
           return (
-            <div key={item.rowKey} className={`p-3 sm:p-4 ${disabled ? 'opacity-55' : ''}`}>
+            <div key={item.rowKey} className={`py-3 pr-1 sm:py-4 ${disabled ? 'opacity-55' : ''}`}>
               <div className="flex gap-3">
                 <input
                   type="checkbox"
@@ -65,16 +66,16 @@ export default function ImportPreview({ items, choices, onChoice }: Props) {
                       {item.title}{item.year ? ` (${item.year})` : ''}
                     </p>
                     {item.status === 'matched' && (
-                      <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-body text-emerald-300">Exact match</span>
+                      <Badge variant="success">Exact match</Badge>
                     )}
                     {item.status === 'conflict' && (
-                      <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-body text-amber-300">Review match</span>
+                      <Badge variant="warning">Review match</Badge>
                     )}
                     {item.status === 'unmatched' && (
-                      <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-body text-rose-300">No match</span>
+                      <Badge variant="danger">No match</Badge>
                     )}
                     {(item.existing.rating || item.existing.watchlist) && (
-                      <span className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-body text-sky-300">Updates existing</span>
+                      <Badge variant="info">Updates existing</Badge>
                     )}
                   </div>
                   <p className="mt-0.5 text-[11px] font-body text-ns-muted/70">{itemDetails(item)}</p>
@@ -83,7 +84,7 @@ export default function ImportPreview({ items, choices, onChoice }: Props) {
                     <select
                       value={choice ?? ''}
                       onChange={event => onChoice(item.rowKey, event.target.value ? Number(event.target.value) : null)}
-                      className="mt-2 w-full rounded-lg border border-ns-border bg-ns-surface px-3 py-2 text-xs font-body text-ns-text focus:border-ns-secondary/50 focus:outline-none"
+                      className="mt-2 w-full rounded border border-ns-border bg-ns-surface px-3 py-2 text-xs font-body text-ns-text focus:border-ns-secondary/50 focus:outline-none"
                     >
                       <option value="">Skip this movie</option>
                       {item.candidates.map(candidate => (

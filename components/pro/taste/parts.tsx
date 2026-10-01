@@ -47,7 +47,7 @@ export function Tag({ tone = 'muted', children }: { tone?: 'muted' | 'warning' |
       ? 'border-ns-success/40 text-ns-success'
       : 'border-ns-border text-ns-muted'
   return (
-    <span className={`inline-flex items-center rounded-sm border px-1.5 py-0.5 font-heading text-[10px] font-semibold uppercase tracking-[0.12em] ${color}`}>
+    <span className={`inline-flex items-center rounded-sm border px-1.5 py-0.5 font-heading text-[11px] font-semibold uppercase tracking-[0.12em] ${color}`}>
       {children}
     </span>
   )

@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { tmdbImageUrl } from '@/lib/utils'
 import type { CreatorAnalytics } from '@/types'
 import { FilmIcon } from '@/components/icons'
+import Section from '@/components/ui/Section'
 
 interface Props {
   collectionId: string
@@ -18,16 +19,16 @@ function StatCard({ label, value, sub, color }: {
   color?: 'gold' | 'green' | 'red' | 'default'
 }) {
   const val =
-    color === 'green' ? 'text-emerald-400' :
-    color === 'red'   ? 'text-red-400'     :
-    color === 'gold'  ? 'text-ns-secondary-readable'     :
+    color === 'green' ? 'text-ns-success' :
+    color === 'red'   ? 'text-ns-danger'  :
+    color === 'gold'  ? 'text-ns-secondary-readable' :
     'text-ns-text'
 
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-5">
-      <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-2">{label}</p>
-      <p className={`font-display text-3xl tracking-wider ${val}`}>{value}</p>
-      {sub && <p className="text-ns-muted/60 text-xs font-body mt-1">{sub}</p>}
+    <div className="min-w-0 border-t border-ns-border py-3">
+      <dt className="font-body text-[11px] uppercase tracking-widest text-ns-muted">{label}</dt>
+      <dd className={`mt-1 font-display text-4xl leading-none tracking-wide ${val}`}>{value}</dd>
+      {sub && <dd className="mt-1 font-body text-xs text-ns-muted">{sub}</dd>}
     </div>
   )
 }
@@ -47,9 +48,9 @@ export default function AnalyticsDashboard({ collectionId }: Props) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 animate-pulse">
+      <div className="grid animate-pulse grid-cols-2 gap-x-8 sm:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="bg-ns-surface border border-ns-border rounded-2xl p-5 h-24" />
+          <div key={i} className="h-20 border-t border-ns-border" />
         ))}
       </div>
     )
@@ -57,18 +58,15 @@ export default function AnalyticsDashboard({ collectionId }: Props) {
 
   if (error || !data) {
     return (
-      <div className="border border-dashed border-ns-border rounded-2xl p-8 text-center">
-        <p className="text-ns-muted font-body text-sm">Could not load analytics.</p>
-      </div>
+      <p className="border-t border-ns-border py-8 font-body text-sm text-ns-muted">Could not load analytics.</p>
     )
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {/* Overview stats */}
-      <section>
-        <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">Overview</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <Section title="Overview">
+        <dl className="grid grid-cols-2 gap-x-8 sm:grid-cols-3">
           <StatCard label="Collections"  value={data.totalCollections} />
           <StatCard label="Total Views"  value={data.totalViews.toLocaleString()} color="gold" />
           <StatCard label="Net Score"
@@ -85,96 +83,88 @@ export default function AnalyticsDashboard({ collectionId }: Props) {
             sub="upvote ratio"
             color="gold"
           />
-        </div>
-      </section>
+        </dl>
+      </Section>
 
-      {/* Top collections */}
-      {data.topCollections.length > 0 && (
-        <section>
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">
-            Top Performing Collections
-          </p>
-          <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
-            <table className="w-full text-sm font-body">
-              <thead>
-                <tr className="border-b border-ns-border">
-                  <th className="text-left text-ns-muted text-[10px] tracking-wider uppercase px-5 py-3">Collection</th>
-                  <th className="text-right text-ns-muted text-[10px] tracking-wider uppercase px-4 py-3">Films</th>
-                  <th className="text-right text-ns-muted text-[10px] tracking-wider uppercase px-4 py-3">▲</th>
-                  <th className="text-right text-ns-muted text-[10px] tracking-wider uppercase px-5 py-3">Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.topCollections.map((c, i) => (
-                  <tr key={c.id}
-                    className={`${i > 0 ? 'border-t border-ns-border/50' : ''} hover:bg-ns-surface/50 transition-colors`}>
-                    <td className="px-5 py-3">
-                      <Link href={`/collections/${c.id}`}
-                        className="text-ns-text hover:text-ns-secondary-readable transition-colors font-medium truncate block max-w-[180px]">
-                        {c.title}
-                      </Link>
-                    </td>
-                    <td className="text-right text-ns-muted/70 px-4 py-3">{c.movieCount}</td>
-                    <td className="text-right text-emerald-400 px-4 py-3">{c.upvotes}</td>
-                    <td className={`text-right px-5 py-3 font-semibold
-                      ${c.score > 0 ? 'text-emerald-400' : c.score < 0 ? 'text-red-400' : 'text-ns-muted'}`}>
-                      {c.score > 0 ? '+' : ''}{c.score}
-                    </td>
+      {(data.topCollections.length > 0 || data.topMovies.length > 0) && (
+        <div className="grid min-w-0 gap-12 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-10">
+          {/* Top collections */}
+          {data.topCollections.length > 0 && (
+            <Section title="Top Performing Collections">
+              <table className="w-full table-fixed font-body text-sm">
+                <thead>
+                  <tr>
+                    <th className="pb-2 text-left text-[11px] font-normal uppercase tracking-wider text-ns-muted">Collection</th>
+                    <th className="w-14 pb-2 text-right text-[11px] font-normal uppercase tracking-wider text-ns-muted">Films</th>
+                    <th className="w-12 pb-2 text-right text-[11px] font-normal uppercase tracking-wider text-ns-muted">▲</th>
+                    <th className="w-14 pb-2 text-right text-[11px] font-normal uppercase tracking-wider text-ns-muted">Score</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
+                </thead>
+                <tbody>
+                  {data.topCollections.map(c => (
+                    <tr key={c.id} className="border-t border-ns-border">
+                      <td className="py-3 pr-3">
+                        <Link href={`/collections/${c.id}`}
+                          className="block truncate font-medium text-ns-text transition-colors hover:text-ns-secondary-readable">
+                          {c.title}
+                        </Link>
+                      </td>
+                      <td className="py-3 text-right text-ns-muted">{c.movieCount}</td>
+                      <td className="py-3 text-right text-ns-success">{c.upvotes}</td>
+                      <td className={`py-3 text-right font-semibold
+                        ${c.score > 0 ? 'text-ns-success' : c.score < 0 ? 'text-ns-danger' : 'text-ns-muted'}`}>
+                        {c.score > 0 ? '+' : ''}{c.score}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Section>
+          )}
 
-      {/* Most-included movies */}
-      {data.topMovies.length > 0 && (
-        <section>
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">
-            Most-Included Films
-          </p>
-          <div className="flex gap-3 flex-wrap">
-            {data.topMovies.map(m => (
-              <Link key={m.tmdbId} href={`/movie/${m.tmdbId}`}
-                className="group flex items-center gap-2.5 bg-ns-surface border border-ns-border rounded-xl
-                           px-3 py-2 hover:border-ns-secondary/30 transition-all">
-                {m.posterPath ? (
-                  <div className="relative w-8 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-ns-border">
-                    <Image
-                      src={tmdbImageUrl(m.posterPath, 'w185')}
-                      alt={m.title}
-                      fill
-                      className="object-cover"
-                      sizes="32px"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-8 h-12 rounded-lg bg-ns-border flex-shrink-0 flex items-center justify-center">
-                    <FilmIcon size={14} className="text-ns-muted/40" />
-                  </div>
-                )}
-                <div>
-                  <p className="text-ns-text text-xs font-body font-medium leading-tight truncate max-w-[120px]
-                                group-hover:text-ns-secondary-readable transition-colors">
-                    {m.title}
-                  </p>
-                  <p className="text-ns-muted/60 text-[10px] font-body">
-                    in {m.count} collection{m.count !== 1 ? 's' : ''}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+          {/* Most-included movies */}
+          {data.topMovies.length > 0 && (
+            <Section title="Most-Included Films">
+              <ul>
+                {data.topMovies.map(m => (
+                  <li key={m.tmdbId} className="border-t border-ns-border">
+                    <Link href={`/movie/${m.tmdbId}`} className="group flex min-w-0 items-center gap-3 py-2.5">
+                      {m.posterPath ? (
+                        <div className="relative h-12 w-8 flex-shrink-0 overflow-hidden rounded border border-ns-border">
+                          <Image
+                            src={tmdbImageUrl(m.posterPath, 'w185')}
+                            alt={m.title}
+                            fill
+                            className="object-cover"
+                            sizes="32px"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex h-12 w-8 flex-shrink-0 items-center justify-center rounded bg-ns-border">
+                          <FilmIcon size={14} className="text-ns-muted/40" />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate font-body text-sm font-medium leading-tight text-ns-text transition-colors group-hover:text-ns-secondary-readable">
+                          {m.title}
+                        </p>
+                        <p className="font-body text-xs text-ns-muted">
+                          in {m.count} collection{m.count !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
+        </div>
       )}
 
       {data.totalCollections === 0 && (
-        <div className="border border-dashed border-ns-border rounded-2xl p-8 text-center">
-          <p className="text-ns-muted font-body text-sm">
-            Create collections and get upvotes to see your analytics here.
-          </p>
-        </div>
+        <p className="border-t border-ns-border py-8 font-body text-sm text-ns-muted">
+          Create collections and get upvotes to see your analytics here.
+        </p>
       )}
     </div>
   )

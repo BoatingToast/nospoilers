@@ -1,0 +1,75 @@
+/* Pro lobby: a ruled directory of tools. No artwork, glows, or card chrome. */
+
+.directory {
+  border-bottom: 1px solid rgb(var(--ns-border));
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  min-width: 0;
+  padding: 16px 0;
+  border-top: 1px solid rgb(var(--ns-border));
+  transition: background-color .15s;
+}
+
+.row:hover {
+  background: rgb(var(--ns-surface));
+}
+
+.row:focus-visible {
+  outline: 2px solid rgb(var(--ns-secondary-readable));
+  outline-offset: 2px;
+}
+
+.rowName {
+  font-family: var(--font-space), system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: rgb(var(--ns-text));
+}
+
+.rowDescription {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgb(var(--ns-muted));
+}
+
+.rowAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-family: var(--font-space), system-ui, sans-serif;
+  font-size: 14px;
+  color: rgb(var(--ns-secondary-readable));
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.row:hover .rowAction {
+  color: rgb(var(--ns-text));
+}
+
+@media (min-width: 768px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) auto;
+    align-items: baseline;
+    gap: 24px;
+    padding: 18px 8px 18px 0;
+  }
+
+  .rowAction {
+    margin-top: 0;
+    justify-self: end;
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row {
+    transition: none;
+  }
+}

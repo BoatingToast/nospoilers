@@ -313,7 +313,7 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
         {stage === 'details' && (
           <form onSubmit={handleSubmit}>
             <div className="border-b border-ns-border px-5 py-5 pr-14 sm:px-7 sm:py-6 sm:pr-16">
-              <p className="text-[10px] font-body uppercase tracking-[0.22em] text-ns-secondary-readable">Creator upload</p>
+              <p className="text-[11px] font-body uppercase tracking-[0.22em] text-ns-secondary-readable">Creator upload</p>
               <h2 id="upload-movie-dialog-title" className="mt-1 font-display text-3xl tracking-wider text-ns-text">
                 UPLOAD YOUR MOVIE
               </h2>
@@ -383,7 +383,7 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
                     <span className="mt-1 text-xs font-body text-ns-muted">
                       or <span className="font-semibold text-ns-secondary-readable">browse your files</span>
                     </span>
-                    <span className="mt-3 text-[10px] font-body uppercase tracking-wider text-ns-muted/70">
+                    <span className="mt-3 text-[11px] font-body uppercase tracking-wider text-ns-muted/70">
                       MP4, MOV, M4V, WEBM · Up to 1 GB
                     </span>
                   </label>
@@ -504,7 +504,7 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
                     {watchProviders.map((provider, index) => (
                       <div key={index} className="grid gap-2 rounded-xl border border-ns-border/70 bg-ns-bg/35 p-3 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.35fr)_2rem] sm:items-end">
                         <div>
-                          <label htmlFor={`watch-provider-name-${index}`} className="text-[10px] font-body uppercase tracking-wider text-ns-muted">
+                          <label htmlFor={`watch-provider-name-${index}`} className="text-[11px] font-body uppercase tracking-wider text-ns-muted">
                             Platform {index + 1}
                           </label>
                           <input
@@ -518,7 +518,7 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
                           />
                         </div>
                         <div>
-                          <label htmlFor={`watch-provider-url-${index}`} className="text-[10px] font-body uppercase tracking-wider text-ns-muted">
+                          <label htmlFor={`watch-provider-url-${index}`} className="text-[11px] font-body uppercase tracking-wider text-ns-muted">
                             Watch link
                           </label>
                           <input
@@ -543,7 +543,7 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
                     ))}
 
                     <div className="pt-1">
-                      <p className="text-[10px] font-body text-ns-muted/70">
+                      <p className="text-[11px] font-body text-ns-muted/70">
                         {watchProviders.length}/{MAX_MOVIE_WATCH_PROVIDERS} manual links added
                       </p>
                     </div>
@@ -603,7 +603,7 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <div className="mt-2 flex justify-between text-[10px] font-body uppercase tracking-wider text-ns-muted">
+              <div className="mt-2 flex justify-between text-[11px] font-body uppercase tracking-wider text-ns-muted">
                 <span>Keep this window open</span>
                 <span>{progress}%</span>
               </div>
@@ -616,12 +616,12 @@ function UploadMovieDialog({ onClose, onUploaded }: UploadMovieDialogProps) {
             <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-ns-success/25 bg-ns-success/10 text-ns-success">
               <CheckIcon size={28} />
             </span>
-            <p className="mt-5 text-[10px] font-body uppercase tracking-[0.22em] text-ns-success">Upload complete</p>
+            <p className="mt-5 text-[11px] font-body uppercase tracking-[0.22em] text-ns-success">Upload complete</p>
             <h2 id="upload-movie-dialog-title" className="mt-1 font-display text-3xl tracking-wider text-ns-text">YOUR MOVIE IS READY</h2>
             <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed font-body text-ns-muted">
               <span className="font-semibold text-ns-text">{title.trim()}</span> is safely uploaded. Tomorrow&apos;s Reels feature will give viewers a new way to discover it.
             </p>
-            <p className={`mx-auto mt-3 w-fit rounded-full px-3 py-1 text-[10px] font-body font-semibold uppercase tracking-wider ${
+            <p className={`mx-auto mt-3 w-fit rounded-full px-3 py-1 text-[11px] font-body font-semibold uppercase tracking-wider ${
               matchedTmdbId
                 ? 'bg-ns-success/10 text-ns-success'
                 : 'bg-ns-surface text-ns-muted'
@@ -686,7 +686,7 @@ export default function UploadMovieSection() {
               <UploadMovieIcon size={28} />
             </span>
             <span className="min-w-0">
-              <span className="text-[10px] font-body uppercase tracking-[0.24em] text-ns-secondary-readable">
+              <span className="text-[11px] font-body uppercase tracking-[0.24em] text-ns-secondary-readable">
                 Creator studio · New
               </span>
               <span id="upload-movie-section-title" className="mt-1 block font-display text-3xl tracking-wider text-ns-text sm:text-4xl">
@@ -700,7 +700,7 @@ export default function UploadMovieSection() {
 
           <span className="flex flex-shrink-0 items-center justify-between gap-4 border-t border-ns-border/60 pt-4 sm:justify-end sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
             <span>
-              <span className="block text-[10px] font-body uppercase tracking-wider text-ns-muted/70">
+              <span className="block text-[11px] font-body uppercase tracking-wider text-ns-muted/70">
                 {uploadedMovie ? 'Uploaded today' : 'Ready when you are'}
               </span>
               <span className="mt-1 block max-w-40 truncate text-xs font-body font-semibold text-ns-text">
@@ -717,7 +717,7 @@ export default function UploadMovieSection() {
       {uploadedMovie && uploadedMovie.watchProviders.length > 0 && (
         <div className="mt-3 flex flex-col gap-3 rounded-2xl border border-ns-border bg-ns-surface/55 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <p className="text-[10px] font-body uppercase tracking-[0.16em] text-ns-muted">
+            <p className="text-[11px] font-body uppercase tracking-[0.16em] text-ns-muted">
               Latest upload{uploadedMovie.tmdbId ? ' · Catalog matched automatically' : ''}
             </p>
             <p className="mt-0.5 truncate text-sm font-heading font-semibold text-ns-text">

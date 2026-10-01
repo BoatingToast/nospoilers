@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import type { FriendStatus } from '@/types'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
 
 interface Props {
   username:        string
@@ -79,71 +81,46 @@ export default function FriendRequestButton({
     setStatus('none')
   }
 
-  const base = 'px-4 py-2 rounded-xl text-sm font-body transition-all disabled:opacity-50'
-
   if (status === 'friends') {
     return (
-      <div className="flex items-center gap-2">
-        <span className="px-4 py-2 rounded-xl text-sm font-body bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-          Friends
-        </span>
-        <button
-          onClick={removeFriend}
-          disabled={loading}
-          className={`${base} border border-ns-border text-ns-muted hover:text-rose-400 hover:border-rose-500/40`}
-        >
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="success" size="md">Friends</Badge>
+        <Button variant="outline" onClick={removeFriend} disabled={loading}>
           Remove
-        </button>
+        </Button>
       </div>
     )
   }
 
   if (status === 'pending_sent') {
     return (
-      <div className="flex items-center gap-2">
-        <span className="px-4 py-2 rounded-xl text-sm font-body bg-ns-secondary/10 border border-ns-secondary/30 text-ns-secondary-readable">
-          Request Sent
-        </span>
-        <button
-          onClick={cancelRequest}
-          className={`${base} border border-ns-border text-ns-muted hover:text-ns-text`}
-        >
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="secondary" size="md">Request Sent</Badge>
+        <Button variant="outline" onClick={cancelRequest}>
           Cancel
-        </button>
+        </Button>
       </div>
     )
   }
 
   if (status === 'pending_received') {
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-body text-ns-muted mr-1">Friend request:</span>
-        <button
-          onClick={() => handleAction('accept')}
-          disabled={loading}
-          className={`${base} bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary/90`}
-        >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="mr-1 font-body text-sm text-ns-muted">Friend request:</span>
+        <Button variant="secondary" onClick={() => handleAction('accept')} disabled={loading}>
           Accept
-        </button>
-        <button
-          onClick={() => handleAction('reject')}
-          disabled={loading}
-          className={`${base} border border-ns-border text-ns-muted hover:text-ns-text`}
-        >
+        </Button>
+        <Button variant="outline" onClick={() => handleAction('reject')} disabled={loading}>
           Decline
-        </button>
+        </Button>
       </div>
     )
   }
 
   // 'none'
   return (
-    <button
-      onClick={sendRequest}
-      disabled={loading}
-      className={`${base} bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary/90 font-medium`}
-    >
+    <Button variant="secondary" onClick={sendRequest} disabled={loading}>
       {loading ? '…' : '+ Add Friend'}
-    </button>
+    </Button>
   )
 }

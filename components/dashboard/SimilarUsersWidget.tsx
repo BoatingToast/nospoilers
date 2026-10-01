@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { SimilarUserPreview, PersonalityType } from '@/types'
 import Avatar from '@/components/ui/Avatar'
+import Button from '@/components/ui/Button'
+import Section from '@/components/ui/Section'
 
 export default function SimilarUsersWidget() {
   const [users,   setUsers]   = useState<SimilarUserPreview[]>([])
@@ -17,48 +19,32 @@ export default function SimilarUsersWidget() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) {
-    return (
-      <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
-        <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">People With Similar Taste</p>
-        <div className="flex flex-col gap-3">
+  return (
+    <Section title="People With Similar Taste">
+      {loading ? (
+        <ul>
           {[1,2,3].map(i => (
-            <div key={i} className="flex items-center gap-3 animate-pulse">
-              <div className="w-10 h-10 rounded-full bg-ns-border" />
+            <li key={i} className="flex animate-pulse items-center gap-3 border-t border-ns-border py-3">
+              <div className="h-10 w-10 rounded-full bg-ns-surface-2" />
               <div className="flex-1">
-                <div className="h-3 bg-ns-border rounded w-24 mb-1" />
-                <div className="h-2.5 bg-ns-border rounded w-32" />
+                <div className="mb-1 h-3 w-24 rounded bg-ns-surface-2" />
+                <div className="h-2.5 w-32 rounded bg-ns-surface-2" />
               </div>
-            </div>
+            </li>
           ))}
-        </div>
-      </div>
-    )
-  }
-
-  if (users.length === 0) {
-    return (
-      <div className="bg-ns-surface border border-ns-border rounded-2xl p-6 text-center">
-        <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-3">People With Similar Taste</p>
-        <p className="text-ns-muted text-xs font-body">
+        </ul>
+      ) : users.length === 0 ? (
+        <p className="border-t border-ns-border pt-4 font-body text-sm text-ns-muted">
           No similar users yet — as more people join, we&apos;ll find your matches.
         </p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
-      <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">
-        People With Similar Taste
-      </p>
-
-      <div className="flex flex-col gap-3">
-        {users.map(user => (
-          <UserRow key={user.id} user={user} />
-        ))}
-      </div>
-    </div>
+      ) : (
+        <ul className="border-b border-ns-border">
+          {users.map(user => (
+            <UserRow key={user.id} user={user} />
+          ))}
+        </ul>
+      )}
+    </Section>
   )
 }
 
@@ -79,40 +65,36 @@ function UserRow({ user }: { user: SimilarUserPreview }) {
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <li className="flex items-center gap-3 border-t border-ns-border py-3">
       <Avatar src={user.avatarUrl} username={user.username} size="md" href />
 
-      <div className="flex-1 min-w-0">
-        <Link href={`/profile/${user.username}`} className="hover:text-ns-secondary-readable transition-colors">
-          <p className="text-ns-text text-sm font-body font-medium truncate">@{user.username}</p>
+      <div className="min-w-0 flex-1">
+        <Link href={`/profile/${user.username}`} className="transition-colors hover:text-ns-secondary-readable">
+          <p className="truncate font-body text-sm font-medium text-ns-text">@{user.username}</p>
         </Link>
-        <p className="text-ns-muted text-xs font-body">
+        <p className="font-body text-xs text-ns-muted">
           {user.sharedMovies} shared film{user.sharedMovies !== 1 ? 's' : ''}
           {pt ? ` · ${pt.name}` : ''}
         </p>
       </div>
 
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex flex-shrink-0 items-center gap-3">
         <Link
           href={`/compatibility/${user.username}`}
-          className="text-ns-secondary-readable text-xs font-body hover:text-ns-secondary-readable/80 transition-colors"
+          className="font-body text-sm tabular-nums text-ns-secondary-readable underline underline-offset-4 transition-colors hover:text-ns-text"
         >
           {user.compatScore}%
         </Link>
-        <button
+        <Button
+          variant={following ? 'outline' : 'secondary'}
+          size="sm"
           onClick={toggleFollow}
           disabled={loading}
-          className={`px-3 py-1 rounded-lg text-xs font-body transition-all
-            ${following
-              ? 'border border-ns-border text-ns-muted hover:text-red-400'
-              : 'bg-ns-secondary/10 border border-ns-secondary/30 text-ns-secondary-readable hover:bg-ns-secondary/20'
-            }
-            ${loading ? 'opacity-50' : ''}
-          `}
+          className="min-h-10"
         >
           {loading ? '...' : following ? 'Following' : 'Follow'}
-        </button>
+        </Button>
       </div>
-    </div>
+    </li>
   )
 }

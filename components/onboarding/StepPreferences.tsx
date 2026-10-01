@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Button from '@/components/ui/Button'
+import PageHeader from '@/components/ui/PageHeader'
 
 export interface PreferenceAnswers {
   pacingScale:          number | null
@@ -106,16 +107,15 @@ function SliderQuestion({ config, value, onChange }: {
   onChange: (value: number | null) => void
 }) {
   return (
-    <div className="rounded-2xl border border-ns-border bg-ns-surface p-4">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-body font-medium text-ns-text">{config.label}</p>
-          <p className="mt-0.5 text-xs font-body text-ns-muted">{config.sublabel}</p>
-        </div>
-        <span className="max-w-28 text-right text-[10px] font-body font-semibold uppercase tracking-wide text-ns-secondary-readable">
+    <div className="grid gap-3 border-b border-ns-border py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] sm:gap-6">
+      <div className="min-w-0">
+        <p className="text-sm font-body font-medium text-ns-text">{config.label}</p>
+        <p className="mt-0.5 text-xs font-body text-ns-muted">{config.sublabel}</p>
+        <p className="mt-1 text-xs font-body font-semibold text-ns-secondary-readable">
           {selectionLabel(value, config.leftLabel, config.rightLabel)}
-        </span>
+        </p>
       </div>
+      <div className="min-w-0">
       <input
         type="range"
         min={1}
@@ -126,7 +126,7 @@ function SliderQuestion({ config, value, onChange }: {
         onChange={event => onChange(Number(event.target.value))}
         className="w-full cursor-pointer accent-ns-secondary"
       />
-      <div className="mt-1 flex items-start justify-between gap-4 text-[10px] font-body text-ns-muted">
+      <div className="mt-1 flex items-start justify-between gap-4 text-[11px] font-body text-ns-muted">
         <span>{config.leftLabel}</span>
         <span className="text-right">{config.rightLabel}</span>
       </div>
@@ -134,11 +134,12 @@ function SliderQuestion({ config, value, onChange }: {
         <button
           type="button"
           onClick={() => onChange(null)}
-          className="mt-2 text-[10px] font-body text-ns-muted underline decoration-ns-border underline-offset-2 hover:text-ns-text"
+          className="mt-2 min-h-10 text-xs font-body text-ns-muted underline decoration-ns-border underline-offset-2 hover:text-ns-text"
         >
           Clear preference
         </button>
       )}
+      </div>
     </div>
   )
 }
@@ -153,10 +154,10 @@ function ScaleSection({ title, description, scales, answers, setAnswer }: {
   return (
     <section>
       <div className="mb-3">
-        <h3 className="text-sm font-heading text-white">{title}</h3>
-        <p className="mt-0.5 text-xs font-body text-ns-muted">{description}</p>
+        <h3 className="font-display text-2xl leading-none tracking-wide text-white">{title}</h3>
+        <p className="mt-1.5 text-sm font-body text-ns-muted">{description}</p>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="border-t border-ns-border">
         {scales.map(config => (
           <SliderQuestion
             key={config.key}
@@ -207,17 +208,14 @@ export default function StepPreferences({ onSubmit, onBack, loading }: StepPrefe
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-text mb-2">
-          YOUR PREFERENCES
-        </h2>
-        <p className="text-ns-muted font-body text-sm">
-          Five quick choices give us the strongest signals. You can skip any that do not matter to you.
-        </p>
-      </div>
+    <div className="w-full min-w-0">
+      <PageHeader
+        title="YOUR PREFERENCES"
+        lede="Five quick choices give us the strongest signals. You can skip any that do not matter to you."
+      />
 
-      <div className="mb-10 flex flex-col gap-6">
+      <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <div className="flex min-w-0 flex-col gap-10">
         <ScaleSection
           title="The essentials"
           description="Your time, comfort, and appetite for discovery."
@@ -226,27 +224,27 @@ export default function StepPreferences({ onSubmit, onBack, loading }: StepPrefe
           setAnswer={setAnswer}
         />
 
-        <section className="overflow-hidden rounded-2xl border border-ns-border bg-ns-surface/45">
+        <section className="border-t-2 border-ns-text">
           <button
             type="button"
             aria-expanded={showFineTune}
             aria-controls="fine-tune-preferences"
             onClick={() => setShowFineTune(open => !open)}
-            className="flex w-full items-center justify-between gap-4 p-4 text-left transition-colors hover:bg-ns-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ns-secondary-readable sm:p-5"
+            className="group flex w-full items-center justify-between gap-4 py-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ns-secondary-readable"
           >
             <span>
-              <span className="block text-sm font-heading font-semibold text-ns-text">Fine-tune my taste</span>
-              <span className="mt-1 block text-xs font-body leading-relaxed text-ns-muted">
+              <span className="block font-display text-2xl leading-none tracking-wide text-ns-text group-hover:text-ns-secondary-readable">Fine-tune my taste</span>
+              <span className="mt-1.5 block text-sm font-body leading-relaxed text-ns-muted">
                 Optional story, tone, era, and content controls — plus genres to avoid.
               </span>
             </span>
-            <span aria-hidden="true" className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-ns-border text-ns-secondary-readable transition-transform ${showFineTune ? 'rotate-180' : ''}`}>
+            <span aria-hidden="true" className={`flex-shrink-0 font-body text-lg text-ns-secondary-readable transition-transform ${showFineTune ? 'rotate-180' : ''}`}>
               ↓
             </span>
           </button>
 
           {showFineTune && (
-            <div id="fine-tune-preferences" className="space-y-8 border-t border-ns-border p-4 sm:p-5">
+            <div id="fine-tune-preferences" className="space-y-10 border-t border-ns-border pt-6">
               <ScaleSection
                 title="More taste signals"
                 description="These start neutral and can be adjusted now or later in settings."
@@ -257,8 +255,8 @@ export default function StepPreferences({ onSubmit, onBack, loading }: StepPrefe
 
               <section>
                 <div className="mb-3">
-                  <h3 className="text-sm font-heading text-white">Genres to avoid</h3>
-                  <p className="mt-0.5 text-xs font-body text-ns-muted">Optional hard exclusions. You can change these later.</p>
+                  <h3 className="font-display text-2xl leading-none tracking-wide text-white">Genres to avoid</h3>
+                  <p className="mt-1.5 text-sm font-body text-ns-muted">Optional hard exclusions. You can change these later.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {AVOIDABLE_GENRES.map(genre => {
@@ -269,10 +267,10 @@ export default function StepPreferences({ onSubmit, onBack, loading }: StepPrefe
                         key={genre}
                         aria-pressed={selected}
                         onClick={() => toggleExcludedGenre(genre)}
-                        className={`rounded-full border px-3 py-1.5 text-xs font-body capitalize transition-colors ${
+                        className={`min-h-10 rounded border px-3 py-1.5 text-xs font-body capitalize transition-colors ${
                           selected
                             ? 'border-red-400/60 bg-red-500/10 text-red-300'
-                            : 'border-ns-border bg-ns-surface text-ns-muted hover:border-ns-muted/50 hover:text-ns-text'
+                            : 'border-ns-border text-ns-muted hover:border-ns-muted/50 hover:text-ns-text'
                         }`}
                       >
                         {selected ? '× ' : ''}{genre}
@@ -285,18 +283,21 @@ export default function StepPreferences({ onSubmit, onBack, loading }: StepPrefe
           )}
         </section>
 
+      </div>
+
+      <div className="min-w-0 border-t-2 border-ns-text pt-4 lg:sticky lg:top-6 lg:self-start">
         {!showFineTune && (
-          <p className="text-center text-xs font-body text-ns-muted">
+          <p className="mb-4 text-sm font-body text-ns-muted">
             The rest stays neutral for now and can be changed in settings at any time.
           </p>
         )}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Button variant="ghost" size="lg" onClick={onBack}>← Back</Button>
+          <Button variant="primary" size="lg" onClick={() => onSubmit(answers)} loading={loading}>
+            Generate My DNA →
+          </Button>
+        </div>
       </div>
-
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" size="lg" onClick={onBack}>← Back</Button>
-        <Button variant="primary" size="lg" onClick={() => onSubmit(answers)} loading={loading}>
-          Generate My DNA →
-        </Button>
       </div>
     </div>
   )

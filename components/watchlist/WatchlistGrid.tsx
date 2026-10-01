@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { tmdbImageUrl, formatYear } from '@/lib/utils'
 import AddToCollectionButton from '@/components/collections/AddToCollectionButton'
 import type { WatchlistItemData, WatchStatus } from '@/types'
-import { FilmIcon, ArrowRightIcon } from '@/components/icons'
+import { ArrowRightIcon } from '@/components/icons'
+import Badge from '@/components/ui/Badge'
 import WatchlistRoulette from './WatchlistRoulette'
 import WatchlistKnockout from './WatchlistKnockout'
 
@@ -31,10 +32,10 @@ const SORT_OPTIONS = [
   { value: 'matchScore', label: 'Match Score' },
 ]
 
-const STATUS_BADGE: Record<WatchStatus, { label: string; cls: string }> = {
-  want_to_watch: { label: 'Want to Watch', cls: 'bg-ns-surface-2 text-ns-muted border-ns-border' },
-  watching:      { label: 'Watching',      cls: 'bg-ns-secondary/10 text-ns-secondary-readable border-ns-secondary/20' },
-  watched:       { label: 'Watched',       cls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+const STATUS_BADGE: Record<WatchStatus, { label: string; variant: 'muted' | 'secondary' | 'success' }> = {
+  want_to_watch: { label: 'Want to Watch', variant: 'muted' },
+  watching:      { label: 'Watching',      variant: 'secondary' },
+  watched:       { label: 'Watched',       variant: 'success' },
 }
 
 export default function WatchlistGrid({ initialItems, initialStatus, initialSortBy }: Props) {
@@ -87,7 +88,7 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
       <WatchlistKnockout movies={items} />
 
       {/* Filters + Sort */}
-      <div className="flex flex-wrap gap-3 items-center justify-between mb-6">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-t-2 border-ns-text pt-4">
         <div className="flex gap-2 flex-wrap">
           {STATUS_FILTERS.map(f => (
             <button
@@ -95,10 +96,10 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
               key={f.value}
               onClick={() => handleStatusChange(f.value)}
               aria-pressed={status === f.value}
-              className={`min-h-11 rounded-full px-4 py-2 text-xs font-body transition-all
+              className={`min-h-11 rounded border px-4 py-2 text-xs font-body transition-colors
                 ${status === f.value
-                  ? 'bg-ns-secondary text-ns-secondary-foreground font-medium'
-                  : 'border border-ns-border text-ns-muted hover:border-ns-muted/40'
+                  ? 'border-ns-text bg-ns-text text-ns-bg font-medium'
+                  : 'border-ns-border text-ns-muted hover:border-ns-text hover:text-ns-text'
                 }`}
             >
               {f.label}
@@ -110,7 +111,7 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
           value={sortBy}
           onChange={e => handleSortChange(e.target.value)}
           aria-label="Sort watchlist"
-          className="min-h-11 rounded-xl border border-ns-border bg-ns-surface px-3 py-2 text-xs font-body text-ns-muted focus:border-ns-secondary/40 focus:outline-none"
+          className="min-h-11 rounded border border-ns-border bg-ns-surface px-3 py-2 text-xs font-body text-ns-muted focus:border-ns-secondary/40 focus:outline-none"
         >
           {SORT_OPTIONS.map(o => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -123,17 +124,16 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="aspect-[2/3] rounded-xl bg-ns-border mb-2" />
+              <div className="aspect-[2/3] rounded bg-ns-border mb-2" />
               <div className="h-3 bg-ns-border rounded w-3/4 mb-1" />
               <div className="h-2.5 bg-ns-border rounded w-1/2" />
             </div>
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-          <FilmIcon size={44} className="text-ns-secondary-readable/40 mx-auto mb-4" />
+        <div className="border-t border-ns-border py-6">
           <p className="text-ns-muted font-body text-sm">Nothing here yet.</p>
-          <Link href="/discover" className="text-ns-secondary-readable text-sm font-body mt-2 inline-flex items-center gap-1 hover:underline">
+          <Link href="/discover" className="text-ns-secondary-readable text-sm font-body mt-2 inline-flex min-h-10 items-center gap-1 underline underline-offset-4 hover:text-ns-text">
             Discover movies <ArrowRightIcon size={13} />
           </Link>
         </div>
@@ -145,17 +145,17 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
             return (
               <div key={item.tmdbId} className="group touch-action-group relative">
                 <Link href={`/movie/${item.tmdbId}`}>
-                  <div className="aspect-[2/3] rounded-xl overflow-hidden bg-ns-surface border border-ns-border relative">
+                  <div className="aspect-[2/3] rounded overflow-hidden bg-ns-surface border border-ns-border relative transition-colors group-hover:border-ns-text/60">
                     <Image
                       src={tmdbImageUrl(item.posterPath, 'w342')}
                       alt={item.title}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="object-cover"
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
                     />
                     {item.matchScore && (
-                      <div className="absolute top-2 right-2 bg-ns-bg/80 backdrop-blur-sm rounded-full px-2 py-0.5">
-                        <span className="text-ns-secondary-readable text-[10px] font-body font-bold">{item.matchScore}%</span>
+                      <div className="absolute top-0 right-0 bg-ns-bg px-2 py-0.5">
+                        <span className="text-ns-secondary-readable text-[11px] font-body font-bold">{item.matchScore}%</span>
                       </div>
                     )}
                   </div>
@@ -164,12 +164,12 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
                 {/* Status badge + quick actions */}
                 <div className="mt-2">
                   <p className="text-ns-text text-xs font-body font-medium truncate mb-1">{item.title}</p>
-                  <p className="text-ns-muted/50 text-[10px] font-body mb-1.5">{formatYear(item.releaseDate)}</p>
+                  <p className="text-ns-muted text-[11px] font-body mb-1.5">{formatYear(item.releaseDate)}</p>
 
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className={`text-[10px] font-body border rounded-full px-2 py-0.5 ${badge.cls}`}>
+                    <Badge variant={badge.variant}>
                       {badge.label}
-                    </span>
+                    </Badge>
                   </div>
 
                   {/* Quick action */}
@@ -179,7 +179,7 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
                         type="button"
                         onClick={() => updateStatus(item.tmdbId, 'watched')}
                         disabled={isUpdating}
-                        className="min-h-11 flex-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2 py-2 text-xs font-body text-emerald-400 transition-colors hover:bg-emerald-500/20 disabled:cursor-wait disabled:opacity-60"
+                        className="min-h-11 flex-1 rounded border border-emerald-500/20 bg-emerald-500/10 px-2 py-2 text-xs font-body text-emerald-400 transition-colors hover:bg-emerald-500/20 disabled:cursor-wait disabled:opacity-60"
                       >
                         {isUpdating ? 'Updating…' : 'Watched'}
                       </button>
@@ -198,7 +198,7 @@ export default function WatchlistGrid({ initialItems, initialStatus, initialSort
                       onClick={() => removeItem(item.tmdbId)}
                       aria-label={`Remove ${item.title} from watchlist`}
                       title="Remove from watchlist"
-                      className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 text-base text-red-400 transition-colors hover:bg-red-500/20"
+                      className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded border border-red-500/20 bg-red-500/10 text-base text-red-400 transition-colors hover:bg-red-500/20"
                     >
                       <span aria-hidden="true">×</span>
                     </button>

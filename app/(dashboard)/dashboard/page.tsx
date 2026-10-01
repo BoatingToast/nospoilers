@@ -23,7 +23,9 @@ import MyActivityWidget        from '@/components/dashboard/MyActivityWidget'
 import LiveSocialStats         from '@/components/social/LiveSocialStats'
 import { getUserPersonality } from '@/services/personality'
 import { getMovieDnaProfile } from '@/services/dna'
-import Link from 'next/link'
+import PageHeader from '@/components/ui/PageHeader'
+import Section from '@/components/ui/Section'
+import Button from '@/components/ui/Button'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Dashboard — NoSpoilers' }
@@ -58,28 +60,25 @@ export default async function DashboardPage() {
 
   // ── Overview tab content (server-rendered) ────────────────────────────────
   const overview = (
-    <div className="flex flex-col gap-7">
+    <div className="flex flex-col gap-12">
       <WelcomeSection user={{ id: user.id, email: user.email, username: user.username, avatarUrl: user.avatarUrl ?? null, createdAt: user.createdAt }} />
 
-      <section aria-labelledby="tonight-title">
-        <div className="mb-3 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-body uppercase tracking-[0.2em] text-ns-secondary-readable">Ready when you are</p>
-            <h2 id="tonight-title" className="mt-1 font-heading text-base font-semibold text-ns-text">What should I watch?</h2>
-          </div>
-          <Link href="/my-recommendations" className="text-xs font-body text-ns-muted transition-colors hover:text-ns-secondary-readable">
-            See every pick →
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-          <div className="lg:col-span-3">
+      <Section
+        headingId="tonight-title"
+        title="What should I watch?"
+        note="Ready when you are."
+        href="/my-recommendations"
+        linkLabel="See every pick →"
+      >
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+          <div className="min-w-0">
             <DashboardNextFavorite />
           </div>
-          <div className="lg:col-span-2">
+          <div className="min-w-0">
             <WatchlistPreview />
           </div>
         </div>
-      </section>
+      </Section>
 
       <QuickActions
         ratingsCount={user._count.movieRatings}
@@ -88,19 +87,16 @@ export default async function DashboardPage() {
       />
 
       {user._count.movieRatings < 5 && (
-        <div className="rounded-2xl border border-ns-secondary/25 bg-gradient-to-r from-ns-secondary/10 to-transparent p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
-          <div>
-            <p className="text-sm font-heading font-semibold text-ns-text">Make every pick more personal</p>
-            <p className="mt-1 text-xs font-body leading-relaxed text-ns-muted">
+        <div className="flex flex-col gap-4 border-t border-ns-border pt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div className="min-w-0">
+            <p className="font-heading text-base font-semibold text-ns-text">Make every pick more personal</p>
+            <p className="mt-1 font-body text-sm leading-relaxed text-ns-muted">
               Import your Letterboxd or IMDb history to build a richer Movie DNA instantly.
             </p>
           </div>
-          <Link
-            href="/settings/data"
-            className="mt-4 inline-flex rounded-xl bg-ns-secondary px-4 py-2 text-xs font-body font-semibold text-ns-secondary-foreground transition-colors hover:bg-amber-300 hover:text-ns-bg sm:mt-0 sm:flex-shrink-0"
-          >
+          <Button variant="secondary" href="/settings/data" className="w-full sm:w-auto sm:flex-shrink-0">
             Import my taste
-          </Link>
+          </Button>
         </div>
       )}
 
@@ -109,14 +105,11 @@ export default async function DashboardPage() {
   )
 
   const recommendations = (
-    <div className="space-y-8">
-      <div>
-        <p className="text-[10px] font-body uppercase tracking-[0.2em] text-ns-secondary-readable">Your taste, decoded</p>
-        <h1 className="mt-1 font-display text-3xl tracking-wider text-ns-text sm:text-4xl">FOR YOU</h1>
-        <p className="mt-2 max-w-2xl text-sm font-body leading-relaxed text-ns-muted">
-          Browse the deeper recommendation shelves when you want more than tonight&apos;s single best pick.
-        </p>
-      </div>
+    <div className="space-y-12">
+      <PageHeader
+        title="FOR YOU"
+        lede="Browse the deeper recommendation shelves when you want more than tonight's single best pick."
+      />
       <RecAccuracyWidget />
       <CuratedRecsWidget />
       <RecommendationFeed />
@@ -125,8 +118,7 @@ export default async function DashboardPage() {
 
   const friendsExtras = (
     <>
-      <section aria-labelledby="social-stats-title" className="rounded-2xl border border-ns-border bg-ns-surface p-5">
-        <p id="social-stats-title" className="mb-4 text-[10px] font-body uppercase tracking-[0.2em] text-ns-muted">Your circle</p>
+      <Section headingId="social-stats-title" title="Your circle">
         <div className="flex flex-wrap gap-6">
           <LiveSocialStats
             username={user.username}
@@ -135,18 +127,14 @@ export default async function DashboardPage() {
             initialFriends={friendCount}
           />
         </div>
-      </section>
-      <div>
-        <YourSpoilerZones />
-      </div>
-      <div>
+      </Section>
+      <YourSpoilerZones />
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-10">
         <FriendsActivityWidget />
-      </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <DashboardFriendsCard />
-        <MyActivityWidget />
       </div>
-      <div className="max-w-xl">
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-10">
+        <MyActivityWidget />
         <SimilarUsersWidget />
       </div>
     </>
@@ -160,14 +148,11 @@ export default async function DashboardPage() {
   )
 
   const creator = (
-    <div className="space-y-6">
-      <div>
-        <p className="text-[10px] font-body uppercase tracking-[0.2em] text-ns-secondary-readable">Creator Studio</p>
-        <h1 className="mt-1 font-display text-3xl tracking-wider text-ns-text sm:text-4xl">SHARE YOUR FILM</h1>
-        <p className="mt-2 max-w-2xl text-sm font-body leading-relaxed text-ns-muted">
-          Upload and publish a film you made without mixing creator tools into your everyday viewing dashboard.
-        </p>
-      </div>
+    <div className="space-y-10">
+      <PageHeader
+        title="SHARE YOUR FILM"
+        lede="Upload and publish a film you made without mixing creator tools into your everyday viewing dashboard."
+      />
       <UploadMovieSection />
     </div>
   )

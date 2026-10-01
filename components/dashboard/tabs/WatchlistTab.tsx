@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { tmdbImageUrl } from '@/lib/utils'
-import { WatchlistIcon, FilmIcon, ArrowRightIcon } from '@/components/icons'
+import { FilmIcon, ArrowRightIcon } from '@/components/icons'
+import PageHeader from '@/components/ui/PageHeader'
+import Button from '@/components/ui/Button'
 
 interface Item {
   tmdbId:    number
@@ -35,52 +37,50 @@ export default function WatchlistTab() {
   }, [status])
 
   return (
-    <div>
+    <div className="space-y-8">
       {/* Status tabs */}
-      <div className="flex gap-2 mb-6">
+      <PageHeader title="Watchlist">
         {STATUS_TABS.map(t => (
-          <button
+          <Button
             key={t.value}
+            variant={status === t.value ? 'secondary' : 'outline'}
+            size="sm"
+            aria-pressed={status === t.value}
             onClick={() => setStatus(t.value)}
-            className={`px-4 py-1.5 rounded-full text-sm font-body transition-colors border
-              ${status === t.value
-                ? 'bg-ns-secondary/10 border-ns-secondary/40 text-ns-secondary-readable'
-                : 'border-ns-border text-ns-muted hover:text-ns-text'}`}
+            className="min-h-10"
           >
             {t.label}
-          </button>
+          </Button>
         ))}
-        <div className="flex-1" />
-        <Link href="/watchlist" className="text-xs font-body text-ns-muted hover:text-ns-secondary-readable transition-colors self-center flex items-center gap-0.5">
+        <Link href="/watchlist" className="inline-flex items-center gap-1 font-heading text-sm text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text">
           Full page <ArrowRightIcon size={11} />
         </Link>
-      </div>
+      </PageHeader>
 
       {loading ? (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
           {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="animate-pulse aspect-[2/3] bg-ns-border rounded-xl" />
+            <div key={i} className="aspect-[2/3] animate-pulse rounded bg-ns-surface-2" />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="py-16 text-center">
-          <WatchlistIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
-          <p className="text-ns-muted font-body text-sm">Nothing here yet.</p>
-          <Link href="/discover" className="text-ns-secondary-readable text-sm font-body hover:text-amber-400 transition-colors mt-2 inline-flex items-center gap-1">
+        <div>
+          <p className="font-body text-sm text-ns-muted">Nothing here yet.</p>
+          <Link href="/discover" className="mt-2 inline-flex items-center gap-1 font-heading text-sm text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text">
             Discover films <ArrowRightIcon size={13} />
           </Link>
         </div>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
           {items.map(item => (
-            <Link key={item.tmdbId} href={`/movie/${item.tmdbId}`} className="group">
-              <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-ns-border">
+            <Link key={item.tmdbId} href={`/movie/${item.tmdbId}`} className="group min-w-0">
+              <div className="relative aspect-[2/3] overflow-hidden rounded border border-ns-border bg-ns-surface-2 transition-colors group-hover:border-ns-text/60">
                 {item.posterPath ? (
                   <Image
                     src={tmdbImageUrl(item.posterPath, 'w342')}
                     alt={item.title}
                     fill sizes="160px"
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -88,12 +88,12 @@ export default function WatchlistTab() {
                   </div>
                 )}
                 {item.status === 'watching' && (
-                  <div className="absolute bottom-1.5 left-1.5 bg-ns-secondary/90 rounded px-1 py-0.5">
-                    <span className="text-[8px] font-body font-bold text-ns-bg">NOW</span>
+                  <div className="absolute bottom-1.5 left-1.5 bg-ns-secondary/90 rounded-sm px-1 py-0.5">
+                    <span className="text-[11px] font-body font-bold text-ns-bg">NOW</span>
                   </div>
                 )}
               </div>
-              <p className="text-[11px] font-body text-ns-muted mt-1.5 line-clamp-1 group-hover:text-white transition-colors">
+              <p className="mt-1.5 line-clamp-1 font-body text-[11px] text-ns-muted transition-colors group-hover:text-ns-text">
                 {item.title}
               </p>
             </Link>

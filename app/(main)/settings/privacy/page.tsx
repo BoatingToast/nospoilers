@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import PrivacySettings from '@/components/settings/PrivacySettings'
 import Link from 'next/link'
+import PageHeader from '@/components/ui/PageHeader'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Privacy Settings — NoSpoilers' }
@@ -12,19 +13,19 @@ export default async function PrivacySettingsPage() {
   if (!session) redirect('/login')
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
-      <Link href="/dashboard" className="inline-flex items-center gap-2 text-ns-muted text-sm font-body hover:text-ns-text transition-colors mb-6">
+    <div className="mx-auto w-full min-w-0 max-w-6xl px-4 pb-16 pt-8 sm:px-6 sm:pt-12">
+      <Link href="/dashboard" className="mb-6 inline-flex min-h-10 items-center gap-2 font-body text-sm text-ns-muted underline-offset-4 transition-colors hover:text-ns-text hover:underline">
         ← Back to Dashboard
       </Link>
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-heading text-white mb-2">Privacy Settings</h1>
-        <p className="text-ns-muted text-sm font-body">
-          Control who can see your ratings, watchlist, collections, and activity.
-        </p>
-      </div>
+      <PageHeader
+        title="Privacy Settings"
+        lede="Control who can see your ratings, watchlist, collections, and activity."
+      />
 
-      <PrivacySettings />
+      <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <PrivacySettings />
+      </div>
     </div>
   )
 }

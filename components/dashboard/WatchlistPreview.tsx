@@ -23,51 +23,50 @@ export default function WatchlistPreview() {
   }, [])
 
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="border-t border-ns-border pt-4">
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <div>
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Watchlist</p>
-          <div className="flex gap-4 mt-1">
-            <span className="text-ns-text font-body text-xs">{stats.total} total</span>
-            <span className="text-emerald-400 font-body text-xs">{stats.watched} watched</span>
-          </div>
+          <h3 className="font-heading text-base font-semibold text-ns-text">Watchlist</h3>
+          <p className="mt-1 font-body text-xs text-ns-muted">
+            {stats.total} total · {stats.watched} watched
+          </p>
         </div>
-        <Link href="/watchlist" className="text-ns-secondary-readable text-xs font-body hover:text-ns-secondary-readable/80 transition-colors">
+        <Link href="/watchlist" className="font-heading text-sm text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text">
           View all →
         </Link>
       </div>
 
       {loading ? (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="w-12 h-[72px] rounded-lg bg-ns-border animate-pulse flex-shrink-0" />
+            <div key={i} className="h-[72px] w-12 flex-shrink-0 animate-pulse rounded bg-ns-surface-2" />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="text-center py-4">
-          <p className="text-ns-muted text-xs font-body mb-2">Your watchlist is empty.</p>
-          <Link href="/discover" className="text-ns-secondary-readable text-xs font-body hover:underline">
+        <p className="font-body text-sm text-ns-muted">
+          Your watchlist is empty.{' '}
+          <Link href="/discover" className="text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text">
             Discover movies →
           </Link>
-        </div>
+        </p>
       ) : (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {items.map(item => (
-            <Link key={item.tmdbId} href={`/movie/${item.tmdbId}`} className="group flex-shrink-0">
-              <div className="w-12 h-[72px] rounded-lg overflow-hidden bg-ns-border relative">
+            <Link key={item.tmdbId} href={`/movie/${item.tmdbId}`} className="flex-shrink-0">
+              <div className="relative h-[72px] w-12 overflow-hidden rounded border border-ns-border bg-ns-surface-2 transition-colors hover:border-ns-text/60">
                 <Image
                   src={tmdbImageUrl(item.posterPath, 'w185')}
                   alt={item.title}
                   fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-300"
+                  className="object-cover"
                   sizes="48px"
                 />
               </div>
             </Link>
           ))}
           {stats.wantToWatch > 5 && (
-            <Link href="/watchlist" className="w-12 h-[72px] rounded-lg bg-ns-surface-2 border border-dashed border-ns-border flex items-center justify-center flex-shrink-0 hover:border-ns-secondary/30 transition-colors">
-              <span className="text-ns-muted text-xs font-body">+{stats.wantToWatch - 5}</span>
+            <Link href="/watchlist" className="flex h-[72px] w-12 flex-shrink-0 items-center justify-center rounded border border-dashed border-ns-border transition-colors hover:border-ns-text/60">
+              <span className="font-body text-xs text-ns-muted">+{stats.wantToWatch - 5}</span>
             </Link>
           )}
         </div>

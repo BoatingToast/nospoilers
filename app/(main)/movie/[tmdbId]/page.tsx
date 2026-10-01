@@ -95,7 +95,7 @@ export default async function MoviePage({ params }: Props) {
     : null
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10">
+    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@graph': [
@@ -131,67 +131,56 @@ export default async function MoviePage({ params }: Props) {
         </ol>
       </nav>
 
-      {/* Hero */}
-      <div className="flex flex-col sm:flex-row gap-8 mb-12">
-        {/* Poster */}
-        <div className="flex-shrink-0">
-          <div className="relative w-[200px] sm:w-[240px] aspect-[2/3] rounded-2xl overflow-hidden
-                          border border-ns-border shadow-2xl shadow-black/60 mx-auto sm:mx-0">
-            <Image
-              src={tmdbImageUrl(movie.poster_path, 'w500')}
-              alt={movie.title}
-              fill
-              className="object-cover"
-              sizes="240px"
-              priority
-            />
-          </div>
+      {/* Hero: poster beside a left-aligned title, facts under a heavy rule */}
+      <header className="grid min-w-0 gap-6 border-b border-ns-border pb-8 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] sm:items-end sm:gap-10">
+        <div className="relative aspect-[2/3] w-[200px] max-w-full overflow-hidden rounded border border-ns-border bg-ns-surface sm:w-full sm:max-w-[340px]">
+          <Image
+            src={tmdbImageUrl(movie.poster_path, 'w500')}
+            alt={movie.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 200px, 340px"
+            priority
+          />
         </div>
 
-        {/* Info */}
-        <div className="flex flex-col gap-4 justify-center">
-          {/* Genres */}
-          <div className="flex flex-wrap gap-2">
-            {movie.genres.map(g => (
-              <span key={g.id}
-                className="px-2.5 py-1 rounded-full border border-ns-border text-ns-muted text-xs font-body">
-                {g.name}
-              </span>
-            ))}
-          </div>
-
-          <h1 className="font-display text-5xl sm:text-6xl tracking-wider text-ns-text leading-none">
+        <div className="min-w-0">
+          <h1 className="font-display text-[clamp(2.6rem,9vw,5.5rem)] leading-[0.88] tracking-wide text-ns-text">
             {movie.title.toUpperCase()}
           </h1>
 
-          <p className="max-w-xl text-sm leading-6 text-ns-muted">{movieSearchDescription(movie)}</p>
+          <div className="mt-6 flex flex-col gap-3 border-t-2 border-ns-text pt-4">
+            <p className="max-w-xl font-body text-base leading-relaxed text-ns-text">{movieSearchDescription(movie)}</p>
 
-          {movie.tagline && (
-            <p className="text-ns-muted font-body text-sm italic">"{movie.tagline}"</p>
-          )}
-
-          {/* Meta row */}
-          <div className="flex flex-wrap items-center gap-4 text-sm font-body text-ns-muted">
-            <span>{formatYear(movie.release_date)}</span>
-            {runtime && <span>{runtime}</span>}
-            {movie.vote_average > 0 && (
-              <span className="flex items-center gap-1.5 text-ns-secondary-readable font-semibold">
-                <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                </svg>
-                {movie.vote_average.toFixed(1)} TMDb
-              </span>
+            {movie.tagline && (
+              <p className="font-body text-sm italic text-ns-muted">"{movie.tagline}"</p>
             )}
-          </div>
 
-          {director && (
-            <p className="text-ns-muted text-sm font-body">
-              Directed by <span className="text-ns-text">{director.name}</span>
+            {/* Facts: year, runtime, score, genres */}
+            <p className="font-body text-sm text-ns-muted">
+              {[formatYear(movie.release_date), runtime].filter(Boolean).join(' · ')}
+              {movie.vote_average > 0 && (
+                <>
+                  {' · '}
+                  <span className="font-semibold text-ns-secondary-readable">{movie.vote_average.toFixed(1)} TMDb</span>
+                </>
+              )}
             </p>
-          )}
 
-          {/* Action buttons */}
-          <div className="mt-2 flex flex-wrap gap-2">
+            {movie.genres.length > 0 && (
+              <p className="font-body text-sm text-ns-muted">
+                {movie.genres.map(g => g.name).join(' · ')}
+              </p>
+            )}
+
+            {director && (
+              <p className="font-body text-sm text-ns-muted">
+                Directed by <span className="text-ns-text">{director.name}</span>
+              </p>
+            )}
+
+            {/* Action buttons */}
+            <div className="mt-2 flex flex-wrap items-center gap-2">
             {watchAvailability && watchAvailability.providers.length > 0 && (
               <WhereToWatch
                 movieTitle={movie.title}
@@ -236,30 +225,32 @@ export default async function MoviePage({ params }: Props) {
                 releaseDate: movie.release_date ?? null,
               }}
             />
+            </div>
           </div>
-
         </div>
+      </header>
+
+      <div className="mt-12 flex flex-col gap-14">
+        <MovieSpoilerSafety
+          movieTitle={movie.title}
+          overview={movie.overview}
+          condensedPremise={condensedPremise}
+          cast={topCast}
+          trailers={trailers}
+        />
+
+        {/* Vibe + audience */}
+        <div className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] lg:gap-10">
+          <MovieVibeProfile scores={vibe} />
+          <WhoWouldEnjoy wouldEnjoy={audience.wouldEnjoy} mightNotEnjoy={audience.mightNotEnjoy} />
+        </div>
+
+        {/* Similar movies */}
+        <SimilarMovies matches={relatedMovies} />
+
+        {/* Community reviews */}
+        <ReviewSection tmdbId={movie.id} movieTitle={movie.title} />
       </div>
-
-      <MovieSpoilerSafety
-        movieTitle={movie.title}
-        overview={movie.overview}
-        condensedPremise={condensedPremise}
-        cast={topCast}
-        trailers={trailers}
-      />
-
-      {/* Vibe + Audience grid */}
-      <div className="grid sm:grid-cols-2 gap-6 mb-10">
-        <MovieVibeProfile scores={vibe} />
-        <WhoWouldEnjoy wouldEnjoy={audience.wouldEnjoy} mightNotEnjoy={audience.mightNotEnjoy} />
-      </div>
-
-      {/* Similar movies */}
-      <SimilarMovies matches={relatedMovies} />
-
-      {/* Community reviews */}
-      <ReviewSection tmdbId={movie.id} movieTitle={movie.title} />
 
       {/* Spoiler Zone */}
       <SpoilerZone tmdbId={movie.id} movieTitle={movie.title} />

@@ -8,7 +8,7 @@ import type { EnrichedRec } from '@/services/curated-recs'
 import RecBreakdownModal from './RecBreakdownModal'
 import { useDashboardRecommendations } from './DashboardRecommendationsProvider'
 import {
-  RecsIcon, ThumbUpIcon, WatchlistIcon, EyeIcon, ThumbDownIcon,
+  ThumbUpIcon, WatchlistIcon, EyeIcon, ThumbDownIcon,
   CheckIcon, ArrowRightIcon, type IconProps,
 } from '@/components/icons'
 
@@ -41,24 +41,24 @@ export default function DashboardNextFavorite() {
 
   if (loading) {
     return (
-      <div className="bg-ns-surface border border-ns-border rounded-2xl p-5 animate-pulse h-40">
-        <div className="h-3 bg-ns-border rounded w-32 mb-3" />
-        <div className="h-5 bg-ns-border rounded w-2/3 mb-2" />
-        <div className="h-3 bg-ns-border rounded w-full" />
+      <div className="h-40 animate-pulse border-t border-ns-border pt-4">
+        <div className="mb-3 h-3 w-32 rounded bg-ns-surface-2" />
+        <div className="mb-2 h-5 w-2/3 rounded bg-ns-surface-2" />
+        <div className="h-3 w-full rounded bg-ns-surface-2" />
       </div>
     )
   }
 
   if (loadError) {
     return (
-      <div className="bg-ns-surface border border-dashed border-ns-border rounded-2xl p-5 flex flex-col items-center justify-center h-40 text-center">
-        <p className="text-ns-muted font-body text-sm mb-2">
+      <div className="border-t border-ns-border pt-4">
+        <p className="mb-2 font-body text-sm text-ns-muted">
           Could not load your Next Favorite.
         </p>
         <button
           type="button"
           onClick={retry}
-          className="text-ns-secondary-readable text-xs font-body hover:text-amber-400"
+          className="min-h-10 font-heading text-sm text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text"
         >
           Try again
         </button>
@@ -68,12 +68,15 @@ export default function DashboardNextFavorite() {
 
   if (!rec) {
     return (
-      <div className="bg-ns-surface border border-dashed border-ns-border rounded-2xl p-5 flex flex-col items-center justify-center h-40 text-center">
-        <p className="text-ns-muted font-body text-sm mb-2">
+      <div className="border-t border-ns-border pt-4">
+        <p className="mb-2 font-body text-sm text-ns-muted">
           Complete your taste profile to unlock your Next Favorite.
         </p>
-        <Link href="/onboarding" className="text-ns-secondary-readable text-xs font-body hover:text-amber-400">
-          Set up profile <ArrowRightIcon size={11} className="inline-block" />
+        <Link
+          href="/onboarding"
+          className="inline-flex min-h-10 items-center gap-1 font-heading text-sm text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text"
+        >
+          Set up profile <ArrowRightIcon size={12} className="inline-block" />
         </Link>
       </div>
     )
@@ -90,85 +93,78 @@ export default function DashboardNextFavorite() {
 
   return (
     <>
-      <div className="bg-ns-surface border border-ns-secondary/30 rounded-2xl overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-ns-secondary/5 to-transparent pointer-events-none" />
-
-        <div className="flex gap-0">
+      <div className="min-w-0 border-t border-ns-border pt-4">
+        <div className="flex min-w-0 gap-4">
           {/* Poster thumbnail */}
           {img && (
-            <div className="relative w-24 flex-shrink-0">
+            <div className="relative w-24 flex-shrink-0 self-start overflow-hidden rounded border border-ns-border">
               <Image
                 src={img}
                 alt={rec.title}
                 width={96}
                 height={144}
-                className="object-cover h-full"
+                className="h-full object-cover"
               />
             </div>
           )}
 
           {/* Content */}
-          <div className="flex-1 p-4 min-w-0">
-            <p className="text-[9px] font-body text-ns-secondary-readable uppercase tracking-widest mb-1 flex items-center gap-1">
-              <RecsIcon size={10} /> Your Next Favorite
+          <div className="min-w-0 flex-1">
+            <h3 className="font-heading text-lg font-semibold leading-tight text-ns-text">
+              {rec.title}
+            </h3>
+            <p className="mt-1 font-body text-xs text-ns-muted">
+              Your Next Favorite · <span className="font-semibold text-ns-secondary-readable">{rec.matchScore}%</span>
             </p>
-            <div className="flex items-start gap-2 mb-1">
-              <h3 className="text-sm font-heading text-white leading-tight truncate flex-1">
-                {rec.title}
-              </h3>
-              <span className="text-[10px] font-mono text-ns-secondary-readable bg-ns-secondary/10 border border-ns-secondary/20 px-1.5 py-0.5 rounded-md flex-shrink-0">
-                {rec.matchScore}%
-              </span>
-            </div>
-            <p className="text-[11px] font-body text-ns-muted line-clamp-2 mb-3">
+            <p className="mt-2 font-body text-sm leading-relaxed text-ns-muted line-clamp-3">
               {rec.explanation}
             </p>
 
             {/* Quick actions */}
             {sent ? (
-              <p className="text-xs font-body text-ns-secondary-readable flex items-center gap-1">
+              <p className="mt-3 flex items-center gap-1 font-body text-xs text-ns-secondary-readable">
                 <CheckIcon size={12} /> Feedback saved
               </p>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="mt-2 flex flex-wrap items-center gap-1">
                 {ACTIONS.map(({ Icon, value, title }) => (
                   <button
                     key={value}
                     title={title}
                     onClick={() => handleFeedback(value)}
                     disabled={saving}
-                    className="text-ns-muted hover:text-white hover:scale-110 transition-all"
+                    className="-ml-2 flex h-10 w-10 items-center justify-center text-ns-muted transition-colors hover:text-ns-text"
                   >
                     <Icon size={16} />
                   </button>
                 ))}
                 <button
                   onClick={() => setShowWhy(true)}
-                  className="ml-auto text-[10px] font-body text-ns-secondary-readable hover:text-amber-400 transition-colors flex items-center gap-0.5"
+                  className="ml-auto flex min-h-10 items-center gap-1 font-heading text-sm text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text"
                 >
-                  Why? <ArrowRightIcon size={10} />
+                  Why? <ArrowRightIcon size={12} />
                 </button>
               </div>
             )}
             {saveError && (
-              <p className="mt-1 text-[10px] font-body text-red-400">Couldn&apos;t save. Try again.</p>
+              <p className="mt-1 font-body text-[11px] text-ns-danger">Couldn&apos;t save. Try again.</p>
             )}
           </div>
         </div>
 
-        {/* Footer link */}
-        <div className="border-t border-ns-border px-4 py-2 flex justify-between items-center">
+        {/* Footer links */}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-1 border-t border-ns-border pt-3">
           <Link
             href={`/movie/${rec.tmdbId}`}
-            className="text-[10px] font-body text-ns-muted hover:text-ns-text transition-colors"
+            className="inline-flex min-h-10 items-center gap-1 font-heading text-sm text-ns-text underline underline-offset-4 hover:text-ns-secondary-readable"
           >
-            View movie <ArrowRightIcon size={10} className="inline-block" />
+            View movie <ArrowRightIcon size={12} className="inline-block" />
           </Link>
           <Link
             href="/my-recommendations"
-            className="text-[10px] font-body text-ns-secondary-readable hover:text-amber-400 transition-colors"
+            className="inline-flex min-h-10 items-center gap-1 font-heading text-sm text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text"
           >
-            All recommendations <ArrowRightIcon size={10} className="inline-block" />
+            All recommendations <ArrowRightIcon size={12} className="inline-block" />
           </Link>
         </div>
       </div>

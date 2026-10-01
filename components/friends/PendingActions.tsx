@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Button from '@/components/ui/Button'
 
 interface Props {
   requestId: string
@@ -28,25 +29,17 @@ export default function PendingActions({ requestId }: Props) {
     }
   }
 
-  if (done === 'accepted') return <span className="text-emerald-400 text-xs font-body">Friends</span>
-  if (done === 'rejected') return <span className="text-ns-muted text-xs font-body">Declined</span>
+  if (done === 'accepted') return <span className="font-body text-sm text-ns-success">Friends</span>
+  if (done === 'rejected') return <span className="font-body text-sm text-ns-muted">Declined</span>
 
   return (
     <div className="flex items-center gap-2">
-      <button
-        onClick={() => handle('accept')}
-        disabled={loading}
-        className="px-3 py-1.5 rounded-xl text-xs font-body bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary/90 transition-colors disabled:opacity-50"
-      >
+      <Button variant="secondary" size="sm" onClick={() => handle('accept')} disabled={loading} className="min-h-[40px]">
         Accept
-      </button>
-      <button
-        onClick={() => handle('reject')}
-        disabled={loading}
-        className="px-3 py-1.5 rounded-xl text-xs font-body border border-ns-border text-ns-muted hover:text-ns-text transition-colors disabled:opacity-50"
-      >
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => handle('reject')} disabled={loading} className="min-h-[40px]">
         Decline
-      </button>
+      </Button>
     </div>
   )
 }

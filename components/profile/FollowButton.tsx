@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Button from '@/components/ui/Button'
 
 interface Props {
   username:    string
@@ -26,18 +27,12 @@ export default function FollowButton({ username, initialState, sessionUserId }: 
   }
 
   return (
-    <button
+    <Button
+      variant={following ? 'outline' : 'primary'}
       onClick={toggle}
       disabled={loading}
-      className={`px-5 py-2 rounded-xl text-sm font-body font-medium transition-all
-        ${following
-          ? 'bg-ns-surface border border-ns-border text-ns-muted hover:border-red-500/40 hover:text-red-400'
-          : 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary/90'
-        }
-        ${loading ? 'opacity-50 cursor-not-allowed' : ''}
-      `}
     >
       {loading ? '...' : following ? 'Following' : 'Follow'}
-    </button>
+    </Button>
   )
 }

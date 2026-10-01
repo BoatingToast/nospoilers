@@ -7,6 +7,7 @@ import OnboardingProgress from '@/components/onboarding/OnboardingProgress'
 import StepMovies, { type SelectedMovie } from '@/components/onboarding/StepMovies'
 import StepGenres from '@/components/onboarding/StepGenres'
 import StepPreferences, { type PreferenceAnswers } from '@/components/onboarding/StepPreferences'
+import { readCallbackUrl } from '@/lib/callback-url'
 
 export default function OnboardingPage() {
   const router       = useRouter()
@@ -53,10 +54,11 @@ export default function OnboardingPage() {
         setError(data?.error ?? 'We couldn\'t generate your Movie DNA. Please try again.')
         return
       }
-      // Keep the client session in sync before showing the dashboard.
+      // Keep the client session in sync before showing the dashboard, or the
+      // page the visitor came from (e.g. a shared profile's compatibility).
       await update({ onboardingCompleted: true }).catch(() => null)
       navigationStarted = true
-      router.replace('/dashboard')
+      router.replace(readCallbackUrl() ?? '/dashboard')
       router.refresh()
     } catch {
       setError('We couldn\'t generate your Movie DNA. Check your connection and try again.')
@@ -68,11 +70,11 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="w-full max-w-2xl">
+    <div className="mx-auto w-full min-w-0 max-w-6xl">
       <OnboardingProgress currentStep={step} />
 
       {error && (
-        <div className="mb-6 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-body text-center">
+        <div className="mb-6 border-l-2 border-red-500/60 py-1 pl-3 text-red-400 text-sm font-body">
           {error}
         </div>
       )}

@@ -2,7 +2,9 @@
 
 import Image from 'next/image'
 import { useState } from 'react'
+import Badge from '@/components/ui/Badge'
 import Modal from '@/components/ui/Modal'
+import Section from '@/components/ui/Section'
 import type { TMDbVideo } from '@/types'
 
 interface Props {
@@ -24,53 +26,46 @@ export default function MovieTrailers({ movieTitle, trailers }: Props) {
   if (trailers.length === 0) return null
 
   return (
-    <section aria-labelledby="movie-trailers-heading" className="mb-10">
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <div>
-          <p id="movie-trailers-heading" className="text-xs font-body uppercase tracking-widest text-ns-muted">
-            Trailers
-          </p>
-          <p className="mt-1 text-[10px] font-body text-ns-muted/60">
-            Trailer footage can reveal plot details.
-          </p>
-        </div>
-        <p className="text-[10px] font-body text-ns-muted/60">
+    <Section
+      headingId="movie-trailers-heading"
+      title="Trailers"
+      note="Trailer footage can reveal plot details."
+      action={
+        <p className="font-body text-xs text-ns-muted">
           {trailers.length} {trailers.length === 1 ? 'video' : 'videos'}
         </p>
-      </div>
-
-      <div className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-2 scrollbar-hide">
+      }
+    >
+      <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 scrollbar-hide sm:-mx-6 sm:px-6">
         {trailers.map(trailer => (
           <button
             key={trailer.id || trailer.key}
             type="button"
             onClick={() => setSelected(trailer)}
             aria-label={`Play ${trailer.name}`}
-            className="group w-[260px] flex-shrink-0 rounded-xl text-left focus-visible:outline-none
+            className="group w-[260px] flex-shrink-0 rounded text-left focus-visible:outline-none
                        focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-4
                        focus-visible:ring-offset-ns-bg sm:w-[300px]"
           >
-            <span className="relative block aspect-video overflow-hidden rounded-xl border border-ns-border bg-ns-surface
-                             transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-ns-secondary/60
-                             group-hover:shadow-xl group-hover:shadow-black/30">
+            <span className="relative block aspect-video overflow-hidden rounded border border-ns-border bg-ns-surface
+                             transition-colors duration-200 group-hover:border-ns-text/60">
               <Image
                 src={`https://i.ytimg.com/vi/${trailer.key}/hqdefault.jpg`}
                 alt=""
                 fill
                 sizes="(max-width: 640px) 260px, 300px"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                className="object-cover"
               />
-              <span className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-transparent" />
               <span className="absolute inset-0 flex items-center justify-center">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-black/65 pl-0.5 text-white shadow-xl backdrop-blur-sm transition-all duration-200 group-hover:scale-110 group-hover:bg-ns-secondary">
+                <span className="flex h-12 w-12 items-center justify-center rounded bg-ns-bg/85 text-ns-text transition-colors duration-200 group-hover:bg-ns-secondary group-hover:text-ns-secondary-foreground">
                   <PlayMark />
                 </span>
               </span>
-              <span className="absolute bottom-2 left-2 rounded-md border border-white/10 bg-black/65 px-2 py-1 text-[9px] font-body uppercase tracking-wider text-white/85 backdrop-blur-sm">
+              <Badge variant="outline" className="absolute bottom-2 left-2 bg-ns-bg/90">
                 {trailer.official ? `Official ${trailer.type}` : trailer.type}
-              </span>
+              </Badge>
             </span>
-            <span className="mt-2 block truncate text-sm font-body font-medium text-ns-text transition-colors group-hover:text-ns-secondary-readable">
+            <span className="mt-2 block truncate font-heading text-sm font-semibold text-ns-text transition-colors group-hover:text-ns-secondary-readable">
               {trailer.name}
             </span>
           </button>
@@ -86,13 +81,12 @@ export default function MovieTrailers({ movieTitle, trailers }: Props) {
         >
           <div>
             <div className="border-b border-white/10 bg-ns-bg px-5 py-4 pr-14 sm:px-6">
-              <p className="text-[10px] font-body uppercase tracking-[0.2em] text-ns-secondary-readable">
-                {selected.official ? `Official ${selected.type}` : selected.type}
-              </p>
-              <h2 id="movie-trailer-title" className="mt-1 truncate font-heading text-lg font-semibold text-ns-text sm:text-xl">
+              <h2 id="movie-trailer-title" className="truncate font-heading text-lg font-semibold text-ns-text sm:text-xl">
                 {selected.name}
               </h2>
-              <p className="mt-0.5 truncate text-xs font-body text-ns-muted">{movieTitle}</p>
+              <p className="mt-0.5 truncate text-xs font-body text-ns-muted">
+                {movieTitle} · {selected.official ? `Official ${selected.type}` : selected.type}
+              </p>
             </div>
             <div className="aspect-video bg-black">
               <iframe
@@ -108,6 +102,6 @@ export default function MovieTrailers({ movieTitle, trailers }: Props) {
           </div>
         </Modal>
       )}
-    </section>
+    </Section>
   )
 }

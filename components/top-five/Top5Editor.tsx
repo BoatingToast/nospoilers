@@ -7,6 +7,7 @@ import DnaPreview from './DnaPreview'
 import type { TopFiveEntry } from '@/services/top-five'
 import type { DNAScores } from '@/types'
 import { FilmIcon } from '@/components/icons'
+import Button from '@/components/ui/Button'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -62,9 +63,9 @@ function Slot({
       }`}
     >
       {/* Rank badge */}
-      <div className={`absolute -top-2.5 left-1/2 -translate-x-1/2 z-20 w-6 h-6 rounded-full
-                       flex items-center justify-center text-[10px] font-display leading-none
-                       border-2 transition-colors ${
+      <div className={`absolute -top-2.5 left-1/2 -translate-x-1/2 z-20 w-6 h-6 rounded-sm
+                       flex items-center justify-center text-xs font-display leading-none
+                       border transition-colors ${
                          movie
                            ? 'bg-ns-bg border-ns-secondary text-ns-secondary-readable'
                            : 'bg-ns-bg border-ns-border text-ns-muted'
@@ -77,9 +78,9 @@ function Slot({
           draggable
           onDragStart={() => onDragStart(position)}
           onDragEnd={onDragEnd}
-          className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-ns-surface group cursor-grab active:cursor-grabbing
-                       border-2 transition-all duration-150 shadow-lg
-                       ${isDragOver ? 'border-ns-secondary shadow-ns-secondary/20' : 'border-ns-border hover:border-ns-secondary/40'}`}
+          className={`relative aspect-[2/3] rounded overflow-hidden bg-ns-surface group cursor-grab active:cursor-grabbing
+                       border-2 transition-colors duration-150
+                       ${isDragOver ? 'border-ns-secondary' : 'border-ns-border hover:border-ns-secondary/40'}`}
         >
           {/* Poster */}
           {movie.posterPath ? (
@@ -98,7 +99,7 @@ function Slot({
           )}
 
           {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent
+          <div className="absolute inset-0 bg-black/60
                           opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
 
           {/* Drag handle hint */}
@@ -117,7 +118,7 @@ function Slot({
           {/* Remove button */}
           <button
             onClick={() => onRemove(position)}
-            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 border border-white/20
+            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-sm bg-black/70 border border-white/20
                        flex items-center justify-center text-white text-xs
                        opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-500/80"
             aria-label={`Remove ${movie.title}`}
@@ -127,9 +128,9 @@ function Slot({
 
           {/* Title at bottom */}
           <div className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <p className="text-white text-[10px] font-heading font-semibold leading-tight line-clamp-2">{movie.title}</p>
+            <p className="text-white text-[11px] font-heading font-semibold leading-tight line-clamp-2">{movie.title}</p>
             {movie.releaseDate && (
-              <p className="text-white/60 text-[9px] font-body">{formatYear(movie.releaseDate)}</p>
+              <p className="text-white/60 text-[11px] font-body">{formatYear(movie.releaseDate)}</p>
             )}
           </div>
         </div>
@@ -137,8 +138,8 @@ function Slot({
         /* Empty slot */
         <button
           onClick={() => onAddClick(position)}
-          className={`w-full aspect-[2/3] rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5
-                       transition-all duration-150 group
+          className={`w-full aspect-[2/3] rounded border-2 border-dashed flex flex-col items-center justify-center gap-1.5
+                       transition-colors duration-150 group
                        ${isDragOver
                            ? 'border-ns-secondary bg-ns-secondary/10'
                            : 'border-ns-border hover:border-ns-secondary/50 hover:bg-ns-secondary/5'
@@ -147,14 +148,14 @@ function Slot({
           <span className={`text-xl transition-colors ${isDragOver ? 'text-ns-secondary-readable' : 'text-ns-muted group-hover:text-ns-secondary-readable'}`}>
             +
           </span>
-          <span className="text-[10px] font-body text-ns-muted group-hover:text-white transition-colors hidden sm:block">
+          <span className="text-[11px] font-body text-ns-muted group-hover:text-white transition-colors hidden sm:block">
             Add film
           </span>
         </button>
       )}
 
       {/* Title below slot */}
-      <p className="text-[10px] font-body text-ns-muted text-center mt-2 truncate px-0.5">
+      <p className="text-[11px] font-body text-ns-muted text-center mt-2 truncate px-0.5">
         {movie ? movie.title : `Position ${position}`}
       </p>
     </div>
@@ -219,7 +220,7 @@ function MovieSearch({
           value={query}
           onChange={e => search(e.target.value)}
           placeholder="Search for a film…"
-          className="w-full pl-10 pr-4 py-2.5 bg-ns-bg border border-ns-border rounded-xl text-sm font-body
+          className="w-full pl-10 pr-4 py-2.5 bg-ns-bg border border-ns-border rounded text-sm font-body
                      text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-secondary/50 transition-colors"
         />
         {loading && (
@@ -228,7 +229,7 @@ function MovieSearch({
       </div>
 
       {results.length > 0 && (
-        <div className="space-y-1 max-h-[280px] overflow-y-auto scrollbar-hide">
+        <div className="max-h-[280px] overflow-y-auto scrollbar-hide">
           {results.map(r => {
             const already = excludeIds.has(r.tmdbId)
             return (
@@ -236,13 +237,13 @@ function MovieSearch({
                 key={r.tmdbId}
                 onClick={() => !already && onSelect(r)}
                 disabled={already}
-                className={`w-full flex items-center gap-3 p-2 rounded-xl text-left transition-colors ${
+                className={`w-full flex items-center gap-3 border-t border-ns-border px-1 py-2 text-left transition-colors ${
                   already
                     ? 'opacity-40 cursor-not-allowed'
                     : 'hover:bg-white/5 cursor-pointer'
                 }`}
               >
-                <div className="w-8 h-12 rounded-lg overflow-hidden bg-ns-surface flex-shrink-0">
+                <div className="w-8 h-12 rounded-sm overflow-hidden bg-ns-surface flex-shrink-0">
                   {r.posterPath ? (
                     <Image
                       src={tmdbImageUrl(r.posterPath, 'w185')}
@@ -263,7 +264,7 @@ function MovieSearch({
                   )}
                 </div>
                 {already && (
-                  <span className="text-[10px] font-body text-ns-muted flex-shrink-0">Already in Top 5</span>
+                  <span className="text-[11px] font-body text-ns-muted flex-shrink-0">Already in Top 5</span>
                 )}
               </button>
             )
@@ -272,7 +273,7 @@ function MovieSearch({
       )}
 
       {query && !loading && results.length === 0 && (
-        <p className="text-sm font-body text-ns-muted text-center py-4">No results for "{query}"</p>
+        <p className="text-sm font-body text-ns-muted py-4">No results for "{query}"</p>
       )}
     </div>
   )
@@ -299,15 +300,15 @@ function HistoryPanel({ onRestore }: { onRestore: (movies: TopFiveEntry[]) => vo
     setRestoring(null)
   }
 
-  if (loading) return <div className="animate-pulse h-24 bg-ns-surface rounded-xl" />
+  if (loading) return <div className="animate-pulse h-24 bg-ns-surface rounded" />
   if (history.length === 0) return (
-    <p className="text-ns-muted text-sm font-body text-center py-4">No previous lists saved yet.</p>
+    <p className="text-ns-muted text-sm font-body py-4">No previous lists saved yet.</p>
   )
 
   return (
-    <div className="space-y-3 max-h-[300px] overflow-y-auto scrollbar-hide">
+    <div className="max-h-[300px] overflow-y-auto scrollbar-hide">
       {history.map(snap => (
-        <div key={snap.id} className="flex items-center gap-3 p-3 rounded-xl bg-ns-surface border border-ns-border">
+        <div key={snap.id} className="flex items-center gap-3 border-t border-ns-border py-3">
           {/* Mini poster strip */}
           <div className="flex gap-1 flex-shrink-0">
             {snap.movies.slice(0, 3).map(m => (
@@ -320,7 +321,7 @@ function HistoryPanel({ onRestore }: { onRestore: (movies: TopFiveEntry[]) => vo
             ))}
             {snap.movies.length > 3 && (
               <div className="w-7 h-10 rounded bg-ns-border flex items-center justify-center">
-                <span className="text-[9px] text-ns-muted font-body">+{snap.movies.length - 3}</span>
+                <span className="text-[11px] text-ns-muted font-body">+{snap.movies.length - 3}</span>
               </div>
             )}
           </div>
@@ -328,14 +329,14 @@ function HistoryPanel({ onRestore }: { onRestore: (movies: TopFiveEntry[]) => vo
             <p className="text-xs font-heading font-medium text-white truncate">
               {snap.movies.map(m => m.title).join(', ')}
             </p>
-            <p className="text-[10px] font-body text-ns-muted">
+            <p className="text-[11px] font-body text-ns-muted">
               {new Date(snap.savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </p>
           </div>
           <button
             onClick={() => restore(snap)}
             disabled={restoring === snap.id}
-            className="text-xs font-heading font-medium text-ns-secondary-readable hover:text-amber-400 transition-colors flex-shrink-0"
+            className="min-h-[40px] text-sm font-heading font-medium text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text transition-colors flex-shrink-0"
           >
             Restore
           </button>
@@ -508,26 +509,26 @@ export default function Top5Editor({ initialMovies, onSaved, onClose }: Props) {
 
   return (
     /* Backdrop */
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-3xl max-h-[90vh] flex flex-col bg-ns-surface border border-ns-border rounded-3xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70">
+      <div className="w-full max-w-3xl max-h-[90vh] flex flex-col bg-ns-surface border border-ns-border border-t-2 border-t-ns-text rounded overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-ns-border flex-shrink-0">
-          <div>
-            <h2 className="font-display text-2xl tracking-wider text-white">EDIT TOP 5</h2>
-            <p className="text-xs font-body text-ns-muted mt-0.5">
+        <div className="flex items-start justify-between gap-4 px-4 py-4 sm:px-6 border-b border-ns-border flex-shrink-0">
+          <div className="min-w-0">
+            <h2 className="font-display text-3xl leading-none tracking-wide text-white">EDIT TOP 5</h2>
+            <p className="text-xs font-body text-ns-muted mt-1.5">
               {filledCount}/5 films · Drag to reorder · Changes update your Movie DNA
             </p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-ns-muted hover:text-white transition-colors text-xl">
+          <button onClick={onClose} className="w-10 h-10 flex-shrink-0 rounded flex items-center justify-center text-ns-muted hover:text-white transition-colors text-xl">
             ✕
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 p-6 space-y-6">
+        <div className="overflow-y-auto flex-1 p-4 sm:p-6 space-y-6">
 
           {/* Slot grid */}
-          <div className="flex gap-3 sm:gap-4 mt-3">
+          <div className="flex gap-2 sm:gap-4 mt-3">
             {slots.map((movie, i) => (
               <Slot
                 key={i}
@@ -546,12 +547,12 @@ export default function Top5Editor({ initialMovies, onSaved, onClose }: Props) {
 
           {/* Search panel */}
           {searchingFor !== null ? (
-            <div className="rounded-2xl bg-ns-bg border border-ns-border p-4">
+            <div className="border-t-2 border-ns-text pt-3">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm font-heading font-semibold text-white">
                   Choose film for position #{searchingFor}
                 </p>
-                <button onClick={() => setSearchingFor(null)} className="text-ns-muted hover:text-white text-sm transition-colors">
+                <button onClick={() => setSearchingFor(null)} className="min-h-[40px] text-ns-muted hover:text-white text-sm underline-offset-4 hover:underline transition-colors">
                   Cancel
                 </button>
               </div>
@@ -564,7 +565,7 @@ export default function Top5Editor({ initialMovies, onSaved, onClose }: Props) {
                 const firstEmpty = slots.findIndex(s => s === null) + 1
                 setSearchingFor(firstEmpty)
               }}
-              className="w-full py-3 rounded-xl border border-dashed border-ns-border text-ns-muted text-sm font-body hover:border-ns-secondary/40 hover:text-white transition-colors"
+              className="w-full py-3 rounded border border-dashed border-ns-border text-ns-muted text-sm font-body hover:border-ns-text/60 hover:text-white transition-colors"
             >
               + Search for a film to add
             </button>
@@ -584,7 +585,7 @@ export default function Top5Editor({ initialMovies, onSaved, onClose }: Props) {
           <div>
             <button
               onClick={() => setShowHistory(v => !v)}
-              className="flex items-center gap-2 text-xs font-heading font-medium text-ns-muted hover:text-white transition-colors"
+              className="flex min-h-[40px] items-center gap-2 text-sm font-heading font-medium text-ns-muted underline-offset-4 hover:text-white hover:underline transition-colors"
             >
               <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -602,23 +603,21 @@ export default function Top5Editor({ initialMovies, onSaved, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-ns-border flex items-center justify-between gap-3 flex-shrink-0 bg-ns-surface">
+        <div className="px-4 py-4 sm:px-6 border-t border-ns-border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between flex-shrink-0 bg-ns-surface">
           <p className="text-xs font-body text-ns-muted">
             Your DNA updates automatically after saving.
           </p>
           <div className="flex gap-2">
-            <button onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-ns-border text-ns-muted text-sm font-heading font-medium hover:text-white hover:border-white/20 transition-colors">
+            <Button variant="outline" onClick={onClose}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
               onClick={handleSave}
               disabled={saving || filledCount === 0}
-              className="px-6 py-2 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold
-                         hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {saving ? 'Saving…' : 'Save Top 5'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

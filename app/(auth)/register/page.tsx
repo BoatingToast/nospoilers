@@ -1,17 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import Input from '@/components/ui/Input'
 import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
+import Badge from '@/components/ui/Badge'
+import { readCallbackUrl, withCallbackUrl } from '@/lib/callback-url'
 
 export default function RegisterPage() {
   const [fields, setFields] = useState({ email: '', username: '', password: '', confirm: '' })
   const [errors, setErrors] = useState<Partial<typeof fields & { form: string }>>({})
   const [loading, setLoading] = useState(false)
   const [accountCreated, setAccountCreated] = useState(false)
+  const [callbackUrl, setCallbackUrl] = useState<string | null>(null)
+
+  useEffect(() => { setCallbackUrl(readCallbackUrl()) }, [])
 
   function update(key: keyof typeof fields) {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,7 +79,7 @@ export default function RegisterPage() {
         return
       }
 
-      window.location.assign('/onboarding')
+      window.location.assign(withCallbackUrl('/onboarding', callbackUrl))
     } catch {
       if (registrationSucceeded) {
         setAccountCreated(true)
@@ -88,37 +93,46 @@ export default function RegisterPage() {
 
   if (accountCreated) {
     return (
-      <div className="w-full max-w-md" role="status" aria-live="polite">
-        <p className="mb-2 text-xs font-body uppercase tracking-[0.2em] text-ns-success">Account created</p>
-        <h1 className="font-display text-4xl tracking-wider text-ns-text mb-2">ONE MORE STEP</h1>
-        <p className="text-ns-muted font-body text-sm leading-relaxed">
-          Your account is ready, but automatic sign-in did not finish. Sign in with the credentials you just created to continue.
-        </p>
-        <Link
-          href="/login"
-          className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-ns-secondary px-7 py-3.5 font-body font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary"
-        >
-          Continue to sign in
-        </Link>
+      <div
+        className="mx-auto grid w-full min-w-0 max-w-6xl gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:items-start"
+        role="status"
+        aria-live="polite"
+      >
+        <h1 className="min-w-0 font-display text-[clamp(3rem,12.5vw,7rem)] leading-[0.86] tracking-wide text-ns-text">
+          ONE MORE{' '}
+          <span className="block text-ns-secondary-readable">STEP</span>
+        </h1>
+        <div className="min-w-0 border-t-2 border-ns-text pt-5">
+          <Badge variant="success" size="md">Account created</Badge>
+          <p className="mt-4 font-body text-base leading-relaxed text-ns-text sm:text-lg">
+            Your account is ready, but automatic sign-in did not finish. Sign in with the credentials you just created to continue.
+          </p>
+          <Button variant="primary" size="lg" href={withCallbackUrl('/login', callbackUrl)} className="mt-6 w-full sm:w-auto">
+            Continue to sign in
+          </Button>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="w-full max-w-md">
-      <div className="mb-8">
-        <h1 className="font-display text-4xl tracking-wider text-ns-text mb-2">CREATE ACCOUNT</h1>
-        <p className="text-ns-muted font-body text-sm">Join NoSpoilers and discover films without fear.</p>
-      </div>
+    <div className="mx-auto grid w-full min-w-0 max-w-6xl gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:items-start">
+      <h1 className="min-w-0 font-display text-[clamp(3rem,12.5vw,7rem)] leading-[0.86] tracking-wide text-ns-text">
+        CREATE{' '}
+        <span className="block text-ns-secondary-readable">ACCOUNT</span>
+      </h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4" aria-describedby={errors.form ? 'register-form-error' : undefined}>
+      <div className="min-w-0 border-t-2 border-ns-text pt-5">
+      <p className="font-body text-base leading-relaxed text-ns-text sm:text-lg">Join NoSpoilers and discover films without fear.</p>
+
+      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4" aria-describedby={errors.form ? 'register-form-error' : undefined}>
         {errors.form && (
           <div
             id="register-form-error"
             role="alert"
             aria-live="assertive"
             aria-atomic="true"
-            className="p-3 rounded-xl bg-ns-danger/10 border border-ns-danger/20 text-ns-danger text-sm font-body"
+            className="border-l-2 border-ns-danger py-1 pl-3 font-body text-sm text-ns-danger"
           >
             {errors.form}
           </div>
@@ -176,12 +190,13 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <p className="text-center text-ns-muted text-sm font-body mt-6">
+      <p className="mt-6 border-t border-ns-border pt-4 font-body text-sm text-ns-muted">
         Already have an account?{' '}
-        <Link href="/login" className="text-ns-secondary-readable hover:underline">
+        <Link href={withCallbackUrl('/login', callbackUrl)} className="text-ns-secondary-readable underline underline-offset-4 hover:text-ns-text">
           Sign in
         </Link>
       </p>
+      </div>
     </div>
   )
 }

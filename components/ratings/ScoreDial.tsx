@@ -96,8 +96,7 @@ export default function ScoreDial({ value, onChange, size = 160, readOnly = fals
         )}
         {/* Thumb */}
         {!readOnly && (
-          <circle cx={thumb.x} cy={thumb.y} r={7} fill={color}
-            className="drop-shadow-md" />
+          <circle cx={thumb.x} cy={thumb.y} r={7} fill={color} />
         )}
         {/* Score text */}
         <text x={cx} y={cy - 6} textAnchor="middle" fill={color}
@@ -121,7 +120,7 @@ export default function ScoreDial({ value, onChange, size = 160, readOnly = fals
         <div className="flex items-center gap-3 mt-1">
           <button
             onClick={() => onChange(Math.max(1,   value - 1))}
-            className="w-7 h-7 rounded-full bg-ns-surface border border-ns-border text-ns-muted
+            className="h-10 w-10 rounded border border-ns-border text-ns-muted
                        hover:text-ns-text hover:border-ns-secondary/40 transition-colors text-sm font-body"
           >−</button>
           <input
@@ -130,12 +129,12 @@ export default function ScoreDial({ value, onChange, size = 160, readOnly = fals
               const v = parseInt(e.target.value, 10)
               if (!isNaN(v)) onChange(Math.min(100, Math.max(1, v)))
             }}
-            className="w-14 text-center bg-ns-surface border border-ns-border rounded-lg
+            className="h-10 w-14 text-center bg-ns-surface border border-ns-border rounded
                        text-ns-text text-sm font-body py-1 focus:outline-none focus:border-ns-secondary/50"
           />
           <button
             onClick={() => onChange(Math.min(100, value + 1))}
-            className="w-7 h-7 rounded-full bg-ns-surface border border-ns-border text-ns-muted
+            className="h-10 w-10 rounded border border-ns-border text-ns-muted
                        hover:text-ns-text hover:border-ns-secondary/40 transition-colors text-sm font-body"
           >+</button>
         </div>

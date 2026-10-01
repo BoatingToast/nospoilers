@@ -25,9 +25,9 @@ export default function Card({
   ...props
 }: CardProps) {
   const classes = cn(
-    'rounded-2xl transition-all duration-300',
+    'rounded transition-colors duration-200',
     variantClasses[variant],
-    interactive && 'hover:border-ns-secondary/30 hover:shadow-[0_0_20px_rgb(var(--ns-secondary)/0.1)]',
+    interactive && 'hover:border-ns-text/60',
     className,
   )
 

@@ -5,7 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { tmdbImageUrl } from '@/lib/utils'
 import type { RatingRec } from '@/types'
-import { RatingsIcon, FilmIcon } from '@/components/icons'
+import Section from '@/components/ui/Section'
+import { FilmIcon } from '@/components/icons'
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
 
@@ -13,43 +14,42 @@ function RatingRecCard({ rec }: { rec: RatingRec }) {
   const posterSrc = rec.posterPath ? tmdbImageUrl(rec.posterPath, 'w342') : null
 
   const matchColor =
-    rec.matchScore >= 85 ? 'text-emerald-400' :
+    rec.matchScore >= 85 ? 'text-ns-success' :
     rec.matchScore >= 70 ? 'text-ns-secondary-readable' :
     'text-ns-muted'
 
   return (
     <Link href={`/movie/${rec.tmdbId}`} className="group flex-shrink-0 w-[140px]">
       {/* Poster */}
-      <div className="relative w-[140px] h-[210px] rounded-xl overflow-hidden bg-ns-border mb-2">
+      <div className="relative mb-2 h-[210px] w-[140px] overflow-hidden rounded border border-ns-border bg-ns-surface-2 transition-colors group-hover:border-ns-text/60">
         {posterSrc ? (
           <Image
             src={posterSrc}
             alt={rec.title}
             fill
             sizes="140px"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            className="object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <FilmIcon size={32} className="text-ns-muted/40" />
           </div>
         )}
-        {/* Match score badge */}
-        <div className="absolute top-2 right-2 bg-black/70 rounded-full px-1.5 py-0.5">
-          <span className={`text-[10px] font-body font-medium ${matchColor}`}>
-            {rec.matchScore}%
-          </span>
-        </div>
       </div>
 
       {/* Title */}
-      <p className="text-xs font-body text-white line-clamp-2 mb-1 group-hover:text-ns-secondary-readable transition-colors">
+      <p className="mb-1 font-body text-xs text-ns-text line-clamp-2 transition-colors group-hover:text-ns-secondary-readable">
         {rec.title}
+      </p>
+
+      {/* Match score */}
+      <p className={`mb-1 font-body text-[11px] font-semibold ${matchColor}`}>
+        {rec.matchScore}%
       </p>
 
       {/* Explanation */}
       {rec.because.length > 0 && (
-        <p className="text-[10px] font-body text-ns-muted line-clamp-2">
+        <p className="text-[11px] font-body text-ns-muted line-clamp-2">
           ↳ {rec.because[0].title} ({rec.because[0].score})
         </p>
       )}
@@ -61,12 +61,12 @@ function RatingRecCard({ rec }: { rec: RatingRec }) {
 
 function Skeleton() {
   return (
-    <div className="flex gap-3 overflow-hidden p-4">
+    <div className="flex gap-4 overflow-hidden">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="w-[140px] flex-shrink-0 animate-pulse">
-          <div className="w-[140px] h-[210px] rounded-xl bg-ns-border mb-2" />
-          <div className="h-3 bg-ns-border rounded w-4/5 mb-1" />
-          <div className="h-2 bg-ns-border rounded w-3/5" />
+          <div className="mb-2 h-[210px] w-[140px] rounded bg-ns-surface-2" />
+          <div className="mb-1 h-3 w-4/5 rounded bg-ns-surface-2" />
+          <div className="h-2 w-3/5 rounded bg-ns-surface-2" />
         </div>
       ))}
     </div>
@@ -91,28 +91,19 @@ export default function BasedOnRatingsSection() {
   if (!loading && recs.length === 0) return null
 
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
-      {/* Header */}
-      <div className="px-5 py-4 border-b border-ns-border">
-        <div className="flex items-center gap-2 mb-0.5">
-          <RatingsIcon size={16} className="text-ns-secondary-readable flex-shrink-0" />
-          <h2 className="text-sm font-heading text-white">Based On Your Ratings</h2>
-        </div>
-        <p className="text-[11px] font-body text-ns-muted">
-          Films TMDb recommends based on movies you&apos;ve rated 85 or higher
-        </p>
-      </div>
-
-      {/* Content */}
+    <Section
+      title="Based On Your Ratings"
+      note={<>Films TMDb recommends based on movies you&apos;ve rated 85 or higher</>}
+    >
       {loading ? (
         <Skeleton />
       ) : (
-        <div className="flex gap-3 overflow-x-auto p-4 scrollbar-hide">
+        <div className="scrollbar-hide flex gap-4 overflow-x-auto pb-2">
           {recs.map(rec => (
             <RatingRecCard key={rec.tmdbId} rec={rec} />
           ))}
         </div>
       )}
-    </div>
+    </Section>
   )
 }

@@ -2,16 +2,18 @@ import Link from 'next/link'
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-ns-bg flex flex-col">
-      <header className="px-6 py-5 flex items-center justify-between border-b border-ns-border/50">
-        <Link href="/" className="font-display text-xl tracking-widest text-ns-muted hover:text-ns-text transition-colors">
-          NOSPOILERS
-        </Link>
-        <p className="text-ns-muted/40 text-xs font-body tracking-widest uppercase">
-          Setting up your profile
-        </p>
+    <div className="flex min-h-screen min-w-0 flex-col bg-ns-bg">
+      <header className="border-b border-ns-border px-4 sm:px-6">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4">
+          <Link href="/" className="font-display text-xl tracking-widest text-ns-text transition-colors hover:text-ns-secondary-readable">
+            NOSPOILERS
+          </Link>
+          <p className="text-right font-body text-sm text-ns-muted">
+            Setting up your profile
+          </p>
+        </div>
       </header>
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+      <main className="min-w-0 flex-1 px-4 py-10 sm:px-6 sm:py-14">
         {children}
       </main>
     </div>

@@ -75,7 +75,7 @@ export default function SpoilerLevelTabs({ active, onChange }: Props) {
   return (
     <div className="flex-shrink-0 border-b border-ns-border">
       {/* Tab row */}
-      <div className="flex overflow-x-auto scrollbar-hide px-4 pt-2 pb-0 gap-0.5">
+      <div className="flex gap-x-5 overflow-x-auto scrollbar-hide">
         {LEVELS.map(level => {
           const isActive = level.key === active
           return (
@@ -83,14 +83,14 @@ export default function SpoilerLevelTabs({ active, onChange }: Props) {
               key={level.key}
               onClick={() => onChange(level.key)}
               title={level.desc}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 text-xs font-body rounded-t-lg
-                          border-b-2 transition-all duration-150
+              aria-pressed={isActive}
+              className={`-mb-px flex min-h-10 flex-shrink-0 items-center gap-1.5 border-b-2 font-heading text-xs transition-colors
                           ${isActive
-                            ? `${level.bg} ${level.text} border-current font-semibold`
-                            : 'text-ns-muted border-transparent hover:text-ns-text hover:bg-ns-surface/40'
+                            ? `${level.text} border-current font-semibold`
+                            : 'border-transparent text-ns-muted hover:text-ns-text'
                           }`}
             >
-              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${level.dot} ${isActive ? 'opacity-100' : 'opacity-40'}`} />
+              <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${level.dot} ${isActive ? 'opacity-100' : 'opacity-40'}`} />
               <span className="hidden sm:inline">{level.label}</span>
               <span className="sm:hidden">{level.short}</span>
             </button>
@@ -99,7 +99,7 @@ export default function SpoilerLevelTabs({ active, onChange }: Props) {
       </div>
 
       {/* Active level subtitle */}
-      <div className={`px-5 py-1.5 text-[10px] font-body ${activeLevel.text}/70`}>
+      <div className={`py-1.5 font-body text-xs ${activeLevel.text}`}>
         {activeLevel.desc}
       </div>
     </div>

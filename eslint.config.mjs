@@ -30,6 +30,7 @@ export default defineConfig([
   ...nextTypeScript.map(withLegacyBaseline),
   globalIgnores([
     '.next/**',
+    '.next-*/**',
     'out/**',
     'build/**',
     'dist/**',

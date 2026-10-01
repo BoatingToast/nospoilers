@@ -3,10 +3,11 @@
 import { useState, useMemo } from 'react'
 import AchievementCard from '@/components/achievements/AchievementCard'
 import XPBar from '@/components/achievements/XPBar'
+import PageHeader from '@/components/ui/PageHeader'
 import type { UserAchievementData, XPLevel, AchievementCategory } from '@/types'
 import {
   AchievementsIcon, FilmIcon, CompassIcon, MovieDnaIcon,
-  CollectionsIcon, FriendsIcon, RecsIcon,
+  CollectionsIcon, FriendsIcon,
   type IconProps,
 } from '@/components/icons'
 
@@ -66,85 +67,82 @@ export default function AchievementsClient({ achievements, xp }: Props) {
   }, [achievements, category, status])
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-20">
+    <div className="mx-auto w-full min-w-0 max-w-6xl px-4 pb-20 sm:px-6">
 
-      {/* Page header */}
-      <div className="mb-8">
-        <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-2">Your Progress</p>
-        <h1 className="font-display text-5xl sm:text-6xl tracking-wider text-ns-text mb-6">
-          ACHIEVEMENTS
-        </h1>
-
-        {/* XP bar */}
-        <div className="bg-ns-surface border border-ns-border rounded-2xl p-5 mb-6">
-          <XPBar level={xp} />
-        </div>
-
-        {/* Summary stats */}
-        <div className="grid grid-cols-3 gap-3">
+      <PageHeader
+        title="ACHIEVEMENTS"
+        lede="Your progress across watching, genres, discovery, collections and social."
+      >
+        <dl className="grid w-full grid-cols-3 gap-4">
           {[
             { label: 'Completed',   value: earned.length,     color: 'text-ns-secondary-readable'    },
             { label: 'In Progress', value: inProgress.length, color: 'text-blue-400'   },
             { label: 'Locked',      value: locked.length,     color: 'text-ns-muted'   },
           ].map(s => (
-            <div key={s.label}
-                 className="bg-ns-surface border border-ns-border rounded-xl p-3 text-center">
-              <p className={`font-display text-3xl tracking-wider ${s.color}`}>{s.value}</p>
-              <p className="text-ns-muted text-[10px] font-body tracking-widest uppercase mt-0.5">{s.label}</p>
+            <div key={s.label} className="min-w-0">
+              <dd className={`font-display text-4xl leading-none tracking-wide ${s.color}`}>{s.value}</dd>
+              <dt className="mt-1 font-body text-[11px] uppercase tracking-widest text-ns-muted">{s.label}</dt>
             </div>
           ))}
-        </div>
-      </div>
+        </dl>
+      </PageHeader>
 
-      {/* Category tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1 mb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat.value}
-            onClick={() => setCategory(cat.value as AchievementCategory | 'all')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-body
-                        whitespace-nowrap transition-all duration-200 flex-shrink-0
-                        ${category === cat.value
-                          ? 'bg-ns-secondary text-ns-secondary-foreground font-medium'
-                          : 'bg-ns-surface border border-ns-border text-ns-muted hover:border-ns-secondary/30 hover:text-ns-text'
-                        }`}
-          >
-            <cat.Icon size={12} />
-            {cat.label}
-          </button>
-        ))}
-      </div>
+      <div className="mt-8 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <div className="order-2 min-w-0 lg:order-1">
+          {/* Category tabs */}
+          <div className="flex flex-wrap gap-x-5 border-b border-ns-border">
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat.value}
+                onClick={() => setCategory(cat.value as AchievementCategory | 'all')}
+                aria-pressed={category === cat.value}
+                className={`-mb-px flex min-h-10 items-center gap-1.5 whitespace-nowrap border-b-2 font-heading text-sm transition-colors
+                            ${category === cat.value
+                              ? 'border-ns-text font-semibold text-ns-text'
+                              : 'border-transparent text-ns-muted hover:text-ns-text'
+                            }`}
+              >
+                <cat.Icon size={12} />
+                {cat.label}
+              </button>
+            ))}
+          </div>
 
-      {/* Status filter pills */}
-      <div className="flex gap-2 mb-6">
-        {STATUS_FILTERS.map(s => (
-          <button
-            key={s.value}
-            onClick={() => setStatus(s.value)}
-            className={`px-3 py-1 rounded-lg text-xs font-body transition-all duration-200
-                        ${status === s.value
-                          ? 'bg-ns-surface border border-ns-secondary/40 text-ns-secondary-readable'
-                          : 'text-ns-muted hover:text-ns-text'
-                        }`}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
+          {/* Status filter */}
+          <div className="mb-4 flex flex-wrap gap-x-5">
+            {STATUS_FILTERS.map(s => (
+              <button
+                key={s.value}
+                onClick={() => setStatus(s.value)}
+                aria-pressed={status === s.value}
+                className={`min-h-10 font-body text-xs underline-offset-4 transition-colors
+                            ${status === s.value
+                              ? 'text-ns-secondary-readable underline'
+                              : 'text-ns-muted hover:text-ns-text'
+                            }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
 
-      {/* Achievement list */}
-      {filtered.length === 0 ? (
-        <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-          <RecsIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
-          <p className="text-ns-muted font-body text-sm">No achievements in this filter.</p>
+          {/* Achievement list */}
+          {filtered.length === 0 ? (
+            <p className="border-t border-ns-border py-10 font-body text-sm text-ns-muted">No achievements in this filter.</p>
+          ) : (
+            <div className="border-b border-ns-border">
+              {filtered.map(a => (
+                <AchievementCard key={a.slug} achievement={a} />
+              ))}
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {filtered.map(a => (
-            <AchievementCard key={a.slug} achievement={a} />
-          ))}
-        </div>
-      )}
+
+        {/* XP */}
+        <aside className="order-1 min-w-0 border-t-2 border-ns-text pt-4 lg:order-2 lg:self-start">
+          <XPBar level={xp} />
+        </aside>
+      </div>
     </div>
   )
 }

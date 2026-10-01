@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { tmdbImageUrl } from '@/lib/utils'
-import { LockIcon, WatchlistIcon, FilmIcon } from '@/components/icons'
+import { LockIcon, FilmIcon } from '@/components/icons'
 
 interface WatchItem {
   tmdbId:    number
@@ -32,10 +32,9 @@ export default function ProfileWatchlistTab({ username }: { username: string }) 
 
   if (blocked) {
     return (
-      <div className="py-20 text-center">
-        <LockIcon size={40} className="text-ns-muted/40 mx-auto mb-3" />
-        <p className="text-ns-muted font-body text-sm">This user's watchlist is private.</p>
-      </div>
+      <p className="flex items-center gap-2 border-t border-ns-border py-6 text-sm font-body text-ns-muted">
+        <LockIcon size={16} className="flex-shrink-0" /> This user's watchlist is private.
+      </p>
     )
   }
 
@@ -44,7 +43,7 @@ export default function ProfileWatchlistTab({ username }: { username: string }) 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="animate-pulse">
-            <div className="aspect-[2/3] bg-ns-border rounded-xl mb-2" />
+            <div className="aspect-[2/3] bg-ns-border rounded mb-2" />
             <div className="h-3 bg-ns-border rounded w-4/5" />
           </div>
         ))}
@@ -54,10 +53,7 @@ export default function ProfileWatchlistTab({ username }: { username: string }) 
 
   if (items.length === 0) {
     return (
-      <div className="py-20 text-center">
-        <WatchlistIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
-        <p className="text-ns-muted font-body text-sm">Watchlist is empty.</p>
-      </div>
+      <p className="border-t border-ns-border py-6 text-sm font-body text-ns-muted">Watchlist is empty.</p>
     )
   }
 
@@ -67,7 +63,7 @@ export default function ProfileWatchlistTab({ username }: { username: string }) 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {items.map(item => (
           <Link key={item.tmdbId} href={`/movie/${item.tmdbId}`} className="group">
-            <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-ns-border mb-2">
+            <div className="relative aspect-[2/3] rounded overflow-hidden bg-ns-border mb-2">
               {item.posterPath ? (
                 <Image
                   src={tmdbImageUrl(item.posterPath, 'w342')}
@@ -82,8 +78,8 @@ export default function ProfileWatchlistTab({ username }: { username: string }) 
                 </div>
               )}
               {item.status === 'watching' && (
-                <div className="absolute bottom-2 left-2 bg-ns-secondary/90 rounded px-1.5 py-0.5">
-                  <span className="text-[9px] font-body font-bold text-ns-secondary-foreground">WATCHING</span>
+                <div className="absolute bottom-2 left-2 bg-ns-secondary/90 rounded-sm px-1.5 py-0.5">
+                  <span className="text-[11px] font-body font-bold text-ns-secondary-foreground">WATCHING</span>
                 </div>
               )}
             </div>

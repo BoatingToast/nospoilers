@@ -1,4 +1,5 @@
 import SearchBar from '@/components/landing/SearchBar'
+import PageHeader from '@/components/ui/PageHeader'
 import SearchResultsClient from '@/components/search/SearchResultsClient'
 import type { Metadata } from 'next'
 
@@ -20,19 +21,14 @@ export default async function SearchPage({ searchParams }: Props) {
   const query = q?.trim() ?? ''
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-      <header className="mb-8 text-center">
-        <p className="mb-2 text-xs font-body uppercase tracking-[0.22em] text-ns-secondary-readable">Explore NoSpoilers</p>
-        <h1 className="font-display text-4xl tracking-wider text-ns-text sm:text-5xl">SEARCH</h1>
-        <p className="mx-auto mt-2 max-w-xl text-sm font-body text-ns-muted">
-          Find movies, actors, and directors without revealing the plot.
-        </p>
-      </header>
-
-      <div className="mb-10">
+    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
+      <PageHeader title="SEARCH" lede="Find movies, actors, and directors without revealing the plot.">
         <SearchBar initialValue={query} />
+      </PageHeader>
+
+      <div className="mt-10">
+        <SearchResultsClient query={query} />
       </div>
-      <SearchResultsClient query={query} />
     </div>
   )
 }
