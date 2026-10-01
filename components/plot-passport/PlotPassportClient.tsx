@@ -127,6 +127,17 @@ export default function PlotPassportClient({ initialItems }: Props) {
       </section>
 
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+        <section className="mb-8 flex flex-col gap-5 rounded-2xl border border-blue-400/20 bg-gradient-to-r from-blue-950/35 via-violet-950/30 to-ns-surface p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-heading font-semibold uppercase tracking-[0.16em] text-blue-200">New viewing companion</p>
+            <h2 className="mt-1 font-heading text-lg font-semibold text-white">Forgot the story, but don’t want the future?</h2>
+            <p className="mt-1 max-w-2xl text-xs leading-5 text-ns-muted">Where Was I? uses this same Passport record to build checkpoint-scoped recaps, character knowledge, and sourced answers. It never advances progress just because you opened it.</p>
+          </div>
+          <Link href="/where-was-i" className="inline-flex min-h-11 flex-shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-heading font-semibold text-ns-bg hover:bg-white/90">
+            Try the mystery demo <ArrowRightIcon size={14} />
+          </Link>
+        </section>
+
         <section className="mb-8 flex flex-col gap-5 rounded-2xl border border-ns-secondary/25 bg-gradient-to-r from-violet-950/50 to-ns-surface p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-heading font-semibold uppercase tracking-[0.16em] text-ns-secondary-readable">Browser handoff</p>
@@ -183,20 +194,33 @@ export default function PlotPassportClient({ initialItems }: Props) {
             {items.map(item => {
               const progress = drafts[item.tmdbId] ?? item.progressPercent
               const boundary = boundaryCopy(progress)
+              const isResumeDemo = item.tmdbId === 9900001
+              const itemHref = isResumeDemo ? '/where-was-i' : `/movie/${item.tmdbId}`
               return (
                 <article key={item.tmdbId} className="flex gap-4 rounded-2xl border border-ns-border bg-ns-surface/75 p-4 transition-colors hover:border-ns-secondary/25">
-                  <Link href={`/movie/${item.tmdbId}`} className="relative h-32 w-[86px] flex-shrink-0 overflow-hidden rounded-xl bg-ns-bg">
+                  <Link href={itemHref} className="relative h-32 w-[86px] flex-shrink-0 overflow-hidden rounded-xl bg-ns-bg">
                     <Image src={tmdbImageUrl(item.posterPath, 'w342')} alt={item.title} fill className="object-cover" sizes="86px" />
                   </Link>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <Link href={`/movie/${item.tmdbId}`} className="line-clamp-1 font-heading text-sm font-semibold text-white hover:text-ns-secondary-readable">{item.title}</Link>
+                        <Link href={itemHref} className="line-clamp-1 font-heading text-sm font-semibold text-white hover:text-ns-secondary-readable">{item.title}</Link>
                         <p className="mt-0.5 text-[10px] text-ns-muted">{formatYear(item.releaseDate)}</p>
                       </div>
                       <span className={`whitespace-nowrap text-[10px] font-semibold ${boundary.color}`}>{boundary.label}</span>
                     </div>
 
+                    {isResumeDemo ? (
+                      <div className="mt-5 rounded-xl border border-blue-400/15 bg-blue-400/[0.05] p-3">
+                        <p className="text-xs text-blue-100">
+                          {item.currentSeason && item.currentEpisode
+                            ? `Finished S${item.currentSeason} E${item.currentEpisode}`
+                            : 'No episode confirmed'}
+                        </p>
+                        <p className="mt-1 text-[10px] leading-4 text-ns-muted">Episode checkpoints are managed in Where Was I? so the progress boundary stays exact.</p>
+                        <Link href="/where-was-i" className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-ns-secondary-readable hover:text-white">Update episode or resume <ArrowRightIcon size={12} /></Link>
+                      </div>
+                    ) : (
                     <div className="mt-5">
                       <div className="mb-2 flex items-center justify-between text-[10px] text-ns-muted">
                         <span>Plot clearance</span>
@@ -236,6 +260,7 @@ export default function PlotPassportClient({ initialItems }: Props) {
                         ))}
                       </div>
                     </div>
+                    )}
                   </div>
                 </article>
               )
