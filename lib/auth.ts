@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { prisma } from './db'
 import { consumeRateLimit } from './rate-limit'
+import { hasAdminAccess, isAdminEmail } from './admin-access'
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -55,10 +56,17 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id
         const dbUser = await prisma.user.findUnique({
           where:  { id: user.id },
-          select: { onboardingCompleted: true, avatarUrl: true },
+          select: { onboardingCompleted: true, avatarUrl: true, email: true, isAdmin: true },
         })
         token.onboardingCompleted = dbUser?.onboardingCompleted ?? false
         token.image               = dbUser?.avatarUrl ?? null
+        token.isAdmin = hasAdminAccess(dbUser)
+      }
+
+      // Existing owner sessions pick up an explicit database grant immediately.
+      if (!user && isAdminEmail(token.email)) {
+        const grant = await prisma.user.findUnique({ where: { id: token.id }, select: { email: true, isAdmin: true } })
+        token.isAdmin = hasAdminAccess(grant)
       }
 
       // Client called useSession().update({ ... })
@@ -78,6 +86,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id                  = token.id
         session.user.onboardingCompleted  = token.onboardingCompleted ?? false
         session.user.image               = token.image ?? null
+        session.user.isAdmin              = token.isAdmin === true
       }
       return session
     },

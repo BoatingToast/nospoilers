@@ -23,6 +23,11 @@ export default function CreatorPage() {
         description="Test your film with real viewers, learn who it connects with, and keep control of your work."
       />
 
+      <Link href="/creator/audience" className="mt-8 flex flex-wrap items-center justify-between gap-5 rounded-2xl bg-ns-tile-lilac p-6 sm:p-8">
+        <span><span className="block font-heading text-2xl font-bold text-ns-text">Audience Engine</span><span className="mt-2 block max-w-2xl text-base leading-relaxed text-ns-muted">Compare previews, understand audience fit, and collect consented feedback for your next release.</span></span>
+        <span className="rounded-full bg-ns-surface px-5 py-3 text-sm font-semibold text-ns-text">Open research workspace</span>
+      </Link>
+
       <div className="mt-8 grid gap-6 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
         <div className="flex min-w-0 flex-col gap-6">
           <div id="films" className="scroll-mt-28">

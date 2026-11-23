@@ -13,6 +13,7 @@ model User {
   password            String
   username            String   @unique
   onboardingCompleted Boolean  @default(false)
+  isAdmin             Boolean  @default(false)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
@@ -109,6 +110,11 @@ model User {
   // Progress-scoped Where Was I? answers. Story progress remains owned by
   // WatchlistItem / Plot Passport; only derived answers are cached here.
   resumeAnswerCaches ResumeAnswerCache[]
+  audienceProjects AudienceProject[]
+  audienceWorks AudienceWork[]
+  audienceParticipations AudienceParticipant[]
+  audienceAuditActions AudienceAudit[]
+  audienceDatasets AudienceDataset[]
 
   @@index([email])
   @@index([username])
@@ -121,6 +127,150 @@ model AvatarImage {
   updatedAt   DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// First-party audience research. Catalog data is not copied into training sets.
+model AudienceWork {
+  id        String @id @default(cuid())
+  ownerId   String
+  owner     User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  workKey   String @db.VarChar(120)
+  title     String @db.VarChar(120)
+  mediaType String @db.VarChar(16)
+  createdAt DateTime @default(now())
+  projects  AudienceProject[]
+
+  @@unique([ownerId, mediaType, workKey])
+}
+
+model AudienceProject {
+  id           String @id @default(cuid())
+  ownerId      String
+  owner        User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  workId       String
+  work         AudienceWork @relation(fields: [workId], references: [id], onDelete: Cascade)
+  shareCode    String @unique @default(uuid())
+  title        String @db.VarChar(120)
+  description  String @db.VarChar(1200)
+  mediaType    String @db.VarChar(16)
+  status       String @default("draft") @db.VarChar(16)
+  discoverable Boolean @default(false)
+  rightsNote   String @db.VarChar(600)
+  rightsConfirmedAt DateTime @default(now())
+  targetFacets Json
+  modelVersion String @default("explicit-fit-v1")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  variants     AudienceVariant[]
+  participants AudienceParticipant[]
+
+  @@index([ownerId, createdAt(sort: Desc)])
+  @@index([workId])
+  @@index([status, discoverable, createdAt(sort: Desc)])
+}
+
+model AudienceVariant {
+  id        String @id @default(cuid())
+  projectId String
+  project   AudienceProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  label     String @db.VarChar(60)
+  headline  String @db.VarChar(180)
+  concept   String @db.VarChar(5000)
+  uploadId  String?
+  upload    UploadedMovie? @relation(fields: [uploadId], references: [id], onDelete: Restrict)
+  position  Int
+  participants AudienceParticipant[]
+
+  @@unique([projectId, position])
+}
+
+model AudienceParticipant {
+  id             String @id @default(cuid())
+  projectId      String
+  project        AudienceProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variantId      String
+  variant        AudienceVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  assignmentProbability Float
+  consentVersion String
+  consentedAt    DateTime @default(now())
+  reuseConsent   Boolean @default(false)
+  facets         Json
+  primaryInterest String
+  fitScore       Int
+  fitBand        String
+  modelVersion   String
+  source         String
+  exposedAt      DateTime?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  interestedAt   DateTime?
+  feedbackAt     DateTime?
+  progress       Int @default(0)
+  rating         Int?
+  intent         Int?
+  expectation    Int?
+  reasons        String[] @default([])
+  note           String @default("") @db.VarChar(600)
+  quality        String @default("pending")
+  reviewNote     String @default("") @db.VarChar(600)
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  events         AudienceEvent[]
+
+  @@unique([projectId, userId])
+  @@unique([id, projectId])
+  @@index([projectId, variantId])
+  @@index([quality, reuseConsent, feedbackAt])
+  @@index([userId, consentedAt(sort: Desc)])
+}
+
+model AudienceEvent {
+  id            String @id @default(cuid())
+  participantId String
+  projectId     String
+  participant   AudienceParticipant @relation(fields: [participantId, projectId], references: [id, projectId], onDelete: Cascade)
+  eventKey      String @db.VarChar(80)
+  type          String @db.VarChar(24)
+  payload       Json
+  schemaVersion Int @default(1)
+  createdAt     DateTime @default(now())
+
+  @@unique([participantId, eventKey])
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc), id])
+  @@index([type, createdAt(sort: Desc)])
+}
+
+model AudienceDataset {
+  id             String @id @default(cuid())
+  name           String @db.VarChar(100)
+  createdById    String
+  createdBy      User @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  schemaVersion  Int @default(2)
+  modelVersion   String
+  rowCount       Int
+  trainCount     Int
+  evaluationCount Int
+  participantIds String[]
+  rows           Json
+  createdAt      DateTime @default(now())
+  invalidatedAt  DateTime?
+
+  @@index([createdAt(sort: Desc)])
+}
+
+model AudienceAudit {
+  id        String @id @default(cuid())
+  actorId   String?
+  actor     User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action    String @db.VarChar(50)
+  targetId  String @db.VarChar(128)
+  detail    Json
+  createdAt DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
 }
 
 model ProWaitlistEntry {
@@ -392,6 +542,7 @@ model UploadedMovie {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   premieres        TheaterPremiere[]
+  audienceVariants AudienceVariant[]
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([status, uploadedAt(sort: Desc)])
