@@ -26,9 +26,9 @@ export const THEME = {
   primary:            '#26262B',
   primaryForeground:  '#F5F3F0',
 
-  secondary:           '#F2665F',
-  secondaryDim:        '#963E3A',
-  secondaryForeground: '#1A0D0B',
+  secondary:           '#7B61B3',
+  secondaryDim:        '#4E4070',
+  secondaryForeground: '#F5F3F0',
 
   text:  '#F5F3F0',
   muted: '#B0AFB6',

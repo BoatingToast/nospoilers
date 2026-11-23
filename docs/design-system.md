@@ -1,6 +1,6 @@
 # NoSpoilers design system
 
-NoSpoilers is a dark, cinematic product with friendly confidence: near-black pages, big tight headlines, rounded charcoal panels, coral actions, and movie posters supplying the color. Its signature is the **redaction bar**. Story details sit under a coral bar, and the bar wipes away when the viewer chooses to look. The interface should feel alive because it demonstrates that idea, not because things float around.
+NoSpoilers is a dark, cinematic product with friendly confidence: near-black pages, big tight headlines, rounded charcoal panels, iris actions, and movie posters supplying the color. Its signature is the **redaction bar**. Story details sit under an iris bar, and the bar wipes away when the viewer chooses to look. The interface should feel alive because it demonstrates that idea, not because things float around.
 
 ## Color
 
@@ -17,9 +17,9 @@ Use `ns-*` tokens only. Never use raw hex values or Tailwind palette colors in c
 | `ns-text` | Primary copy, headings, icons |
 | `ns-muted` | Secondary copy |
 | `ns-subtle` | Placeholder and tertiary metadata |
-| `ns-secondary` + `ns-secondary-foreground` | Coral primary action with dark ink text. Never white text |
-| `ns-secondary-readable` | Coral text and icons on dark surfaces |
-| `ns-accent` | Coral spark for dots, stars, and count badges. Text on it is `ns-secondary-foreground` |
+| `ns-secondary` + `ns-secondary-foreground` | Iris primary action with off-white text. Hover uses `ns-secondary-hover` |
+| `ns-secondary-readable` | Iris text and icons on dark surfaces |
+| `ns-accent` | Iris spark for dots and count badges. Text on it is `ns-secondary-foreground` |
 | `ns-tile-blue`, `-yellow`, `-peach`, `-lilac`, `-green`, `-rose` | Deep tinted tiles for stats and feature blocks. Text on them is `ns-text` or `ns-muted` |
 | `ns-success`, `ns-danger`, `ns-warning`, `ns-info` | Status only, always paired with text or an icon |
 | `ns-chart-1` to `ns-chart-7` | Categorical data only |
@@ -29,7 +29,7 @@ Rules:
 - Do not put opacity on text colors. Use `ns-muted` or `ns-subtle`.
 - Status tints use `/10`, such as `bg-ns-danger/10 text-ns-danger`. Text on a solid status fill is `text-ns-bg`.
 - Text over images or video is `text-white` on a dark scrim such as `bg-gradient-to-t from-black/80 to-transparent`.
-- Most of a screen is charcoal and off-white. One coral primary action per view. Tiles add warmth to stats. Do not use every color at once.
+- Most of a screen is charcoal and off-white. One iris primary action per view. Tiles add warmth to stats. Do not use every color at once.
 
 ## Type
 
@@ -66,7 +66,7 @@ Motion is part of the brand, and every animation needs a job: feedback, continui
 | `ns-backdrop-in`, `ns-dialog-in`, `ns-pop-in`, `ns-drawer-in` | Overlay entrances, from scale 0.95 or more, never 0 | Backdrops, dialogs, menus with a `origin-*` at their trigger, drawers |
 | `ns-word` | Word resolves in with a 4px blur. Set `--i` per word | Landing-style hero headlines only |
 | `ns-rise` | Rises in after the headline. Set `--i` | Content directly under a hero headline |
-| `ns-unredact` | Word starts under a coral bar and uncovers on load | One key word in a hero |
+| `ns-unredact` | Word starts under an iris bar and uncovers on load | One key word in a hero |
 | `ns-redact` | Redaction bar. `data-open="true"` wipes it away | All hidden story text, with a screen-reader alternative |
 | `ns-scroll-expand` | Opens up as it scrolls into view | One large preview, stat panel, or media block per page |
 | `ns-marquee` + `ns-marquee-track` | Endless slow row, pauses on hover | Decorative poster or logo rows. Render items twice, mark `aria-hidden` |

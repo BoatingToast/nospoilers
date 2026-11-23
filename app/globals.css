@@ -25,11 +25,12 @@
   --ns-primary:            38 38 43;     /* structural fill */
   --ns-primary-foreground: 245 243 240;  /* text/icons on structural fill */
 
-  --ns-secondary:            242 102 95;   /* #F2665F coral: primary action fill */
-  --ns-secondary-dim:        150 62 58;    /* muted/disabled action state */
-  --ns-secondary-foreground: 26 13 11;     /* ink on coral, 6.2:1 (white fails at 3.1:1) */
-  --ns-secondary-readable:   255 143 133;  /* #FF8F85 coral text and icons on dark */
-  --ns-accent:               242 102 95;   /* coral spark for dots, stars, counts */
+  --ns-secondary:            123 97 179;   /* #7B61B3 iris, the logo's hue: primary action fill */
+  --ns-secondary-hover:      108 83 163;   /* #6C53A3 pressed-in hover for the action fill */
+  --ns-secondary-dim:        78 64 112;    /* muted/disabled action state */
+  --ns-secondary-foreground: 245 243 240;  /* off-white on iris, 4.5:1 */
+  --ns-secondary-readable:   185 165 227;  /* #B9A5E3 iris text and icons on dark */
+  --ns-accent:               123 97 179;   /* iris spark for dots and counts */
 
   /* Typography */
   --ns-text:   245 243 240;  /* #F5F3F0 primary copy */
@@ -59,11 +60,11 @@
 
   /* Categorical / chart palette — used where several distinct series need
      stable, unrelated hues (personality types, DNA charts, etc.) */
-  --ns-chart-1: 242 102 95;   /* coral  */
+  --ns-chart-1: 123 97 179;   /* iris   */
   --ns-chart-2: 245 192 78;   /* amber  */
   --ns-chart-3: 92 209 152;   /* green  */
   --ns-chart-4: 125 186 255;  /* blue   */
-  --ns-chart-5: 178 148 245;  /* violet */
+  --ns-chart-5: 242 102 95;   /* coral, keeps this series distinct from iris */
   --ns-chart-6: 148 147 156;  /* stone  */
   --ns-chart-7: 95 212 196;   /* teal   */
 }
@@ -228,7 +229,7 @@ html[data-motion='on'] .ns-unredact {
   height: 92%;
   content: '';
   pointer-events: none;
-  background: radial-gradient(58% 62% at 50% 0%, rgb(242 102 95 / 0.42), rgb(245 150 70 / 0.13) 50%, transparent 74%);
+  background: radial-gradient(58% 62% at 50% 0%, rgb(var(--ns-secondary) / 0.26), rgb(var(--ns-secondary) / 0.07) 50%, transparent 74%);
   transform-origin: 50% 0;
 }
 

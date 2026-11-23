@@ -139,7 +139,7 @@ export default function FollowButton({
         className={`inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-colors duration-150 ${sizing}
           ${compact
             ? 'border border-ns-border-strong text-ns-text hover:bg-ns-surface-2'
-            : 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-readable'}`}
+            : 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-hover'}`}
       >
         <PlusIcon size={14} />
         Follow
@@ -196,7 +196,7 @@ export default function FollowButton({
             onClick={toggle}
             disabled={loading}
             aria-busy={loading || undefined}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-colors duration-150 disabled:cursor-wait ${sizing} ${compact ? 'min-w-28 border border-ns-border-strong text-ns-text hover:bg-ns-surface-2' : 'min-w-32 bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-readable'}`}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-colors duration-150 disabled:cursor-wait ${sizing} ${compact ? 'min-w-28 border border-ns-border-strong text-ns-text hover:bg-ns-surface-2' : 'min-w-32 bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-hover'}`}
           >
             {loading ? <Spinner /> : (
               <>

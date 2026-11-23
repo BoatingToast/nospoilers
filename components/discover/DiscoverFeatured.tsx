@@ -114,7 +114,7 @@ export default function DiscoverFeatured({ films }: { films: FeaturedFilm[] }) {
               <>
                 <span aria-hidden="true">·</span>
                 <span className="inline-flex items-center gap-1.5 font-semibold text-ns-text">
-                  <StarIcon size={15} className="text-ns-accent" />
+                  <StarIcon size={15} className="text-ns-secondary-readable" />
                   <span className="sr-only">Rated </span>
                   {film.rating}
                 </span>

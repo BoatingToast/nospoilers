@@ -30,7 +30,7 @@ function boundaryCopy(progress: number) {
 }
 
 /**
- * The film as a coral redaction bar. Progress wipes the bar away from the left,
+ * The film as an iris redaction bar. Progress wipes the bar away from the left,
  * and the marker sits exactly where the viewer's permission ends.
  */
 function BoundaryTrack({

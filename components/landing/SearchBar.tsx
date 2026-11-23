@@ -36,7 +36,7 @@ export default function SearchBar({ initialValue = '' }: { initialValue?: string
           type="submit"
           aria-label="Search"
           disabled={!query.trim()}
-          className="ml-2 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-ns-secondary text-ns-secondary-foreground transition-colors hover:bg-ns-secondary-readable disabled:cursor-not-allowed disabled:bg-ns-surface-3 disabled:text-ns-muted"
+          className="ml-2 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-ns-secondary text-ns-secondary-foreground transition-colors hover:bg-ns-secondary-hover disabled:cursor-not-allowed disabled:bg-ns-surface-3 disabled:text-ns-muted"
         >
           <ArrowRightIcon size={18} />
         </button>

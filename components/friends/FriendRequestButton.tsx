@@ -82,7 +82,7 @@ export default function FriendRequestButton({
 
   const base = 'inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors duration-150 disabled:cursor-wait disabled:opacity-50 sm:min-h-10'
   const quiet = `${base} border border-ns-border-strong text-ns-text hover:bg-ns-surface-2`
-  const strong = `${base} bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-readable`
+  const strong = `${base} bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-hover`
 
   if (status === 'friends') {
     return (

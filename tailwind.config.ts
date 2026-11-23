@@ -28,6 +28,7 @@ const config: Config = {
           'primary-foreground':  'rgb(var(--ns-primary-foreground) / <alpha-value>)',
 
           secondary:             'rgb(var(--ns-secondary) / <alpha-value>)',
+          'secondary-hover':     'rgb(var(--ns-secondary-hover) / <alpha-value>)',
           'secondary-dim':       'rgb(var(--ns-secondary-dim) / <alpha-value>)',
           'secondary-foreground':'rgb(var(--ns-secondary-foreground) / <alpha-value>)',
           'secondary-readable':  'rgb(var(--ns-secondary-readable) / <alpha-value>)',
@@ -43,7 +44,7 @@ const config: Config = {
 
           'tier-epic':           'rgb(var(--ns-tier-epic) / <alpha-value>)',
 
-          // Coral brand spark, used sparingly for dots, stars, and counts.
+          // Iris brand spark, used sparingly for dots and counts.
           accent:                'rgb(var(--ns-accent) / <alpha-value>)',
 
           // Soft tiles for stats and feature blocks. Text on them is ns-text.

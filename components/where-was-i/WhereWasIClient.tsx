@@ -107,7 +107,7 @@ function shortCheckpointLabel(checkpoint: WhereWasICheckpoint) {
 
 /**
  * The story as a row of redaction bars, one per checkpoint. Confirmed episodes
- * are uncovered, a draft shows amber, and everything later stays coral.
+ * are uncovered, a draft shows amber, and everything later stays iris.
  */
 function CheckpointRail({
   checkpoints,

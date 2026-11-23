@@ -12,7 +12,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  primary:   'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-readable',
+  primary:   'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-hover',
   secondary: 'bg-ns-surface text-ns-text hover:bg-ns-surface-2',
   ghost:     'text-ns-text hover:bg-ns-surface',
   outline:   'border border-ns-border-strong bg-transparent text-ns-text hover:bg-ns-surface',

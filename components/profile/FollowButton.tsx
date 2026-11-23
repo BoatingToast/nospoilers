@@ -33,7 +33,7 @@ export default function FollowButton({ username, initialState, sessionUserId }: 
       className={`min-h-11 rounded-full px-6 text-sm font-semibold transition-colors duration-150 disabled:cursor-wait disabled:opacity-50
         ${following
           ? 'border border-ns-border-strong text-ns-text hover:bg-ns-danger/10 hover:text-ns-danger'
-          : 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-readable'
+          : 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-hover'
         }`}
     >
       {loading ? '...' : following ? 'Following' : 'Follow'}

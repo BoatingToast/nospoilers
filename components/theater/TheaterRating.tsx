@@ -77,7 +77,7 @@ export default function TheaterRating({ id, title, onRated }: { id: string; titl
                 <span
                   aria-hidden="true"
                   style={{ transitionDelay: rating >= star ? `${(star - 1) * 35}ms` : '0ms' }}
-                  className={`flex h-12 w-12 items-center justify-center rounded-full transition-[color,transform] duration-200 ease-[var(--ns-ease-snap)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-ns-text ${rating >= star ? 'scale-110 text-ns-accent' : 'text-ns-subtle hover:text-ns-secondary-readable'}`}
+                  className={`flex h-12 w-12 items-center justify-center rounded-full transition-[color,transform] duration-200 ease-[var(--ns-ease-snap)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-ns-text ${rating >= star ? 'scale-110 text-ns-secondary-readable' : 'text-ns-subtle hover:text-ns-secondary-readable'}`}
                 >
                   <svg width="30" height="30" viewBox="0 0 24 24" fill={rating >= star ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
                     <path d="m12 3 2.7 5.8 6.3.8-4.6 4.3 1.2 6.2L12 17.1 6.4 20.1l1.2-6.2L3 9.6l6.3-.8z" />

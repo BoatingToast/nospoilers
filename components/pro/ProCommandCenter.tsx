@@ -475,7 +475,7 @@ export default function ProCommandCenter({ mode, userId }: { mode: ConsoleMode; 
                   placeholder="Ask for one great decision…"
                   className="min-h-11 min-w-0 flex-1 resize-none bg-transparent px-3 py-2 text-base leading-6 text-ns-text outline-none placeholder:text-ns-subtle"
                 />
-                <button type="submit" disabled={!chatInput.trim() || sending} className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-full bg-ns-secondary text-ns-secondary-foreground transition-colors hover:bg-ns-secondary-readable disabled:cursor-not-allowed disabled:bg-ns-surface-3 disabled:text-ns-muted" aria-label="Send message">
+                <button type="submit" disabled={!chatInput.trim() || sending} className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-full bg-ns-secondary text-ns-secondary-foreground transition-colors hover:bg-ns-secondary-hover disabled:cursor-not-allowed disabled:bg-ns-surface-3 disabled:text-ns-muted" aria-label="Send message">
                   <ArrowRightIcon size={18} className="-rotate-90" />
                 </button>
               </form>
