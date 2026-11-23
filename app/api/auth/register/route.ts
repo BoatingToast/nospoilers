@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db'
 import { enforceRateLimit } from '@/lib/rate-limit'
+import { isAdminEmail } from '@/lib/admin-access'
 
 export async function POST(req: Request) {
   const limited = await enforceRateLimit(req, {
@@ -21,6 +22,11 @@ export async function POST(req: Request) {
     }
 
     const normalizedEmail = email.toLowerCase().trim()
+    // The administrator is provisioned explicitly; public registration cannot
+    // claim this address and acquire a future administrative grant.
+    if (isAdminEmail(normalizedEmail)) {
+      return NextResponse.json({ error: 'This account is reserved. Sign in with your existing account.' }, { status: 403 })
+    }
 
     const existing = await prisma.user.findFirst({
       where: {

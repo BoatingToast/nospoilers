@@ -66,6 +66,8 @@ const MENU_GROUPS: { label: string; items: MenuItem[] }[] = [
       { href: '/achievements', label: 'Achievements',     Icon: AchievementsIcon },
       { href: '/theater', label: 'Theater · Pro',    Icon: ClapperboardIcon },
       { href: '/creator', label: 'Filmmaker Studio', Icon: ClapperboardIcon },
+      { href: '/creator/audience', label: 'Audience Engine', Icon: RatingsIcon },
+      { href: '/audience', label: 'Audience studies', Icon: EyeIcon },
     ],
   },
   {
@@ -94,7 +96,7 @@ const FOCUSABLE_SELECTOR = [
 
 // ─── Profile menu ────────────────────────────────────────────────────────────
 
-function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl: string | null }) {
+function ProfileDropdown({ username, avatarUrl, isAdmin }: { username: string; avatarUrl: string | null; isAdmin: boolean }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -208,6 +210,8 @@ function ProfileDropdown({ username, avatarUrl }: { username: string; avatarUrl:
               ))}
             </div>
           ))}
+
+          {isAdmin && <Link href="/admin" role="menuitem" onClick={() => closeMenu()} className="flex min-h-11 items-center gap-2.5 rounded-lg px-3 text-sm font-semibold text-ns-secondary-readable hover:bg-ns-surface-3"><LockIcon size={15} />Audience intelligence admin</Link>}
 
           <button
             type="button"
@@ -338,7 +342,7 @@ export default function Navbar() {
             {session && <NotificationBell />}
 
             {session ? (
-              <ProfileDropdown username={username} avatarUrl={avatarUrl} />
+              <ProfileDropdown username={username} avatarUrl={avatarUrl} isAdmin={session.user.isAdmin === true} />
             ) : (
               <div className="hidden items-center gap-2 sm:flex">
                 <Button variant="ghost" size="sm" href="/login">Log In</Button>
@@ -432,6 +436,8 @@ export default function Navbar() {
                   ))}
                 </nav>
               ))}
+
+              {session?.user.isAdmin && <Link href="/admin" className="m-2 flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-ns-secondary-readable hover:bg-ns-surface-3"><LockIcon size={16} />Audience intelligence admin</Link>}
             </div>
 
             <div className="flex-shrink-0 border-t border-ns-border p-3">

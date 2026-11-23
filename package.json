@@ -30,6 +30,9 @@
     "test:movie-night": "node --experimental-strip-types --test tests/movie-night.test.ts",
     "test:taste": "node --experimental-strip-types --test tests/taste-reasons.test.ts",
     "eval:taste": "node --experimental-strip-types --no-warnings scripts/eval-taste-reasons.ts",
+    "test:audience": "node --experimental-strip-types --test tests/audience-engine.test.ts",
+    "test:audience:integration": "node scripts/test-audience-integration.mjs",
+    "admin:provision": "node scripts/provision-audience-admin.mjs",
     "test:where-was-i": "node --experimental-strip-types --test tests/where-was-i.test.ts",
     "test:unit": "node --experimental-strip-types --test tests/*.test.ts extension/tests/*.test.cjs",
     "check": "npm run lint && npm run typecheck && npm run test:unit && npm run build"

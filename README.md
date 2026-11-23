@@ -172,6 +172,9 @@ nospoilers/
 | `npm run test:e2e:ui` | Open Playwright's interactive test runner |
 | `npm run test:extension` | Run the extension classifier and manifest tests |
 | `npm run test:unit` | Run all application and extension unit tests |
+| `npm run test:audience` | Validate Audience Engine access policy, consent, data contracts, and analytics |
+| `npm run test:audience:integration` | Run authenticated HTTP checks against an explicitly isolated local test database |
+| `npm run admin:provision` | Grant the reserved administrator account access; see the Audience Engine guide for first-time setup |
 | `npm run package:extension` | Validate and package the Chrome Web Store upload ZIP |
 
 ---
@@ -192,6 +195,21 @@ Install Chromium once with `npx playwright install chromium`, then run
 `npm run test:e2e`. The suite starts NoSpoilers and a local TMDb fixture server,
 so it does not need a real TMDb key or database. Set `E2E_BASE_URL` to run the
 same journeys against an already-running environment instead.
+
+### Audience Engine
+
+Open `/creator/audience` to create a study, compare up to three text or private
+video previews, and inspect audience response, recruitment sources, preference
+cohorts, and uncertainty. Use the same stable work ID across repeat studies.
+Viewers consent at `/audience/[code]`, with a separate optional choice for shared
+research datasets; they can correct feedback or withdraw their participation.
+
+`/admin` is restricted to `emoon0108@gmail.com` with an explicit database grant.
+It includes product-direction signals, data-contract checks, quality review,
+event exploration, dataset versioning, and audit records. Run `npm run db:deploy`
+before using the feature. Text studies and analytics need no AI-provider key.
+See [`docs/audience-engine.md`](docs/audience-engine.md) for setup, administrator
+provisioning, measurement limits, and verification.
 
 ### NoSpoilers Theater
 

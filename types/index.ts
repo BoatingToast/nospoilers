@@ -789,6 +789,7 @@ declare module 'next-auth' {
       name:                string
       image:               string | null
       onboardingCompleted: boolean
+      isAdmin?: boolean
     }
   }
   interface User {
@@ -802,5 +803,6 @@ declare module 'next-auth/jwt' {
     id:                  string
     image:               string | null
     onboardingCompleted: boolean
+    isAdmin?: boolean
   }
 }
