@@ -81,7 +81,7 @@
   animation-iteration-count: 3;
 }
 
-/* The match reveal: a coral redaction bar holds the news, then wipes away. */
+/* The match reveal: an iris redaction bar holds the news, then wipes away. */
 :global(html[data-motion='on']) .curtain {
   position: absolute;
   inset: 0;

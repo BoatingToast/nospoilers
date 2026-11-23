@@ -83,7 +83,7 @@ export default function TheaterScene({ capacity = 48, participants = NO_PARTICIP
       const velvet = standard(palette.velvet, 0.94)
       const seatSide = standard(palette.surface3)
       const trim = material(new THREE.MeshStandardMaterial({ color: palette.subtle, metalness: 0.8, roughness: 0.3 }))
-      const aisleGlow = glow(palette.coral, 1.8)
+      const aisleGlow = glow(palette.brand, 1.8)
       const wallLight = glow(palette.warmLight, 0.25)
       const boxGeometry = geometry(new THREE.BoxGeometry(1, 1, 1))
       const chairGeometry = geometry(new RoundedBoxGeometry(1, 1, 1, 3, 0.12))
@@ -139,7 +139,7 @@ export default function TheaterScene({ capacity = 48, participants = NO_PARTICIP
       const ctx = projection.getContext('2d')!
       ctx.fillStyle = palette.surface
       ctx.fillRect(0, 0, 1600, 900)
-      ctx.fillStyle = palette.coral
+      ctx.fillStyle = palette.brand
       ctx.beginPath(); ctx.moveTo(765, 212); ctx.lineTo(850, 262); ctx.lineTo(765, 312); ctx.closePath(); ctx.fill()
       ctx.textAlign = 'center'
       ctx.fillStyle = palette.text

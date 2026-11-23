@@ -24,8 +24,8 @@ export function scenePalette() {
   const text = readToken('text')
   const muted = readToken('muted')
   const subtle = readToken('subtle')
-  const coral = readToken('secondary')
-  const coralText = readToken('secondary-readable')
+  const brand = readToken('secondary')
+  const brandText = readToken('secondary-readable')
   const leaf = readToken('tile-green')
 
   return {
@@ -37,15 +37,15 @@ export function scenePalette() {
     text: css(text),
     muted: css(muted),
     subtle: css(subtle),
-    coral: css(coral),
-    coralText: css(coralText),
+    brand: css(brand),
+    brandText: css(brandText),
     leaf: css(leaf),
-    /** Deep coral upholstery for seats and curtains. */
-    velvet: css(mix(coral, bg, 0.62)),
-    curtain: css(mix(coral, bg, 0.74)),
-    runner: css(mix(coral, bg, 0.84)),
+    /** Deep brand-colored upholstery for seats and curtains. */
+    velvet: css(mix(brand, bg, 0.62)),
+    curtain: css(mix(brand, bg, 0.74)),
+    runner: css(mix(brand, bg, 0.84)),
     /** Warm, soft practical light that stays inside the charcoal palette. */
-    warmLight: css(mix(text, coral, 0.16)),
+    warmLight: css(mix(text, brand, 0.16)),
   }
 }
 

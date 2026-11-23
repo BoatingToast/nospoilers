@@ -40,7 +40,7 @@ const VOTE_OPTIONS: Array<{
 }> = [
   { value: 'pass', label: 'Pass', Icon: ThumbDownIcon, tone: 'bg-ns-surface-2 text-ns-text hover:bg-ns-surface-3', fly: styles.flyPass },
   { value: 'maybe', label: 'Maybe', Icon: FilmIcon, tone: 'bg-ns-surface-2 text-ns-text hover:bg-ns-surface-3', fly: styles.flyMaybe },
-  { value: 'watch', label: 'Watch', Icon: HeartIcon, tone: 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-readable', fly: styles.flyWatch },
+  { value: 'watch', label: 'Watch', Icon: HeartIcon, tone: 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-hover', fly: styles.flyWatch },
 ]
 
 const stagger = (index: number) => ({ '--i': Math.min(index, 7) }) as CSSProperties

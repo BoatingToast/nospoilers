@@ -74,7 +74,7 @@ export default function TheaterMultiplexScene({ doors, paused = false, onNearDoo
       const dark = standard(palette.bg)
       const trim = standard(palette.subtle, 0.7, 0.25)
       const light = glow(palette.warmLight, 0.55)
-      const coralLight = glow(palette.coral, 1.2)
+      const brandLight = glow(palette.brand, 1.2)
       const velvet = standard(palette.velvet, 0, 0.9)
       const obstacles: Array<{ x: number; z: number; w: number; d: number }> = []
       function box(w: number, h: number, d: number, x: number, y: number, z: number, material: Three.Material, round = false) {
@@ -125,7 +125,7 @@ export default function TheaterMultiplexScene({ doors, paused = false, onNearDoo
       }
       const brand = label(1600, 600, ctx => {
         ctx.fillStyle = palette.surface; ctx.fillRect(0, 0, 1600, 600)
-        ctx.textAlign = 'center'; ctx.fillStyle = palette.coralText; ctx.font = `600 40px ${displayFont}`; ctx.fillText('NoSpoilers Pro', 800, 150)
+        ctx.textAlign = 'center'; ctx.fillStyle = palette.brandText; ctx.font = `600 40px ${displayFont}`; ctx.fillText('NoSpoilers Pro', 800, 150)
         ctx.font = `700 190px ${displayFont}`; ctx.fillStyle = palette.text; ctx.fillText('Theater', 800, 350)
         ctx.font = `500 42px ${displayFont}`; ctx.fillStyle = palette.muted; ctx.fillText('Every story deserves an opening night.', 800, 460)
       })
@@ -172,13 +172,13 @@ export default function TheaterMultiplexScene({ doors, paused = false, onNearDoo
         const number = label(700, 180, ctx => {
           ctx.fillStyle = palette.bg; ctx.fillRect(0, 0, 700, 180); ctx.textAlign = 'center'
           ctx.fillStyle = palette.muted; ctx.font = `600 46px ${displayFont}`; ctx.fillText('Theater', 250, 108)
-          ctx.fillStyle = palette.coralText; ctx.font = `700 92px ${displayFont}`; ctx.fillText(String(i + 1).padStart(2, '0'), 535, 122)
+          ctx.fillStyle = palette.brandText; ctx.font = `700 92px ${displayFont}`; ctx.fillText(String(i + 1).padStart(2, '0'), 535, 122)
         })
         plane(3.4, 0.88, p.x + side * 0.4, 4.96, p.z, number.texture, p.rotation)
         const poster = label(540, 780, () => {})
         box(0.13, 3.12, 2.22, p.x + side * 0.08, 2.1, p.z - 3.04, trim)
         plane(2.1, 3.03, p.x + side * 0.19, 2.1, p.z - 3.04, poster.texture, p.rotation)
-        box(0.25, 0.12, 2.2, p.x + side * 0.17, 3.8, p.z - 3.04, coralLight)
+        box(0.25, 0.12, 2.2, p.x + side * 0.17, 3.8, p.z - 3.04, brandLight)
         return poster
       })
       let nearIndex = -1
@@ -186,8 +186,8 @@ export default function TheaterMultiplexScene({ doors, paused = false, onNearDoo
         posters.forEach(({ ctx, texture }, i) => {
           const door = dataRef.current.doors[i]
           ctx.fillStyle = palette.surface2; ctx.fillRect(0, 0, 540, 780)
-          ctx.fillStyle = door?.badge === 'Now showing' ? palette.coral : palette.surface3; ctx.fillRect(0, 0, 540, 14)
-          ctx.textAlign = 'left'; ctx.fillStyle = palette.coralText; ctx.font = `600 26px ${displayFont}`; ctx.fillText(door?.badge || 'Coming soon', 44, 92)
+          ctx.fillStyle = door?.badge === 'Now showing' ? palette.brand : palette.surface3; ctx.fillRect(0, 0, 540, 14)
+          ctx.textAlign = 'left'; ctx.fillStyle = palette.brandText; ctx.font = `600 26px ${displayFont}`; ctx.fillText(door?.badge || 'Coming soon', 44, 92)
           ctx.font = `700 150px ${displayFont}`; ctx.fillStyle = palette.surface3; ctx.fillText(String(i + 1).padStart(2, '0'), 44, 300)
           const words = (door?.title || 'A new story awaits.').split(/\s+/)
           ctx.font = `700 54px ${displayFont}`; ctx.fillStyle = palette.text

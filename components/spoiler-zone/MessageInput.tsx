@@ -329,7 +329,7 @@ export default function MessageInput({
           type="button"
           onClick={handleSubmit}
           disabled={!value.trim() || sending || disabled}
-          className={`${iconButton} bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-readable disabled:cursor-not-allowed disabled:bg-ns-surface-2 disabled:text-ns-subtle`}
+          className={`${iconButton} bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-hover disabled:cursor-not-allowed disabled:bg-ns-surface-2 disabled:text-ns-subtle`}
           title={isEdit ? 'Save' : 'Send'}
           aria-label={isEdit ? 'Save' : 'Send'}
         >

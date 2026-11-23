@@ -221,7 +221,7 @@ export default async function MoviePage({ params }: Props) {
               <>
                 <span aria-hidden="true">·</span>
                 <span className="inline-flex items-center gap-1.5 font-semibold text-ns-text">
-                  <StarIcon size={15} className="text-ns-accent" />
+                  <StarIcon size={15} className="text-ns-secondary-readable" />
                   {movie.vote_average.toFixed(1)} TMDb
                 </span>
               </>

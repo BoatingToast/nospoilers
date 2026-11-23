@@ -6,8 +6,8 @@ import { useEffect } from 'react'
 // This boundary replaces the root layout, so it cannot rely on globals.css.
 const INK = '#F5F3F0'
 const MUTED = '#B0AFB6'
-const CORAL = '#F2665F'
-const ON_CORAL = '#1A0D0B'
+const IRIS = '#7B61B3'
+const ON_IRIS = '#F5F3F0'
 
 const action = {
   display: 'inline-flex',
@@ -45,7 +45,7 @@ export default function GlobalError({
               Your data is safe. Try loading NoSpoilers again, or return home and start fresh.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12, marginTop: 28 }}>
-              <button type="button" onClick={reset} style={{ ...action, cursor: 'pointer', border: 0, background: CORAL, color: ON_CORAL }}>
+              <button type="button" onClick={reset} style={{ ...action, cursor: 'pointer', border: 0, background: IRIS, color: ON_IRIS }}>
                 Try again
               </button>
               <Link href="/" style={{ ...action, background: '#26262B', color: INK }}>
