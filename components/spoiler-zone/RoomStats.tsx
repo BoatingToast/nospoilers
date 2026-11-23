@@ -7,33 +7,31 @@ interface Props {
   movieTitle:   string
 }
 
-function Stat({ value, label }: { value: string | number; label: string }) {
+function LiveValue({ value, label }: { value: number; label: string }) {
   return (
-    <div className="text-center px-4 first:pl-0 last:pr-0">
-      <p className="font-display text-2xl tracking-wider text-ns-secondary-readable leading-none">
-        {typeof value === 'number' ? value.toLocaleString() : value}
-      </p>
-      <p className="text-ns-muted/60 text-[10px] font-body tracking-wide mt-1">{label}</p>
-    </div>
+    <span>
+      <span key={value} className="inline-block animate-fade-up font-semibold tabular-nums text-ns-text">
+        {value.toLocaleString()}
+      </span>{' '}
+      {label}
+    </span>
   )
 }
 
-export default function RoomStats({ memberCount, messageCount, onlineCount, movieTitle }: Props) {
+export default function RoomStats({ memberCount, messageCount, onlineCount }: Props) {
   return (
-    <div className="flex items-center gap-0 divide-x divide-ns-border">
+    <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm text-ns-muted">
       {onlineCount > 0 && (
-        <div className="text-center pr-4">
-          <div className="flex items-center gap-1.5 justify-center">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <p className="font-display text-2xl tracking-wider text-emerald-400 leading-none">
-              {onlineCount.toLocaleString()}
-            </p>
-          </div>
-          <p className="text-ns-muted/60 text-[10px] font-body tracking-wide mt-1">Online</p>
-        </div>
+        <span className="inline-flex items-center gap-1.5">
+          <span aria-hidden="true" className="h-2 w-2 rounded-full bg-ns-success" />
+          <span key={onlineCount} className="inline-block animate-fade-up font-semibold tabular-nums text-ns-success">
+            {onlineCount.toLocaleString()}
+          </span>
+          online
+        </span>
       )}
-      <Stat value={memberCount}  label="Members"  />
-      <Stat value={messageCount} label="Messages" />
-    </div>
+      <LiveValue value={memberCount} label={memberCount === 1 ? 'member' : 'members'} />
+      <LiveValue value={messageCount} label={messageCount === 1 ? 'message' : 'messages'} />
+    </p>
   )
 }

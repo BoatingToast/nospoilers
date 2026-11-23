@@ -22,7 +22,8 @@ import MyActivityWidget        from '@/components/dashboard/MyActivityWidget'
 import LiveSocialStats         from '@/components/social/LiveSocialStats'
 import { getUserPersonality } from '@/services/personality'
 import { getMovieDnaProfile } from '@/services/dna'
-import Link from 'next/link'
+import Button from '@/components/ui/Button'
+import SectionHeading, { SectionLink } from '@/components/dashboard/SectionHeading'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Dashboard — NoSpoilers' }
@@ -57,65 +58,50 @@ export default async function DashboardPage() {
 
   // ── Overview tab content (server-rendered) ────────────────────────────────
   const overview = (
-    <div className="flex flex-col gap-7">
-      <WelcomeSection user={{ id: user.id, email: user.email, username: user.username, avatarUrl: user.avatarUrl ?? null, createdAt: user.createdAt }} />
-
-      <section aria-labelledby="tonight-title">
-        <div className="mb-3 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-body uppercase tracking-[0.2em] text-ns-secondary-readable">Ready when you are</p>
-            <h2 id="tonight-title" className="mt-1 font-heading text-base font-semibold text-ns-text">What should I watch?</h2>
-          </div>
-          <Link href="/my-recommendations" className="text-xs font-body text-ns-muted transition-colors hover:text-ns-secondary-readable">
-            See every pick →
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-          <div className="lg:col-span-3">
+    <div className="flex flex-col gap-8 lg:gap-10">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start lg:gap-6">
+        <div className="flex min-w-0 flex-col gap-8 lg:col-span-7">
+          <section aria-labelledby="tonight-title">
+            <SectionHeading
+              id="tonight-title"
+              title="What should I watch?"
+              action={<SectionLink href="/my-recommendations">See every pick</SectionLink>}
+            />
             <DashboardNextFavorite />
-          </div>
-          <div className="lg:col-span-2">
-            <WatchlistPreview />
-          </div>
+          </section>
+          <DashboardDnaPreview profile={dnaProfile} username={user.username} />
         </div>
-      </section>
+        <WatchlistPreview className="lg:col-span-5" />
+      </div>
+
+      {user._count.movieRatings < 5 && (
+        <div className="ns-reveal flex flex-col gap-4 rounded-2xl bg-ns-tile-yellow p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <p className="font-heading text-lg font-bold text-ns-text">Make every pick more personal</p>
+            <p className="mt-1 text-base leading-relaxed text-ns-muted">
+              Import your Letterboxd or IMDb history to build a richer Movie DNA instantly.
+            </p>
+          </div>
+          <Button variant="secondary" href="/settings/data" className="flex-shrink-0 self-start sm:self-auto">
+            Import my taste
+          </Button>
+        </div>
+      )}
 
       <QuickActions
         ratingsCount={user._count.movieRatings}
         watchlistCount={user._count.watchlistItems}
         friendCount={friendCount}
       />
-
-      {user._count.movieRatings < 5 && (
-        <div className="rounded-2xl border border-ns-secondary/25 bg-gradient-to-r from-ns-secondary/10 to-transparent p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
-          <div>
-            <p className="text-sm font-heading font-semibold text-ns-text">Make every pick more personal</p>
-            <p className="mt-1 text-xs font-body leading-relaxed text-ns-muted">
-              Import your Letterboxd or IMDb history to build a richer Movie DNA instantly.
-            </p>
-          </div>
-          <Link
-            href="/settings/data"
-            className="mt-4 inline-flex rounded-xl bg-ns-secondary px-4 py-2 text-xs font-body font-semibold text-ns-secondary-foreground transition-colors hover:bg-amber-300 hover:text-ns-bg sm:mt-0 sm:flex-shrink-0"
-          >
-            Import my taste
-          </Link>
-        </div>
-      )}
-
-      <DashboardDnaPreview profile={dnaProfile} username={user.username} />
     </div>
   )
 
   const recommendations = (
     <div className="space-y-8">
-      <div>
-        <p className="text-[10px] font-body uppercase tracking-[0.2em] text-ns-secondary-readable">Your taste, decoded</p>
-        <h1 className="mt-1 font-display text-3xl tracking-wider text-ns-text sm:text-4xl">FOR YOU</h1>
-        <p className="mt-2 max-w-2xl text-sm font-body leading-relaxed text-ns-muted">
-          Browse the deeper recommendation shelves when you want more than tonight&apos;s single best pick.
-        </p>
-      </div>
+      <SectionHeading
+        title="For you"
+        description="Browse the deeper recommendation shelves when you want more than tonight's single best pick."
+      />
       <RecAccuracyWidget />
       <CuratedRecsWidget />
       <RecommendationFeed />
@@ -124,8 +110,8 @@ export default async function DashboardPage() {
 
   const friendsExtras = (
     <>
-      <section aria-labelledby="social-stats-title" className="rounded-2xl border border-ns-border bg-ns-surface p-5">
-        <p id="social-stats-title" className="mb-4 text-[10px] font-body uppercase tracking-[0.2em] text-ns-muted">Your circle</p>
+      <section aria-labelledby="social-stats-title" className="rounded-2xl bg-ns-surface p-6">
+        <h2 id="social-stats-title" className="mb-4 font-heading text-lg font-bold text-ns-text">Your circle</h2>
         <div className="flex flex-wrap gap-6">
           <LiveSocialStats
             username={user.username}
@@ -135,12 +121,8 @@ export default async function DashboardPage() {
           />
         </div>
       </section>
-      <div>
-        <YourSpoilerZones />
-      </div>
-      <div>
-        <FriendsActivityWidget />
-      </div>
+      <YourSpoilerZones />
+      <FriendsActivityWidget />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <DashboardFriendsCard />
         <MyActivityWidget />
@@ -160,14 +142,17 @@ export default async function DashboardPage() {
 
   return (
     <DashboardRecommendationsProvider>
-      <DashboardTabs
-        overview={overview}
-        recommendations={recommendations}
-        friendsExtras={friendsExtras}
-        dnaExtras={dnaExtras}
-        dnaProfile={dnaProfile}
-        username={user.username}
-      />
+      <div className="flex flex-col gap-8">
+        <WelcomeSection user={{ id: user.id, email: user.email, username: user.username, avatarUrl: user.avatarUrl ?? null, createdAt: user.createdAt }} />
+        <DashboardTabs
+          overview={overview}
+          recommendations={recommendations}
+          friendsExtras={friendsExtras}
+          dnaExtras={dnaExtras}
+          dnaProfile={dnaProfile}
+          username={user.username}
+        />
+      </div>
     </DashboardRecommendationsProvider>
   )
 }

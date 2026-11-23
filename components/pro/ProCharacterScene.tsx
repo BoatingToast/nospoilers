@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export type CharacterSilhouette = 'sleek' | 'classic' | 'cosmic'
 export type CharacterAccessory = 'visor' | 'headphones' | 'halo' | 'none'
@@ -17,6 +17,8 @@ export interface CharacterConfig {
 
 interface ProCharacterSceneProps {
   config: CharacterConfig
+  /** Stops the idle turn and float. Dragging still works. */
+  paused?: boolean
 }
 
 function disposeMaterial(material: unknown) {
@@ -24,8 +26,16 @@ function disposeMaterial(material: unknown) {
   candidate.dispose?.()
 }
 
-export default function ProCharacterScene({ config }: ProCharacterSceneProps) {
+export default function ProCharacterScene({ config, paused = false }: ProCharacterSceneProps) {
   const mountRef = useRef<HTMLDivElement>(null)
+  const pausedRef = useRef(paused)
+  // Keeps the character facing the same way when a color or accessory changes.
+  const rotationRef = useRef(0.28)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'unavailable'>('loading')
+
+  useEffect(() => {
+    pausedRef.current = paused
+  }, [paused])
 
   useEffect(() => {
     const mount = mountRef.current
@@ -40,23 +50,30 @@ export default function ProCharacterScene({ config }: ProCharacterSceneProps) {
       if (cancelled || !mount) return
 
       const scene = new THREE.Scene()
-      scene.fog = new THREE.FogExp2(0x050814, 0.085)
 
       const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100)
-      camera.position.set(0, 1.1, 6.8)
-      camera.lookAt(0, 0.85, 0)
+      // Frames the whole figure and its platform, from the halo down to the floor.
+      const cameraDistance = 8.6
+      camera.position.set(0, 0.45, cameraDistance)
+      camera.lookAt(0, -0.2, 0)
 
-      const renderer = new THREE.WebGLRenderer({
-        alpha: true,
-        antialias: true,
-        powerPreference: 'high-performance',
-      })
+      let renderer: InstanceType<typeof THREE.WebGLRenderer>
+      try {
+        renderer = new THREE.WebGLRenderer({
+          alpha: true,
+          antialias: true,
+          powerPreference: 'high-performance',
+        })
+      } catch {
+        setStatus('unavailable')
+        return
+      }
       renderer.outputColorSpace = THREE.SRGBColorSpace
       renderer.toneMapping = THREE.ACESFilmicToneMapping
-      renderer.toneMappingExposure = 1.18
+      renderer.toneMappingExposure = 1.05
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75))
-      renderer.setClearColor(0x050814, 0)
-      renderer.domElement.className = 'absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing'
+      renderer.setClearColor(0x121214, 0)
+      renderer.domElement.className = 'absolute inset-0 h-full w-full cursor-grab touch-pan-y active:cursor-grabbing'
       renderer.domElement.setAttribute('aria-label', 'Interactive 3D cinema character. Drag to rotate.')
       renderer.domElement.setAttribute('role', 'img')
       mount.appendChild(renderer.domElement)
@@ -65,37 +82,36 @@ export default function ProCharacterScene({ config }: ProCharacterSceneProps) {
       const suit = new THREE.Color(config.suit)
       const skin = new THREE.Color(config.skin)
 
-      scene.add(new THREE.HemisphereLight(0xc4b5fd, 0x071022, 2.6))
-      const keyLight = new THREE.DirectionalLight(0xffffff, 3.6)
+      // A simple studio setup: warm key, soft fill, and a rim in the viewer's color.
+      scene.add(new THREE.HemisphereLight(0xfff4ea, 0x1c1c20, 2.1))
+      const keyLight = new THREE.DirectionalLight(0xfff1e4, 3.2)
       keyLight.position.set(3.5, 5.5, 4)
       scene.add(keyLight)
-      const rimLight = new THREE.PointLight(accent, 18, 12, 2)
+      const rimLight = new THREE.PointLight(accent, 9, 12, 2)
       rimLight.position.set(-3.6, 2.2, -1.4)
       scene.add(rimLight)
-      const lowLight = new THREE.PointLight(0x13d9c4, 10, 9, 2)
-      lowLight.position.set(2.7, -1.2, 2.4)
-      scene.add(lowLight)
 
       const world = new THREE.Group()
       world.position.y = -0.62
       scene.add(world)
 
       const platformMaterial = new THREE.MeshStandardMaterial({
-        color: 0x0c1230,
-        metalness: 0.86,
-        roughness: 0.2,
+        color: 0x26262b,
+        metalness: 0.1,
+        roughness: 0.82,
       })
-      const platform = new THREE.Mesh(new THREE.CylinderGeometry(2.05, 2.28, 0.18, 64), platformMaterial)
-      platform.position.y = -1.7
+      const platform = new THREE.Mesh(new THREE.CylinderGeometry(1.42, 1.48, 0.12, 72), platformMaterial)
+      platform.position.y = -1.68
       world.add(platform)
 
-      const ringMaterial = new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.72 })
-      const platformRing = new THREE.Mesh(new THREE.TorusGeometry(1.82, 0.025, 12, 96), ringMaterial)
+      const ringMaterial = new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.55 })
+      const platformRing = new THREE.Mesh(new THREE.TorusGeometry(1.28, 0.01, 10, 96), ringMaterial)
       platformRing.rotation.x = Math.PI / 2
-      platformRing.position.y = -1.59
+      platformRing.position.y = -1.615
       world.add(platformRing)
 
       const character = new THREE.Group()
+      character.rotation.y = rotationRef.current
       world.add(character)
 
       const skinMaterial = new THREE.MeshPhysicalMaterial({
@@ -106,17 +122,17 @@ export default function ProCharacterScene({ config }: ProCharacterSceneProps) {
       })
       const suitMaterial = new THREE.MeshPhysicalMaterial({
         color: suit,
-        roughness: 0.28,
-        metalness: config.silhouette === 'cosmic' ? 0.62 : 0.3,
-        clearcoat: 0.48,
+        roughness: 0.66,
+        metalness: config.silhouette === 'cosmic' ? 0.34 : 0.04,
+        clearcoat: 0.06,
       })
-      const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x070a18, metalness: 0.7, roughness: 0.26 })
-      const glowMaterial = new THREE.MeshStandardMaterial({
+      const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x1b1b1f, metalness: 0.02, roughness: 0.74 })
+      const accentMaterial = new THREE.MeshStandardMaterial({
         color: accent,
         emissive: accent,
-        emissiveIntensity: 2.4,
-        metalness: 0.32,
-        roughness: 0.22,
+        emissiveIntensity: 0.55,
+        metalness: 0.2,
+        roughness: 0.36,
       })
 
       const hip = new THREE.Mesh(new THREE.SphereGeometry(0.55, 36, 24), suitMaterial)
@@ -133,7 +149,7 @@ export default function ProCharacterScene({ config }: ProCharacterSceneProps) {
       torso.position.y = 0.48
       character.add(torso)
 
-      const chestLight = new THREE.Mesh(new THREE.OctahedronGeometry(0.12, 0), glowMaterial)
+      const chestLight = new THREE.Mesh(new THREE.OctahedronGeometry(0.12, 0), accentMaterial)
       chestLight.position.set(0, 0.64, 0.5)
       chestLight.rotation.z = Math.PI / 4
       character.add(chestLight)
@@ -153,8 +169,9 @@ export default function ProCharacterScene({ config }: ProCharacterSceneProps) {
       character.add(hair)
 
       const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
-      const pupilMaterial = new THREE.MeshBasicMaterial({ color: accent })
-      for (const side of [-1, 1]) {
+      const pupilMaterial = new THREE.MeshBasicMaterial({ color: 0x17171a })
+      // A visor covers the eyes, so they are only built when they can be seen.
+      for (const side of config.accessory === 'visor' ? [] : [-1, 1]) {
         const eye = new THREE.Mesh(new THREE.SphereGeometry(0.065, 18, 12), eyeMaterial)
         eye.scale.set(1.25, 0.72, 0.45)
         eye.position.set(side * 0.18, 1.8, 0.445)
@@ -184,23 +201,21 @@ export default function ProCharacterScene({ config }: ProCharacterSceneProps) {
         character.add(leg)
       }
 
-      let accessoryMotion: { rotation: { z: number } } | undefined
       if (config.accessory === 'visor') {
+        // A curved band that wraps the front of the head.
         const visor = new THREE.Mesh(
-          new THREE.BoxGeometry(0.83, 0.2, 0.08),
-          new THREE.MeshPhysicalMaterial({
+          new THREE.CylinderGeometry(0.5, 0.5, 0.2, 40, 1, true, -1.25, 2.5),
+          new THREE.MeshStandardMaterial({
             color: accent,
             emissive: accent,
-            emissiveIntensity: 1.6,
-            transparent: true,
-            opacity: 0.72,
-            transmission: 0.25,
-            roughness: 0.08,
+            emissiveIntensity: 0.32,
+            roughness: 0.3,
+            side: THREE.DoubleSide,
           }),
         )
-        visor.position.set(0, 1.81, 0.49)
+        visor.scale.set(head.scale.x * 1.03, 1, head.scale.z * 1.05)
+        visor.position.set(0, 1.81, 0)
         character.add(visor)
-        accessoryMotion = visor
       }
 
       if (config.accessory === 'headphones') {
@@ -209,57 +224,26 @@ export default function ProCharacterScene({ config }: ProCharacterSceneProps) {
         band.rotation.z = Math.PI / 2
         character.add(band)
         for (const side of [-1, 1]) {
-          const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.12, 24), glowMaterial)
+          const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.12, 24), accentMaterial)
           cup.position.set(side * 0.48, 1.77, 0)
           cup.rotation.z = Math.PI / 2
           character.add(cup)
         }
-        accessoryMotion = band
       }
 
       if (config.accessory === 'halo') {
-        const halo = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.035, 12, 64), glowMaterial)
+        const halo = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.035, 12, 64), accentMaterial)
         halo.position.y = 2.48
         halo.rotation.x = Math.PI / 2
         character.add(halo)
-        accessoryMotion = halo
       }
 
-      const orbitGroup = new THREE.Group()
-      world.add(orbitGroup)
-      for (let index = 0; index < 3; index += 1) {
-        const orbit = new THREE.Mesh(
-          new THREE.TorusGeometry(1.25 + index * 0.32, 0.008 + index * 0.003, 8, 96),
-          new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.24 - index * 0.045 }),
-        )
-        orbit.rotation.set(Math.PI / (2.6 + index * 0.18), index * 0.65, index * 0.82)
-        orbit.position.y = 0.5
-        orbitGroup.add(orbit)
-      }
-
-      const particleCount = 260
-      const particlePositions = new Float32Array(particleCount * 3)
-      for (let index = 0; index < particleCount; index += 1) {
-        const radius = 2.4 + Math.random() * 4.6
-        const theta = Math.random() * Math.PI * 2
-        const phi = Math.acos(2 * Math.random() - 1)
-        particlePositions[index * 3] = radius * Math.sin(phi) * Math.cos(theta)
-        particlePositions[index * 3 + 1] = radius * Math.cos(phi) + 0.7
-        particlePositions[index * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta)
-      }
-      const particleGeometry = new THREE.BufferGeometry()
-      particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3))
-      const particles = new THREE.Points(
-        particleGeometry,
-        new THREE.PointsMaterial({ color: accent, size: 0.025, transparent: true, opacity: 0.58 }),
-      )
-      scene.add(particles)
-
-      let targetRotationY = 0.28
+      let targetRotationY = rotationRef.current
       let targetRotationX = 0
       let dragging = false
       let lastX = 0
       let lastY = 0
+      let onScreen = true
 
       const onPointerDown = (event: PointerEvent) => {
         dragging = true
@@ -285,6 +269,7 @@ export default function ProCharacterScene({ config }: ProCharacterSceneProps) {
         const height = Math.max(1, mount.clientHeight)
         renderer.setSize(width, height, false)
         camera.aspect = width / height
+        camera.position.z = cameraDistance * Math.max(1, 0.92 / camera.aspect)
         camera.updateProjectionMatrix()
       }
       const observer = new ResizeObserver(resize)
@@ -294,27 +279,37 @@ export default function ProCharacterScene({ config }: ProCharacterSceneProps) {
       const timer = new THREE.Timer()
       timer.connect(document)
       const animate = () => {
+        animationFrame = 0
+        if (!onScreen) return
         timer.update()
         const elapsed = timer.getElapsed()
-        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        const still = pausedRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches
         character.rotation.y += (targetRotationY - character.rotation.y) * 0.07
         character.rotation.x += (targetRotationX - character.rotation.x) * 0.07
-        if (!dragging && !reducedMotion) targetRotationY += config.energy === 'orbit' ? 0.0028 : 0.0008
+        rotationRef.current = targetRotationY
+        if (!dragging && !still) targetRotationY += config.energy === 'orbit' ? 0.0028 : 0.0008
 
         const floatStrength = config.energy === 'calm' ? 0.015 : config.energy === 'pulse' ? 0.045 : 0.028
-        character.position.y = reducedMotion ? 0 : Math.sin(elapsed * 1.45) * floatStrength
-        orbitGroup.rotation.y = reducedMotion ? 0 : elapsed * (config.energy === 'orbit' ? 0.23 : 0.09)
-        particles.rotation.y = reducedMotion ? 0 : elapsed * 0.012
-        platformRing.scale.setScalar(config.energy === 'pulse' && !reducedMotion ? 1 + Math.sin(elapsed * 2.8) * 0.025 : 1)
-        if (accessoryMotion && config.accessory === 'halo' && !reducedMotion) accessoryMotion.rotation.z = elapsed * 0.7
-        chestLight.scale.setScalar(config.energy === 'pulse' && !reducedMotion ? 1 + Math.sin(elapsed * 4.5) * 0.14 : 1)
+        const floatTarget = still ? 0 : Math.sin(elapsed * 1.45) * floatStrength
+        character.position.y += (floatTarget - character.position.y) * 0.12
+        chestLight.scale.setScalar(config.energy === 'pulse' && !still ? 1 + Math.sin(elapsed * 4.5) * 0.14 : 1)
         renderer.render(scene, camera)
         animationFrame = window.requestAnimationFrame(animate)
       }
+
+      // Rendering stops entirely while the stage is scrolled out of view.
+      const visibility = new IntersectionObserver(([entry]) => {
+        onScreen = entry.isIntersecting
+        if (onScreen && !animationFrame) animate()
+      })
+      visibility.observe(mount)
+
       animate()
+      setStatus('ready')
 
       cleanupScene = () => {
         observer.disconnect()
+        visibility.disconnect()
         timer.dispose()
         window.cancelAnimationFrame(animationFrame)
         renderer.domElement.removeEventListener('pointerdown', onPointerDown)
@@ -343,10 +338,12 @@ export default function ProCharacterScene({ config }: ProCharacterSceneProps) {
   }, [config])
 
   return (
-    <div ref={mountRef} className="relative h-full min-h-[470px] w-full" data-testid="pro-character-scene">
-      <div className="pointer-events-none absolute inset-0 grid min-h-[470px] place-items-center text-[10px] uppercase tracking-[0.2em] text-ns-muted">
-        Initializing 3D identity…
-      </div>
+    <div ref={mountRef} className="absolute inset-0" data-testid="pro-character-scene">
+      {status !== 'ready' && (
+        <div className="pointer-events-none absolute inset-0 grid place-items-center px-6 text-center text-sm text-ns-muted">
+          {status === 'loading' ? 'Loading your character…' : '3D preview is not available on this device. Your choices still save.'}
+        </div>
+      )}
     </div>
   )
 }

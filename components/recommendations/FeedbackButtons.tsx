@@ -16,10 +16,10 @@ interface Option {
 }
 
 const OPTIONS: Option[] = [
-  { value: 'liked',          Icon: ThumbUpIcon,   label: 'Like',       active: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400' },
-  { value: 'watched',        Icon: EyeIcon,       label: 'Watched',    active: 'bg-ns-secondary/15 border-ns-secondary/40 text-ns-secondary-readable' },
-  { value: 'not_interested', Icon: ThumbDownIcon, label: 'Not for me', active: 'bg-ns-muted/10 border-ns-muted/40 text-ns-muted' },
-  { value: 'dismissed',      Icon: CloseIcon,     label: 'Dismiss',    active: 'bg-red-500/10 border-red-500/40 text-red-400' },
+  { value: 'liked',          Icon: ThumbUpIcon, label: 'Like', active: 'bg-ns-success/10 text-ns-success' },
+  { value: 'watched',        Icon: EyeIcon, label: 'Watched', active: 'bg-ns-surface-3 text-ns-text' },
+  { value: 'not_interested', Icon: ThumbDownIcon, label: 'Not for me', active: 'bg-ns-surface-3 text-ns-muted' },
+  { value: 'dismissed',      Icon: CloseIcon, label: 'Dismiss', active: 'bg-ns-danger/10 text-ns-danger' },
 ]
 
 export default function FeedbackButtons({ recommendationId, initialFeedback }: Props) {
@@ -42,23 +42,22 @@ export default function FeedbackButtons({ recommendationId, initialFeedback }: P
   }
 
   return (
-    <div className="flex gap-1.5 flex-wrap" onClick={e => e.preventDefault()}>
+    <div className="flex flex-wrap gap-1" onClick={e => e.preventDefault()}>
       {OPTIONS.map(({ value, Icon, label, active }) => (
         <button
           key={value}
+          type="button"
           onClick={() => submit(value)}
           disabled={loading !== null}
           title={label}
-          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] font-body transition-all
-            ${feedback === value
-              ? active
-              : 'border-ns-border text-ns-muted/50 hover:border-ns-muted/30 hover:text-ns-muted'
-            }
-            ${loading === value ? 'opacity-50' : ''}
-          `}
+          aria-label={label}
+          aria-pressed={feedback === value}
+          className={`inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-2.5 text-sm font-medium transition-colors duration-150 disabled:cursor-not-allowed ${
+            feedback === value ? active : 'text-ns-muted hover:bg-ns-surface-2 hover:text-ns-text'
+          } ${loading === value ? 'animate-pulse' : ''}`}
         >
-          <Icon size={12} />
-          <span className="hidden sm:inline">{label}</span>
+          <Icon size={16} />
+          <span className="hidden xl:inline">{label}</span>
         </button>
       ))}
     </div>

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import type { WatchStatus } from '@/types'
-import { EyeIcon, CheckIcon } from '@/components/icons'
+import { EyeIcon, CheckIcon, CloseIcon } from '@/components/icons'
+import { cn } from '@/lib/utils'
 
 interface Movie {
   tmdbId:      number
@@ -23,8 +24,8 @@ interface Props {
 
 const STATUS_LABELS: Record<WatchStatus, React.ReactNode> = {
   want_to_watch: '+ Watchlist',
-  watching:      <><EyeIcon size={12} className="inline-block mr-1" />Watching</>,
-  watched:       <><CheckIcon size={12} className="inline-block mr-1" />Watched</>,
+  watching:      <><EyeIcon size={16} />Watching</>,
+  watched:       <><CheckIcon size={16} strokeWidth={2.5} />Watched</>,
 }
 
 const STATUS_CYCLE: Record<WatchStatus, WatchStatus> = {
@@ -98,28 +99,32 @@ export default function AddToWatchlistButton({ movie, compact = false }: Props) 
     setLoading(false)
   }
 
-  if (!checked) return null
+  if (!checked) {
+    return <div aria-hidden="true" className={cn('min-h-11 animate-pulse rounded-full bg-ns-surface', compact ? 'w-24' : 'w-40')} />
+  }
 
   return (
     <div className="flex items-center gap-1.5">
       <button
+        type="button"
         onClick={handleClick}
         disabled={loading}
-        className={`flex items-center gap-1.5 rounded-xl font-body text-sm font-medium transition-all
-          ${compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2'}
-          ${status === 'watched'
-            ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+        aria-busy={loading || undefined}
+        className={cn(
+          'inline-flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-full font-body text-sm font-semibold transition-colors duration-150 active:translate-y-px',
+          compact ? 'px-4' : 'px-5',
+          status === 'watched'
+            ? 'bg-ns-success/10 text-ns-success hover:bg-ns-success/15'
             : status === 'watching'
-            ? 'bg-ns-secondary/15 border border-ns-secondary/30 text-ns-secondary-readable'
+            ? 'bg-ns-tile-rose text-ns-secondary-readable hover:bg-ns-surface-3'
             : status === 'want_to_watch'
-            ? 'bg-ns-surface border border-ns-border text-ns-muted hover:border-ns-secondary/30 hover:text-ns-secondary-readable'
-            : 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary/90'
-          }
-          ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-        `}
+            ? 'bg-ns-surface-2 text-ns-text hover:bg-ns-surface-3'
+            : 'bg-ns-surface-2 text-ns-text hover:bg-ns-surface-3',
+          loading ? 'cursor-wait' : 'cursor-pointer',
+        )}
       >
         {loading
-          ? '...'
+          ? 'Saving…'
           : status
             ? STATUS_LABELS[status]
             : authStatus === 'authenticated'
@@ -129,11 +134,12 @@ export default function AddToWatchlistButton({ movie, compact = false }: Props) 
 
       {status && !loading && (
         <button
+          type="button"
           onClick={handleRemove}
-          className="w-6 h-6 rounded-full flex items-center justify-center text-ns-muted/40 hover:text-red-400 hover:bg-red-500/10 transition-colors text-xs"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-ns-surface-2 text-ns-muted transition-colors duration-150 hover:bg-ns-danger/10 hover:text-ns-danger"
           title="Remove from watchlist"
         >
-          ×
+          <CloseIcon size={16} />
         </button>
       )}
     </div>

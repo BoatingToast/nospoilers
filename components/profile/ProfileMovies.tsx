@@ -13,29 +13,27 @@ export default function ProfileMovies({ movies }: { movies: Movie[] }) {
   if (movies.length === 0) return null
 
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
-      <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">
-        Favorite Films
-      </p>
-      <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+    <section>
+      <h2 className="font-display text-2xl text-ns-text sm:text-3xl">Favorite films</h2>
+      <div className="mt-4 grid grid-cols-3 gap-4 sm:grid-cols-5">
         {movies.map(movie => (
-          <Link key={movie.tmdbId} href={`/movie/${movie.tmdbId}`} className="group">
-            <div className="aspect-[2/3] rounded-lg overflow-hidden bg-ns-border relative">
+          <Link key={movie.tmdbId} href={`/movie/${movie.tmdbId}`} className="group min-w-0">
+            <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface">
               <Image
-                src={tmdbImageUrl(movie.posterPath, 'w185')}
-                alt={movie.title}
+                src={tmdbImageUrl(movie.posterPath, 'w342')}
+                alt=""
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                sizes="(max-width: 640px) 20vw, 120px"
+                className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04] motion-reduce:transform-none"
+                sizes="(max-width: 640px) 30vw, 180px"
               />
             </div>
-            <p className="text-ns-muted text-[10px] font-body mt-1.5 truncate leading-tight group-hover:text-ns-text transition-colors">
+            <p className="mt-2 truncate text-sm font-semibold text-ns-text transition-colors group-hover:text-ns-secondary-readable">
               {movie.title}
             </p>
-            <p className="text-ns-muted/40 text-[10px] font-body">{formatYear(movie.releaseDate)}</p>
+            <p className="text-sm tabular-nums text-ns-muted">{formatYear(movie.releaseDate)}</p>
           </Link>
         ))}
       </div>
-    </div>
+    </section>
   )
 }

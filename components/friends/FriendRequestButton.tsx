@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Badge from '@/components/ui/Badge'
 import type { FriendStatus } from '@/types'
 
 interface Props {
@@ -79,19 +80,15 @@ export default function FriendRequestButton({
     setStatus('none')
   }
 
-  const base = 'px-4 py-2 rounded-xl text-sm font-body transition-all disabled:opacity-50'
+  const base = 'inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors duration-150 disabled:cursor-wait disabled:opacity-50 sm:min-h-10'
+  const quiet = `${base} border border-ns-border-strong text-ns-text hover:bg-ns-surface-2`
+  const strong = `${base} bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-readable`
 
   if (status === 'friends') {
     return (
-      <div className="flex items-center gap-2">
-        <span className="px-4 py-2 rounded-xl text-sm font-body bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-          Friends
-        </span>
-        <button
-          onClick={removeFriend}
-          disabled={loading}
-          className={`${base} border border-ns-border text-ns-muted hover:text-rose-400 hover:border-rose-500/40`}
-        >
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="success" size="md">Friends</Badge>
+        <button type="button" onClick={removeFriend} disabled={loading} className={quiet}>
           Remove
         </button>
       </div>
@@ -100,14 +97,9 @@ export default function FriendRequestButton({
 
   if (status === 'pending_sent') {
     return (
-      <div className="flex items-center gap-2">
-        <span className="px-4 py-2 rounded-xl text-sm font-body bg-ns-secondary/10 border border-ns-secondary/30 text-ns-secondary-readable">
-          Request Sent
-        </span>
-        <button
-          onClick={cancelRequest}
-          className={`${base} border border-ns-border text-ns-muted hover:text-ns-text`}
-        >
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="secondary" size="md">Request sent</Badge>
+        <button type="button" onClick={cancelRequest} className={quiet}>
           Cancel
         </button>
       </div>
@@ -116,20 +108,12 @@ export default function FriendRequestButton({
 
   if (status === 'pending_received') {
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-body text-ns-muted mr-1">Friend request:</span>
-        <button
-          onClick={() => handleAction('accept')}
-          disabled={loading}
-          className={`${base} bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary/90`}
-        >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="mr-1 text-sm text-ns-muted">Friend request:</span>
+        <button type="button" onClick={() => handleAction('accept')} disabled={loading} className={strong}>
           Accept
         </button>
-        <button
-          onClick={() => handleAction('reject')}
-          disabled={loading}
-          className={`${base} border border-ns-border text-ns-muted hover:text-ns-text`}
-        >
+        <button type="button" onClick={() => handleAction('reject')} disabled={loading} className={quiet}>
           Decline
         </button>
       </div>
@@ -138,12 +122,8 @@ export default function FriendRequestButton({
 
   // 'none'
   return (
-    <button
-      onClick={sendRequest}
-      disabled={loading}
-      className={`${base} bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary/90 font-medium`}
-    >
-      {loading ? '…' : '+ Add Friend'}
+    <button type="button" onClick={sendRequest} disabled={loading} className={strong}>
+      {loading ? '…' : '+ Add friend'}
     </button>
   )
 }

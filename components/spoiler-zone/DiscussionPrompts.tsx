@@ -20,13 +20,13 @@ export default function DiscussionPrompts({ movieTitle, onPrompt }: Props) {
   ]
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
+    <div className="-mx-4 flex gap-2 overflow-x-auto px-4 scrollbar-hide sm:-mx-6 sm:px-6">
       {prompts.map(p => (
         <button
           key={p}
+          type="button"
           onClick={() => onPrompt(p)}
-          className="flex-shrink-0 px-3 py-1.5 rounded-full border border-ns-border text-ns-muted text-xs font-body
-                     hover:border-ns-secondary/40 hover:text-ns-secondary-readable transition-all duration-150 whitespace-nowrap"
+          className="min-h-11 flex-shrink-0 whitespace-nowrap rounded-full bg-ns-surface-2 px-4 text-sm text-ns-muted transition-colors duration-150 hover:bg-ns-surface-3 hover:text-ns-text sm:min-h-10"
         >
           {p}
         </button>

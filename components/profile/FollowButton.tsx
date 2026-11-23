@@ -27,15 +27,14 @@ export default function FollowButton({ username, initialState, sessionUserId }: 
 
   return (
     <button
+      type="button"
       onClick={toggle}
       disabled={loading}
-      className={`px-5 py-2 rounded-xl text-sm font-body font-medium transition-all
+      className={`min-h-11 rounded-full px-6 text-sm font-semibold transition-colors duration-150 disabled:cursor-wait disabled:opacity-50
         ${following
-          ? 'bg-ns-surface border border-ns-border text-ns-muted hover:border-red-500/40 hover:text-red-400'
-          : 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary/90'
-        }
-        ${loading ? 'opacity-50 cursor-not-allowed' : ''}
-      `}
+          ? 'border border-ns-border-strong text-ns-text hover:bg-ns-danger/10 hover:text-ns-danger'
+          : 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-readable'
+        }`}
     >
       {loading ? '...' : following ? 'Following' : 'Follow'}
     </button>

@@ -1,6 +1,11 @@
 import type { Config } from 'tailwindcss'
 
+const displayFont = ['var(--font-bricolage)', 'system-ui', 'sans-serif']
+const bodyFont = ['var(--font-jakarta)', 'system-ui', 'sans-serif']
+
 const config: Config = {
+  // Hover styles only apply on devices that can really hover, so they never stick after a tap.
+  future: { hoverOnlyWhenSupported: true },
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -15,7 +20,9 @@ const config: Config = {
           bg:                    'rgb(var(--ns-bg) / <alpha-value>)',
           surface:               'rgb(var(--ns-surface) / <alpha-value>)',
           'surface-2':           'rgb(var(--ns-surface-2) / <alpha-value>)',
+          'surface-3':           'rgb(var(--ns-surface-3) / <alpha-value>)',
           border:                'rgb(var(--ns-border) / <alpha-value>)',
+          'border-strong':       'rgb(var(--ns-border-strong) / <alpha-value>)',
 
           primary:               'rgb(var(--ns-primary) / <alpha-value>)',
           'primary-foreground':  'rgb(var(--ns-primary-foreground) / <alpha-value>)',
@@ -27,6 +34,7 @@ const config: Config = {
 
           text:                  'rgb(var(--ns-text) / <alpha-value>)',
           muted:                 'rgb(var(--ns-muted) / <alpha-value>)',
+          subtle:                'rgb(var(--ns-subtle) / <alpha-value>)',
 
           success:               'rgb(var(--ns-success) / <alpha-value>)',
           danger:                'rgb(var(--ns-danger) / <alpha-value>)',
@@ -34,6 +42,17 @@ const config: Config = {
           info:                  'rgb(var(--ns-info) / <alpha-value>)',
 
           'tier-epic':           'rgb(var(--ns-tier-epic) / <alpha-value>)',
+
+          // Coral brand spark, used sparingly for dots, stars, and counts.
+          accent:                'rgb(var(--ns-accent) / <alpha-value>)',
+
+          // Soft tiles for stats and feature blocks. Text on them is ns-text.
+          'tile-blue':           'rgb(var(--ns-tile-blue) / <alpha-value>)',
+          'tile-yellow':         'rgb(var(--ns-tile-yellow) / <alpha-value>)',
+          'tile-peach':          'rgb(var(--ns-tile-peach) / <alpha-value>)',
+          'tile-lilac':          'rgb(var(--ns-tile-lilac) / <alpha-value>)',
+          'tile-green':          'rgb(var(--ns-tile-green) / <alpha-value>)',
+          'tile-rose':           'rgb(var(--ns-tile-rose) / <alpha-value>)',
 
           'chart-1': 'rgb(var(--ns-chart-1) / <alpha-value>)',
           'chart-2': 'rgb(var(--ns-chart-2) / <alpha-value>)',
@@ -45,14 +64,24 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ['var(--font-bebas)', 'Impact', 'sans-serif'],
-        body:    ['var(--font-inter)', 'system-ui', 'sans-serif'],
-        heading: ['var(--font-space)', 'system-ui', 'sans-serif'],
+        display: displayFont,
+        heading: displayFont,
+        body:    bodyFont,
+      },
+      // Soft, generous corners. Existing rounded-* classes inherit this.
+      borderRadius: {
+        sm:    '6px',
+        DEFAULT: '8px',
+        md:    '10px',
+        lg:    '12px',
+        xl:    '16px',
+        '2xl': '24px',
+        '3xl': '32px',
       },
       animation: {
-        'wipe-reveal': 'wipeReveal 0.9s cubic-bezier(0.77,0,0.175,1) forwards',
-        'fade-up':     'fadeUp 0.6s ease forwards',
-        'fade-in':     'fadeIn 0.4s ease forwards',
+        'wipe-reveal': 'wipeReveal 0.7s cubic-bezier(0.77,0,0.175,1) forwards',
+        'fade-up':     'fadeUp 0.24s cubic-bezier(0.16,1,0.3,1) forwards',
+        'fade-in':     'fadeIn 0.15s ease-out forwards',
         'pulse-slow':  'pulse 3s ease-in-out infinite',
         'bell-ring':   'bellRing 0.6s ease-in-out',
       },
@@ -62,7 +91,7 @@ const config: Config = {
           '100%': { transform: 'scaleX(0)' },
         },
         fadeUp: {
-          '0%':   { opacity: '0', transform: 'translateY(24px)' },
+          '0%':   { opacity: '0', transform: 'translateY(8px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         fadeIn: {

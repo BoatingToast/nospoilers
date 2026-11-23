@@ -1,13 +1,13 @@
 'use client'
 
-import Image from 'next/image'
 import { useState } from 'react'
-import { tmdbImageUrl } from '@/lib/utils'
 import type { EnrichedRec } from '@/services/curated-recs'
+import PosterImage from '@/components/discover/PosterImage'
+import GrowBar from '@/components/movie/GrowBar'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
 import RecBreakdownModal from './RecBreakdownModal'
 import {
-  FilmIcon,
-  RecsIcon,
   ThumbUpIcon,
   WatchlistIcon,
   EyeIcon,
@@ -21,13 +21,18 @@ interface Props {
   onFeedback?: (recommendation: EnrichedRec, feedback: string) => Promise<boolean>
 }
 
+const ACTIONS = [
+  { label: 'Great pick', value: 'liked', Icon: ThumbUpIcon },
+  { label: 'Watchlist', value: 'watchlist', Icon: WatchlistIcon },
+  { label: 'Already seen', value: 'watched', Icon: EyeIcon },
+  { label: 'Not interested', value: 'not_interested', Icon: ThumbDownIcon },
+]
+
 export default function NextFavoriteHero({ rec, onFeedback }: Props) {
   const [showWhy, setShowWhy] = useState(false)
   const [sent,    setSent]    = useState<string | null>(null)
   const [saving,  setSaving]  = useState(false)
   const [saveError, setSaveError] = useState(false)
-
-  const img = tmdbImageUrl(rec.posterPath, 'w342')
 
   async function handleFeedback(type: string) {
     setSaving(true)
@@ -38,114 +43,73 @@ export default function NextFavoriteHero({ rec, onFeedback }: Props) {
     else setSaveError(true)
   }
 
-  const ACTIONS = [
-    { label: 'Great pick',       value: 'liked',           Icon: ThumbUpIcon,   color: 'bg-emerald-700/70 hover:bg-emerald-600' },
-    { label: 'Watchlist',        value: 'watchlist',       Icon: WatchlistIcon, color: 'bg-red-800/70 hover:bg-red-700' },
-    { label: 'Already Seen',     value: 'watched',         Icon: EyeIcon,       color: 'bg-ns-surface hover:bg-white/10' },
-    { label: 'Not Interested',   value: 'not_interested',  Icon: ThumbDownIcon, color: 'bg-ns-surface hover:bg-white/10' },
-  ]
-
   return (
-    <>
-      <div className="relative overflow-hidden rounded-3xl border border-ns-secondary/40 bg-ns-surface">
-        {/* Glow */}
-        <div className="absolute inset-0 bg-gradient-to-br from-ns-secondary/10 via-transparent to-transparent pointer-events-none" />
-
-        <div className="flex flex-col sm:flex-row gap-0">
-          {/* Poster */}
-          <div className="relative sm:w-52 flex-shrink-0">
-            <div className="aspect-[2/3] sm:aspect-auto sm:h-full relative">
-              {img ? (
-                <Image
-                  src={img}
-                  alt={rec.title}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width:640px) 100vw, 208px"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-ns-border flex items-center justify-center">
-                  <FilmIcon size={48} className="text-ns-muted/30" />
-                </div>
-              )}
-              {/* Gradient overlay on mobile */}
-              <div className="absolute inset-0 bg-gradient-to-t from-ns-surface via-transparent to-transparent sm:hidden" />
-            </div>
+    <div>
+      <section aria-labelledby="next-favorite-title" className="rounded-3xl bg-ns-surface p-6 sm:p-10">
+        <div className="grid gap-7 sm:grid-cols-[13rem_minmax(0,1fr)] sm:gap-10 lg:grid-cols-[16rem_minmax(0,1fr)]">
+          <div className="relative mx-auto aspect-[2/3] w-44 overflow-hidden rounded-xl bg-ns-surface-2 shadow-2xl sm:w-full">
+            <PosterImage path={rec.posterPath} sizes="(min-width: 1024px) 256px, 208px" alt={rec.title} />
           </div>
 
-          {/* Content */}
-          <div className="flex-1 p-6 sm:p-8 flex flex-col justify-between min-h-0">
-            {/* Header */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-body text-ns-secondary-readable uppercase tracking-widest flex items-center gap-1.5">
-                  <RecsIcon size={12} /> Your Next Favorite
-                </span>
-                <div className="flex-1 h-px bg-ns-secondary/20" />
-                <span className="text-xs font-mono font-bold text-ns-secondary-readable bg-ns-secondary/10 px-2 py-0.5 rounded-full border border-ns-secondary/30">
-                  {rec.matchScore}% match
-                </span>
-              </div>
+          <div className="flex min-w-0 flex-col">
+            <p className="text-base font-semibold text-ns-secondary-readable">Your next favorite</p>
+            <h2 id="next-favorite-title" className="mt-2 break-words font-display text-4xl text-ns-text sm:text-5xl">
+              {rec.title}
+            </h2>
+            {rec.releaseDate && (
+              <p className="mt-2 text-base tabular-nums text-ns-muted">{rec.releaseDate.slice(0, 4)}</p>
+            )}
 
-              <h2 className="text-2xl sm:text-3xl font-heading text-white mb-2 leading-tight">
-                {rec.title}
-              </h2>
-
-              {rec.releaseDate && (
-                <p className="text-ns-muted font-body text-xs mb-3">
-                  {rec.releaseDate.slice(0, 4)}
-                </p>
-              )}
-
-              <p className="text-ns-text font-body text-sm leading-relaxed mb-4">
-                {rec.explanation}
-              </p>
-
-              {/* Matched favorites */}
-              {rec.matchedRatings.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {rec.matchedRatings.map(rating => (
-                    <span
-                      key={`${rating.title}-${rating.score}`}
-                      className="text-[10px] font-body text-ns-muted bg-white/5 border border-ns-border rounded-full px-2.5 py-0.5"
-                    >
-                      You rated <span className="text-ns-text">{rating.title}</span>{' '}
-                      <span className="text-ns-secondary-readable">{rating.score}/100</span>
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {rec.matchedFavorites.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-4">
-                  {rec.matchedFavorites.map(fav => (
-                    <span
-                      key={fav}
-                      className="text-[10px] font-body text-ns-muted bg-white/5 border border-ns-border rounded-full px-2.5 py-0.5"
-                    >
-                      Because you liked <span className="text-ns-text">{fav}</span>
-                    </span>
-                  ))}
-                </div>
-              )}
+            <div className="mt-4 flex max-w-sm items-center gap-3">
+              <GrowBar value={rec.matchScore / 100} className="flex-1" />
+              <span className="flex-shrink-0 text-sm font-semibold tabular-nums text-ns-text">{rec.matchScore}% match</span>
             </div>
 
-            {/* Actions */}
-            <div className="space-y-3">
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-ns-text">{rec.explanation}</p>
+
+            {(rec.matchedRatings.length > 0 || rec.matchedFavorites.length > 0) && (
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {rec.matchedRatings.map(rating => (
+                  <Badge key={`${rating.title}-${rating.score}`} size="md" className="max-w-full !whitespace-normal font-medium">
+                    You rated {rating.title} {rating.score}/100
+                  </Badge>
+                ))}
+                {rec.matchedFavorites.map(fav => (
+                  <Badge key={fav} size="md" className="max-w-full !whitespace-normal font-medium">
+                    Because you liked {fav}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-wrap items-center gap-2 sm:mt-auto sm:pt-6">
+              <Button href={`/movie/${rec.tmdbId}`}>View film</Button>
+              <button
+                type="button"
+                onClick={() => setShowWhy(true)}
+                aria-haspopup="dialog"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 text-sm font-semibold text-ns-text transition-colors duration-150 hover:bg-ns-surface-2"
+              >
+                Why this recommendation? <ArrowRightIcon size={14} />
+              </button>
+            </div>
+
+            <div className="mt-4 border-t border-ns-border pt-4">
               {sent ? (
-                <p className="text-sm font-body text-ns-secondary-readable flex items-center gap-1.5">
-                  <CheckIcon size={14} /> Thanks for your feedback!
+                <p className="flex animate-fade-up items-center gap-2 text-sm font-medium text-ns-success">
+                  <CheckIcon size={16} /> Thanks for your feedback!
                 </p>
               ) : (
-                <div className="flex flex-wrap gap-2">
-                  {ACTIONS.map(({ label, value, Icon, color }) => (
+                <div className="flex flex-wrap gap-1.5">
+                  {ACTIONS.map(({ label, value, Icon }) => (
                     <button
                       key={value}
+                      type="button"
                       onClick={() => handleFeedback(value)}
                       disabled={saving}
-                      className={`${color} text-white text-xs font-body px-3 py-1.5 rounded-full transition-colors flex items-center gap-1.5`}
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-ns-surface-2 px-3.5 text-sm font-medium text-ns-text transition-colors duration-150 hover:bg-ns-surface-3 disabled:cursor-not-allowed disabled:text-ns-subtle"
                     >
-                      <Icon size={12} />
+                      <Icon size={15} />
                       {label}
                     </button>
                   ))}
@@ -153,23 +117,16 @@ export default function NextFavoriteHero({ rec, onFeedback }: Props) {
               )}
 
               {saveError && (
-                <p className="text-xs font-body text-red-400">Couldn&apos;t save that yet. Please try again.</p>
+                <p role="alert" className="mt-2 text-sm text-ns-danger">Couldn&apos;t save that yet. Please try again.</p>
               )}
-
-              <button
-                onClick={() => setShowWhy(true)}
-                className="text-xs font-body text-ns-secondary-readable hover:text-amber-400 transition-colors underline underline-offset-2 flex items-center gap-1"
-              >
-                Why this recommendation? <ArrowRightIcon size={11} />
-              </button>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {showWhy && (
         <RecBreakdownModal rec={rec} onClose={() => setShowWhy(false)} />
       )}
-    </>
+    </div>
   )
 }

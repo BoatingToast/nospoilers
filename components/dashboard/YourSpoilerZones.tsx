@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import Link                from 'next/link'
 import SpoilerZoneCard     from './SpoilerZoneCard'
-import { SpoilerZoneIcon } from '@/components/icons'
+import Button              from '@/components/ui/Button'
+import EmptyState          from '@/components/ui/EmptyState'
+import { SectionLink }     from './SectionHeading'
 import { getSupabasePublicClient } from '@/lib/supabase-client'
 import type { SZMembership } from '@/types'
 
@@ -30,46 +31,13 @@ function sortMemberships(list: SZMembership[]): SZMembership[] {
 
 function CardSkeleton() {
   return (
-    <div className="rounded-2xl border border-ns-border/50 bg-ns-surface/40 overflow-hidden animate-pulse">
-      <div className="h-36 bg-ns-surface" />
-      <div className="p-4 space-y-3">
-        <div className="h-4 bg-ns-surface rounded w-3/4" />
-        <div className="h-3 bg-ns-surface rounded w-1/2" />
-        <div className="h-3 bg-ns-surface rounded w-1/3" />
-        <div className="h-8 bg-ns-surface rounded-xl mt-1" />
+    <div className="animate-pulse overflow-hidden rounded-2xl bg-ns-surface">
+      <div className="aspect-[16/9] bg-ns-surface-2" />
+      <div className="space-y-3 p-5">
+        <div className="h-4 w-3/4 rounded bg-ns-surface-2" />
+        <div className="h-3 w-1/2 rounded bg-ns-surface-2" />
+        <div className="mt-1 h-11 rounded-full bg-ns-surface-2" />
       </div>
-    </div>
-  )
-}
-
-// ── Empty state ───────────────────────────────────────────────────────────────
-
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="relative mb-6">
-        <div className="w-20 h-20 rounded-full bg-ns-surface border border-ns-border flex items-center justify-center">
-          <SpoilerZoneIcon size={36} className="text-ns-muted/30" />
-        </div>
-        <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-ns-secondary/10 border border-ns-secondary/20 flex items-center justify-center">
-          <span className="text-ns-secondary-readable text-xs font-bold">+</span>
-        </div>
-      </div>
-      <h3 className="font-body font-semibold text-ns-text mb-2">
-        You&apos;re not part of any Spoiler Zones yet
-      </h3>
-      <p className="text-sm font-body text-ns-muted/60 mb-6 max-w-xs leading-relaxed">
-        Join a Spoiler Zone from any movie page to discuss freely with other fans — spoilers welcome.
-      </p>
-      <Link
-        href="/spoiler-zones"
-        className="inline-flex items-center gap-2.5 px-6 py-3 rounded-xl font-body font-bold text-sm
-                   bg-ns-secondary text-ns-secondary-foreground hover:bg-amber-400 hover:text-ns-bg active:scale-[0.97]
-                   transition-all duration-200 shadow-lg shadow-ns-secondary/20"
-      >
-        <SpoilerZoneIcon size={16} strokeWidth={2.5} />
-        Browse Popular Discussions
-      </Link>
     </div>
   )
 }
@@ -187,106 +155,80 @@ export default function YourSpoilerZones() {
   const totalUnread  = memberships.reduce((sum, m) => sum + m.unreadCount, 0)
   const activeCount  = memberships.filter(m => m.isActive).length
 
+  const pinned = memberships.filter(m => m.pinned)
+  const unpinned = memberships.filter(m => !m.pinned)
+  const gridClasses = 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'
+
   return (
-    <section className="space-y-6">
-      {/* Section header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <SpoilerZoneIcon size={20} className="text-ns-secondary-readable" />
-            <h2 className="font-display text-xl tracking-widest text-ns-secondary-readable">YOUR SPOILER ZONES</h2>
+    <section aria-labelledby="your-spoiler-zones-title">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3">
+            <h2 id="your-spoiler-zones-title" className="font-display text-2xl text-ns-text sm:text-3xl">Your Spoiler Zones</h2>
             {totalUnread > 0 && (
-              <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5
-                               rounded-full bg-ns-secondary text-ns-secondary-foreground text-[10px] font-bold tabular-nums
-                               shadow-sm shadow-ns-secondary/30">
+              <span
+                key={totalUnread}
+                className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-ns-accent px-2 text-xs font-bold tabular-nums text-ns-secondary-foreground motion-safe:animate-fade-up"
+              >
                 {totalUnread > 99 ? '99+' : totalUnread}
               </span>
             )}
           </div>
-          <p className="text-ns-muted/60 text-sm font-body ml-8">Continue the conversation.</p>
+          <p className="mt-1.5 text-base text-ns-muted">Continue the conversation.</p>
         </div>
 
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex flex-wrap items-center gap-x-3">
           {activeCount > 0 && (
-            <div className="flex items-center gap-1.5">
+            <span className="flex items-center gap-2 text-sm text-ns-muted">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ns-secondary opacity-60" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-ns-secondary" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-ns-accent" />
               </span>
-              <span className="text-[11px] font-body text-ns-secondary-readable/80">
-                {activeCount} active
-              </span>
-            </div>
+              {activeCount} active
+            </span>
           )}
           {lastRefresh && (
-            <span className="text-[10px] font-body text-ns-muted/30 hidden sm:inline">
+            <span className="hidden text-sm tabular-nums text-ns-muted sm:inline">
               Updated {new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit' }).format(lastRefresh)}
             </span>
           )}
-          <Link
-            href="/spoiler-zones"
-            className="text-xs font-body text-ns-muted/60 hover:text-ns-secondary-readable transition-colors"
-          >
-            Browse all →
-          </Link>
+          <SectionLink href="/spoiler-zones">Browse all</SectionLink>
         </div>
       </div>
 
-      {/* Content */}
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}
+        <div aria-hidden="true" className={gridClasses}>
+          {Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)}
         </div>
       ) : memberships.length === 0 ? (
-        <EmptyState />
+        <EmptyState
+          title="You're not part of any Spoiler Zones yet"
+          description="Join a Spoiler Zone from any movie page to discuss freely with other fans — spoilers welcome."
+          action={<Button href="/spoiler-zones" variant="secondary" className="bg-ns-surface-2 hover:bg-ns-surface-3">Browse Popular Discussions</Button>}
+        />
       ) : (
-        <>
-          {/* Pinned row (if any) */}
-          {memberships.some(m => m.pinned) && (
-            <div className="space-y-2">
-              <p className="text-[10px] font-body text-ns-muted/40 tracking-widest uppercase ml-0.5">
-                Pinned
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {memberships
-                  .filter(m => m.pinned)
-                  .map(m => (
-                    <SpoilerZoneCard key={m.id} membership={m} onAction={handleAction} />
-                  ))}
+        <div className="space-y-6">
+          {pinned.length > 0 && (
+            <div>
+              <h3 className="mb-3 font-heading text-lg font-bold text-ns-text">Pinned</h3>
+              <div className={gridClasses}>
+                {pinned.map(m => (
+                  <SpoilerZoneCard key={m.id} membership={m} onAction={handleAction} />
+                ))}
               </div>
             </div>
           )}
 
-          {/* All zones grid */}
-          {memberships.some(m => !m.pinned) && (
-            <div className="space-y-2">
-              {memberships.some(m => m.pinned) && (
-                <p className="text-[10px] font-body text-ns-muted/40 tracking-widest uppercase ml-0.5">
-                  All Zones
-                </p>
-              )}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {memberships
-                  .filter(m => !m.pinned)
-                  .map(m => (
-                    <SpoilerZoneCard key={m.id} membership={m} onAction={handleAction} />
-                  ))}
+          {unpinned.length > 0 && (
+            <div>
+              {pinned.length > 0 && <h3 className="mb-3 font-heading text-lg font-bold text-ns-text">All Zones</h3>}
+              <div className={gridClasses}>
+                {unpinned.map(m => (
+                  <SpoilerZoneCard key={m.id} membership={m} onAction={handleAction} />
+                ))}
               </div>
             </div>
           )}
-
-          {/* Footer link */}
-          <div className="text-center pt-2">
-            <Link
-              href="/spoiler-zones"
-              className="inline-flex items-center gap-2 text-xs font-body text-ns-muted/50
-                         hover:text-ns-secondary-readable transition-colors"
-            >
-              <SpoilerZoneIcon size={12} />
-              Browse popular discussions
-            </Link>
-          </div>
-        </>
+        </div>
       )}
     </section>
   )

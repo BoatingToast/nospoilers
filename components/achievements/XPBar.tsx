@@ -1,39 +1,35 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Meter } from '@/components/watchlist/LibraryControls'
+import { cn } from '@/lib/utils'
 import type { XPLevel } from '@/types'
 
 interface Props {
   level: XPLevel
+  size?: 'md' | 'lg'
 }
 
-export default function XPBar({ level }: Props) {
-  const [progress, setProgress] = useState(0)
-
-  useEffect(() => {
-    const t = setTimeout(() => setProgress(level.progress), 100)
-    return () => clearTimeout(t)
-  }, [level.progress])
+export default function XPBar({ level, size = 'md' }: Props) {
+  const large = size === 'lg'
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="font-display text-xl tracking-wider text-ns-secondary-readable">LVL {level.level}</span>
-          <span className="text-ns-muted text-xs font-body">{level.title}</span>
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3">
+          <span className={cn('font-display tabular-nums text-ns-text', large ? 'text-4xl sm:text-5xl' : 'text-2xl')}>
+            Level {level.level}
+          </span>
+          <span className={cn('text-ns-muted', large ? 'text-lg' : 'text-sm')}>{level.title}</span>
         </div>
-        <span className="text-ns-muted/50 text-[10px] font-body">{level.totalXP} XP</span>
+        <span className={cn('font-semibold tabular-nums text-ns-text', large ? 'text-lg' : 'text-sm')}>
+          {level.totalXP} XP
+        </span>
       </div>
 
-      <div className="h-2 bg-ns-border rounded-full overflow-hidden">
-        <div
-          className="h-full bg-gradient-to-r from-ns-secondary to-amber-400 rounded-full transition-all duration-1000 ease-out"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+      <Meter value={level.progress / 100} className={large ? 'mt-2 h-3' : 'h-2'} />
 
       {level.progress < 100 && (
-        <p className="text-ns-muted/50 text-[10px] font-body">
+        <p className="text-sm tabular-nums text-ns-muted">
           {level.currentXP} / {level.maxXP - level.minXP} XP to Level {level.level + 1}
         </p>
       )}

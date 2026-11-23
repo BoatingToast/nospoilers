@@ -1,17 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { tmdbImageUrl } from '@/lib/utils'
+import PosterFill from '@/components/watchlist/PosterFill'
+import { cn } from '@/lib/utils'
 import { ratingColor } from '@/lib/theme'
-import ScoreDial from '@/components/ratings/ScoreDial'
-import type { MovieRatingData, RatingStats } from '@/types'
+import Button from '@/components/ui/Button'
+import EmptyState from '@/components/ui/EmptyState'
+import PageHeader from '@/components/ui/PageHeader'
+import { ArrowRightIcon } from '@/components/icons'
 import {
-  ReviewsIcon, FriendsIcon, FilmIcon, EmotionIcon,
-  ComplexityIcon, SuspenseIcon, RatingsIcon, ArrowRightIcon,
-  type IconProps,
-} from '@/components/icons'
+  FilterInput,
+  Meter,
+  PillTabs,
+  SortSelect,
+  ViewToggle,
+  posterGridClass,
+  posterZoomClass,
+  revealDelay,
+  useInView,
+  type LibraryView,
+} from '@/components/watchlist/LibraryControls'
+import type { MovieRatingData, RatingStats } from '@/types'
 
 interface Props {
   initialItems: MovieRatingData[]
@@ -26,6 +36,22 @@ const FILTER_LABELS: Record<FilterKey, string> = {
   all: 'All', loved: 'Loved (80+)', liked: 'Liked (60–79)',
   mixed: 'Mixed (40–59)', disliked: 'Disliked (<40)', perfect: '100s',
 }
+
+const FILTER_OPTIONS = (Object.keys(FILTER_LABELS) as FilterKey[]).map(value => ({ value, label: FILTER_LABELS[value] }))
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: 'date', label: 'Date rated' },
+  { value: 'score', label: 'Score' },
+]
+
+const DIMENSIONS = [
+  { key: 'storytelling', label: 'Storytelling' },
+  { key: 'characters', label: 'Characters' },
+  { key: 'entertainment', label: 'Entertainment' },
+  { key: 'emotion', label: 'Emotion' },
+  { key: 'complexity', label: 'Complexity' },
+  { key: 'suspense', label: 'Suspense' },
+] as const
 
 function matchFilter(score: number, filter: FilterKey): boolean {
   if (filter === 'all')      return true
@@ -52,208 +78,158 @@ const DIST_LABEL: Record<string, string> = {
 }
 
 export default function RatingsClient({ initialItems, total, stats }: Props) {
-  const [items,  setItems]  = useState(initialItems)
+  const [items]            = useState(initialItems)
   const [sort,   setSort]   = useState<SortKey>('date')
   const [filter, setFilter] = useState<FilterKey>('all')
-  const [view,   setView]   = useState<'grid' | 'list'>('grid')
+  const [view,   setView]   = useState<LibraryView>('grid')
+  const [query,  setQuery]  = useState('')
 
-  const sorted = [...items].sort((a, b) =>
-    sort === 'score'
-      ? b.score - a.score
-      : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
-  const filtered = sorted.filter(r => matchFilter(r.score, filter))
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase()
+    return [...items]
+      .sort((a, b) =>
+        sort === 'score'
+          ? b.score - a.score
+          : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .filter(r => matchFilter(r.score, filter))
+      .filter(r => !needle || r.title.toLowerCase().includes(needle))
+  }, [items, sort, filter, query])
 
+  const distribution = Object.entries(stats.distribution)
   const maxDist = Math.max(1, ...Object.values(stats.distribution))
+  const dimensions = DIMENSIONS.flatMap(dimension => {
+    const value = stats.averageSubRatings[dimension.key as keyof typeof stats.averageSubRatings]
+    return value === null ? [] : [{ ...dimension, value }]
+  })
+  const perfects = items.filter(r => r.score === 100)
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10">
+    <div className="mx-auto min-h-dvh max-w-7xl px-4 pb-20 pt-10 sm:px-6 lg:pt-16">
+      <PageHeader
+        className="mb-10"
+        title="My ratings."
+        description={`${total} ${total === 1 ? 'film' : 'films'} rated`}
+      />
 
-      {/* Page header */}
-      <div className="mb-8">
-        <p className="text-ns-secondary-readable text-[10px] tracking-widest uppercase font-body mb-1">Film Journal</p>
-        <h1 className="font-display text-5xl tracking-wider text-ns-text">MY RATINGS</h1>
-        <p className="text-ns-muted text-sm font-body mt-1">
-          {total} {total === 1 ? 'film' : 'films'} rated
-        </p>
-      </div>
+      {stats.totalRatings === 0 ? (
+        <EmptyState
+          title="No ratings yet"
+          description="Rate films you've seen to build your personal film journal and improve your recommendations."
+          action={<Button href="/discover">Discover films <ArrowRightIcon size={16} /></Button>}
+        />
+      ) : (
+        <>
+          <section aria-label="Rating summary" className={cn(
+            'mb-10 grid gap-10 rounded-3xl bg-ns-surface p-7 sm:p-10',
+            dimensions.length > 0
+              ? 'lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.1fr)_minmax(0,1.1fr)]'
+              : 'lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2.2fr)]',
+          )}>
+            <div>
+              <p className="font-display text-7xl tabular-nums text-ns-text sm:text-8xl">
+                {stats.averageScore.toFixed(1)}
+              </p>
+              <p className="mt-2 text-base text-ns-muted">Average score</p>
+              <dl className="mt-6 grid grid-cols-3 gap-4 lg:grid-cols-1 lg:gap-2">
+                <SummaryStat label="Films rated" value={stats.totalRatings} />
+                <SummaryStat label="Perfect 100s" value={stats.perfectScores} />
+                <SummaryStat label="Loved (80+)" value={stats.distribution['81-100']} />
+              </dl>
+            </div>
 
-      {/* Stats cards */}
-      {stats.totalRatings > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          <StatCard label="Films Rated"   value={stats.totalRatings.toString()} />
-          <StatCard label="Average Score" value={stats.averageScore.toFixed(1)} />
-          <StatCard label="Perfect 100s"  value={stats.perfectScores.toString()} gold={stats.perfectScores > 0} />
-          <StatCard label="Loved (80+)"   value={stats.distribution['81-100'].toString()} />
-        </div>
-      )}
-
-      {/* Distribution bar chart */}
-      {stats.totalRatings > 0 && (
-        <div className="bg-ns-surface border border-ns-border rounded-2xl p-5 mb-8">
-          <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-4">Score Distribution</p>
-          <div className="flex items-end gap-2 h-20">
-            {Object.entries(stats.distribution).map(([bucket, count]) => {
-              const pct    = (count / maxDist) * 100
-              const color  = bucket === '81-100' ? ratingColor(0.9)
-                           : bucket === '61-80'  ? ratingColor(0.7)
-                           : bucket === '41-60'  ? ratingColor(0.5)
-                           : bucket === '21-40'  ? ratingColor(0.3)
-                           : ratingColor(0.1)
-              return (
-                <div key={bucket} className="flex-1 flex flex-col items-center gap-1.5">
-                  <span className="text-ns-muted text-[10px] font-body">{count || ''}</span>
-                  <div className="w-full rounded-t-md transition-all duration-500" style={{
-                    height: `${Math.max(4, pct)}%`, background: color, opacity: count === 0 ? 0.15 : 1,
-                  }} />
-                  <span className="text-ns-muted/60 text-[9px] font-body text-center leading-tight">
-                    {DIST_LABEL[bucket]}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Average sub-ratings */}
-      {stats.totalRatings > 0 && Object.values(stats.averageSubRatings).some(v => v !== null) && (
-        <div className="bg-ns-surface border border-ns-border rounded-2xl p-5 mb-8">
-          <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-4">Average Dimensions</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3">
-            {([
-              { key: 'storytelling',  label: 'Storytelling',  Icon: ReviewsIcon   },
-              { key: 'characters',    label: 'Characters',    Icon: FriendsIcon   },
-              { key: 'entertainment', label: 'Entertainment', Icon: FilmIcon      },
-              { key: 'emotion',       label: 'Emotion',       Icon: EmotionIcon   },
-              { key: 'complexity',    label: 'Complexity',    Icon: ComplexityIcon},
-              { key: 'suspense',      label: 'Suspense',      Icon: SuspenseIcon  },
-            ] as { key: string; label: string; Icon: React.ComponentType<IconProps> }[]).map(({ key, label, Icon }) => {
-              const val = stats.averageSubRatings[key as keyof typeof stats.averageSubRatings]
-              if (val === null) return null
-              return (
-                <div key={key} className="flex items-center gap-2">
-                  <Icon size={14} className="text-ns-secondary-readable/70 flex-shrink-0" />
-                  <div className="flex-1">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-ns-muted text-[10px] font-body">{label}</span>
-                      <span className="text-ns-text text-[10px] font-body font-medium">{val}/10</span>
-                    </div>
-                    <div className="h-1 rounded-full bg-ns-bg overflow-hidden">
-                      <div className="h-full rounded-full bg-ns-secondary/70"
-                        style={{ width: `${val * 10}%` }} />
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Controls */}
-      {stats.totalRatings > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-          {/* Filter pills */}
-          <div className="flex flex-wrap gap-1.5">
-            {(Object.keys(FILTER_LABELS) as FilterKey[]).map(f => (
-              <button key={f} onClick={() => setFilter(f)}
-                className={`px-3 py-1 rounded-full text-xs font-body transition-all ${
-                  filter === f
-                    ? 'bg-ns-secondary text-ns-secondary-foreground'
-                    : 'bg-ns-surface border border-ns-border text-ns-muted hover:text-ns-text'
-                }`}>
-                {FILTER_LABELS[f]}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Sort */}
-            <select value={sort} onChange={e => setSort(e.target.value as SortKey)}
-              className="bg-ns-surface border border-ns-border rounded-lg px-3 py-1.5
-                         text-ns-muted text-xs font-body focus:outline-none">
-              <option value="date">Date rated</option>
-              <option value="score">Score</option>
-            </select>
-            {/* View toggle */}
-            <button onClick={() => setView(v => v === 'grid' ? 'list' : 'grid')}
-              className="p-1.5 rounded-lg bg-ns-surface border border-ns-border text-ns-muted
-                         hover:text-ns-text transition-colors">
-              {view === 'grid'
-                ? <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4a1 1 0 011-1h2a1 1 0 010 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 010 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 010 2H4a1 1 0 01-1-1z"/></svg>
-                : <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 8a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zm6-6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zm0 8a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-              }
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Empty state */}
-      {stats.totalRatings === 0 && (
-        <div className="text-center py-20">
-          <RatingsIcon size={52} className="text-ns-secondary-readable/40 mx-auto mb-4" />
-          <h2 className="font-display text-3xl tracking-wider text-ns-text mb-2">NO RATINGS YET</h2>
-          <p className="text-ns-muted font-body text-sm mb-6 max-w-xs mx-auto">
-            Rate films you've seen to build your personal film journal and improve your recommendations.
-          </p>
-          <Link href="/discover"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-ns-secondary
-                       text-ns-bg font-body font-semibold text-sm hover:bg-amber-400 transition-colors">
-            Discover Films <ArrowRightIcon size={14} />
-          </Link>
-        </div>
-      )}
-
-      {/* Rating grid / list */}
-      {filtered.length > 0 && (
-        view === 'grid' ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {filtered.map(r => <RatingCard key={r.id} rating={r} />)}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filtered.map(r => <RatingRow key={r.id} rating={r} />)}
-          </div>
-        )
-      )}
-
-      {filtered.length === 0 && stats.totalRatings > 0 && (
-        <div className="text-center py-12 text-ns-muted font-body text-sm">
-          No ratings match this filter.
-        </div>
-      )}
-
-      {/* Perfects shelf */}
-      {stats.perfectScores > 0 && (
-        <div className="mt-12">
-          <p className="text-ns-secondary-readable text-[10px] tracking-widest uppercase font-body mb-4">
-            Perfect 100 Films
-          </p>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
-            {items.filter(r => r.score === 100).map(r => (
-              <Link key={r.id} href={`/movie/${r.tmdbId}`}
-                className="flex-shrink-0 w-[90px] group">
-                <div className="relative aspect-[2/3] rounded-lg overflow-hidden border-2 border-ns-secondary/50
-                                group-hover:border-ns-secondary transition-colors mb-1.5
-                                shadow-[0_0_20px_rgb(var(--ns-secondary)/0.3)]">
-                  <Image
-                    src={tmdbImageUrl(r.posterPath, 'w185')} alt={r.title}
-                    fill className="object-cover" sizes="90px"
+            <div>
+              <h2 className="font-heading text-lg font-bold text-ns-text">Score distribution</h2>
+              <div className="mt-5 flex items-end gap-2 sm:gap-3">
+                {distribution.map(([bucket, count], index) => (
+                  <DistributionBar
+                    key={bucket}
+                    label={DIST_LABEL[bucket]}
+                    count={count}
+                    fraction={count / maxDist}
+                    peak={count === maxDist && count > 0}
+                    index={index}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent" />
-                  <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2
-                                   text-ns-secondary-readable font-display text-lg tracking-wider">
-                    100
-                  </span>
-                </div>
-                <p className="text-ns-text text-[10px] font-body text-center leading-tight truncate">
-                  {r.title}
-                </p>
-              </Link>
-            ))}
+                ))}
+              </div>
+            </div>
+
+            {dimensions.length > 0 && (
+              <div>
+                <h2 className="font-heading text-lg font-bold text-ns-text">Average dimensions</h2>
+                <dl className="mt-5 space-y-3">
+                  {dimensions.map(({ key, label, value }) => (
+                    <div key={key}>
+                      <div className="mb-1.5 flex items-baseline justify-between gap-3 text-sm">
+                        <dt className="text-ns-muted">{label}</dt>
+                        <dd className="font-semibold tabular-nums text-ns-text">{value}/10</dd>
+                      </div>
+                      <Meter value={value / 10} />
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
+          </section>
+
+          {perfects.length > 0 && (
+            <section className="ns-reveal mb-10">
+              <h2 className="font-heading text-2xl font-bold text-ns-text">Perfect 100 films</h2>
+              <div className="-mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide sm:-mx-6 sm:px-6">
+                {perfects.map(r => (
+                  <Link key={r.id} href={`/movie/${r.tmdbId}`} className="group w-28 flex-shrink-0 sm:w-32">
+                    <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface">
+                      <PosterFill path={r.posterPath} size="w185" className={posterZoomClass} sizes="128px" />
+                      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent" />
+                      <span className="absolute bottom-2 left-2.5 font-display text-2xl tabular-nums text-white">100</span>
+                    </div>
+                    <p className="mt-2 truncate text-sm font-semibold text-ns-text transition-colors duration-150 group-hover:text-ns-secondary-readable">
+                      {r.title}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <div className="mb-6 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <PillTabs label="Filter by score" options={FILTER_OPTIONS} value={filter} onChange={setFilter} />
+            <div className="flex flex-wrap items-center gap-2">
+              <FilterInput
+                label="Filter ratings by title"
+                placeholder="Filter by title"
+                value={query}
+                onChange={setQuery}
+                className="min-w-0 flex-1 basis-full sm:basis-56"
+              />
+              <SortSelect label="Sort ratings" value={sort} options={SORT_OPTIONS} onChange={setSort} className="min-w-0 flex-1 sm:flex-none" />
+              <ViewToggle value={view} onChange={setView} />
+            </div>
           </div>
-        </div>
+
+          {filtered.length === 0 ? (
+            <EmptyState
+              title="No ratings match this filter."
+              description="Try a different score range or title."
+              action={<Button variant="secondary" onClick={() => { setFilter('all'); setQuery('') }}>Clear filters</Button>}
+            />
+          ) : view === 'grid' ? (
+            <div key={`${filter}-${sort}`} className={cn(posterGridClass, 'animate-fade-up')}>
+              {filtered.map((r, index) => (
+                <div key={r.id} className={index > 5 ? 'ns-reveal' : undefined} style={index > 5 ? revealDelay(index) : undefined}>
+                  <RatingCard rating={r} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ul key={`${filter}-${sort}-list`} className="animate-fade-up divide-y divide-ns-border rounded-2xl bg-ns-surface px-3 sm:px-5">
+              {filtered.map((r, index) => (
+                <li key={r.id} className={index > 7 ? 'ns-reveal' : undefined} style={index > 7 ? revealDelay(index) : undefined}>
+                  <RatingRow rating={r} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </div>
   )
@@ -261,47 +237,77 @@ export default function RatingsClient({ initialItems, total, stats }: Props) {
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
-function StatCard({ label, value, gold = false }: { label: string; value: string; gold?: boolean }) {
+function SummaryStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-xl p-4 text-center">
-      <p className={`font-display text-3xl tracking-wider ${gold ? 'text-ns-secondary-readable' : 'text-ns-text'}`}>
-        {value}
-      </p>
-      <p className="text-ns-muted text-xs font-body mt-0.5">{label}</p>
+    <div className="flex flex-col-reverse gap-0.5 lg:flex-row lg:items-baseline lg:justify-between lg:gap-3">
+      <dt className="text-sm text-ns-muted">{label}</dt>
+      <dd className="font-heading text-xl font-bold tabular-nums text-ns-text">{value}</dd>
+    </div>
+  )
+}
+
+function DistributionBar({ label, count, fraction, peak, index }: {
+  label:    string
+  count:    number
+  fraction: number
+  peak:     boolean
+  index:    number
+}) {
+  const [ref, inView] = useInView<HTMLDivElement>()
+
+  return (
+    <div className="flex min-w-0 flex-1 flex-col items-center gap-2">
+      <span className="text-sm font-semibold tabular-nums text-ns-text">{count}</span>
+      <div ref={ref} aria-hidden="true" className="relative h-32 w-full overflow-hidden rounded-lg bg-ns-surface-2">
+        <div
+          data-in={inView ? 'true' : undefined}
+          style={{ '--bar': fraction, transitionDelay: `${index * 60}ms` } as CSSProperties}
+          className={cn(
+            'absolute inset-0 rounded-lg transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]',
+            '[transform:translateY(calc((1-var(--bar))*100%))]',
+            '[html[data-motion=on]_&:not([data-in=true])]:[transform:translateY(100%)]',
+            peak ? 'bg-ns-secondary' : 'bg-ns-surface-3',
+          )}
+        />
+      </div>
+      <span className="w-full truncate text-center text-xs text-ns-muted">{label}</span>
     </div>
   )
 }
 
 function RatingCard({ rating }: { rating: MovieRatingData }) {
-  const color = ratingColor(rating.score / 100)
   return (
-    <Link href={`/movie/${rating.tmdbId}`} className="group block">
-      <div className="relative aspect-[2/3] rounded-xl overflow-hidden border border-ns-border
-                      group-hover:border-ns-secondary/30 transition-colors mb-2">
-        <Image
-          src={tmdbImageUrl(rating.posterPath, 'w342')} alt={rating.title}
-          fill className="object-cover group-hover:scale-105 transition-transform duration-300"
-          sizes="(max-width: 640px) 50vw, 200px"
+    <Link href={`/movie/${rating.tmdbId}`} className="group block min-w-0">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface ring-1 ring-inset ring-white/5">
+        <PosterFill
+          path={rating.posterPath}
+          size="w342"
+          className={posterZoomClass}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-
-        {/* Score badge */}
-        <div className="absolute bottom-2 left-2 flex items-baseline gap-0.5">
-          <span className="font-display text-2xl tracking-wider" style={{ color }}>
-            {rating.score}
-          </span>
-          <span className="text-white/40 text-[10px] font-body">/100</span>
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 to-transparent" />
+        <div className="absolute inset-x-2.5 bottom-2.5">
+          <p className="flex items-baseline gap-1 text-white">
+            <span className="font-display text-3xl tabular-nums">{rating.score}</span>
+            <span className="text-xs">/100</span>
+          </p>
+          <Meter
+            value={rating.score / 100}
+            className="mt-1.5 h-1 bg-white/20"
+            fillClassName=""
+            fillStyle={{ background: ratingColor(rating.score / 100) }}
+          />
         </div>
-
-        {/* Dimension-rating indicator dot */}
         {(rating.storytelling !== null || rating.characters !== null) && (
-          <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-ns-secondary/80"
-            title="Includes dimension ratings" />
+          <span title="Includes dimension ratings" className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-ns-accent">
+            <span className="sr-only">Includes dimension ratings</span>
+          </span>
         )}
       </div>
-      <p className="text-ns-text text-xs font-body font-medium leading-tight line-clamp-2">
+      <p className="mt-2.5 truncate font-heading text-base font-semibold text-ns-text transition-colors duration-150 group-hover:text-ns-secondary-readable">
         {rating.title}
       </p>
+      <p className="mt-0.5 truncate text-sm text-ns-muted">{scoreLabel(rating.score)}</p>
     </Link>
   )
 }
@@ -311,42 +317,27 @@ function RatingRow({ rating }: { rating: MovieRatingData }) {
   const date  = new Date(rating.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   return (
-    <Link href={`/movie/${rating.tmdbId}`}
-      className="flex items-center gap-4 p-3 rounded-xl bg-ns-surface border border-ns-border
-                 hover:border-ns-secondary/30 transition-colors group">
-      {/* Poster */}
-      <div className="flex-shrink-0 relative w-10 h-14 rounded-lg overflow-hidden border border-ns-border">
-        <Image src={tmdbImageUrl(rating.posterPath, 'w185')} alt={rating.title}
-          fill className="object-cover" sizes="40px" />
+    <Link href={`/movie/${rating.tmdbId}`} className="group flex items-center gap-4 py-3">
+      <div className="relative aspect-[2/3] w-12 flex-shrink-0 overflow-hidden rounded-lg bg-ns-surface-2 sm:w-14">
+        <PosterFill path={rating.posterPath} size="w185" className={posterZoomClass} sizes="56px" />
       </div>
 
-      {/* Title + meta */}
-      <div className="flex-1 min-w-0">
-        <p className="text-ns-text text-sm font-body font-medium truncate group-hover:text-ns-secondary-readable
-                      transition-colors">
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-heading text-base font-semibold text-ns-text transition-colors duration-150 group-hover:text-ns-secondary-readable">
           {rating.title}
         </p>
-        <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-ns-muted/50 text-[10px] font-body">{date}</span>
-          <span className="text-ns-muted/30 text-[10px]">·</span>
-          <span className="text-[10px] font-body" style={{ color }}>
-            {scoreLabel(rating.score)}
-          </span>
-        </div>
+        <p className="mt-0.5 truncate text-sm text-ns-muted">
+          {date} · <span style={{ color }}>{scoreLabel(rating.score)}</span>
+        </p>
         {rating.review && (
-          <p className="text-ns-muted/70 text-[11px] font-body mt-1 line-clamp-1 italic">
-            "{rating.review}"
-          </p>
+          <p className="mt-1 line-clamp-1 text-sm italic text-ns-muted">&ldquo;{rating.review}&rdquo;</p>
         )}
       </div>
 
-      {/* Score */}
-      <div className="flex-shrink-0 text-right">
-        <span className="font-display text-2xl tracking-wider" style={{ color }}>
-          {rating.score}
-        </span>
-        <span className="text-ns-muted/40 text-[10px] font-body block">/100</span>
-      </div>
+      <p className="flex flex-shrink-0 items-baseline gap-0.5">
+        <span className="font-display text-3xl tabular-nums" style={{ color }}>{rating.score}</span>
+        <span className="text-xs text-ns-muted">/100</span>
+      </p>
     </Link>
   )
 }

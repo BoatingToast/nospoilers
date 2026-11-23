@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { PopularIcon, FriendsIcon, LockIcon, CheckIcon, type IconProps } from '@/components/icons'
+import Button from '@/components/ui/Button'
+import { SavedNote, Segmented } from './FormControls'
 
 type Visibility = 'public' | 'friends' | 'private'
 
@@ -13,16 +14,16 @@ interface PrivacyState {
 }
 
 const FIELDS: { key: keyof PrivacyState; label: string; description: string }[] = [
-  { key: 'ratings',     label: 'Ratings',      description: 'Who can see the movies you\'ve rated and your scores' },
-  { key: 'watchlist',   label: 'Watchlist',     description: 'Who can see the films on your current watchlist' },
-  { key: 'collections', label: 'Collections',   description: 'Who can browse your curated collections' },
-  { key: 'activity',    label: 'Activity Feed', description: 'Who can see your activity in their friends feed' },
+  { key: 'ratings', label: 'Ratings', description: 'Who can see the movies you\'ve rated and your scores' },
+  { key: 'watchlist', label: 'Watchlist', description: 'Who can see the films on your current watchlist' },
+  { key: 'collections', label: 'Collections', description: 'Who can browse your curated collections' },
+  { key: 'activity', label: 'Activity feed', description: 'Who can see your activity in their friends feed' },
 ]
 
-const OPTIONS: { value: Visibility; label: string; Icon: React.ComponentType<IconProps> }[] = [
-  { value: 'public',  label: 'Public',       Icon: PopularIcon  },
-  { value: 'friends', label: 'Friends Only', Icon: FriendsIcon  },
-  { value: 'private', label: 'Private',      Icon: LockIcon     },
+const OPTIONS: { value: Visibility; label: string }[] = [
+  { value: 'public', label: 'Public' },
+  { value: 'friends', label: 'Friends only' },
+  { value: 'private', label: 'Private' },
 ]
 
 export default function PrivacySettings() {
@@ -32,6 +33,7 @@ export default function PrivacySettings() {
   const [loading, setLoading] = useState(true)
   const [saving,  setSaving]  = useState(false)
   const [saved,   setSaved]   = useState(false)
+  const [saveError, setSaveError] = useState(false)
 
   useEffect(() => {
     fetch('/api/settings/privacy')
@@ -44,14 +46,18 @@ export default function PrivacySettings() {
   async function save() {
     setSaving(true)
     setSaved(false)
+    setSaveError(false)
     try {
-      await fetch('/api/settings/privacy', {
+      const response = await fetch('/api/settings/privacy', {
         method:  'PUT',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(settings),
       })
+      if (!response.ok) throw new Error('Privacy settings were not saved')
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
+    } catch {
+      setSaveError(true)
     } finally {
       setSaving(false)
     }
@@ -59,56 +65,51 @@ export default function PrivacySettings() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="divide-y divide-ns-border rounded-2xl bg-ns-surface px-6 sm:px-8">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="animate-pulse bg-ns-surface border border-ns-border rounded-2xl p-5 h-24" />
+          <div key={i} className="flex animate-pulse flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1 space-y-2">
+              <div className="h-4 w-1/4 rounded-sm bg-ns-surface-2" />
+              <div className="h-3.5 w-3/5 rounded-sm bg-ns-surface-2" />
+            </div>
+            <div className="h-12 w-full rounded-full bg-ns-surface-2 sm:w-72" />
+          </div>
         ))}
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
-      {FIELDS.map(field => (
-        <div key={field.key} className="bg-ns-surface border border-ns-border rounded-2xl p-5">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <p className="text-sm font-body text-white font-medium mb-0.5">{field.label}</p>
-              <p className="text-xs font-body text-ns-muted">{field.description}</p>
+    <div>
+      <div className="divide-y divide-ns-border rounded-2xl bg-ns-surface px-6 sm:px-8">
+        {FIELDS.map(field => (
+          <div key={field.key} className="flex flex-col gap-3 py-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+            <div className="min-w-0">
+              <h2 className="font-heading text-lg font-bold text-ns-text">{field.label}</h2>
+              <p className="mt-0.5 text-sm text-ns-muted">{field.description}</p>
             </div>
-            <div className="flex gap-2">
-              {OPTIONS.map(({ value, label, Icon }) => (
-                <button
-                  key={value}
-                  onClick={() => setSettings(s => ({ ...s, [field.key]: value }))}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-body border transition-colors
-                    ${settings[field.key] === value
-                      ? 'bg-ns-secondary/10 border-ns-secondary/40 text-ns-secondary-readable'
-                      : 'border-ns-border text-ns-muted hover:text-ns-text hover:border-ns-muted/40'
-                    }`}
-                >
-                  <Icon size={12} />
-                  {label}
-                </button>
-              ))}
+            <div className="flex-shrink-0">
+              <Segmented
+                label={`${field.label} visibility`}
+                value={settings[field.key]}
+                options={OPTIONS}
+                onChange={value => setSettings(s => ({ ...s, [field.key]: value }))}
+              />
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
-      <div className="flex items-center justify-end gap-4 pt-2">
-        {saved && (
-          <span className="text-emerald-400 text-sm font-body flex items-center gap-1">
-            <CheckIcon size={14} /> Saved
-          </span>
+      <div className="mt-6 flex flex-wrap items-center justify-end gap-4">
+        {saveError && (
+          <p role="alert" className="text-sm font-medium text-ns-danger">
+            Your privacy settings were not saved. Try again.
+          </p>
         )}
-        <button
-          onClick={save}
-          disabled={saving}
-          className="px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors disabled:opacity-50"
-        >
-          {saving ? 'Saving…' : 'Save Privacy Settings'}
-        </button>
+        <SavedNote show={saved} />
+        <Button onClick={save} loading={saving}>
+          {saving ? 'Saving…' : 'Save privacy settings'}
+        </Button>
       </div>
     </div>
   )

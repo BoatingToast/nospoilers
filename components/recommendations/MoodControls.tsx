@@ -35,49 +35,54 @@ export default function MoodControls({ onApply, loading }: {
   }
 
   return (
-    <div className="rounded-2xl border border-ns-secondary/20 bg-ns-secondary/5 p-5">
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h2 className="text-sm font-heading text-white">What are you in the mood for tonight?</h2>
-          <p className="mt-0.5 text-xs font-body text-ns-muted">Temporary choices—your permanent Movie DNA stays unchanged.</p>
+    <section aria-labelledby="mood-controls-title" className="rounded-3xl bg-ns-surface p-6 sm:p-8">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 id="mood-controls-title" className="font-heading text-2xl font-bold text-ns-text">
+            What are you in the mood for tonight?
+          </h2>
+          <p className="mt-1 text-sm text-ns-muted">Temporary choices. Your permanent Movie DNA stays unchanged.</p>
         </div>
-        <button type="button" onClick={reset} className="text-left text-[10px] font-body text-ns-muted hover:text-white sm:text-right">
+        <Button variant="ghost" size="sm" onClick={reset} className="flex-shrink-0 hover:!bg-ns-surface-2">
           Reset
-        </button>
-      </div>
-
-      <div className="mt-4 grid gap-4 sm:grid-cols-3">
-        {CONTROLS.map(control => (
-          <label key={control.key} className="block">
-            <span className="flex items-center justify-between gap-2 text-xs font-body">
-              <span className="text-ns-text">{control.label}</span>
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-ns-secondary-readable">
-                {moodLabel(mood[control.key], control.left, control.right)}
-              </span>
-            </span>
-            <input
-              type="range"
-              min={1}
-              max={10}
-              value={mood[control.key]}
-              onChange={event => setMood(previous => ({
-                ...previous,
-                [control.key]: Number(event.target.value),
-              }))}
-              className="mt-2 w-full cursor-pointer accent-ns-secondary"
-            />
-            <span className="mt-1 flex justify-between text-[9px] font-body text-ns-muted">
-              <span>{control.left}</span><span>{control.right}</span>
-            </span>
-          </label>
-        ))}
-      </div>
-
-      <div className="mt-4 flex justify-end">
-        <Button variant="secondary" size="sm" onClick={() => onApply(mood)} loading={loading}>
-          Tune My Picks
         </Button>
       </div>
-    </div>
+
+      <div className="mt-6 grid gap-6 sm:grid-cols-3">
+        {CONTROLS.map(control => {
+          const current = moodLabel(mood[control.key], control.left, control.right)
+          return (
+            <label key={control.key} className="block min-w-0">
+              <span className="flex items-baseline justify-between gap-2">
+                <span className="text-sm font-semibold text-ns-text">{control.label}</span>
+                <span key={current} className="inline-block animate-fade-up truncate text-sm font-medium text-ns-secondary-readable">
+                  {current}
+                </span>
+              </span>
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={mood[control.key]}
+                onChange={event => setMood(previous => ({
+                  ...previous,
+                  [control.key]: Number(event.target.value),
+                }))}
+                className="mt-1 h-11 w-full cursor-pointer accent-ns-secondary"
+              />
+              <span className="flex justify-between text-xs text-ns-muted">
+                <span>{control.left}</span><span>{control.right}</span>
+              </span>
+            </label>
+          )
+        })}
+      </div>
+
+      <div className="mt-5 flex justify-end">
+        <Button variant="secondary" onClick={() => onApply(mood)} loading={loading} className="w-full !bg-ns-surface-2 hover:!bg-ns-surface-3 sm:w-auto">
+          Tune my picks
+        </Button>
+      </div>
+    </section>
   )
 }

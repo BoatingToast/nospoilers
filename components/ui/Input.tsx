@@ -24,7 +24,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={id} className="text-sm text-ns-muted font-body">
+          <label htmlFor={id} className="font-body text-sm font-semibold text-ns-text">
             {label}
           </label>
         )}
@@ -35,11 +35,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             aria-describedby={describedBy}
             aria-invalid={error ? true : ariaInvalid}
             className={cn(
-              'w-full px-4 py-3 bg-ns-surface border rounded-xl text-ns-text placeholder:text-ns-muted/50',
-              'focus:outline-none focus:ring-2 focus:ring-ns-secondary/30 focus:border-ns-secondary/50',
-              'transition-colors duration-200 font-body text-sm',
+              'min-h-12 w-full rounded-xl border bg-ns-bg px-4 py-2 font-body text-base text-ns-text',
+              'placeholder:text-ns-subtle transition-colors duration-150',
+              'focus:border-ns-text focus:outline-none focus:ring-1 focus:ring-ns-text',
               Boolean(endAdornment) && 'pr-12',
-              error ? 'border-ns-danger/50' : 'border-ns-border',
+              error ? 'border-ns-danger' : 'border-ns-border-strong',
               className
             )}
             {...props}
@@ -50,7 +50,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
         </div>
-        {error && <p id={errorId} className="text-xs text-ns-danger font-body">{error}</p>}
+        {error && <p id={errorId} className="font-body text-sm text-ns-danger">{error}</p>}
       </div>
     )
   }

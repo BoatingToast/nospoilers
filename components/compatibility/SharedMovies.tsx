@@ -8,28 +8,33 @@ interface Props {
 
 export default function SharedMovies({ movies }: Props) {
   return (
-    <div className="mt-8 bg-ns-surface border border-ns-border rounded-2xl p-6">
-      <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">
-        Movies You Both Love ({movies.length})
-      </p>
-      <div className="flex gap-3 flex-wrap">
-        {movies.map(movie => (
-          <Link key={movie.tmdbId} href={`/movie/${movie.tmdbId}`} className="group flex-shrink-0">
-            <div className="relative w-14 h-20 rounded-lg overflow-hidden bg-ns-border">
+    <section className="mt-12">
+      <h2 className="ns-reveal font-display text-2xl text-ns-text sm:text-3xl">
+        Movies you both love <span className="ml-1 font-body text-lg font-medium tabular-nums text-ns-muted">{movies.length}</span>
+      </h2>
+      <div className="mt-4 grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-4 md:grid-cols-6">
+        {movies.map((movie, index) => (
+          <Link
+            key={movie.tmdbId}
+            href={`/movie/${movie.tmdbId}`}
+            className="ns-reveal group block min-w-0 rounded-xl"
+            style={{ '--i': Math.min(index, 7) } as React.CSSProperties}
+          >
+            <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface">
               <Image
-                src={tmdbImageUrl(movie.posterPath, 'w185')}
-                alt={movie.title}
+                src={tmdbImageUrl(movie.posterPath, 'w342')}
+                alt=""
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                sizes="56px"
+                className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04] motion-reduce:transform-none"
+                sizes="(min-width: 768px) 150px, (min-width: 640px) 24vw, 30vw"
               />
             </div>
-            <p className="text-ns-muted text-[10px] font-body mt-1 max-w-[56px] truncate text-center leading-tight group-hover:text-ns-text transition-colors">
+            <p className="mt-2 truncate text-sm font-semibold text-ns-text transition-colors group-hover:text-ns-secondary-readable">
               {movie.title}
             </p>
           </Link>
         ))}
       </div>
-    </div>
+    </section>
   )
 }

@@ -62,7 +62,8 @@ function EditOverlay({ px }: { px: number }) {
   const iconSize = Math.max(12, Math.round(px * 0.3))
   return (
     <div className="absolute inset-0 rounded-full bg-black/55 flex flex-col items-center justify-center
-                    opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer">
+                    opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-150 cursor-pointer
+                    [@media(hover:none)]:bg-black/30 [@media(hover:none)]:opacity-100">
       {/* Camera icon */}
       <svg
         width={iconSize}
@@ -79,7 +80,7 @@ function EditOverlay({ px }: { px: number }) {
         <circle cx="12" cy="13" r="4"/>
       </svg>
       {px >= 64 && (
-        <span className="text-white text-[9px] font-body mt-1 tracking-wide">Change</span>
+        <span className="text-ns-text text-xs font-body mt-1 ">Change</span>
       )}
     </div>
   )

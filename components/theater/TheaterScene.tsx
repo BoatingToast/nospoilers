@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type * as Three from 'three'
 import { seatPosition, type TheaterParticipant } from '@/lib/theater'
+import { sceneFont, scenePalette } from './scene-palette'
 
 export interface TheaterSceneProps {
   capacity?: number
@@ -40,6 +41,8 @@ export default function TheaterScene({ capacity = 48, participants = NO_PARTICIP
     async function initialize() {
       const THREE = await import('three')
       const { RoundedBoxGeometry } = await import('three/addons/geometries/RoundedBoxGeometry.js')
+      const palette = scenePalette()
+      const displayFont = await sceneFont()
       if (disposed || !mount) return
       let renderer: Three.WebGLRenderer
       try {
@@ -63,8 +66,8 @@ export default function TheaterScene({ capacity = 48, participants = NO_PARTICIP
       mount.appendChild(canvas)
 
       const scene = new THREE.Scene()
-      scene.background = new THREE.Color('#06060c')
-      scene.fog = new THREE.FogExp2('#06060c', 0.013)
+      scene.background = new THREE.Color(palette.bg)
+      scene.fog = new THREE.FogExp2(palette.bg, 0.013)
       const camera = new THREE.PerspectiveCamera(68, 1, 0.1, 120)
       const rows = capacity / 8
       const depth = rows * 1.65 + 4
@@ -75,13 +78,13 @@ export default function TheaterScene({ capacity = 48, participants = NO_PARTICIP
       const material = <T extends Three.Material>(item: T) => { materials.add(item); return item }
       const standard = (color: string, roughness = 0.8) => material(new THREE.MeshStandardMaterial({ color, roughness }))
       const glow = (color: string, intensity = 1) => material(new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: intensity }))
-      const carpet = standard('#10111d')
-      const wall = standard('#161422')
-      const velvet = standard('#452638', 0.94)
-      const seatSide = standard('#241d2f')
-      const brass = material(new THREE.MeshStandardMaterial({ color: '#9f8153', metalness: 0.8, roughness: 0.3 }))
-      const aisleGlow = glow('#dc9a5d', 1.8)
-      const violetGlow = glow('#7452c9', 1.3)
+      const carpet = standard(palette.surface)
+      const wall = standard(palette.surface2)
+      const velvet = standard(palette.velvet, 0.94)
+      const seatSide = standard(palette.surface3)
+      const trim = material(new THREE.MeshStandardMaterial({ color: palette.subtle, metalness: 0.8, roughness: 0.3 }))
+      const aisleGlow = glow(palette.coral, 1.8)
+      const wallLight = glow(palette.warmLight, 0.25)
       const boxGeometry = geometry(new THREE.BoxGeometry(1, 1, 1))
       const chairGeometry = geometry(new RoundedBoxGeometry(1, 1, 1, 3, 0.12))
 
@@ -93,11 +96,11 @@ export default function TheaterScene({ capacity = 48, participants = NO_PARTICIP
         return mesh
       }
 
-      scene.add(new THREE.HemisphereLight('#b4a6da', '#15101d', 1.15))
-      const screenLight = new THREE.PointLight('#d2ddff', 160, 32, 2)
+      scene.add(new THREE.HemisphereLight(palette.text, palette.bg, 1.7))
+      const screenLight = new THREE.PointLight(palette.text, 160, 32, 2)
       screenLight.position.set(0, 6, -7.5)
       scene.add(screenLight)
-      const fill = new THREE.DirectionalLight('#dbb4fc', 0.9)
+      const fill = new THREE.DirectionalLight(palette.warmLight, 0.9)
       fill.position.set(1, 9, 5)
       scene.add(fill)
       box(19, 0.3, depth + 14, 0, -0.25, (depth - 14) / 2, carpet)
@@ -109,11 +112,11 @@ export default function TheaterScene({ capacity = 48, participants = NO_PARTICIP
         box(0.4, 11, depth + 14, -9.3, 5.25, (depth - 14) / 2, wall)
         box(0.4, 11, depth + 14, 9.3, 5.25, (depth - 14) / 2, wall)
         box(19, 11, 0.4, 0, 5.25, depth, wall)
-        box(19, 0.3, depth + 14, 0, 10.6, (depth - 14) / 2, standard('#080912'))
+        box(19, 0.3, depth + 14, 0, 10.6, (depth - 14) / 2, standard(palette.bg))
         for (let z = -7; z < depth; z += 3) {
           for (const x of [-9.06, 9.06]) {
-            box(0.06, 5.2, 1.8, x, 4.4, z, standard('#252030'))
-            box(0.08, 3.8, 0.025, x + (x < 0 ? 0.05 : -0.05), 4.4, z - 0.9, violetGlow)
+            box(0.06, 5.2, 1.8, x, 4.4, z, standard(palette.surface3))
+            box(0.08, 3.8, 0.025, x + (x < 0 ? 0.05 : -0.05), 4.4, z - 0.9, wallLight)
           }
         }
         // Ceiling ribs and warm practical lights give the room a physical scale.
@@ -124,36 +127,27 @@ export default function TheaterScene({ capacity = 48, participants = NO_PARTICIP
       }
 
       // Fluted curtains frame a true 16:9 projection surface.
-      const curtain = standard('#3b1d33')
+      const curtain = standard(palette.curtain)
       for (const side of [-1, 1]) {
         for (let i = 0; i < 9; i++) box(0.21, 9.5, 0.25 + (i % 2) * 0.13, side * (7.35 + i * 0.22), 4.8, -10.65, curtain)
       }
-      box(14.9, 8.5, 0.24, 0, 5.25, -10.75, standard('#050508'))
-      box(15, 0.035, 0.28, 0, 9.53, -10.7, brass)
+      box(14.9, 8.5, 0.24, 0, 5.25, -10.75, standard(palette.bg))
+      box(15, 0.035, 0.28, 0, 9.53, -10.7, trim)
       const projection = document.createElement('canvas')
       projection.width = 1600
       projection.height = 900
       const ctx = projection.getContext('2d')!
-      const gradient = ctx.createRadialGradient(800, 420, 10, 800, 420, 940)
-      gradient.addColorStop(0, '#353044')
-      gradient.addColorStop(0.5, '#17151f')
-      gradient.addColorStop(1, '#090a10')
-      ctx.fillStyle = gradient
+      ctx.fillStyle = palette.surface
       ctx.fillRect(0, 0, 1600, 900)
-      ctx.strokeStyle = '#ba9c69'
-      ctx.lineWidth = 2
-      ctx.strokeRect(690, 200, 220, 130)
-      ctx.beginPath(); ctx.moveTo(780, 232); ctx.lineTo(840, 265); ctx.lineTo(780, 298); ctx.closePath(); ctx.stroke()
+      ctx.fillStyle = palette.coral
+      ctx.beginPath(); ctx.moveTo(765, 212); ctx.lineTo(850, 262); ctx.lineTo(765, 312); ctx.closePath(); ctx.fill()
       ctx.textAlign = 'center'
-      ctx.fillStyle = '#d6c4a4'
-      ctx.font = '24px sans-serif'
-      ctx.fillText('N O S P O I L E R S   P R O', 800, 411)
-      ctx.fillStyle = '#f9f3e8'
-      ctx.font = '100px Georgia, serif'
-      ctx.fillText('Theater', 800, 533)
-      ctx.fillStyle = '#a5a0b0'
-      ctx.font = '25px sans-serif'
-      ctx.fillText('Small filmmakers. A big-screen moment.', 800, 608)
+      ctx.fillStyle = palette.text
+      ctx.font = `700 120px ${displayFont}`
+      ctx.fillText('Theater', 800, 500)
+      ctx.fillStyle = palette.muted
+      ctx.font = `500 34px ${displayFont}`
+      ctx.fillText('Small filmmakers. A big-screen moment.', 800, 580)
       const idleTexture = new THREE.CanvasTexture(projection)
       idleTexture.colorSpace = THREE.SRGBColorSpace
       textures.add(idleTexture)
@@ -198,6 +192,7 @@ export default function TheaterScene({ capacity = 48, participants = NO_PARTICIP
         }
       }
 
+      const cameraSeat = mySeat ?? Math.min(capacity - 1, Math.floor(rows / 2) * 8 + 3)
       const audience = new THREE.Group()
       scene.add(audience)
       const headGeometry = geometry(new THREE.SphereGeometry(0.22, 16, 12))
@@ -208,7 +203,7 @@ export default function TheaterScene({ capacity = 48, participants = NO_PARTICIP
         audience.clear()
         peopleMaterials.forEach(m => { materials.delete(m); m.dispose() })
         peopleMaterials.clear()
-        for (const person of people.filter(p => p.present && (ownerView || p.seat !== mySeat))) {
+        for (const person of people.filter(p => p.present && (ownerView || p.seat !== cameraSeat))) {
           const p = seatPosition(person.seat)
           const group = new THREE.Group()
           group.position.set(p.x, p.y, p.z)
@@ -252,7 +247,7 @@ export default function TheaterScene({ capacity = 48, participants = NO_PARTICIP
       let yaw = 0
       let pitch = 0
       let radius = Math.max(23, depth + 11)
-      const seat = seatPosition(mySeat ?? Math.min(capacity - 1, Math.floor(rows / 2) * 8 + 3))
+      const seat = seatPosition(cameraSeat)
       const target = new THREE.Vector3(0, 2, depth / 2 - 3)
       const reset = () => {
         yaw = ownerView ? 0.55 : Math.atan2(seat.x, seat.z + 10.6)
@@ -353,8 +348,8 @@ export default function TheaterScene({ capacity = 48, participants = NO_PARTICIP
   }, [capacity, mySeat, ownerView])
 
   return (
-    <div ref={mountRef} className="absolute inset-0 overflow-hidden bg-[#08080e]">
-      {failed && <div className="absolute inset-0 grid place-items-center p-8 text-center"><p className="max-w-sm text-sm leading-7 text-white/60">3D is unavailable on this device. You can still watch the premiere in screen view.</p></div>}
+    <div ref={mountRef} className="absolute inset-0 overflow-hidden bg-ns-bg">
+      {failed && <div className="absolute inset-0 grid place-items-center p-8 text-center"><p className="max-w-sm text-base leading-relaxed text-ns-muted">3D is unavailable on this device. You can still watch the premiere in screen view.</p></div>}
     </div>
   )
 }

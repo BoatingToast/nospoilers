@@ -5,14 +5,18 @@ import { getCollection } from '@/services/collections'
 import { getUserVote, trackView } from '@/services/collection-votes'
 import { getRelatedCollections } from '@/services/collection-community'
 import { prisma }        from '@/lib/db'
-import Image             from 'next/image'
 import Link              from 'next/link'
-import { tmdbImageUrl, formatYear } from '@/lib/utils'
+import PosterFill from '@/components/watchlist/PosterFill'
+import { formatYear } from '@/lib/utils'
 import OwnerCollectionActions   from '@/components/collections/OwnerCollectionActions'
 import VisitorCollectionActions from '@/components/collections/VisitorCollectionActions'
 import EmptyCollectionCTA from '@/components/collections/EmptyCollectionCTA'
 import VoteButtons        from '@/components/collections/VoteButtons'
 import RelatedCollections from '@/components/collections/RelatedCollections'
+import BackLink          from '@/components/collections/BackLink'
+import Badge             from '@/components/ui/Badge'
+import EmptyState        from '@/components/ui/EmptyState'
+import type { CSSProperties } from 'react'
 import type { Metadata }  from 'next'
 
 interface Props { params: Promise<{ id: string }> }
@@ -67,172 +71,145 @@ export default async function CollectionPage({ params }: Props) {
   const popScore  = analytics?.popularityScore  ?? 0
 
   return (
-    <div className="min-h-screen pb-20">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+    <div className="mx-auto min-h-dvh max-w-7xl px-4 pb-20 pt-6 sm:px-6 lg:pt-10">
+      <BackLink href="/collections">Collections</BackLink>
 
-        {/* Back */}
-        <Link href="/collections"
-          className="inline-flex items-center gap-2 text-ns-muted text-sm font-body hover:text-ns-text transition-colors mb-8">
-          ← Collections
-        </Link>
+      <header className="mb-12 mt-4 flex flex-col gap-6 sm:flex-row sm:items-end sm:gap-8 lg:gap-10">
+        {col.coverPath && (
+          <div className="relative aspect-[2/3] w-36 flex-shrink-0 overflow-hidden rounded-xl bg-ns-surface shadow-2xl ring-1 ring-inset ring-white/5 sm:w-44 lg:w-56">
+            <PosterFill
+              path={col.coverPath}
+              size="w500"
+              priority
+              className="object-cover"
+              sizes="(max-width: 640px) 144px, (max-width: 1024px) 176px, 224px"
+            />
+          </div>
+        )}
 
-        {/* Main grid: vote column + content */}
-        <div className="flex gap-6 items-start mb-10">
+        <div className="min-w-0 flex-1">
+          <p className="flex flex-wrap items-center gap-2 text-base text-ns-muted">
+            <span>
+              by{' '}
+              <Link href={`/profile/${col.username}`} className="font-semibold text-ns-text transition-colors duration-150 hover:text-ns-secondary-readable">
+                @{col.username}
+              </Link>
+            </span>
+            {!col.isPublic && <Badge variant="muted">Private</Badge>}
+          </p>
+          <h1 className="mt-2 break-words font-display text-4xl text-ns-text sm:text-5xl lg:text-6xl">
+            {col.title}
+          </h1>
+          {col.description && (
+            <p className="mt-3 max-w-2xl text-lg leading-relaxed text-ns-muted">{col.description}</p>
+          )}
 
-          {/* Vote column — left side (visitors only) */}
-          {!isOwner && (
-            <div className="flex-shrink-0 hidden sm:flex">
+          <dl className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm tabular-nums text-ns-muted">
+            <div className="flex gap-1">
+              <dd className="font-semibold text-ns-text">{col.movieCount}</dd>
+              <dt>film{col.movieCount !== 1 ? 's' : ''}</dt>
+            </div>
+            {views > 0 && (
+              <div className="flex gap-1">
+                <dd className="font-semibold text-ns-text">{views.toLocaleString()}</dd>
+                <dt>view{views !== 1 ? 's' : ''}</dt>
+              </div>
+            )}
+            {isOwner && (upvotes > 0 || downvotes > 0) && (
+              <>
+                <div className="flex gap-1">
+                  <dd className="font-semibold text-ns-success">{upvotes}</dd>
+                  <dt>upvote{upvotes !== 1 ? 's' : ''}</dt>
+                </div>
+                {downvotes > 0 && (
+                  <div className="flex gap-1">
+                    <dd className="font-semibold text-ns-danger">{downvotes}</dd>
+                    <dt>downvote{downvotes !== 1 ? 's' : ''}</dt>
+                  </div>
+                )}
+              </>
+            )}
+            {isOwner && (upvotes > 0 || downvotes > 0) && (
+              <div className="flex gap-1">
+                <dt>Score:</dt>
+                <dd className={`font-semibold ${score > 0 ? 'text-ns-success' : score < 0 ? 'text-ns-danger' : 'text-ns-text'}`}>
+                  {score > 0 ? '+' : ''}{score}
+                </dd>
+              </div>
+            )}
+            {popScore > 0 && (
+              <div className="flex gap-1">
+                <dd className="font-semibold text-ns-text">{popScore.toFixed(1)}</dd>
+                <dt>popularity</dt>
+              </div>
+            )}
+          </dl>
+
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            {!isOwner && (
               <VoteButtons
                 collectionId={col.id}
                 ownerId={col.userId}
                 initialVotes={{ upvotes, downvotes, score }}
                 initialVote={userVote}
               />
-            </div>
-          )}
-
-          {/* Collection header */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div className="flex-1 min-w-0">
-                {!col.isPublic && (
-                  <span className="text-ns-muted text-[10px] tracking-widest uppercase font-body
-                                   border border-ns-border rounded-full px-2 py-0.5 mr-2">
-                    Private
-                  </span>
-                )}
-                <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-2 flex items-center gap-1.5">
-                  by{' '}
-                  <Link href={`/profile/${col.username}`}
-                    className="text-ns-secondary-readable hover:text-amber-400 transition-colors">
-                    @{col.username}
-                  </Link>
-                </p>
-                <h1 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-text mb-2 leading-tight">
-                  {col.title.toUpperCase()}
-                </h1>
-                {col.description && (
-                  <p className="text-ns-muted font-body text-sm max-w-xl leading-relaxed">{col.description}</p>
-                )}
-              </div>
-
-              {/* Actions — owner vs visitor */}
-              <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
-                {isOwner ? (
-                  <OwnerCollectionActions
-                    collectionId={col.id}
-                    title={col.title}
-                    description={col.description}
-                    isPublic={col.isPublic}
-                    movies={col.movies}
-                  />
-                ) : myId ? (
-                  <VisitorCollectionActions
-                    collectionId={col.id}
-                    collectionTitle={col.title}
-                    ownerUsername={col.username}
-                    isFollowingOwner={!!followRow}
-                    isFriendWithOwner={!!friendRow}
-                  />
-                ) : null}
-              </div>
-            </div>
-
-            {/* Stats row */}
-            <div className="flex flex-wrap items-center gap-4 mt-4">
-              <span className="text-ns-muted/50 text-xs font-body">
-                {col.movieCount} film{col.movieCount !== 1 ? 's' : ''}
-              </span>
-
-              {views > 0 && (
-                <span className="text-ns-muted/50 text-xs font-body">
-                  {views.toLocaleString()} view{views !== 1 ? 's' : ''}
-                </span>
-              )}
-
-              {(upvotes > 0 || downvotes > 0) && (
-                <>
-                  <span className="flex items-center gap-1 text-emerald-400 text-xs font-body">
-                    <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 19V5M5 12l7-7 7 7"/>
-                    </svg>
-                    {upvotes}
-                  </span>
-                  {downvotes > 0 && (
-                    <span className="flex items-center gap-1 text-red-400/70 text-xs font-body">
-                      <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 5v14M5 12l7 7 7-7"/>
-                      </svg>
-                      {downvotes}
-                    </span>
-                  )}
-                  <span className={`text-xs font-body font-semibold
-                    ${score > 0 ? 'text-emerald-400' : score < 0 ? 'text-red-400' : 'text-ns-muted'}`}>
-                    Score: {score > 0 ? '+' : ''}{score}
-                  </span>
-                </>
-              )}
-
-              {popScore > 0 && (
-                <span className="text-ns-secondary-readable/70 text-xs font-body">
-                  {popScore.toFixed(1)} popularity
-                </span>
-              )}
-            </div>
-
-            {/* Mobile vote buttons — visitors only */}
-            {!isOwner && (
-              <div className="sm:hidden mt-4">
-                <VoteButtons
-                  collectionId={col.id}
-                  ownerId={col.userId}
-                  initialVotes={{ upvotes, downvotes, score }}
-                  initialVote={userVote}
-                  compact
-                />
-              </div>
             )}
+            {isOwner ? (
+              <OwnerCollectionActions
+                collectionId={col.id}
+                title={col.title}
+                description={col.description}
+                isPublic={col.isPublic}
+                movies={col.movies}
+              />
+            ) : myId ? (
+              <VisitorCollectionActions
+                collectionId={col.id}
+                collectionTitle={col.title}
+                ownerUsername={col.username}
+                isFollowingOwner={!!followRow}
+                isFriendWithOwner={!!friendRow}
+              />
+            ) : null}
           </div>
         </div>
+      </header>
 
-        {/* Movies grid */}
-        {col.movies.length === 0 ? (
-          isOwner
-            ? <EmptyCollectionCTA />
-            : (
-              <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-                <p className="text-ns-muted font-body text-sm">No movies in this collection yet.</p>
-              </div>
-            )
-        ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-4">
-            {col.movies.map((movie, i) => (
-              <Link key={movie.tmdbId} href={`/movie/${movie.tmdbId}`} className="group">
-                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-ns-surface border border-ns-border relative">
-                  <Image
-                    src={tmdbImageUrl(movie.posterPath, 'w342')}
-                    alt={movie.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 200px"
+      {col.movies.length === 0 ? (
+        isOwner
+          ? <EmptyCollectionCTA />
+          : <EmptyState title="No movies in this collection yet." description="Check back once the creator adds a few films." />
+      ) : (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          {col.movies.map((movie, i) => (
+            <div
+              key={movie.tmdbId}
+              className={i > 5 ? 'ns-reveal' : undefined}
+              style={i > 5 ? ({ '--i': Math.min(i % 6, 7) } as CSSProperties) : undefined}
+            >
+              <Link href={`/movie/${movie.tmdbId}`} className="group block min-w-0">
+                <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface ring-1 ring-inset ring-white/5">
+                  <PosterFill
+                    path={movie.posterPath}
+                    size="w342"
+                    className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04] motion-reduce:transform-none"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
                   />
-                  <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-ns-bg/80 flex items-center justify-center">
-                    <span className="text-ns-secondary-readable text-[10px] font-body font-bold">{i + 1}</span>
-                  </div>
+                  <span className="absolute left-2 top-2 flex h-7 min-w-7 items-center justify-center rounded-full bg-black/75 px-1.5 text-xs font-bold tabular-nums text-white">
+                    {i + 1}
+                  </span>
                 </div>
-                <p className="text-ns-muted text-xs font-body mt-2 truncate group-hover:text-ns-text transition-colors">
+                <p className="mt-2.5 truncate font-heading text-base font-semibold text-ns-text transition-colors duration-150 group-hover:text-ns-secondary-readable">
                   {movie.title}
                 </p>
-                <p className="text-ns-muted/40 text-[10px] font-body">{formatYear(movie.releaseDate)}</p>
+                <p className="mt-0.5 text-sm tabular-nums text-ns-muted">{formatYear(movie.releaseDate)}</p>
               </Link>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
+      )}
 
-        {/* Related collections */}
-        <RelatedCollections collectionId={col.id} />
-
-      </div>
+      <RelatedCollections collectionId={col.id} />
     </div>
   )
 }

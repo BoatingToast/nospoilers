@@ -1,64 +1,58 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import PageHeader from '@/components/ui/PageHeader'
 import UploadMovieSection from '@/components/dashboard/UploadMovieSection'
 import AudienceLabDashboard from '@/components/creator/AudienceLabDashboard'
 import FilmmakerStudioMap from '@/components/creator/FilmmakerStudioMap'
-import { ArrowRightIcon, CheckIcon, UploadMovieIcon } from '@/components/icons'
+import { ArrowRightIcon } from '@/components/icons'
 
 export const metadata: Metadata = { title: 'Filmmaker Studio — NoSpoilers' }
 
-const uploadDetails = [
-  'MP4, MOV, M4V, or WEBM up to 1 GB',
-  'Add streaming links so viewers know where to watch',
-  'Catalog matching keeps your film connected to the right title',
-]
-
 export default function CreatorPage() {
   return (
-    <div className="mx-auto max-w-5xl">
+    <div>
       <Link
         href="/dashboard"
-        className="mb-8 inline-flex items-center gap-1 text-xs font-body text-ns-muted transition-colors hover:text-ns-secondary-readable"
+        className="-ml-3 mb-4 inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-ns-muted transition-colors hover:bg-ns-surface hover:text-ns-text"
       >
-        <ArrowRightIcon size={12} className="rotate-180" /> Back to dashboard
+        <ArrowRightIcon size={14} className="rotate-180" /> Back to dashboard
       </Link>
 
-      <header className="mb-8 border-b border-ns-border pb-8">
-        <div className="flex items-start gap-4">
-          <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border border-ns-secondary/25 bg-ns-secondary/10 text-ns-secondary-readable">
-            <UploadMovieIcon size={23} />
-          </span>
-          <div>
-            <p className="text-[10px] font-body uppercase tracking-[0.22em] text-ns-secondary-readable">Filmmaker Studio</p>
-            <h1 className="mt-1 font-display text-4xl tracking-wider text-ns-text sm:text-6xl">BUILD YOUR AUDIENCE</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed font-body text-ns-muted">
-              Test your film with real viewers, learn who it connects with, and keep control of your work.
-            </p>
+      <PageHeader
+        title="Build your audience."
+        description="Test your film with real viewers, learn who it connects with, and keep control of your work."
+      />
+
+      <div className="mt-8 grid gap-6 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+        <div className="flex min-w-0 flex-col gap-6">
+          <div id="films" className="scroll-mt-28">
+            <UploadMovieSection />
           </div>
+
+          <AudienceLabDashboard />
+
+          <Link
+            href="/theater/new"
+            className="ns-reveal group flex flex-col gap-4 rounded-2xl bg-ns-surface p-6 transition-colors duration-150 hover:bg-ns-surface-2 sm:flex-row sm:items-center sm:justify-between sm:p-8"
+          >
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-ns-muted">NoSpoilers Pro · Theater</span>
+              <span className="mt-1.5 block font-heading text-2xl font-bold text-ns-text">Give your film an opening night.</span>
+              <span className="mt-2 block max-w-xl text-base leading-relaxed text-ns-muted">
+                Schedule a private film or trailer screening, watch your audience arrive, then turn their responses into market proof.
+              </span>
+            </span>
+            <span className="inline-flex flex-shrink-0 items-center gap-2 text-sm font-semibold text-ns-text">
+              Host a premiere
+              <ArrowRightIcon size={16} className="transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-1 motion-reduce:transform-none" />
+            </span>
+          </Link>
         </div>
-      </header>
 
-      <FilmmakerStudioMap />
-      <AudienceLabDashboard />
-
-      <section id="films" className="scroll-mt-28"><UploadMovieSection /></section>
-
-      <Link href="/theater/new" className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#ddbd86]/25 bg-[#ddbd86]/5 p-6 transition-colors hover:border-[#ddbd86]/50">
-        <div><p className="text-[9px] uppercase tracking-[.2em] text-[#ddbd86]">NoSpoilers Pro · Theater</p><h2 className="mt-2 font-heading text-lg font-semibold text-ns-text">Give your film an opening night.</h2><p className="mt-2 max-w-xl text-xs leading-6 text-ns-muted">Schedule a private film or trailer screening, watch your audience arrive, then turn their responses into market proof.</p></div>
-        <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#ddbd86]">Host a premiere <ArrowRightIcon size={14} /></span>
-      </Link>
-
-      <section aria-labelledby="upload-details-title" className="mt-6 rounded-2xl border border-ns-border bg-ns-surface/55 p-5 sm:p-6">
-        <h2 id="upload-details-title" className="font-heading text-sm font-semibold text-ns-text">Before you upload</h2>
-        <ul className="mt-4 grid gap-3 md:grid-cols-3">
-          {uploadDetails.map(detail => (
-            <li key={detail} className="flex items-start gap-2 text-xs leading-relaxed font-body text-ns-muted">
-              <CheckIcon size={14} className="mt-0.5 flex-shrink-0 text-ns-secondary-readable" />
-              {detail}
-            </li>
-          ))}
-        </ul>
-      </section>
+        <aside className="min-w-0">
+          <FilmmakerStudioMap />
+        </aside>
+      </div>
     </div>
   )
 }

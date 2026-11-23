@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Avatar from '@/components/ui/Avatar'
-import { PinIcon, TheoryIcon } from '@/components/icons'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
+import { EditIcon, FriendsIcon, PinIcon, TheoryIcon, TrashIcon } from '@/components/icons'
 import type { SZMessageData, SZReactionGroup } from '@/types'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -29,19 +31,40 @@ function fullTime(iso: string): string {
 
 /** Render content: highlight @mentions, linkify URLs */
 function renderContent(content: string) {
-  const parts = content.split(/(@\w+)/g)
+  const parts = content.split(/(@\w+(?:-\w+)*)/g)
   return parts.map((part, i) => {
     if (part.startsWith('@')) {
       const username = part.slice(1)
       return (
         <Link key={i} href={`/profile/${username}`}
-          className="text-ns-secondary-readable hover:text-amber-400 transition-colors font-medium">
+          className="font-semibold text-ns-secondary-readable transition-colors hover:text-ns-text">
           {part}
         </Link>
       )
     }
     return <span key={i}>{part}</span>
   })
+}
+
+// ── Deliberately revealed text ────────────────────────────────────────────────
+
+/**
+ * Rendered only after the viewer pressed "Reveal anyway". The text arrives
+ * under the redaction bar, then the bar wipes away.
+ */
+function RevealedText({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setOpen(true), 40)
+    return () => window.clearTimeout(timer)
+  }, [])
+
+  return (
+    <span className="ns-redact [&[data-open=false]_*]:!text-transparent" data-open={open}>
+      {children}
+    </span>
+  )
 }
 
 // ── Reaction pill ─────────────────────────────────────────────────────────────
@@ -55,15 +78,18 @@ function ReactionPill({
 }) {
   return (
     <button
+      type="button"
+      aria-pressed={reaction.userReacted}
+      aria-label={`React with ${reaction.emoji}, ${reaction.count}`}
       onClick={() => onToggle(reaction.emoji)}
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-body transition-all
+      className={`relative inline-flex h-8 items-center gap-1 rounded-full px-2.5 text-sm transition-colors duration-150 before:absolute before:-inset-y-1.5 before:inset-x-0
         ${reaction.userReacted
-          ? 'bg-ns-secondary/15 border border-ns-secondary/40 text-ns-secondary-readable'
-          : 'bg-ns-surface border border-ns-border text-ns-muted hover:border-ns-secondary/30 hover:text-ns-text'
+          ? 'bg-ns-text text-ns-bg'
+          : 'bg-ns-surface-2 text-ns-muted hover:bg-ns-surface-3 hover:text-ns-text'
         }`}
     >
       <span>{reaction.emoji}</span>
-      <span className="text-[10px]">{reaction.count}</span>
+      <span key={reaction.count} className="inline-block animate-fade-up font-semibold tabular-nums">{reaction.count}</span>
     </button>
   )
 }
@@ -85,29 +111,20 @@ function ReactionRow({
 
   const visible  = expanded ? reactions : reactions.slice(0, MAX_VISIBLE_REACTIONS)
   const overflow = reactions.length - MAX_VISIBLE_REACTIONS
+  const moreClass = 'relative inline-flex h-8 items-center rounded-full bg-ns-surface-2 px-2.5 text-sm font-semibold text-ns-muted transition-colors duration-150 hover:bg-ns-surface-3 hover:text-ns-text before:absolute before:-inset-y-1.5 before:inset-x-0'
 
   return (
-    <div className="flex flex-wrap gap-1 mt-1.5">
+    <div className="mt-2 flex flex-wrap gap-1">
       {visible.map(r => (
         <ReactionPill key={r.emoji} reaction={r} onToggle={onToggle} />
       ))}
       {!expanded && overflow > 0 && (
-        <button
-          onClick={() => setExpanded(true)}
-          className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-body
-                     bg-ns-surface border border-ns-border text-ns-muted/70
-                     hover:border-ns-secondary/30 hover:text-ns-text transition-all"
-        >
+        <button type="button" onClick={() => setExpanded(true)} className={moreClass}>
           +{overflow}
         </button>
       )}
       {expanded && overflow > 0 && (
-        <button
-          onClick={() => setExpanded(false)}
-          className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-body
-                     bg-ns-surface border border-ns-border text-ns-muted/50
-                     hover:border-ns-secondary/20 hover:text-ns-muted transition-all"
-        >
+        <button type="button" onClick={() => setExpanded(false)} className={moreClass}>
           less
         </button>
       )}
@@ -121,16 +138,18 @@ const REACTION_EMOJI = ['🔥', '💀', '🤯', '😭', '👀', '❤️', '👏'
 
 function EmojiPicker({ onSelect, onClose }: { onSelect: (e: string) => void; onClose: () => void }) {
   return (
+    // Opens downward: the scrolling feed can always reach content below it.
     <div
-      className="absolute bottom-full mb-1 left-0 bg-ns-surface border border-ns-border rounded-xl p-2
-                 flex gap-1 shadow-xl z-20"
+      className="absolute right-0 top-full z-30 mt-1 grid w-max animate-fade-up grid-cols-[repeat(4,auto)] gap-0.5 rounded-2xl bg-ns-surface-3 p-1.5 shadow-2xl"
       onMouseLeave={onClose}
     >
       {REACTION_EMOJI.map(e => (
         <button
           key={e}
+          type="button"
+          aria-label={`React with ${e}`}
           onClick={() => { onSelect(e); onClose() }}
-          className="text-lg hover:scale-125 transition-transform"
+          className="flex h-11 w-11 items-center justify-center rounded-xl text-xl transition-colors hover:bg-ns-surface-2 sm:h-9 sm:w-9 sm:text-lg"
         >
           {e}
         </button>
@@ -138,6 +157,8 @@ function EmojiPicker({ onSelect, onClose }: { onSelect: (e: string) => void; onC
     </div>
   )
 }
+
+const actionButton = 'flex h-11 w-11 items-center justify-center rounded-full text-ns-muted transition-colors duration-150 hover:bg-ns-surface-3 hover:text-ns-text sm:h-8 sm:w-8'
 
 // ── Vote buttons ──────────────────────────────────────────────────────────────
 
@@ -151,28 +172,35 @@ function VoteButtons({
 }) {
   if (isOwn) return null
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center">
       <button
+        type="button"
         onClick={() => onVote('upvote')}
-        className={`w-6 h-6 flex items-center justify-center rounded transition-colors
-          ${userVote === 'upvote' ? 'text-ns-secondary-readable' : 'text-ns-muted/40 hover:text-ns-secondary-readable'}`}
+        aria-pressed={userVote === 'upvote'}
+        aria-label="Upvote"
         title="Upvote"
+        className={`${actionButton} ${userVote === 'upvote' ? '!text-ns-secondary-readable' : ''}`}
       >
-        <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24">
+        <svg aria-hidden="true" width="11" height="11" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 2L2 22h20L12 2z"/>
         </svg>
       </button>
-      <span className={`text-[10px] font-body font-medium min-w-[18px] text-center
-        ${score > 0 ? 'text-ns-secondary-readable' : score < 0 ? 'text-red-400/80' : 'text-ns-muted/40'}`}>
+      <span
+        key={score}
+        className={`min-w-5 animate-fade-up text-center text-sm font-semibold tabular-nums
+          ${score > 0 ? 'text-ns-secondary-readable' : score < 0 ? 'text-ns-danger' : 'text-ns-muted'}`}
+      >
         {score > 0 ? `+${score}` : score}
       </span>
       <button
+        type="button"
         onClick={() => onVote('downvote')}
-        className={`w-6 h-6 flex items-center justify-center rounded transition-colors
-          ${userVote === 'downvote' ? 'text-red-400' : 'text-ns-muted/40 hover:text-red-400'}`}
+        aria-pressed={userVote === 'downvote'}
+        aria-label="Downvote"
         title="Downvote"
+        className={`${actionButton} ${userVote === 'downvote' ? '!text-ns-danger' : ''}`}
       >
-        <svg width="11" height="11" fill="currentColor" viewBox="0 0 24 24">
+        <svg aria-hidden="true" width="11" height="11" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 22L2 2h20L12 22z"/>
         </svg>
       </button>
@@ -232,20 +260,19 @@ export default function MessageItem({
 
   if (message.isDeleted) {
     return (
-      <div className="flex items-start gap-3 px-4 py-2.5 opacity-40">
-        <div className="w-8 h-8 flex-shrink-0" />
-        <p className="text-ns-muted text-xs font-body italic">[Message deleted]</p>
+      <div className="px-4 py-2 pl-[3.75rem] sm:px-6 sm:pl-[4.25rem]">
+        <p className="text-sm italic text-ns-subtle">[Message deleted]</p>
       </div>
     )
   }
 
   if (collapsed) {
     return (
-      <div className="flex items-center gap-3 px-4 py-2 opacity-50">
-        <div className="w-8 h-8 flex-shrink-0" />
+      <div className="px-4 pl-[3.25rem] sm:px-6 sm:pl-[3.75rem]">
         <button
+          type="button"
           onClick={() => setCollapsed(false)}
-          className="text-xs font-body text-ns-muted/60 italic hover:text-ns-muted transition-colors"
+          className="min-h-11 rounded-full px-2 text-sm italic text-ns-subtle transition-colors hover:text-ns-text"
         >
           [Low-quality message — click to expand]
         </button>
@@ -255,87 +282,106 @@ export default function MessageItem({
 
   if (passportLocked) {
     return (
-      <div className="mx-4 my-2 rounded-xl border border-ns-secondary/20 bg-ns-secondary/5 px-4 py-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-heading font-semibold text-ns-secondary-readable">Locked by your Plot Passport</p>
-            <p className="mt-1 text-[11px] font-body text-ns-muted">
-              This {message.spoilerLevel === 'ending' ? 'ending discussion' : 'mid-movie discussion'} unlocks at {message.unlockAtProgress}% progress.
-            </p>
+      <div className="animate-fade-up px-4 py-2 sm:px-6">
+        <div className="rounded-2xl bg-ns-surface-2 p-4 sm:p-5">
+          {/* Decorative bars only: locked text is never sent to this client. */}
+          <div aria-hidden="true" className="max-w-md space-y-2">
+            <span className="block h-3.5 w-11/12 rounded-sm bg-ns-secondary" />
+            <span className="block h-3.5 w-3/5 rounded-sm bg-ns-secondary" />
           </div>
-          <div className="flex flex-wrap gap-2">
-            {currentUser && (
-              <Link href="/plot-passport" className="rounded-lg bg-ns-secondary px-3 py-1.5 text-[10px] font-heading font-semibold text-ns-secondary-foreground">
-                Update progress
-              </Link>
-            )}
-            <button
-              onClick={revealSpoiler}
-              disabled={revealLoading}
-              className="rounded-lg border border-ns-secondary/30 px-3 py-1.5 text-[10px] font-heading font-semibold text-ns-secondary-readable hover:bg-ns-secondary/10 disabled:opacity-50"
-            >
-              {revealLoading ? 'Revealing…' : 'Reveal anyway'}
-            </button>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="font-heading text-base font-bold text-ns-text">Locked by your Plot Passport</p>
+              <p className="mt-0.5 text-sm text-ns-muted">
+                This {message.spoilerLevel === 'ending' ? 'ending discussion' : 'mid-movie discussion'} unlocks at {message.unlockAtProgress}% progress.
+              </p>
+            </div>
+            <div className="flex flex-shrink-0 flex-wrap gap-2">
+              {currentUser && (
+                <Link
+                  href="/plot-passport"
+                  className="inline-flex min-h-11 items-center rounded-full bg-ns-text px-4 text-sm font-semibold text-ns-bg transition-colors duration-150 hover:bg-ns-muted sm:min-h-10"
+                >
+                  Update progress
+                </Link>
+              )}
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={revealSpoiler}
+                disabled={revealLoading}
+                className="min-h-11 sm:min-h-10"
+              >
+                {revealLoading ? 'Revealing…' : 'Reveal anyway'}
+              </Button>
+            </div>
           </div>
           {revealError && (
-            <p className="text-[10px] font-body text-red-400">Could not reveal this message. Try again.</p>
+            <p role="alert" className="mt-2 text-sm text-ns-danger">Could not reveal this message. Try again.</p>
           )}
         </div>
       </div>
     )
   }
 
+  const deliberatelyRevealed = !message.viewerUnlocked && !isOwn && revealedContent !== null
+
   return (
     <div
       id={`msg-${message.id}`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => { setShowActions(false); setShowEmoji(false) }}
-      className={`group relative flex items-start gap-3 px-4 py-2.5 transition-colors
-        ${isHighlighted ? 'bg-ns-secondary/5 ring-1 ring-ns-secondary/20 rounded-xl' : 'hover:bg-ns-surface/40'}
-        ${isFriend ? 'border-l-2 border-ns-secondary/30 pl-3' : ''}
+      onFocusCapture={() => setShowActions(true)}
+      onBlurCapture={event => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setShowActions(false)
+          setShowEmoji(false)
+        }
+      }}
+      className={`group relative flex animate-fade-up items-start gap-3 px-4 py-2.5 transition-colors duration-150 sm:px-6
+        ${showActions ? 'z-20' : ''}
+        ${isHighlighted ? 'bg-ns-surface-3' : 'hover:bg-ns-surface-2'}
       `}
     >
       {/* Avatar */}
-      <div className="flex-shrink-0 mt-0.5">
+      <div className="mt-0.5 flex-shrink-0">
         <Avatar src={message.avatarUrl} username={message.username} size="sm" href />
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0">
-
-        {/* Friend badge */}
-        {isFriend && (
-          <span className="inline-flex items-center gap-1 text-[9px] font-body text-ns-secondary-readable/70 mb-0.5">
-            <svg width="8" height="8" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-            </svg>
-            Your Friend
-          </span>
-        )}
-
-        {/* Theory badge */}
-        {message.isTheory && (
-          <span className="inline-flex items-center gap-1 text-[9px] font-body text-violet-400/70 mb-0.5 ml-2">
-            <TheoryIcon size={10} strokeWidth={1.75} className="text-violet-400/70" />
-            Theory
-          </span>
-        )}
+      <div className="min-w-0 flex-1">
 
         {/* Header row */}
-        <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
-          <Link href={`/profile/${message.username}`}
-            className="text-sm font-body font-semibold text-ns-text hover:text-ns-secondary-readable transition-colors">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <Link
+            href={`/profile/${message.username}`}
+            className="text-sm font-bold text-ns-text transition-colors hover:text-ns-secondary-readable"
+          >
             @{message.username}
           </Link>
-          <span className="text-[10px] font-body text-ns-muted/50" title={fullTime(message.createdAt)}>
+          {isFriend && (
+            <Badge variant="secondary">
+              <FriendsIcon size={11} />
+              Your friend
+            </Badge>
+          )}
+          {message.isTheory && (
+            <Badge variant="muted">
+              <TheoryIcon size={11} strokeWidth={1.75} />
+              Theory
+            </Badge>
+          )}
+          {message.spoilerLevel === 'ending' && <Badge variant="danger">Ending</Badge>}
+          {message.spoilerLevel === 'mid' && <Badge variant="warning">Mid-movie</Badge>}
+          <span className="text-xs text-ns-subtle" title={fullTime(message.createdAt)}>
             {timeAgo(message.createdAt)}
           </span>
           {message.editedAt && (
-            <span className="text-[10px] font-body text-ns-muted/40 italic">edited</span>
+            <span className="text-xs italic text-ns-subtle">edited</span>
           )}
           {message.isPinned && (
-            <span className="inline-flex items-center gap-1 text-[9px] font-body text-ns-secondary-readable/60 tracking-wide">
-              <PinIcon size={9} strokeWidth={1.75} />
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-ns-secondary-readable">
+              <PinIcon size={11} strokeWidth={1.75} />
               {message.pinnedLabel ?? 'Pinned'}
             </span>
           )}
@@ -343,9 +389,9 @@ export default function MessageItem({
 
         {/* Reply preview */}
         {message.parentPreview && (
-          <div className="flex items-start gap-2 mb-1.5 pl-2 border-l-2 border-ns-border">
-            <p className="text-xs font-body text-ns-muted/60 leading-snug line-clamp-2">
-              <span className="text-ns-secondary-readable/70 font-medium">@{message.parentPreview.username}</span>
+          <div className="mt-1.5 border-l-2 border-ns-border-strong pl-3">
+            <p className="line-clamp-2 text-sm leading-snug text-ns-muted">
+              <span className="font-semibold text-ns-text">@{message.parentPreview.username}</span>
               {': '}
               {message.parentPreview.content}
             </p>
@@ -353,8 +399,10 @@ export default function MessageItem({
         )}
 
         {/* Message content */}
-        <p className="text-sm font-body text-ns-text leading-relaxed whitespace-pre-wrap break-words">
-          {renderContent(visibleContent)}
+        <p className="mt-1 whitespace-pre-wrap break-words text-base leading-relaxed text-ns-text">
+          {deliberatelyRevealed
+            ? <RevealedText>{renderContent(visibleContent)}</RevealedText>
+            : renderContent(visibleContent)}
         </p>
 
         {/* Reactions row */}
@@ -364,74 +412,69 @@ export default function MessageItem({
         />
       </div>
 
-      {/* Floating action bar (on hover) */}
-      {showActions && (
-        <div className="absolute right-3 top-1 flex items-center gap-0.5 bg-ns-surface border border-ns-border rounded-xl px-1.5 py-1 shadow-lg z-10">
+      {/* Floating action bar (on hover or keyboard focus) */}
+      <div
+        className={`absolute right-2 top-1 z-10 flex items-center rounded-full bg-ns-surface p-0.5 shadow-2xl ring-1 ring-ns-border transition-opacity duration-150 sm:right-4
+          ${showActions ? 'opacity-100' : 'pointer-events-none opacity-0 focus-within:pointer-events-auto focus-within:opacity-100'}`}
+      >
+        <VoteButtons
+          score={message.voteScore}
+          userVote={message.userVote}
+          onVote={type => onVote(message.id, type)}
+          isOwn={isOwn}
+        />
 
-          {/* Vote */}
-          <VoteButtons
-            score={message.voteScore}
-            userVote={message.userVote}
-            onVote={type => onVote(message.id, type)}
-            isOwn={isOwn}
-          />
-
-          {/* Emoji react */}
-          <div className="relative">
-            <button
-              onClick={() => setShowEmoji(v => !v)}
-              className="w-7 h-7 flex items-center justify-center rounded text-ns-muted/60 hover:text-ns-secondary-readable transition-colors"
-              title="React"
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M8 13s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>
-              </svg>
-            </button>
-            {showEmoji && (
-              <EmojiPicker
-                onSelect={emoji => onReact(message.id, emoji)}
-                onClose={() => setShowEmoji(false)}
-              />
-            )}
-          </div>
-
-          {/* Reply */}
+        <div className="relative">
           <button
-            onClick={() => onReply(message)}
-            className="w-7 h-7 flex items-center justify-center rounded text-ns-muted/60 hover:text-ns-secondary-readable transition-colors"
-            title="Reply"
+            type="button"
+            onClick={() => setShowEmoji(v => !v)}
+            className={actionButton}
+            title="React"
+            aria-label="React"
+            aria-expanded={showEmoji}
           >
-            <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+            <svg aria-hidden="true" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 13s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>
             </svg>
           </button>
-
-          {/* Edit / Delete (own only) */}
-          {isOwn && (
-            <>
-              <button
-                onClick={() => onEdit(message)}
-                className="w-7 h-7 flex items-center justify-center rounded text-ns-muted/60 hover:text-ns-text transition-colors"
-                title="Edit"
-              >
-                <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                </svg>
-              </button>
-              <button
-                onClick={() => onDelete(message.id)}
-                className="w-7 h-7 flex items-center justify-center rounded text-ns-muted/60 hover:text-red-400 transition-colors"
-                title="Delete"
-              >
-                <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-              </button>
-            </>
+          {showEmoji && (
+            <EmojiPicker
+              onSelect={emoji => onReact(message.id, emoji)}
+              onClose={() => setShowEmoji(false)}
+            />
           )}
         </div>
-      )}
+
+        <button
+          type="button"
+          onClick={() => onReply(message)}
+          className={actionButton}
+          title="Reply"
+          aria-label="Reply"
+        >
+          <svg aria-hidden="true" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+          </svg>
+        </button>
+
+        {isOwn && (
+          <>
+            <button type="button" onClick={() => onEdit(message)} className={actionButton} title="Edit" aria-label="Edit">
+              <EditIcon size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete(message.id)}
+              className={`${actionButton} hover:!text-ns-danger`}
+              title="Delete"
+              aria-label="Delete"
+            >
+              <TrashIcon size={14} />
+            </button>
+          </>
+        )}
+      </div>
     </div>
   )
 }

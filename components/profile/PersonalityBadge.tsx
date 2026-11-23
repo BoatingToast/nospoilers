@@ -1,4 +1,5 @@
 import type { PersonalityType } from '@/types'
+import { getPersonalityIcon } from '@/components/icons'
 
 interface Props {
   primary:   PersonalityType
@@ -7,52 +8,39 @@ interface Props {
 }
 
 export default function PersonalityBadge({ primary, secondary, compact = false }: Props) {
+  const PrimaryIcon = getPersonalityIcon(primary.slug)
+  const SecondaryIcon = secondary ? getPersonalityIcon(secondary.slug) : null
+
   return (
-    <div className="h-full overflow-hidden rounded-2xl border border-ns-border bg-ns-surface">
-      {/* Primary type */}
-      <div className={`${primary.color} border-b border-ns-border ${compact ? 'p-4' : 'p-6'}`}>
-        <div className={`${compact ? 'text-3xl mb-2' : 'text-4xl mb-3'}`}>{primary.icon}</div>
-        <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-1">
-          Primary Personality
-        </p>
-        <h3
-          className={`font-display tracking-wider text-ns-text ${compact ? 'text-2xl' : 'text-3xl'}`}
-          style={{ color: primary.accentHex }}
-        >
+    <div className={`flex h-full flex-col overflow-hidden rounded-2xl bg-ns-surface ${primary.color}`}>
+      <div className={`flex-1 ${compact ? 'p-5' : 'p-6 sm:p-8'}`}>
+        <PrimaryIcon size={compact ? 24 : 32} className="text-ns-text" />
+        <p className={`text-sm text-ns-muted ${compact ? 'mt-3' : 'mt-6'}`}>Primary personality</p>
+        <h3 className={`mt-1 break-words font-display text-ns-text ${compact ? 'text-xl sm:text-2xl' : 'text-3xl sm:text-4xl'}`}>
           {primary.name}
         </h3>
         {!compact && (
-          <p className="text-ns-muted text-xs font-body mt-2 leading-relaxed">
-            {primary.description}
-          </p>
+          <>
+            <p className="mt-3 max-w-md text-base leading-relaxed text-ns-muted">
+              {primary.description}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {primary.traits.map(t => (
+                <span key={t} className="rounded-full bg-ns-surface-2 px-3 py-1 text-sm font-medium text-ns-text">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
-      {/* Traits */}
-      {!compact && (
-        <div className="p-4 flex flex-wrap gap-2">
-          {primary.traits.map(t => (
-            <span
-              key={t}
-              className="px-2.5 py-1 rounded-full text-[11px] font-body border"
-              style={{ color: primary.accentHex, borderColor: `${primary.accentHex}40`, background: `${primary.accentHex}10` }}
-            >
-              {t}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Secondary type */}
-      {secondary && (
-        <div className="px-4 pb-4 pt-2 border-t border-ns-border">
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-1">
-            Secondary
+      {secondary && SecondaryIcon && (
+        <div className={`flex items-center gap-2 border-t border-ns-border ${compact ? 'px-5 py-3' : 'px-6 py-4 sm:px-8'}`}>
+          <SecondaryIcon size={16} className="flex-shrink-0 text-ns-muted" />
+          <p className="min-w-0 truncate text-sm text-ns-muted">
+            Secondary: <span className="font-semibold text-ns-text">{secondary.name}</span>
           </p>
-          <div className="flex items-center gap-2">
-            <span className="text-lg">{secondary.icon}</span>
-            <span className="text-ns-muted text-sm font-body">{secondary.name}</span>
-          </div>
         </div>
       )}
     </div>

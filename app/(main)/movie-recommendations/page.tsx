@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Button from '@/components/ui/Button'
 import { publicPageMetadata } from '@/lib/seo'
 
 export const metadata = publicPageMetadata({
@@ -55,41 +56,60 @@ const questions = [
 
 export default function MovieRecommendationsPage() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-20">
-      <header className="max-w-3xl">
-        <p className="mb-4 text-xs uppercase tracking-[0.2em] text-ns-secondary-readable">NoSpoilers movie guide</p>
-        <h1 className="font-display text-5xl leading-none tracking-wide sm:text-7xl">MOVIE RECOMMENDATIONS WITHOUT SPOILERS</h1>
-        <p className="mt-6 text-lg leading-8 text-ns-muted">
+    <div className="mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6 sm:pt-16 lg:pb-24">
+      <header className="max-w-4xl">
+        <h1 className="font-display text-5xl text-ns-text sm:text-6xl lg:text-7xl">
+          Movie recommendations without spoilers
+        </h1>
+        <p className="mt-6 max-w-2xl text-lg leading-relaxed text-ns-muted">
           What movie should you watch tonight? Start with what you enjoy, how much time you have,
           and how much you want to know before the opening scene. NoSpoilers helps you compare
           films without needing to read a full plot summary.
         </p>
-        <Link href="/discover" className="mt-8 inline-flex rounded-xl bg-ns-secondary px-6 py-3 text-sm font-semibold text-ns-secondary-foreground hover:bg-ns-secondary/85">
+        <Button href="/discover" size="lg" className="mt-8 w-full sm:w-auto">
           Find your next movie
-        </Link>
+        </Button>
       </header>
 
-      <section aria-labelledby="choose-a-movie" className="mt-16">
-        <h2 id="choose-a-movie" className="font-display text-3xl tracking-wide sm:text-4xl">HOW TO FIND A MOVIE YOU WILL ENJOY</h2>
-        <ol className="mt-8 grid gap-6 sm:grid-cols-2">
+      <section
+        aria-labelledby="choose-a-movie"
+        className="mt-14 grid gap-8 rounded-3xl bg-ns-surface p-7 sm:p-10 lg:mt-20 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16 lg:p-14"
+      >
+        <h2 id="choose-a-movie" className="ns-reveal font-display text-4xl text-ns-text sm:text-5xl lg:sticky lg:top-24 lg:self-start">
+          How to find a movie you will enjoy
+        </h2>
+        <ol className="divide-y divide-ns-border">
           {steps.map((step, index) => (
-            <li key={step.title} className="rounded-2xl border border-ns-border bg-ns-surface/40 p-6">
-              <p className="mb-4 text-xs tracking-widest text-ns-secondary-readable">0{index + 1}</p>
-              <h3 className="font-heading text-lg font-semibold">{step.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-ns-muted">{step.text}</p>
-              <Link href={step.href} className="mt-5 inline-block text-sm font-semibold text-ns-secondary-readable underline-offset-4 hover:underline">{step.link} →</Link>
+            <li
+              key={step.title}
+              className="ns-reveal py-7 first:pt-0 last:pb-0"
+              style={{ '--i': index } as React.CSSProperties}
+            >
+              <h3 className="font-heading text-2xl font-bold text-ns-text">{step.title}</h3>
+              <p className="mt-2 text-base leading-relaxed text-ns-muted">{step.text}</p>
+              <Link
+                href={step.href}
+                className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-ns-text underline decoration-ns-border-strong underline-offset-4 transition-colors hover:decoration-ns-text"
+              >
+                {step.link} <span aria-hidden="true" className="ml-1">→</span>
+              </Link>
             </li>
           ))}
         </ol>
       </section>
 
-      <section aria-labelledby="recommendation-questions" className="mt-16">
-        <h2 id="recommendation-questions" className="font-display text-3xl tracking-wide sm:text-4xl">QUESTIONS ABOUT FINDING YOUR NEXT WATCH</h2>
-        <div className="mt-6 divide-y divide-ns-border">
-          {questions.map(item => (
-            <div key={item.question} className="py-6">
-              <h3 className="font-heading text-lg font-semibold">{item.question}</h3>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-ns-muted">{item.answer}</p>
+      <section
+        aria-labelledby="recommendation-questions"
+        className="mt-14 grid gap-8 lg:mt-20 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16 lg:px-14"
+      >
+        <h2 id="recommendation-questions" className="ns-reveal font-display text-4xl text-ns-text sm:text-5xl lg:sticky lg:top-24 lg:self-start">
+          Questions about finding your next watch
+        </h2>
+        <div className="divide-y divide-ns-border">
+          {questions.map((item, index) => (
+            <div key={item.question} className="ns-reveal py-6 first:pt-0" style={{ '--i': index } as React.CSSProperties}>
+              <h3 className="font-heading text-xl font-bold text-ns-text">{item.question}</h3>
+              <p className="mt-2 text-base leading-relaxed text-ns-muted">{item.answer}</p>
             </div>
           ))}
         </div>

@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Image from 'next/image'
+import { useEffect, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
 import Link from 'next/link'
-import { tmdbImageUrl } from '@/lib/utils'
+import PosterFill from '@/components/watchlist/PosterFill'
+import Button from '@/components/ui/Button'
+import { ChevronIcon, ShareIcon } from '@/components/icons'
+import { Meter } from '@/components/watchlist/LibraryControls'
+import { cn } from '@/lib/utils'
 import type { WrappedData } from '@/types'
-import { MovieDnaIcon, WrappedIcon } from '@/components/icons'
 
 interface Props {
   data:     WrappedData
@@ -13,26 +15,282 @@ interface Props {
   year:     number
 }
 
-// ─── Each "slide" of the Wrapped experience ───────────────────────────────────
+interface SlideData {
+  key:      string
+  name:     string
+  tile:     string
+  backdrop?: string | null
+  content:  ReactNode
+}
 
-function Slide({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+// Each slide plays its own short sequence, so reveals start right after the slide changes.
+const rise = (index: number): CSSProperties => ({ animationDelay: `${index * 110}ms` })
+
+/** Counts up to the value once. Reduced motion and screen readers get the final number. */
+function CountUp({ value }: { value: number }) {
+  const [shown, setShown] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.dataset.motion === 'on' ? 0 : value)
+
+  useEffect(() => {
+    if (document.documentElement.dataset.motion !== 'on') {
+      setShown(value)
+      return
+    }
+    const started = performance.now()
+    let frame = 0
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - started) / 1200)
+      setShown(Math.round(value * (1 - Math.pow(1 - progress, 4))))
+      if (progress < 1) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [value])
+
   return (
-    <div className={`min-h-screen flex flex-col items-center justify-center px-6 py-20 snap-start ${className}`}>
-      {children}
-    </div>
+    <>
+      <span aria-hidden="true">{shown}</span>
+      <span className="sr-only">{value}</span>
+    </>
   )
 }
 
-function StatNumber({ value, label, color = 'text-ns-secondary-readable' }: { value: string | number; label: string; color?: string }) {
+function SlideLabel({ children }: { children: ReactNode }) {
+  return <h2 className="ns-rise font-heading text-xl font-semibold text-ns-text sm:text-2xl" style={rise(0)}>{children}</h2>
+}
+
+function HugeNumber({ value, unit }: { value: number; unit: string }) {
   return (
-    <div className="text-center">
-      <p className={`font-display text-8xl sm:text-9xl tracking-wider ${color} leading-none`}>{value}</p>
-      <p className="text-ns-muted font-body text-sm mt-3 tracking-widest uppercase">{label}</p>
-    </div>
+    <p className="ns-rise mt-4" style={rise(1)}>
+      <span className="block font-display text-[clamp(7rem,32vw,17rem)] leading-[0.9] tabular-nums text-ns-text">
+        {value > 0 ? <CountUp value={value} /> : '?'}
+      </span>
+      <span className="mt-3 block font-heading text-2xl font-semibold text-ns-text">{unit}</span>
+    </p>
   )
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+function buildSlides(data: WrappedData, username: string, year: number): SlideData[] {
+  const slides: SlideData[] = []
+
+  slides.push({
+    key: 'intro',
+    name: 'Intro',
+    tile: 'bg-ns-bg',
+    content: (
+      <div className="text-center">
+        <p className="font-display text-[clamp(6.5rem,30vw,17rem)] leading-[0.9] tabular-nums text-ns-text">
+          <span className="ns-word" style={rise(0)}>{year}</span>
+        </p>
+        <p className="mt-3 font-display text-5xl sm:text-7xl">
+          <span className="ns-word" style={rise(2)}>
+            <span className="ns-unredact" style={{ animationDelay: '620ms' }}>Wrapped</span>
+          </span>
+        </p>
+        <p className="ns-rise mt-6 break-words text-lg text-ns-muted" style={rise(4)}>Your year in film, @{username}</p>
+      </div>
+    ),
+  })
+
+  slides.push({
+    key: 'watched',
+    name: 'Films watched',
+    tile: 'bg-ns-tile-green',
+    content: (
+      <div className="text-center">
+        <SlideLabel>This year you watched</SlideLabel>
+        <HugeNumber value={data.moviesWatched} unit="Films" />
+        {data.moviesWatched === 0 && (
+          <p className="ns-rise mx-auto mt-5 max-w-xs text-base leading-relaxed text-ns-muted" style={rise(2)}>
+            Start adding movies to your watchlist and marking them as watched to track your journey!
+          </p>
+        )}
+        {data.totalWatchTime && data.totalWatchTime > 0 ? (
+          <p className="ns-rise mt-6 text-lg text-ns-muted" style={rise(3)}>
+            That&apos;s <span className="font-semibold tabular-nums text-ns-text">{Math.round(data.totalWatchTime / 60)}h</span> of cinema
+          </p>
+        ) : null}
+      </div>
+    ),
+  })
+
+  if (data.topGenres.length > 0) {
+    slides.push({
+      key: 'genres',
+      name: 'Top genres',
+      tile: 'bg-ns-tile-blue',
+      content: (
+        <div className="w-full max-w-xl">
+          <div className="text-center"><SlideLabel>Your favorite genres</SlideLabel></div>
+          <ol className="mt-8 flex flex-col gap-3">
+            {data.topGenres.map((genre, index) => (
+              <li key={genre} className="ns-rise relative overflow-hidden rounded-2xl bg-ns-bg/50" style={rise(index + 1)}>
+                <Meter
+                  value={(3 - index) / 3}
+                  className="absolute inset-0 !h-full !rounded-2xl !bg-transparent"
+                  fillClassName="!rounded-2xl bg-ns-text/15"
+                  fillStyle={{ transitionDelay: `${240 + index * 140}ms` }}
+                />
+                <span className="relative flex min-h-16 items-center justify-between gap-4 px-5 sm:min-h-20 sm:px-7">
+                  <span className="min-w-0 truncate font-heading text-xl font-bold text-ns-text sm:text-3xl">{genre}</span>
+                  <span className="font-display text-2xl tabular-nums text-ns-text sm:text-4xl">{index + 1}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ),
+    })
+  }
+
+  if (data.topMovies.length > 0) {
+    const [first, ...others] = data.topMovies.slice(0, 5)
+    slides.push({
+      key: 'films',
+      name: 'Top films',
+      tile: 'bg-ns-bg',
+      backdrop: first.posterPath,
+      content: (
+        <div className="w-full max-w-3xl text-center">
+          <SlideLabel>{data.moviesWatched > 0 ? 'Your top films this year' : 'Your all-time favorites'}</SlideLabel>
+          <div className="mt-6 flex flex-col items-center gap-5 md:flex-row md:items-end md:justify-center">
+            <Link href={`/movie/${first.tmdbId}`} className="ns-rise group block w-40 flex-shrink-0 sm:w-52" style={rise(1)}>
+              <span className="relative block aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface shadow-2xl">
+                <PosterFill
+                  path={first.posterPath}
+                  size="w500"
+                  className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04] motion-reduce:transform-none"
+                  sizes="208px"
+                />
+                <span className="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-ns-accent font-heading text-base font-bold text-ns-secondary-foreground">1</span>
+              </span>
+              <span className="mt-2 block truncate font-heading text-lg font-bold text-ns-text">{first.title}</span>
+            </Link>
+            {others.length > 0 && (
+              <ol className="flex w-full max-w-md justify-center gap-2 sm:gap-3" start={2}>
+                {others.map((movie, index) => (
+                  <li key={movie.tmdbId} className="ns-rise min-w-0 flex-1" style={rise(index + 2)}>
+                    <Link href={`/movie/${movie.tmdbId}`} className="group block">
+                      <span className="relative block aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface shadow-2xl">
+                        <PosterFill
+                          path={movie.posterPath}
+                          size="w185"
+                          className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04] motion-reduce:transform-none"
+                          sizes="96px"
+                        />
+                        <span className="absolute left-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/75 text-xs font-bold text-white">{index + 2}</span>
+                      </span>
+                      <span className="mt-1.5 block truncate text-xs font-semibold text-ns-text">{movie.title}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        </div>
+      ),
+    })
+  }
+
+  if (data.topTrait) {
+    slides.push({
+      key: 'trait',
+      name: 'Defining trait',
+      tile: 'bg-ns-tile-rose',
+      content: (
+        <div className="max-w-3xl text-center">
+          <SlideLabel>Your defining trait</SlideLabel>
+          <p className="mt-6 break-words font-display text-6xl sm:text-8xl">
+            <span className="ns-unredact" style={{ animationDelay: '380ms' }}>{data.topTrait}</span>
+          </p>
+          <p className="ns-rise mx-auto mt-6 max-w-md text-lg leading-relaxed text-ns-muted" style={rise(3)}>
+            This dimension dominates your Movie DNA — it defines what you look for in every film.
+          </p>
+        </div>
+      ),
+    })
+  }
+
+  if (data.personalityType) {
+    slides.push({
+      key: 'personality',
+      name: 'Movie personality',
+      tile: 'bg-ns-tile-lilac',
+      content: (
+        <div className="max-w-3xl text-center">
+          <SlideLabel>You are</SlideLabel>
+          <p className="mt-6 break-words font-display text-6xl leading-[0.95] sm:text-8xl">
+            <span className="ns-unredact" style={{ animationDelay: '380ms' }}>{data.personalityType}</span>
+          </p>
+          <p className="ns-rise mt-6 text-lg text-ns-muted" style={rise(3)}>Your Movie Personality for {year}</p>
+        </div>
+      ),
+    })
+  }
+
+  slides.push({
+    key: 'achievements',
+    name: 'Achievements',
+    tile: 'bg-ns-tile-yellow',
+    content: (
+      <div className="text-center">
+        <SlideLabel>Achievements unlocked</SlideLabel>
+        <p className="ns-rise mt-4" style={rise(1)}>
+          <span className="block font-display text-[clamp(7rem,32vw,17rem)] leading-[0.9] tabular-nums text-ns-text">
+            <CountUp value={data.achievementsEarned} />
+          </span>
+          <span className="mt-3 block font-heading text-2xl font-semibold text-ns-text">Badges earned</span>
+        </p>
+        <p className="ns-rise mx-auto mt-5 max-w-xs text-base leading-relaxed text-ns-muted" style={rise(2)}>
+          {data.achievementsEarned > 0
+            ? 'Keep watching to unlock more!'
+            : 'Start watching movies to earn your first achievement badges.'}
+        </p>
+      </div>
+    ),
+  })
+
+  slides.push({
+    key: 'finale',
+    name: 'Your year',
+    tile: 'bg-ns-bg',
+    backdrop: data.topMovies[0]?.posterPath,
+    content: (
+      <div className="w-full max-w-md text-center">
+        <SlideLabel>NoSpoilers · {year} Wrapped</SlideLabel>
+        <div className="ns-rise mt-6 rounded-3xl bg-ns-surface p-7 shadow-2xl sm:p-9" style={rise(1)}>
+          <p className="break-words font-display text-4xl text-ns-text">@{username}</p>
+          <dl className="mt-6 flex justify-center gap-8">
+            <div className="flex flex-col-reverse">
+              <dt className="mt-1 text-sm text-ns-muted">Films</dt>
+              <dd className="font-display text-4xl tabular-nums text-ns-text">{data.moviesWatched}</dd>
+            </div>
+            <div className="flex flex-col-reverse">
+              <dt className="mt-1 text-sm text-ns-muted">Badges</dt>
+              <dd className="font-display text-4xl tabular-nums text-ns-text">{data.achievementsEarned}</dd>
+            </div>
+            {data.personalityType && (
+              <div className="flex min-w-0 flex-col-reverse">
+                <dt className="mt-1 text-sm text-ns-muted">Personality</dt>
+                <dd className="truncate font-display text-2xl leading-10 text-ns-secondary-readable">
+                  {data.personalityType.split(' ').pop()}
+                </dd>
+              </div>
+            )}
+          </dl>
+          {data.topGenres[0] && (
+            <p className="mt-5 border-t border-ns-border pt-4 text-sm text-ns-muted">
+              Top genre: <span className="font-semibold text-ns-text">{data.topGenres[0]}</span>
+            </p>
+          )}
+        </div>
+        <p className="ns-rise mt-5 text-sm text-ns-muted" style={rise(2)}>nospoilers.app · Your cinematic journey</p>
+      </div>
+    ),
+  })
+
+  return slides
+}
 
 export default function WrappedExperience({ data, username, year }: Props) {
   const [current, setCurrent] = useState(0)
@@ -40,6 +298,7 @@ export default function WrappedExperience({ data, username, year }: Props) {
 
   const slides = buildSlides(data, username, year)
   const total  = slides.length
+  const slide  = slides[current]
 
   function next() { setCurrent(c => Math.min(c + 1, total - 1)) }
   function prev() { setCurrent(c => Math.max(c - 1, 0)) }
@@ -47,12 +306,12 @@ export default function WrappedExperience({ data, username, year }: Props) {
   // Keyboard nav
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next()
-      if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   prev()
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setCurrent(c => Math.min(c + 1, total - 1))
+      if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   setCurrent(c => Math.max(c - 1, 0))
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [total])
 
   async function share() {
     const url = `${window.location.origin}/profile/${username}`
@@ -65,276 +324,104 @@ export default function WrappedExperience({ data, username, year }: Props) {
     }
   }
 
-  const slide = slides[current]
+  // Tapping the stage moves through the story, like flipping through cards.
+  function handleStageClick(event: MouseEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement).closest('a, button')) return
+    const bounds = event.currentTarget.getBoundingClientRect()
+    if (event.clientX - bounds.left < bounds.width * 0.3) prev()
+    else next()
+  }
+
+  const backdrops = Array.from(new Set(slides.flatMap(item => item.backdrop ? [item.backdrop] : [])))
+  const tiles = Array.from(new Set(slides.map(item => item.tile)))
 
   return (
-    <div className="fixed inset-0 bg-ns-bg overflow-hidden flex flex-col">
-      {/* Background gradient per slide */}
-      <div
-        className="absolute inset-0 transition-all duration-700 opacity-30"
-        style={{ background: `radial-gradient(ellipse at center, rgb(${slide.accent} / 0.25) 0%, transparent 70%)` }}
-      />
-
-      {/* Top bar */}
-      <div className="relative z-20 flex items-center justify-between px-6 pt-6">
-        <Link href="/dashboard" className="text-ns-muted text-sm font-body hover:text-ns-text transition-colors">
-          ← Dashboard
-        </Link>
-        <p className="text-ns-muted text-xs font-body tracking-widest">{year} WRAPPED</p>
-        <button onClick={share} className="text-ns-secondary-readable text-sm font-body hover:text-ns-secondary-readable/80 transition-colors">
-          {copied ? 'Copied!' : 'Share'}
-        </button>
-      </div>
-
-      {/* Progress dots */}
-      <div className="relative z-20 flex justify-center gap-1.5 pt-4">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrent(i)}
-            className={`h-1 rounded-full transition-all ${i === current ? 'w-6 bg-ns-secondary' : 'w-1.5 bg-ns-border'}`}
+    <div className="fixed inset-0 z-[65] flex flex-col overflow-hidden bg-ns-bg">
+      <div aria-hidden="true" className="absolute inset-0">
+        {tiles.map(tile => (
+          <div
+            key={tile}
+            className={cn('absolute inset-0 transition-opacity duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]', tile, slide.tile === tile ? 'opacity-100' : 'opacity-0')}
           />
+        ))}
+        {backdrops.map(path => (
+          <div
+            key={path}
+            className={cn('absolute inset-0 transition-opacity duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]', slide.backdrop === path ? 'opacity-100' : 'opacity-0')}
+          >
+            <PosterFill path={path} size="w780" className="object-cover opacity-40" sizes="100vw" />
+            <div className="absolute inset-0 bg-gradient-to-t from-ns-bg via-ns-bg/85 to-ns-bg/70" />
+          </div>
         ))}
       </div>
 
-      {/* Slide content */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 animate-fade-in">
-        {slide.content}
+      <div className="relative z-20 mx-auto w-full max-w-5xl px-4 pt-3 sm:px-6 sm:pt-5">
+        <div role="group" aria-label="Wrapped slides" className="flex gap-1">
+          {slides.map((item, index) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setCurrent(index)}
+              aria-label={`${item.name}, slide ${index + 1} of ${total}`}
+              aria-current={index === current ? 'step' : undefined}
+              className="group flex h-11 min-w-0 flex-1 items-center"
+            >
+              <span className="relative block h-1 w-full overflow-hidden rounded-full bg-ns-text/20">
+                <span className={cn(
+                  'absolute inset-0 origin-left rounded-full bg-ns-text transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
+                  index <= current ? 'scale-x-100' : 'scale-x-0',
+                )} />
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <Link href="/dashboard" className="-ml-1 inline-flex min-h-11 items-center gap-1 rounded-full pr-3 text-sm font-semibold text-ns-text">
+            <ChevronIcon direction="left" size={18} />
+            Dashboard
+          </Link>
+          <h1 className="truncate font-heading text-base font-bold tabular-nums text-ns-text">{year} Wrapped</h1>
+          <button
+            type="button"
+            onClick={share}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-ns-text transition-colors duration-150 hover:bg-ns-text/10"
+          >
+            <ShareIcon size={16} />
+            <span key={String(copied)} className="animate-fade-up">{copied ? 'Copied!' : 'Share'}</span>
+          </button>
+        </div>
       </div>
 
-      {/* Navigation */}
-      <div className="relative z-20 flex items-center justify-between px-6 pb-8">
+      <div
+        onClick={handleStageClick}
+        className="relative z-10 flex min-h-0 flex-1 cursor-pointer overflow-y-auto px-4 py-4 sm:px-6"
+      >
+        <div key={slide.key} className="m-auto flex w-full cursor-auto flex-col items-center">
+          {slide.content}
+        </div>
+      </div>
+
+      <p role="status" className="sr-only">{slide.name}, slide {current + 1} of {total}</p>
+
+      <div className="relative z-20 mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 pb-5 pt-2 sm:px-6 sm:pb-7">
         <button
+          type="button"
           onClick={prev}
           disabled={current === 0}
-          className="px-5 py-2.5 rounded-xl border border-ns-border text-ns-muted text-sm font-body disabled:opacity-20 hover:border-ns-muted/40 transition-colors"
+          aria-label="Previous slide"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-ns-text/10 text-ns-text transition-colors duration-150 hover:bg-ns-text/20 disabled:cursor-not-allowed disabled:text-ns-subtle disabled:hover:bg-ns-text/10"
         >
-          ←
+          <ChevronIcon direction="left" size={22} />
         </button>
-        <p className="text-ns-muted/40 text-xs font-body">{current + 1} / {total}</p>
         {current < total - 1 ? (
-          <button
-            onClick={next}
-            className="px-5 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
-          >
-            Next →
-          </button>
+          <Button size="lg" onClick={next}>
+            Next <ChevronIcon direction="right" size={18} />
+          </Button>
         ) : (
-          <Link
-            href="/dashboard"
-            className="px-5 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
-          >
-            Done
-          </Link>
+          <Button size="lg" href="/dashboard">Done</Button>
         )}
       </div>
     </div>
   )
-}
-
-// ─── Slide builder ────────────────────────────────────────────────────────────
-
-interface SlideData {
-  accent:  string   // space-separated "R G B" triplet, e.g. 'var(--ns-secondary)' resolved
-  content: React.ReactNode
-}
-
-function buildSlides(data: WrappedData, username: string, year: number): SlideData[] {
-  const slides: SlideData[] = []
-
-  // 1 — Intro
-  slides.push({
-    accent: 'var(--ns-secondary)',
-    content: (
-      <div className="text-center">
-        <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-6">NoSpoilers</p>
-        <h1 className="font-display text-7xl sm:text-9xl tracking-wider text-ns-text leading-none mb-4">
-          {year}
-        </h1>
-        <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-secondary-readable mb-6">
-          WRAPPED
-        </h2>
-        <p className="text-ns-muted font-body text-sm">
-          Your year in film, @{username}
-        </p>
-      </div>
-    ),
-  })
-
-  // 2 — Movies watched
-  slides.push({
-    accent: 'var(--ns-success)',
-    content: (
-      <div className="text-center">
-        <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-8">This year you watched</p>
-        <StatNumber value={data.moviesWatched || '?'} label="Films" color={data.moviesWatched > 0 ? 'text-ns-success' : 'text-ns-muted'} />
-        {data.moviesWatched === 0 && (
-          <p className="text-ns-muted font-body text-xs mt-6 max-w-xs text-center">
-            Start adding movies to your watchlist and marking them as watched to track your journey!
-          </p>
-        )}
-        {data.totalWatchTime && data.totalWatchTime > 0 && (
-          <p className="text-ns-muted font-body text-sm mt-8">
-            That&apos;s <span className="text-ns-text">{Math.round(data.totalWatchTime / 60)}h</span> of cinema
-          </p>
-        )}
-      </div>
-    ),
-  })
-
-  // 3 — Top genres
-  if (data.topGenres.length > 0) {
-    slides.push({
-      accent: 'var(--ns-chart-1)',
-      content: (
-        <div className="text-center max-w-md">
-          <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-8">Your favorite genres</p>
-          <div className="flex flex-col gap-4">
-            {data.topGenres.map((genre, i) => (
-              <div
-                key={genre}
-                className="relative overflow-hidden rounded-2xl border border-ns-border bg-ns-surface"
-                style={{ animationDelay: `${i * 0.2}s` }}
-              >
-                <div
-                  className="absolute inset-0 opacity-20"
-                  style={{ background: 'linear-gradient(90deg, rgb(var(--ns-chart-1)), transparent)', width: `${(3 - i) * 33}%` }}
-                />
-                <div className="flex items-center justify-between px-6 py-4 relative z-10">
-                  <span className="text-ns-text font-body text-lg font-medium">{genre}</span>
-                  <span className="text-ns-chart-1 font-display text-2xl tracking-wider">#{i + 1}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ),
-    })
-  }
-
-  // 4 — Top movies
-  if (data.topMovies.length > 0) {
-    slides.push({
-      accent: 'var(--ns-secondary)',
-      content: (
-        <div className="text-center max-w-lg w-full">
-          <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-8">
-            {data.moviesWatched > 0 ? 'Your top films this year' : 'Your all-time favorites'}
-          </p>
-          <div className="flex gap-3 justify-center flex-wrap">
-            {data.topMovies.slice(0, 5).map((movie, i) => (
-              <div key={movie.tmdbId} className="flex flex-col items-center">
-                <div className="relative w-[80px] h-[120px] sm:w-[100px] sm:h-[150px] rounded-xl overflow-hidden border border-ns-border">
-                  <Image
-                    src={tmdbImageUrl(movie.posterPath, 'w185')}
-                    alt={movie.title}
-                    fill
-                    className="object-cover"
-                    sizes="100px"
-                  />
-                  <div className="absolute bottom-1.5 right-1.5 w-5 h-5 rounded-full bg-ns-bg/80 flex items-center justify-center">
-                    <span className="text-ns-secondary-readable text-[9px] font-body font-bold">{i + 1}</span>
-                  </div>
-                </div>
-                <p className="text-ns-muted text-[9px] font-body mt-1.5 max-w-[80px] text-center leading-tight truncate">
-                  {movie.title}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      ),
-    })
-  }
-
-  // 5 — DNA highlight
-  if (data.topTrait) {
-    slides.push({
-      accent: 'var(--ns-secondary)',
-      content: (
-        <div className="text-center">
-          <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-8">Your defining trait</p>
-          <MovieDnaIcon size={60} className="text-ns-secondary-readable mx-auto mb-6" />
-          <p className="font-display text-5xl sm:text-6xl tracking-wider text-ns-secondary-readable mb-4">{data.topTrait.toUpperCase()}</p>
-          <p className="text-ns-muted font-body text-sm max-w-xs mx-auto">
-            This dimension dominates your Movie DNA — it defines what you look for in every film.
-          </p>
-        </div>
-      ),
-    })
-  }
-
-  // 6 — Personality
-  if (data.personalityType) {
-    slides.push({
-      accent: 'var(--ns-chart-1)',
-      content: (
-        <div className="text-center">
-          <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-8">You are</p>
-          <WrappedIcon size={64} className="text-ns-chart-1 mx-auto mb-6" />
-          <p className="font-display text-5xl sm:text-6xl tracking-wider text-ns-chart-1 leading-none mb-4">
-            {data.personalityType.toUpperCase()}
-          </p>
-          <p className="text-ns-muted font-body text-sm">Your Movie Personality for {year}</p>
-        </div>
-      ),
-    })
-  }
-
-  // 7 — Achievements
-  slides.push({
-    accent: 'var(--ns-warning)',
-    content: (
-      <div className="text-center">
-        <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-8">Achievements unlocked</p>
-        <StatNumber value={data.achievementsEarned} label="Badges Earned" color="text-ns-warning" />
-        {data.achievementsEarned > 0 ? (
-          <p className="text-ns-muted font-body text-sm mt-6">Keep watching to unlock more!</p>
-        ) : (
-          <p className="text-ns-muted font-body text-xs mt-6 max-w-xs text-center">
-            Start watching movies to earn your first achievement badges.
-          </p>
-        )}
-      </div>
-    ),
-  })
-
-  // 8 — Finale / share card
-  slides.push({
-    accent: 'var(--ns-secondary)',
-    content: (
-      <div className="text-center max-w-sm">
-        <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-6">
-          NoSpoilers · {year} Wrapped
-        </p>
-        <div className="bg-ns-surface border border-ns-border rounded-2xl p-8 mb-8">
-          <p className="font-display text-3xl tracking-wider text-ns-secondary-readable mb-4">@{username}</p>
-          <div className="flex justify-center gap-8 text-center">
-            <div>
-              <p className="font-display text-3xl tracking-wider text-ns-text">{data.moviesWatched}</p>
-              <p className="text-ns-muted text-xs font-body">Films</p>
-            </div>
-            <div>
-              <p className="font-display text-3xl tracking-wider text-ns-text">{data.achievementsEarned}</p>
-              <p className="text-ns-muted text-xs font-body">Badges</p>
-            </div>
-            {data.personalityType && (
-              <div>
-                <p className="font-display text-xl tracking-wider text-ns-secondary-readable">{data.personalityType.split(' ').pop()}</p>
-                <p className="text-ns-muted text-xs font-body">Personality</p>
-              </div>
-            )}
-          </div>
-          {data.topGenres[0] && (
-            <div className="mt-4 pt-4 border-t border-ns-border">
-              <p className="text-ns-muted text-xs font-body">Top Genre: <span className="text-ns-text">{data.topGenres[0]}</span></p>
-            </div>
-          )}
-        </div>
-        <p className="text-ns-muted text-xs font-body">nospoilers.app · Your cinematic journey</p>
-      </div>
-    ),
-  })
-
-  return slides
 }

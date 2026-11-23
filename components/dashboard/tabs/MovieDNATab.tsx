@@ -11,13 +11,15 @@ interface Props {
   extras?: ReactNode
 }
 
-export default function MovieDNATab({ dnaProfile, username, extras }: Props) {
+export default function MovieDNATab({ dnaProfile, extras }: Props) {
   return (
     <div className="space-y-6">
       {dnaProfile && <DnaEvolutionWidget />}
-      <MovieDNACard profile={dnaProfile} username={username} />
+      <div className="rounded-3xl bg-ns-surface p-6 sm:p-10">
+        <MovieDNACard profile={dnaProfile} />
+      </div>
       {extras && (
-        <div className="space-y-8 border-t border-ns-border/40 pt-8">
+        <div className="space-y-10 border-t border-ns-border pt-10">
           {extras}
         </div>
       )}

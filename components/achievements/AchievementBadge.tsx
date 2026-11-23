@@ -1,8 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import dynamic from 'next/dynamic'
 import type { UserAchievementData } from '@/types'
+import { CheckIcon, getAchievementIcon } from '@/components/icons'
+import { Meter } from '@/components/watchlist/LibraryControls'
+import { cn } from '@/lib/utils'
 
 const AchievementDetailModal = dynamic(() => import('./AchievementDetailModal'), { ssr: false })
 
@@ -15,67 +19,49 @@ export default function AchievementBadge({ achievement, size = 'md' }: Props) {
   const [open, setOpen] = useState(false)
   const pct = Math.min(100, Math.round((achievement.progress / achievement.goal) * 100))
   const sm  = size === 'sm'
+  const AchIcon = getAchievementIcon(achievement.slug)
 
   return (
     <>
       <button
+        type="button"
         onClick={() => setOpen(true)}
         title={achievement.name}
-        className={`
-          relative flex flex-col items-center text-center
-          ${sm ? 'gap-1' : 'gap-2'}
-          ${achievement.earned ? '' : 'opacity-60'}
-          hover:opacity-100 transition-opacity group focus:outline-none
-        `}
+        className={cn('group relative flex min-h-11 flex-col items-center rounded-xl text-center', sm ? 'gap-1' : 'gap-2')}
       >
-        {/* Icon circle */}
-        <div className={`
-          rounded-full flex items-center justify-center border-2 relative
-          transition-all duration-200
-          group-hover:scale-110 group-hover:border-ns-secondary/40
-          ${sm ? 'w-10 h-10 text-lg' : 'w-14 h-14 text-2xl'}
-          ${achievement.earned
-            ? 'border-ns-secondary bg-ns-secondary/10 shadow-[0_0_12px_rgb(var(--ns-secondary)/0.3)]'
-            : 'border-ns-border bg-ns-surface'}
-        `}>
-          {achievement.icon}
+        <span className={cn(
+          'relative flex items-center justify-center rounded-full transition-colors duration-150',
+          sm ? 'h-10 w-10' : 'h-14 w-14',
+          achievement.earned ? 'bg-ns-tile-rose group-hover:bg-ns-surface-3' : 'bg-ns-surface-2 group-hover:bg-ns-surface-3',
+        )}>
+          <AchIcon size={sm ? 18 : 24} className={achievement.earned ? 'text-ns-text' : 'text-ns-muted'} />
           {achievement.earned && (
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-ns-secondary
-                            flex items-center justify-center">
-              <svg width="8" height="8" fill="none" stroke="white" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path d="M20 6 9 17l-5-5"/>
-              </svg>
-            </div>
+            <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-ns-accent text-ns-secondary-foreground">
+              <CheckIcon size={10} strokeWidth={3.5} />
+            </span>
           )}
-        </div>
+        </span>
 
-        {/* Name */}
-        <p className={`text-ns-text font-body font-medium leading-tight group-hover:text-ns-secondary-readable transition-colors
-                       ${sm ? 'text-[10px]' : 'text-xs'}`}>
+        <span className="text-xs font-semibold leading-tight text-ns-text transition-colors duration-150 group-hover:text-ns-secondary-readable">
           {achievement.name}
-        </p>
+        </span>
 
-        {/* Progress */}
         {!achievement.earned && (
-          <div className={`w-full ${sm ? 'max-w-[40px]' : 'max-w-[56px]'}`}>
-            <div className="h-0.5 bg-ns-border rounded-full overflow-hidden">
-              <div
-                className="h-full bg-ns-secondary/50 rounded-full transition-all"
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <p className="text-ns-muted/50 text-[9px] font-body mt-0.5">
+          <span className={cn('block w-full', sm ? 'max-w-10' : 'max-w-14')}>
+            <Meter value={pct / 100} className="h-1" />
+            <span className="mt-0.5 block text-xs tabular-nums text-ns-muted">
               {achievement.progress}/{achievement.goal}
-            </p>
-          </div>
+            </span>
+          </span>
         )}
       </button>
 
-      {open && (
+      {open && createPortal(
         <AchievementDetailModal
           achievement={achievement}
           onClose={() => setOpen(false)}
-        />
+        />,
+        document.body,
       )}
     </>
   )

@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { ArrowRightIcon, CloseIcon, SearchIcon } from '@/components/icons'
+import { cn } from '@/lib/utils'
 import type { CollectionSuggestion } from '@/types'
 
 interface Props {
@@ -63,72 +65,58 @@ export default function CollectionSearchBar({
 
   return (
     <div className="relative w-full">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} role="search">
         <div className="relative">
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2 text-ns-muted"
-            width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
+          <SearchIcon size={18} className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-ns-muted" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             autoFocus={autoFocus}
+            aria-label="Search collections"
             onChange={e => setQuery(e.target.value)}
             onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
             onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="w-full bg-ns-surface border border-ns-border rounded-2xl pl-10 pr-14 py-3.5
-                       text-ns-text font-body text-sm placeholder:text-ns-muted/50
-                       focus:outline-none focus:border-ns-secondary/40 transition-colors"
+            className="min-h-14 w-full rounded-2xl bg-ns-surface py-3 pl-12 pr-[6.75rem] text-base text-ns-text transition-colors duration-150 placeholder:text-ns-subtle hover:bg-ns-surface-2 focus:bg-ns-surface-2"
           />
           {query && (
             <button
               type="button"
+              aria-label="Clear search"
               onClick={() => { setQuery(''); setSuggestions([]); setShowDropdown(false); inputRef.current?.focus() }}
-              className="absolute right-12 top-1/2 -translate-y-1/2 text-ns-muted hover:text-ns-text transition-colors"
+              className="absolute right-[3.75rem] top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-ns-muted transition-colors duration-150 hover:text-ns-text"
             >
-              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M18 6L6 18M6 6l12 12"/>
-              </svg>
+              <CloseIcon size={16} />
             </button>
           )}
-          <button type="submit"
-            className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-ns-secondary text-ns-secondary-foreground
-                       rounded-lg text-xs font-body font-medium hover:bg-ns-secondary/90 transition-colors">
+          <button
+            type="submit"
+            className="absolute right-1.5 top-1/2 min-h-11 -translate-y-1/2 rounded-full bg-ns-text px-4 text-sm font-semibold text-ns-bg transition-colors duration-150 hover:bg-ns-muted"
+          >
             Go
           </button>
         </div>
       </form>
 
-      {/* Suggestions dropdown */}
       {showDropdown && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-ns-surface border border-ns-border rounded-2xl
-                        shadow-2xl shadow-black/60 overflow-hidden z-50">
+        <div className="absolute inset-x-0 top-full z-40 mt-2 animate-fade-up overflow-hidden rounded-2xl bg-ns-surface-2 p-1.5 shadow-2xl">
           {suggestions.map((s, i) => (
             <Link
               key={s.id}
               href={`/collections/${s.id}`}
               onClick={() => setShowDropdown(false)}
-              className={`flex items-center gap-3 px-4 py-3 transition-colors
-                ${i === activeIdx
-                  ? 'bg-ns-secondary/10 text-ns-secondary-readable'
-                  : 'text-ns-muted hover:bg-ns-surface/80 hover:text-ns-text'
-                } ${i > 0 ? 'border-t border-ns-border/50' : ''}`}
+              className={cn(
+                'group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 transition-colors duration-150',
+                i === activeIdx ? 'bg-ns-surface-3' : 'hover:bg-ns-surface-3',
+              )}
             >
-              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <rect x="3" y="3" width="7" height="18" rx="1"/>
-                <rect x="13" y="3" width="8" height="11" rx="1"/>
-              </svg>
-              <div className="flex-1 min-w-0">
-                <p className="text-ns-text text-sm font-body font-medium truncate">{s.title}</p>
-                <p className="text-ns-muted/60 text-[11px] font-body">by @{s.username}</p>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-ns-text">{s.title}</p>
+                <p className="truncate text-sm text-ns-muted">by @{s.username}</p>
               </div>
-              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
-                className="flex-shrink-0 opacity-40">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
+              <ArrowRightIcon size={16} className="flex-shrink-0 text-ns-muted transition-colors duration-150 group-hover:text-ns-text" />
             </Link>
           ))}
         </div>

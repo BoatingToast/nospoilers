@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import Button from '@/components/ui/Button'
+import { ChevronIcon, CloseIcon } from '@/components/icons'
+import StepActions from './StepActions'
 
 export interface PreferenceAnswers {
   pacingScale:          number | null
@@ -100,45 +101,70 @@ function selectionLabel(value: number | null, left: string, right: string): stri
   return right
 }
 
+const RANGE_CLASSES = [
+  'relative h-11 w-full cursor-pointer appearance-none rounded-full bg-transparent',
+  '[&::-webkit-slider-runnable-track]:h-11 [&::-webkit-slider-runnable-track]:bg-transparent',
+  '[&::-webkit-slider-thumb]:mt-2.5 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-ns-surface [&::-webkit-slider-thumb]:transition-colors',
+  '[&::-moz-range-track]:bg-transparent [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-4 [&::-moz-range-thumb]:border-ns-surface',
+].join(' ')
+
 function SliderQuestion({ config, value, onChange }: {
   config: ScaleConfig
   value: number | null
   onChange: (value: number | null) => void
 }) {
+  const label = selectionLabel(value, config.leftLabel, config.rightLabel)
+  const fill = value === null ? 0 : (value - 1) / 9
+
   return (
-    <div className="rounded-2xl border border-ns-border bg-ns-surface p-4">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-body font-medium text-ns-text">{config.label}</p>
-          <p className="mt-0.5 text-xs font-body text-ns-muted">{config.sublabel}</p>
+    <div className="py-5 first:pt-0 last:pb-0">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="font-heading text-base font-semibold text-ns-text">{config.label}</p>
+          <p className="mt-0.5 text-sm leading-relaxed text-ns-muted">{config.sublabel}</p>
         </div>
-        <span className="max-w-28 text-right text-[10px] font-body font-semibold uppercase tracking-wide text-ns-secondary-readable">
-          {selectionLabel(value, config.leftLabel, config.rightLabel)}
+        <span
+          key={label}
+          className={`max-w-[9rem] flex-shrink-0 text-right text-sm font-semibold motion-safe:animate-fade-up ${value === null ? 'text-ns-muted' : 'text-ns-secondary-readable'}`}
+        >
+          {label}
         </span>
       </div>
-      <input
-        type="range"
-        min={1}
-        max={10}
-        value={value ?? 5}
-        aria-label={config.label}
-        aria-valuetext={selectionLabel(value, config.leftLabel, config.rightLabel)}
-        onChange={event => onChange(Number(event.target.value))}
-        className="w-full cursor-pointer accent-ns-secondary"
-      />
-      <div className="mt-1 flex items-start justify-between gap-4 text-[10px] font-body text-ns-muted">
+
+      <div className="relative mt-1 flex h-11 items-center">
+        <div aria-hidden="true" className="absolute inset-x-0 h-1.5 overflow-hidden rounded-full bg-ns-surface-3">
+          <div
+            className="h-full origin-left rounded-full bg-ns-secondary transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
+            style={{ transform: `scaleX(${fill})` }}
+          />
+        </div>
+        <input
+          type="range"
+          min={1}
+          max={10}
+          value={value ?? 5}
+          aria-label={config.label}
+          aria-valuetext={label}
+          onChange={event => onChange(Number(event.target.value))}
+          className={`${RANGE_CLASSES} ${value === null
+            ? '[&::-moz-range-thumb]:bg-ns-muted [&::-webkit-slider-thumb]:bg-ns-muted'
+            : '[&::-moz-range-thumb]:bg-ns-text [&::-webkit-slider-thumb]:bg-ns-text'}`}
+        />
+      </div>
+
+      <div className="flex items-center justify-between gap-4 text-sm text-ns-muted">
         <span>{config.leftLabel}</span>
+        {config.optional && value !== null && (
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="min-h-10 rounded-full px-3 text-sm font-semibold text-ns-muted transition-colors hover:bg-ns-surface-2 hover:text-ns-text motion-safe:animate-fade-up"
+          >
+            Clear preference
+          </button>
+        )}
         <span className="text-right">{config.rightLabel}</span>
       </div>
-      {config.optional && value !== null && (
-        <button
-          type="button"
-          onClick={() => onChange(null)}
-          className="mt-2 text-[10px] font-body text-ns-muted underline decoration-ns-border underline-offset-2 hover:text-ns-text"
-        >
-          Clear preference
-        </button>
-      )}
     </div>
   )
 }
@@ -152,11 +178,9 @@ function ScaleSection({ title, description, scales, answers, setAnswer }: {
 }) {
   return (
     <section>
-      <div className="mb-3">
-        <h3 className="text-sm font-heading text-white">{title}</h3>
-        <p className="mt-0.5 text-xs font-body text-ns-muted">{description}</p>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <h2 className="font-heading text-xl font-bold text-ns-text">{title}</h2>
+      <p className="mt-1 text-base text-ns-muted">{description}</p>
+      <div className="mt-5 divide-y divide-ns-border">
         {scales.map(config => (
           <SliderQuestion
             key={config.key}
@@ -207,17 +231,13 @@ export default function StepPreferences({ onSubmit, onBack, loading }: StepPrefe
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-text mb-2">
-          YOUR PREFERENCES
-        </h2>
-        <p className="text-ns-muted font-body text-sm">
-          Five quick choices give us the strongest signals. You can skip any that do not matter to you.
-        </p>
-      </div>
+    <div>
+      <h1 className="font-display text-4xl text-ns-text sm:text-5xl">Your preferences</h1>
+      <p className="mt-3 max-w-xl text-lg leading-relaxed text-ns-muted">
+        Five quick choices give us the strongest signals. You can skip any that do not matter to you.
+      </p>
 
-      <div className="mb-10 flex flex-col gap-6">
+      <div className="mt-8 rounded-2xl bg-ns-surface p-6 sm:p-8">
         <ScaleSection
           title="The essentials"
           description="Your time, comfort, and appetite for discovery."
@@ -225,79 +245,83 @@ export default function StepPreferences({ onSubmit, onBack, loading }: StepPrefe
           answers={answers}
           setAnswer={setAnswer}
         />
+      </div>
 
-        <section className="overflow-hidden rounded-2xl border border-ns-border bg-ns-surface/45">
-          <button
-            type="button"
-            aria-expanded={showFineTune}
-            aria-controls="fine-tune-preferences"
-            onClick={() => setShowFineTune(open => !open)}
-            className="flex w-full items-center justify-between gap-4 p-4 text-left transition-colors hover:bg-ns-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ns-secondary-readable sm:p-5"
+      <section className="mt-4 rounded-2xl bg-ns-surface">
+        <button
+          type="button"
+          aria-expanded={showFineTune}
+          aria-controls="fine-tune-preferences"
+          onClick={() => setShowFineTune(open => !open)}
+          className="flex min-h-16 w-full items-center justify-between gap-4 rounded-2xl px-6 py-4 text-left transition-colors duration-150 hover:bg-ns-surface-2 sm:px-8"
+        >
+          <span className="min-w-0">
+            <span className="block font-heading text-base font-semibold text-ns-text">Fine-tune my taste</span>
+            <span className="mt-0.5 block text-sm leading-relaxed text-ns-muted">
+              Optional story, tone, era, and content controls — plus genres to avoid.
+            </span>
+          </span>
+          <ChevronIcon
+            size={20}
+            direction="down"
+            className={`flex-shrink-0 text-ns-muted transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${showFineTune ? 'rotate-180' : ''}`}
+          />
+        </button>
+
+        {showFineTune && (
+          <div
+            id="fine-tune-preferences"
+            className="space-y-10 border-t border-ns-border p-6 motion-safe:animate-[fadeUp_280ms_cubic-bezier(0.23,1,0.32,1)_backwards] sm:p-8"
           >
-            <span>
-              <span className="block text-sm font-heading font-semibold text-ns-text">Fine-tune my taste</span>
-              <span className="mt-1 block text-xs font-body leading-relaxed text-ns-muted">
-                Optional story, tone, era, and content controls — plus genres to avoid.
-              </span>
-            </span>
-            <span aria-hidden="true" className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-ns-border text-ns-secondary-readable transition-transform ${showFineTune ? 'rotate-180' : ''}`}>
-              ↓
-            </span>
-          </button>
+            <ScaleSection
+              title="More taste signals"
+              description="These start neutral and can be adjusted now or later in settings."
+              scales={FINE_TUNE_SCALES}
+              answers={answers}
+              setAnswer={setAnswer}
+            />
 
-          {showFineTune && (
-            <div id="fine-tune-preferences" className="space-y-8 border-t border-ns-border p-4 sm:p-5">
-              <ScaleSection
-                title="More taste signals"
-                description="These start neutral and can be adjusted now or later in settings."
-                scales={FINE_TUNE_SCALES}
-                answers={answers}
-                setAnswer={setAnswer}
-              />
-
-              <section>
-                <div className="mb-3">
-                  <h3 className="text-sm font-heading text-white">Genres to avoid</h3>
-                  <p className="mt-0.5 text-xs font-body text-ns-muted">Optional hard exclusions. You can change these later.</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {AVOIDABLE_GENRES.map(genre => {
-                    const selected = answers.excludedGenres.includes(genre)
-                    return (
-                      <button
-                        type="button"
-                        key={genre}
-                        aria-pressed={selected}
-                        onClick={() => toggleExcludedGenre(genre)}
-                        className={`rounded-full border px-3 py-1.5 text-xs font-body capitalize transition-colors ${
-                          selected
-                            ? 'border-red-400/60 bg-red-500/10 text-red-300'
-                            : 'border-ns-border bg-ns-surface text-ns-muted hover:border-ns-muted/50 hover:text-ns-text'
-                        }`}
-                      >
-                        {selected ? '× ' : ''}{genre}
-                      </button>
-                    )
-                  })}
-                </div>
-              </section>
-            </div>
-          )}
-        </section>
-
-        {!showFineTune && (
-          <p className="text-center text-xs font-body text-ns-muted">
-            The rest stays neutral for now and can be changed in settings at any time.
-          </p>
+            <section>
+              <h2 className="font-heading text-xl font-bold text-ns-text">Genres to avoid</h2>
+              <p className="mt-1 text-base text-ns-muted">Optional hard exclusions. You can change these later.</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {AVOIDABLE_GENRES.map(genre => {
+                  const selected = answers.excludedGenres.includes(genre)
+                  return (
+                    <button
+                      type="button"
+                      key={genre}
+                      aria-pressed={selected}
+                      onClick={() => toggleExcludedGenre(genre)}
+                      className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 text-sm font-semibold capitalize transition-colors duration-150 ${
+                        selected
+                          ? 'bg-ns-danger/10 text-ns-danger'
+                          : 'bg-ns-surface-2 text-ns-text hover:bg-ns-surface-3'
+                      }`}
+                    >
+                      {selected && <CloseIcon size={13} />}
+                      {genre}
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          </div>
         )}
-      </div>
+      </section>
 
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" size="lg" onClick={onBack}>← Back</Button>
-        <Button variant="primary" size="lg" onClick={() => onSubmit(answers)} loading={loading}>
-          Generate My DNA →
-        </Button>
-      </div>
+      {!showFineTune && (
+        <p className="mt-4 text-center text-sm text-ns-muted">
+          The rest stays neutral for now and can be changed in settings at any time.
+        </p>
+      )}
+
+      <StepActions
+        nextLabel="Generate My DNA"
+        onNext={() => onSubmit(answers)}
+        onBack={onBack}
+        loading={loading}
+      />
     </div>
   )
 }

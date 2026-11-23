@@ -1,59 +1,51 @@
 'use client'
 
+import Button from '@/components/ui/Button'
+
 interface Props {
   movieTitle: string
   onEnter:    () => void
 }
 
+// Purely decorative: empty bars, never message text.
+const PREVIEW_ROWS = [
+  ['w-11/12', 'w-3/5'],
+  ['w-2/3'],
+  ['w-full', 'w-10/12', 'w-1/3'],
+]
+
 export default function SpoilerZoneGate({ movieTitle, onEnter }: Props) {
   return (
-    <div className="max-w-lg mx-auto py-4">
-      {/* Card */}
-      <div className="relative overflow-hidden bg-ns-surface border border-ns-warning/25 rounded-2xl p-10 text-center
-                      shadow-[0_0_60px_-15px_rgb(var(--ns-warning)/0.15)]">
-
-        {/* Glow bg */}
-        <div className="absolute inset-0 bg-gradient-to-b from-ns-warning/5 to-transparent pointer-events-none" />
-
-        {/* Warning icon */}
-        <div className="relative w-16 h-16 mx-auto mb-6 rounded-full bg-ns-warning/10 border border-ns-warning/30
-                        flex items-center justify-center">
-          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            strokeWidth="1.75" className="text-ns-warning">
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
-          </svg>
+    <div className="ns-reveal">
+      <div className="grid gap-10 overflow-hidden rounded-3xl bg-ns-surface p-7 sm:p-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-center lg:gap-16 lg:p-14">
+        <div className="min-w-0">
+          <h2 className="font-display text-3xl text-ns-text sm:text-4xl">Enter the Spoiler Zone?</h2>
+          <p className="mt-4 max-w-xl text-lg leading-relaxed text-ns-muted">
+            Everything inside may contain full spoilers for{' '}
+            <span className="break-words font-semibold text-ns-text">{movieTitle}</span>
+          </p>
+          <p className="mt-3 max-w-xl text-base leading-relaxed text-ns-muted">
+            The Spoiler Zone is an open discussion room for people who have already watched this film.
+            Plot twists, endings, and theories are fair game inside.
+          </p>
+          <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-3">
+            <Button size="lg" onClick={onEnter}>Enter Spoiler Zone</Button>
+            <p className="text-sm text-ns-muted">We&apos;ll remember your choice for this movie</p>
+          </div>
         </div>
 
-        <h3 className="relative font-display text-2xl tracking-widest text-ns-text mb-3">
-          ENTER THE SPOILER ZONE?
-        </h3>
-
-        <p className="relative text-ns-muted font-body text-sm mb-1">
-          Everything inside may contain full spoilers for
-        </p>
-        <p className="relative text-ns-secondary-readable font-body font-semibold text-base mb-6 truncate px-4">
-          {movieTitle}
-        </p>
-
-        <div className="relative w-full h-px bg-ns-border mb-6" />
-
-        <p className="relative text-ns-muted/70 font-body text-xs leading-relaxed mb-8 max-w-sm mx-auto">
-          The Spoiler Zone is an open discussion room for people who have already watched this film.
-          Plot twists, endings, and theories are fair game inside.
-        </p>
-
-        <button
-          onClick={onEnter}
-          className="relative px-10 py-3.5 rounded-xl bg-ns-warning text-black font-body font-bold text-sm
-                     hover:bg-ns-warning active:scale-95 transition-all duration-150 shadow-lg shadow-ns-warning/20"
-        >
-          Enter Spoiler Zone
-        </button>
-
-        <p className="relative mt-4 text-[10px] font-body text-ns-muted/40 tracking-wide">
-          We&apos;ll remember your choice for this movie
-        </p>
+        <div aria-hidden="true" className="space-y-5 rounded-2xl bg-ns-bg p-5 sm:p-6">
+          {PREVIEW_ROWS.map((lines, row) => (
+            <div key={row} className="flex items-start gap-3">
+              <span className="h-8 w-8 flex-shrink-0 rounded-full bg-ns-surface-2" />
+              <span className="flex-1 space-y-2 pt-1">
+                {lines.map((width, line) => (
+                  <span key={line} className={`block h-3.5 rounded-sm bg-ns-secondary ${width}`} />
+                ))}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

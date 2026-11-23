@@ -1,10 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { tmdbImageUrl } from '@/lib/utils'
-import { LockIcon, FilmIcon } from '@/components/icons'
+import EmptyState from '@/components/ui/EmptyState'
+import PosterTile, { posterGridClass } from './PosterTile'
 
 interface RatingItem {
   tmdbId:     number
@@ -16,13 +14,6 @@ interface RatingItem {
 }
 
 type Sort = 'date' | 'score_desc' | 'score_asc'
-
-function scoreColor(s: number) {
-  if (s >= 85) return 'text-ns-secondary-readable'
-  if (s >= 70) return 'text-emerald-400'
-  if (s >= 50) return 'text-blue-400'
-  return 'text-ns-muted'
-}
 
 function timeAgo(iso: string) {
   const d   = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000)
@@ -55,25 +46,20 @@ export default function ProfileRatingsTab({ username }: { username: string }) {
   }, [username, sort])
 
   if (blocked) {
-    return (
-      <div className="py-20 text-center">
-        <LockIcon size={40} className="text-ns-muted/40 mx-auto mb-3" />
-        <p className="text-ns-muted font-body text-sm">This user's ratings are private.</p>
-      </div>
-    )
+    return <EmptyState title="This user's ratings are private." />
   }
 
   return (
     <div>
-      {/* Sort controls */}
-      <div className="flex items-center gap-2 mb-6">
-        <span className="text-ns-muted text-xs font-body">Sort:</span>
+      <div role="group" aria-label="Sort ratings" className="mb-6 flex flex-wrap items-center gap-1">
         {(['date', 'score_desc', 'score_asc'] as Sort[]).map(s => (
           <button
             key={s}
+            type="button"
+            aria-pressed={sort === s}
             onClick={() => setSort(s)}
-            className={`px-3 py-1 rounded-full text-xs font-body transition-colors border
-              ${sort === s ? 'bg-ns-secondary/10 border-ns-secondary/40 text-ns-secondary-readable' : 'border-ns-border text-ns-muted hover:text-ns-text'}`}
+            className={`min-h-11 rounded-full px-4 text-sm font-semibold transition-colors duration-150 sm:min-h-10
+              ${sort === s ? 'bg-ns-surface-3 text-ns-text' : 'text-ns-muted hover:bg-ns-surface-2 hover:text-ns-text'}`}
           >
             {s === 'date' ? 'Recent' : s === 'score_desc' ? 'Highest' : 'Lowest'}
           </button>
@@ -81,46 +67,33 @@ export default function ProfileRatingsTab({ username }: { username: string }) {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {Array.from({ length: 12 }).map((_, i) => (
+        <div className={posterGridClass}>
+          {Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="aspect-[2/3] bg-ns-border rounded-xl mb-2" />
-              <div className="h-3 bg-ns-border rounded w-4/5 mb-1" />
-              <div className="h-2 bg-ns-border rounded w-2/5" />
+              <div className="aspect-[2/3] rounded-xl bg-ns-surface" />
+              <div className="mt-2.5 h-4 w-4/5 rounded-sm bg-ns-surface" />
+              <div className="mt-1.5 h-3.5 w-2/5 rounded-sm bg-ns-surface" />
             </div>
           ))}
         </div>
       ) : ratings.length === 0 ? (
-        <div className="py-20 text-center">
-          <FilmIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
-          <p className="text-ns-muted font-body text-sm">No ratings yet.</p>
-        </div>
+        <EmptyState title="No ratings yet." />
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {ratings.map(r => (
-            <Link key={r.tmdbId} href={`/movie/${r.tmdbId}`} className="group">
-              <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-ns-border mb-2">
-                {r.posterPath ? (
-                  <Image
-                    src={tmdbImageUrl(r.posterPath, 'w342')}
-                    alt={r.title}
-                    fill
-                    sizes="200px"
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <FilmIcon size={32} className="text-ns-muted/40" />
-                  </div>
-                )}
-                {/* Score badge */}
-                <div className="absolute top-2 right-2 bg-black/70 rounded-full px-2 py-0.5">
-                  <span className={`text-xs font-body font-bold ${scoreColor(r.score)}`}>{r.score}</span>
-                </div>
-              </div>
-              <p className="text-xs font-body text-white line-clamp-1 group-hover:text-ns-secondary-readable transition-colors">{r.title}</p>
-              <p className="text-[10px] font-body text-ns-muted mt-0.5">{timeAgo(r.createdAt)}</p>
-            </Link>
+        <div key={sort} className={`${posterGridClass} animate-fade-up`}>
+          {ratings.map((r, index) => (
+            <PosterTile
+              key={r.tmdbId}
+              index={index}
+              tmdbId={r.tmdbId}
+              title={r.title}
+              posterPath={r.posterPath}
+              meta={timeAgo(r.createdAt)}
+              overlay={
+                <span className="absolute right-2 top-2 rounded-full bg-black/75 px-2.5 py-0.5 text-sm font-bold tabular-nums text-white">
+                  {r.score}
+                </span>
+              }
+            />
           ))}
         </div>
       )}

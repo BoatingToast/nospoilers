@@ -1,23 +1,19 @@
 'use client'
 
-import Button from '@/components/ui/Button'
-import {
-  EmotionIcon, SuspenseIcon, SearchIcon, CompassIcon, EyeIcon,
-  HumorIcon, ActionIcon, HeartIcon, MovieDnaIcon, ClapperboardIcon,
-  type IconProps,
-} from '@/components/icons'
+import { CheckIcon, PlusIcon } from '@/components/icons'
+import StepActions from './StepActions'
 
-const GENRES: { id: string; label: string; Icon: React.ComponentType<IconProps> }[] = [
-  { id: 'drama',       label: 'Drama',       Icon: EmotionIcon     },
-  { id: 'thriller',    label: 'Thriller',    Icon: SuspenseIcon    },
-  { id: 'crime',       label: 'Crime',       Icon: SearchIcon      },
-  { id: 'sci-fi',      label: 'Sci-Fi',      Icon: CompassIcon     },
-  { id: 'horror',      label: 'Horror',      Icon: EyeIcon         },
-  { id: 'comedy',      label: 'Comedy',      Icon: HumorIcon       },
-  { id: 'action',      label: 'Action',      Icon: ActionIcon      },
-  { id: 'romance',     label: 'Romance',     Icon: HeartIcon       },
-  { id: 'mystery',     label: 'Mystery',     Icon: MovieDnaIcon    },
-  { id: 'documentary', label: 'Documentary', Icon: ClapperboardIcon},
+const GENRES: { id: string; label: string }[] = [
+  { id: 'drama', label: 'Drama' },
+  { id: 'thriller', label: 'Thriller' },
+  { id: 'crime', label: 'Crime' },
+  { id: 'sci-fi', label: 'Sci-Fi' },
+  { id: 'horror', label: 'Horror' },
+  { id: 'comedy', label: 'Comedy' },
+  { id: 'action', label: 'Action' },
+  { id: 'romance', label: 'Romance' },
+  { id: 'mystery', label: 'Mystery' },
+  { id: 'documentary', label: 'Documentary' },
 ]
 
 interface StepGenresProps {
@@ -37,62 +33,43 @@ export default function StepGenres({ selected, setSelected, onNext, onBack }: St
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-text mb-2">
-          YOUR GENRES
-        </h2>
-        <p className="text-ns-muted font-body text-sm">
-          Select all the genres you genuinely enjoy. No wrong answers.
-        </p>
-      </div>
+    <div>
+      <h1 className="font-display text-4xl text-ns-text sm:text-5xl">Your genres</h1>
+      <p className="mt-3 max-w-xl text-lg leading-relaxed text-ns-muted">
+        Select all the genres you genuinely enjoy. No wrong answers.
+      </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-10">
+      <div className="mt-8 flex flex-wrap gap-2.5 sm:gap-3">
         {GENRES.map(genre => {
           const active = selected.includes(genre.id)
           return (
             <button
               key={genre.id}
+              type="button"
+              aria-pressed={active}
               onClick={() => toggle(genre.id)}
-              className={`relative flex flex-col items-center justify-center gap-2 p-5 rounded-2xl
-                         border transition-all duration-200 cursor-pointer select-none
-                         ${active
-                           ? 'bg-ns-secondary/10 border-ns-secondary text-ns-secondary-readable shadow-[0_0_20px_rgb(var(--ns-secondary)/0.1)]'
-                           : 'bg-ns-surface border-ns-border text-ns-muted hover:border-ns-muted/40 hover:text-ns-text'
-                         }`}
+              className={`inline-flex min-h-14 cursor-pointer select-none items-center gap-2.5 rounded-full px-6 font-heading text-lg font-semibold transition-colors duration-200 active:translate-y-px ${
+                active
+                  ? 'bg-ns-text text-ns-bg'
+                  : 'bg-ns-surface text-ns-text hover:bg-ns-surface-2'
+              }`}
             >
-              <genre.Icon size={24} />
-              <span className="text-sm font-body font-medium">{genre.label}</span>
-              {active && (
-                <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-ns-secondary flex items-center justify-center">
-                  <svg width="8" height="8" fill="none" stroke="rgb(var(--ns-bg))" strokeWidth="3" viewBox="0 0 24 24">
-                    <path d="M20 6L9 17l-5-5"/>
-                  </svg>
-                </div>
-              )}
+              {active
+                ? <CheckIcon key="on" size={18} className="motion-safe:animate-fade-up" />
+                : <PlusIcon key="off" size={18} className="text-ns-muted" />}
+              {genre.label}
             </button>
           )
         })}
       </div>
 
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" size="lg" onClick={onBack}>
-          ← Back
-        </Button>
-        <div className="flex items-center gap-4">
-          <span className="text-ns-muted text-sm font-body">
-            {selected.length} selected
-          </span>
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={onNext}
-            disabled={selected.length === 0}
-          >
-            Continue →
-          </Button>
-        </div>
-      </div>
+      <StepActions
+        status={`${selected.length} selected`}
+        nextLabel="Continue"
+        onNext={onNext}
+        onBack={onBack}
+        nextDisabled={selected.length === 0}
+      />
     </div>
   )
 }

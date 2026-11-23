@@ -3,9 +3,12 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import Button from '@/components/ui/Button'
+import EmptyState from '@/components/ui/EmptyState'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { tmdbImageUrl, formatYear } from '@/lib/utils'
 import type { TopFiveEntry } from '@/services/top-five'
-import { FilmIcon, EditIcon } from '@/components/icons'
+import { FilmIcon, EditIcon, PlusIcon } from '@/components/icons'
 
 interface Props {
   userId:      string
@@ -13,9 +16,7 @@ interface Props {
   onEditClick?: () => void
 }
 
-const RANK_LABELS: Record<number, string> = {
-  1: '1ST', 2: '2ND', 3: '3RD', 4: '4TH', 5: '5TH',
-}
+const slotClass = 'w-28 flex-shrink-0 snap-start sm:w-auto'
 
 export default function Top5Display({ userId, isOwn, onEditClick }: Props) {
   const [movies,  setMovies]  = useState<TopFiveEntry[]>([])
@@ -31,112 +32,77 @@ export default function Top5Display({ userId, isOwn, onEditClick }: Props) {
 
   return (
     <div>
-      {/* Section header */}
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="font-display text-2xl tracking-wider text-ns-text">TOP 5 FILMS</h2>
-        {isOwn && (
-          <button
-            onClick={onEditClick}
-            className="text-xs font-heading font-medium text-ns-secondary-readable hover:text-amber-400 transition-colors flex items-center gap-1.5"
-          >
-            <EditIcon size={12} />
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <h2 className="font-display text-3xl text-ns-text">Top 5 films</h2>
+        {isOwn && movies.length > 0 && (
+          <Button variant="ghost" size="sm" onClick={onEditClick}>
+            <EditIcon size={14} />
             Edit Top 5
-          </button>
+          </Button>
         )}
       </div>
 
       {loading ? (
-        <div className="flex gap-3">
+        <div role="status" aria-label="Loading Top 5" className="flex gap-3 overflow-hidden sm:grid sm:grid-cols-5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex-1 aspect-[2/3] animate-pulse rounded-xl bg-ns-surface border border-ns-border" />
+            <Skeleton key={i} className={`${slotClass} aspect-[2/3] rounded-xl`} />
           ))}
         </div>
       ) : movies.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-ns-border p-10 text-center">
-          <FilmIcon size={44} className="text-ns-secondary-readable/30 mx-auto mb-3" />
-          <p className="font-heading font-medium text-white mb-1">No Top 5 yet</p>
-          <p className="text-ns-muted text-sm font-body mb-4">
-            {isOwn
-              ? 'Pick your 5 all-time favourite films — they\'ll shape your Movie DNA.'
-              : 'This user hasn\'t set their Top 5 yet.'
-            }
-          </p>
-          {isOwn && (
-            <button
-              onClick={onEditClick}
-              className="px-5 py-2 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold hover:bg-ns-secondary/90 transition-colors"
-            >
-              Choose Your Top 5
-            </button>
-          )}
-        </div>
+        <EmptyState
+          title="No Top 5 yet"
+          description={isOwn
+            ? 'Pick your 5 all-time favourite films — they\'ll shape your Movie DNA.'
+            : 'This user hasn\'t set their Top 5 yet.'}
+          action={isOwn ? <Button onClick={onEditClick}>Choose Your Top 5</Button> : undefined}
+        />
       ) : (
-        <div className="flex gap-2 sm:gap-3">
-          {movies.map(m => (
-            <Link
-              key={m.tmdbId}
-              href={`/movie/${m.tmdbId}`}
-              className="relative flex-1 group"
-            >
-              {/* Rank badge */}
-              <div className="absolute -top-2 -left-1 z-10 w-7 h-7 rounded-full bg-ns-bg border-2 border-ns-secondary
-                              flex items-center justify-center shadow-lg">
-                <span className="text-ns-secondary-readable font-display text-[9px] leading-none tracking-wider">
-                  {m.position}
+        <div className="flex snap-x gap-3 overflow-x-auto pb-1 scrollbar-hide sm:grid sm:grid-cols-5 sm:overflow-visible sm:pb-0">
+          {movies.map((m, index) => (
+            <div key={m.tmdbId} className={`ns-reveal ${slotClass}`} style={{ '--i': index } as React.CSSProperties}>
+              <Link href={`/movie/${m.tmdbId}`} aria-label={`Number ${m.position}: ${m.title}`} className="group block min-w-0">
+                <span className="relative block aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface ring-1 ring-inset ring-white/5">
+                  {m.posterPath ? (
+                    <Image
+                      src={tmdbImageUrl(m.posterPath, 'w342')}
+                      alt=""
+                      fill
+                      sizes="(max-width: 640px) 112px, 200px"
+                      className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04] motion-reduce:transform-none"
+                    />
+                  ) : (
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <FilmIcon size={28} className="text-ns-subtle" />
+                    </span>
+                  )}
+                  <span className="absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/75 text-sm font-bold tabular-nums text-white">
+                    {m.position}
+                  </span>
                 </span>
-              </div>
-
-              {/* Poster */}
-              <div className="aspect-[2/3] rounded-xl overflow-hidden bg-ns-surface border border-ns-border
-                              shadow-lg group-hover:border-ns-secondary/50 transition-all duration-200
-                              group-hover:shadow-ns-secondary/10 group-hover:shadow-xl">
-                {m.posterPath ? (
-                  <Image
-                    src={tmdbImageUrl(m.posterPath, 'w342')}
-                    alt={m.title}
-                    fill
-                    sizes="(max-width: 640px) 18vw, 160px"
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <FilmIcon size={28} className="text-ns-muted/30" />
-                  </div>
+                <span className="mt-2 block truncate font-heading text-sm font-semibold text-ns-text transition-colors duration-150 group-hover:text-ns-secondary-readable">
+                  {m.title}
+                </span>
+                {m.releaseDate && (
+                  <span className="block text-xs tabular-nums text-ns-muted">{formatYear(m.releaseDate)}</span>
                 )}
-
-                {/* Overlay on hover */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-black/0
-                                opacity-0 group-hover:opacity-100 transition-opacity duration-200
-                                flex items-end p-2">
-                  <div className="w-full">
-                    <p className="text-white text-[10px] font-heading font-semibold leading-tight line-clamp-2">{m.title}</p>
-                    {m.releaseDate && (
-                      <p className="text-white/60 text-[9px] font-body mt-0.5">{formatYear(m.releaseDate)}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Title below poster */}
-              <p className="text-[10px] sm:text-[11px] font-body text-ns-muted mt-1.5 line-clamp-1 group-hover:text-white transition-colors text-center">
-                {m.title}
-              </p>
-            </Link>
+              </Link>
+            </div>
           ))}
 
-          {/* Empty slots */}
           {Array.from({ length: 5 - movies.length }).map((_, i) => (
-            <div key={`empty-${i}`} className="flex-1">
-              <button
-                onClick={isOwn ? onEditClick : undefined}
-                className={`w-full aspect-[2/3] rounded-xl border-2 border-dashed flex items-center justify-center
-                            ${isOwn
-                              ? 'border-ns-border hover:border-ns-secondary/40 cursor-pointer transition-colors'
-                              : 'border-ns-border cursor-default'
-                            }`}
-              >
-                {isOwn && <span className="text-ns-muted text-lg">+</span>}
-              </button>
+            <div key={`empty-${i}`} className={slotClass}>
+              {isOwn ? (
+                <button
+                  type="button"
+                  onClick={onEditClick}
+                  aria-label="Add a film to your Top 5"
+                  className="flex aspect-[2/3] w-full items-center justify-center rounded-xl bg-ns-surface text-ns-muted transition-colors duration-150 hover:bg-ns-surface-2 hover:text-ns-text"
+                >
+                  <PlusIcon size={20} />
+                </button>
+              ) : (
+                <div aria-hidden="true" className="aspect-[2/3] w-full rounded-xl bg-ns-surface" />
+              )}
             </div>
           ))}
         </div>

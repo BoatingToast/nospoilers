@@ -23,7 +23,12 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
-import { tmdbImageUrl, formatYear } from '@/lib/utils'
+import { cn, tmdbImageUrl, formatYear } from '@/lib/utils'
+import Button from '@/components/ui/Button'
+import Modal from '@/components/ui/Modal'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { CheckIcon, ChevronIcon, CloseIcon, PlusIcon } from '@/components/icons'
+import { PillTabs } from '@/components/watchlist/LibraryControls'
 import type { CollectionMovieData } from '@/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -163,6 +168,27 @@ export default function EditCollectionModal({
     }
   }
 
+  async function moveMovie(idx: number, delta: -1 | 1) {
+    const target = idx + delta
+    if (target < 0 || target >= movies.length) return
+    const next = [...movies]
+    const [item] = next.splice(idx, 1)
+    next.splice(target, 0, item)
+    setMovies(next)
+    setReordering(true)
+    try {
+      await fetch(`/api/collections/${collectionId}/movies`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          positions: next.map((m, i) => ({ tmdbId: m.tmdbId, position: i })),
+        }),
+      })
+    } finally {
+      setReordering(false)
+    }
+  }
+
   // ── TMDB search ───────────────────────────────────────────────────────────
 
   const searchTMDB = useCallback(async (q: string) => {
@@ -236,331 +262,235 @@ export default function EditCollectionModal({
     }
   }
 
-  // ── Keyboard close ────────────────────────────────────────────────────────
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
-
   // ── Render ────────────────────────────────────────────────────────────────
 
+  const fieldClass = 'w-full rounded-xl border border-ns-border-strong bg-ns-bg px-4 py-3 text-base text-ns-text transition-colors duration-150 placeholder:text-ns-subtle focus:border-ns-text focus:outline-none focus:ring-1 focus:ring-ns-text'
+  const rowIconClass = 'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-ns-muted transition-colors duration-150 hover:bg-ns-surface-3 hover:text-ns-text disabled:cursor-not-allowed disabled:text-ns-subtle disabled:hover:bg-transparent'
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-
-      {/* Panel — z-10 to sit above backdrop */}
-      <div className="relative z-10 w-full max-w-2xl bg-ns-surface border border-ns-border rounded-2xl
-                      shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-ns-border flex-shrink-0">
-          <h2 className="font-display text-xl tracking-wider text-ns-text">EDIT COLLECTION</h2>
-          <button
-            onClick={onClose}
-            className="text-ns-muted hover:text-ns-text transition-colors p-1"
-          >
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex border-b border-ns-border flex-shrink-0">
-          {(['details', 'movies', 'add'] as Tab[]).map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-6 py-3 text-xs font-body tracking-widest uppercase transition-colors relative
-                ${tab === t ? 'text-ns-secondary-readable' : 'text-ns-muted hover:text-ns-text'}`}
-            >
-              {t === 'details' ? 'Details' : t === 'movies' ? `Movies (${movies.length})` : 'Add Movies'}
-              {tab === t && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-ns-secondary" />
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto">
-
-          {/* ── Details tab ───────────────────────────────────────────── */}
-          {tab === 'details' && (
-            <div className="p-6 space-y-5">
-              <div>
-                <label className="block text-xs font-body tracking-widest uppercase text-ns-muted mb-2">
-                  Title *
-                </label>
-                <input
-                  value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  maxLength={100}
-                  className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-3
-                             text-ns-text font-body text-sm placeholder:text-ns-muted/40
-                             focus:outline-none focus:border-ns-secondary/60 transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-body tracking-widest uppercase text-ns-muted mb-2">
-                  Description
-                </label>
-                <textarea
-                  value={description}
-                  onChange={e => setDescription(e.target.value)}
-                  rows={4}
-                  maxLength={500}
-                  className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-3
-                             text-ns-text font-body text-sm placeholder:text-ns-muted/40
-                             focus:outline-none focus:border-ns-secondary/60 transition-colors resize-none"
-                  placeholder="What's this collection about?"
-                />
-                <p className="text-ns-muted/40 text-xs font-body text-right mt-1">
-                  {description.length}/500
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-body tracking-widest uppercase text-ns-muted mb-3">
-                  Visibility
-                </label>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setIsPublic(true)}
-                    className={`flex-1 py-2.5 rounded-xl border text-sm font-body transition-colors
-                      ${isPublic
-                        ? 'border-ns-secondary text-ns-secondary-readable bg-ns-secondary/10'
-                        : 'border-ns-border text-ns-muted hover:border-ns-muted/40'}`}
-                  >
-                    🌍 Public
-                  </button>
-                  <button
-                    onClick={() => setIsPublic(false)}
-                    className={`flex-1 py-2.5 rounded-xl border text-sm font-body transition-colors
-                      ${!isPublic
-                        ? 'border-ns-secondary text-ns-secondary-readable bg-ns-secondary/10'
-                        : 'border-ns-border text-ns-muted hover:border-ns-muted/40'}`}
-                  >
-                    🔒 Private
-                  </button>
-                </div>
-              </div>
-
-              {detailsErr && (
-                <p className="text-red-400 text-xs font-body">{detailsErr}</p>
-              )}
-
-              <button
-                onClick={saveDetails}
-                disabled={saving}
-                className="w-full py-3 rounded-xl bg-ns-secondary text-ns-secondary-foreground font-body text-sm
-                           font-semibold hover:bg-amber-400 transition-colors disabled:opacity-50"
-              >
-                {saving ? 'Saving…' : 'Save Details'}
-              </button>
-            </div>
-          )}
-
-          {/* ── Movies tab ────────────────────────────────────────────── */}
-          {tab === 'movies' && (
-            <div className="p-4">
-              {movies.length === 0 ? (
-                <div className="text-center py-16">
-                  <p className="text-ns-muted font-body text-sm">No movies yet.</p>
-                  <button
-                    onClick={() => setTab('add')}
-                    className="mt-3 text-ns-secondary-readable text-xs font-body hover:text-amber-400 transition-colors"
-                  >
-                    + Add Movies
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <p className="text-ns-muted/50 text-xs font-body mb-3">
-                    Drag rows to reorder. Changes save automatically.
-                    {reordering && <span className="ml-2 text-ns-secondary-readable">Saving order…</span>}
-                  </p>
-                  <div className="space-y-2">
-                    {movies.map((movie, idx) => (
-                      <div
-                        key={movie.tmdbId}
-                        draggable
-                        onDragStart={() => onDragStart(idx)}
-                        onDragEnter={() => onDragEnter(idx)}
-                        onDragEnd={onDragEnd}
-                        onDragOver={e => e.preventDefault()}
-                        className="flex items-center gap-3 bg-ns-bg border border-ns-border rounded-xl
-                                   p-2 cursor-grab active:cursor-grabbing group hover:border-ns-secondary/30
-                                   transition-colors select-none"
-                      >
-                        {/* Drag handle */}
-                        <div className="text-ns-muted/30 group-hover:text-ns-muted/60 transition-colors flex-shrink-0 pl-1">
-                          <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-                            <circle cx="8"  cy="6"  r="1.5"/>
-                            <circle cx="16" cy="6"  r="1.5"/>
-                            <circle cx="8"  cy="12" r="1.5"/>
-                            <circle cx="16" cy="12" r="1.5"/>
-                            <circle cx="8"  cy="18" r="1.5"/>
-                            <circle cx="16" cy="18" r="1.5"/>
-                          </svg>
-                        </div>
-
-                        {/* Position */}
-                        <span className="text-ns-muted/40 text-xs font-body w-5 text-right flex-shrink-0">
-                          {idx + 1}
-                        </span>
-
-                        {/* Poster */}
-                        <div className="w-8 h-12 rounded-md overflow-hidden bg-ns-surface flex-shrink-0">
-                          {movie.posterPath ? (
-                            <Image
-                              src={tmdbImageUrl(movie.posterPath, 'w185')}
-                              alt={movie.title}
-                              width={32} height={48}
-                              className="object-cover w-full h-full"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-ns-border" />
-                          )}
-                        </div>
-
-                        {/* Title */}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-ns-text text-sm font-body truncate">{movie.title}</p>
-                          {movie.releaseDate && (
-                            <p className="text-ns-muted/40 text-xs font-body">{formatYear(movie.releaseDate)}</p>
-                          )}
-                        </div>
-
-                        {/* Remove */}
-                        <button
-                          onClick={() => removeMovie(movie.tmdbId)}
-                          className="text-ns-muted/40 hover:text-red-400 transition-colors flex-shrink-0 p-1"
-                          title="Remove from collection"
-                        >
-                          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path d="M18 6L6 18M6 6l12 12"/>
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* ── Add Movies tab ─────────────────────────────────────────── */}
-          {tab === 'add' && (
-            <div className="p-4">
-              <input
-                value={query}
-                onChange={e => { setQuery(e.target.value); setAddError('') }}
-                placeholder="Search for a movie…"
-                autoFocus
-                className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-3
-                           text-ns-text font-body text-sm placeholder:text-ns-muted/40
-                           focus:outline-none focus:border-ns-secondary/60 transition-colors mb-4"
-              />
-
-              {addError && (
-                <div className="mb-3 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20">
-                  <p className="text-red-400 text-xs font-body">{addError}</p>
-                </div>
-              )}
-
-              {searching && (
-                <div className="space-y-2">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-16 bg-ns-bg rounded-xl animate-pulse" />
-                  ))}
-                </div>
-              )}
-
-              {!searching && results.length > 0 && (
-                <div className="space-y-2">
-                  {results.map(movie => {
-                    const already = addedIds.has(movie.id)
-                    const adding  = addingId === movie.id
-                    return (
-                      <div
-                        key={movie.id}
-                        className="flex items-center gap-3 bg-ns-bg border border-ns-border rounded-xl p-2"
-                      >
-                        <div className="w-8 h-12 rounded-md overflow-hidden bg-ns-surface flex-shrink-0">
-                          {movie.poster_path ? (
-                            <Image
-                              src={tmdbImageUrl(movie.poster_path, 'w185')}
-                              alt={movie.title}
-                              width={32} height={48}
-                              className="object-cover w-full h-full"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-ns-border" />
-                          )}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <p className="text-ns-text text-sm font-body truncate">{movie.title}</p>
-                          {movie.release_date && (
-                            <p className="text-ns-muted/40 text-xs font-body">{formatYear(movie.release_date)}</p>
-                          )}
-                        </div>
-
-                        <button
-                          onClick={() => addMovie(movie)}
-                          disabled={already || adding}
-                          className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-body transition-colors
-                            ${already
-                              ? 'border border-emerald-500/30 text-emerald-400 cursor-default'
-                              : adding
-                                ? 'border border-ns-secondary/30 text-ns-secondary-readable/50 cursor-wait'
-                                : 'border border-ns-secondary/50 text-ns-secondary-readable hover:bg-ns-secondary/10'}`}
-                        >
-                          {already ? '✓ Added' : adding ? 'Adding…' : '+ Add'}
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-
-              {!searching && query && results.length === 0 && (
-                <p className="text-ns-muted font-body text-sm text-center py-8">
-                  No results for &ldquo;{query}&rdquo;
-                </p>
-              )}
-
-              {!query && (
-                <p className="text-ns-muted/40 font-body text-sm text-center py-8">
-                  Start typing to search movies
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-3 border-t border-ns-border flex-shrink-0 bg-ns-surface">
-          <p className="text-ns-muted/40 text-xs font-body">
-            {movies.length} movie{movies.length !== 1 ? 's' : ''}
-          </p>
-          <button
-            onClick={onClose}
-            className="px-4 py-1.5 rounded-lg border border-ns-border text-ns-muted text-xs
-                       font-body hover:border-ns-muted/60 hover:text-ns-text transition-colors"
-          >
-            Done
-          </button>
-        </div>
+    <Modal onClose={onClose} ariaLabelledBy="edit-collection-title" maxWidth="max-w-2xl">
+      <div className="sticky top-0 z-[5] bg-ns-surface px-4 pb-4 pt-6 sm:px-6">
+        <h2 id="edit-collection-title" className="pl-2 pr-12 font-display text-2xl text-ns-text sm:pl-0">Edit collection</h2>
+        <PillTabs
+          label="Edit collection sections"
+          className="mt-4"
+          value={tab}
+          onChange={setTab}
+          options={[
+            { value: 'details', label: 'Details' },
+            { value: 'movies', label: 'Movies', count: movies.length },
+            { value: 'add', label: 'Add movies' },
+          ]}
+        />
       </div>
-    </div>
+
+      <div key={tab} className="min-h-[18rem] animate-fade-up">
+        {tab === 'details' && (
+          <div className="space-y-6 px-6 pb-6 pt-2">
+            <div>
+              <label htmlFor="edit-collection-name" className="mb-1.5 block text-sm font-semibold text-ns-text">Title *</label>
+              <input
+                id="edit-collection-name"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                maxLength={100}
+                aria-invalid={detailsErr ? true : undefined}
+                aria-describedby={detailsErr ? 'edit-collection-error' : undefined}
+                className={fieldClass}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="edit-collection-description" className="mb-1.5 block text-sm font-semibold text-ns-text">Description</label>
+              <textarea
+                id="edit-collection-description"
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                rows={4}
+                maxLength={500}
+                className={cn(fieldClass, 'resize-none')}
+                placeholder="What's this collection about?"
+              />
+              <p className="mt-1 text-right text-xs tabular-nums text-ns-muted">{description.length}/500</p>
+            </div>
+
+            <fieldset>
+              <legend className="mb-2 text-sm font-semibold text-ns-text">Visibility</legend>
+              <PillTabs
+                label="Visibility"
+                value={isPublic ? 'public' : 'private'}
+                onChange={value => setIsPublic(value === 'public')}
+                options={[
+                  { value: 'public', label: 'Public' },
+                  { value: 'private', label: 'Private' },
+                ]}
+              />
+            </fieldset>
+
+            {detailsErr && <p id="edit-collection-error" role="alert" className="text-sm text-ns-danger">{detailsErr}</p>}
+
+            <Button onClick={saveDetails} loading={saving} className="w-full">
+              {saving ? 'Saving…' : 'Save details'}
+            </Button>
+          </div>
+        )}
+
+        {tab === 'movies' && (
+          <div className="px-4 pb-4 pt-1 sm:px-6">
+            {movies.length === 0 ? (
+              <div className="py-14 text-center">
+                <p className="font-heading text-lg font-bold text-ns-text">No movies yet.</p>
+                <Button variant="outline" onClick={() => setTab('add')} className="mt-4">
+                  <PlusIcon size={16} />
+                  Add movies
+                </Button>
+              </div>
+            ) : (
+              <>
+                <p aria-live="polite" className="mb-3 text-sm text-ns-muted">
+                  {reordering
+                    ? <span className="font-semibold text-ns-text">Saving order…</span>
+                    : <>Drag rows or use the arrows to reorder. Changes save automatically.</>}
+                </p>
+                <ul className="space-y-1">
+                  {movies.map((movie, idx) => (
+                    <li
+                      key={movie.tmdbId}
+                      draggable
+                      onDragStart={() => onDragStart(idx)}
+                      onDragEnter={() => onDragEnter(idx)}
+                      onDragEnd={onDragEnd}
+                      onDragOver={e => e.preventDefault()}
+                      className="flex cursor-grab select-none items-center gap-2 rounded-xl bg-ns-surface-2 py-1.5 pl-2 pr-1 active:cursor-grabbing sm:gap-3 sm:pl-3"
+                    >
+                      <span className="hidden w-5 flex-shrink-0 text-right text-sm tabular-nums text-ns-muted sm:block">{idx + 1}</span>
+                      <div className="relative aspect-[2/3] w-8 flex-shrink-0 overflow-hidden rounded-md bg-ns-surface-3">
+                        {movie.posterPath && (
+                          <Image src={tmdbImageUrl(movie.posterPath, 'w185')} alt="" fill sizes="32px" className="object-cover" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-ns-text">{movie.title}</p>
+                        {movie.releaseDate && (
+                          <p className="text-sm tabular-nums text-ns-muted">{formatYear(movie.releaseDate)}</p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        aria-label={`Move ${movie.title} up`}
+                        disabled={idx === 0 || reordering}
+                        onClick={() => moveMovie(idx, -1)}
+                        className={rowIconClass}
+                      >
+                        <ChevronIcon direction="up" size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Move ${movie.title} down`}
+                        disabled={idx === movies.length - 1 || reordering}
+                        onClick={() => moveMovie(idx, 1)}
+                        className={rowIconClass}
+                      >
+                        <ChevronIcon direction="down" size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${movie.title} from collection`}
+                        title="Remove from collection"
+                        onClick={() => removeMovie(movie.tmdbId)}
+                        className={cn(rowIconClass, 'hover:text-ns-danger')}
+                      >
+                        <CloseIcon size={15} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
+
+        {tab === 'add' && (
+          <div className="px-4 pb-4 pt-1 sm:px-6">
+            <label htmlFor="edit-collection-search" className="sr-only">Search for a movie</label>
+            <input
+              id="edit-collection-search"
+              value={query}
+              onChange={e => { setQuery(e.target.value); setAddError('') }}
+              placeholder="Search for a movie…"
+              autoFocus
+              className={cn(fieldClass, 'mb-4')}
+            />
+
+            {addError && (
+              <p role="alert" className="mb-3 rounded-xl bg-ns-danger/10 px-3 py-2 text-sm text-ns-danger">{addError}</p>
+            )}
+
+            {searching && (
+              <div role="status" aria-label="Searching movies" className="space-y-1">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-16 rounded-xl bg-ns-surface-2" />
+                ))}
+              </div>
+            )}
+
+            {!searching && results.length > 0 && (
+              <ul className="space-y-1">
+                {results.map(movie => {
+                  const already = addedIds.has(movie.id)
+                  const adding  = addingId === movie.id
+                  return (
+                    <li key={movie.id} className="flex items-center gap-3 rounded-xl bg-ns-surface-2 p-1.5 pl-2">
+                      <div className="relative aspect-[2/3] w-8 flex-shrink-0 overflow-hidden rounded-md bg-ns-surface-3">
+                        {movie.poster_path && (
+                          <Image src={tmdbImageUrl(movie.poster_path, 'w185')} alt="" fill sizes="32px" className="object-cover" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-ns-text">{movie.title}</p>
+                        {movie.release_date && (
+                          <p className="text-sm tabular-nums text-ns-muted">{formatYear(movie.release_date)}</p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => addMovie(movie)}
+                        disabled={already || adding}
+                        aria-label={already ? `${movie.title} added` : `Add ${movie.title}`}
+                        className={cn(
+                          'inline-flex min-h-11 flex-shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors duration-150',
+                          already
+                            ? 'cursor-default bg-ns-success/10 text-ns-success'
+                            : adding
+                              ? 'cursor-wait bg-ns-surface-3 text-ns-muted'
+                              : 'bg-ns-surface-3 text-ns-text hover:bg-ns-text hover:text-ns-bg',
+                        )}
+                      >
+                        {already ? <><CheckIcon size={14} strokeWidth={3} /> Added</> : adding ? 'Adding…' : <><PlusIcon size={14} /> Add</>}
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+
+            {!searching && query && results.length === 0 && (
+              <p className="py-8 text-center text-base text-ns-muted">No results for &ldquo;{query}&rdquo;</p>
+            )}
+
+            {!query && (
+              <p className="py-8 text-center text-base text-ns-muted">Start typing to search movies</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="sticky bottom-0 z-[5] flex items-center justify-between gap-3 border-t border-ns-border bg-ns-surface px-6 py-3">
+        <p className="text-sm tabular-nums text-ns-muted">
+          {movies.length} movie{movies.length !== 1 ? 's' : ''}
+        </p>
+        <Button variant="outline" onClick={onClose}>Done</Button>
+      </div>
+    </Modal>
   )
 }

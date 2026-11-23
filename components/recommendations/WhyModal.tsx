@@ -1,35 +1,39 @@
 'use client'
 
-import Image from 'next/image'
-import Link from 'next/link'
-import { tmdbImageUrl, formatYear } from '@/lib/utils'
+import { formatYear } from '@/lib/utils'
 import type { EnrichedRec } from '@/services/curated-recs'
-import {
-  FilmIcon, CompassIcon, MovieDnaIcon, RatingsIcon, TrendingIcon, CalendarIcon,
-  CloseIcon, ArrowRightIcon, RecsIcon,
-  type IconProps,
-} from '@/components/icons'
+import PosterImage from '@/components/discover/PosterImage'
+import GrowBar from '@/components/movie/GrowBar'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
+import Modal from '@/components/ui/Modal'
 
 interface Props {
   rec:     EnrichedRec
   onClose: () => void
 }
 
-function matchColor(score: number): string {
-  if (score >= 85) return 'text-emerald-400'
-  if (score >= 70) return 'text-ns-secondary-readable'
-  if (score >= 55) return 'text-blue-400'
-  return 'text-ns-muted'
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="py-5 first:pt-0 last:pb-0">
+      <h3 className="mb-2.5 font-heading text-base font-semibold text-ns-text">{title}</h3>
+      {children}
+    </section>
+  )
 }
 
-function matchBg(score: number): string {
-  if (score >= 85) return 'bg-emerald-400/10 border-emerald-400/30'
-  if (score >= 70) return 'bg-ns-secondary/10 border-ns-secondary/30'
-  if (score >= 55) return 'bg-blue-400/10 border-blue-400/30'
-  return 'bg-ns-surface border-ns-border'
+function ScoreBar({ label, score, fill }: { label: string; score: number; fill: string }) {
+  return (
+    <div className="grid grid-cols-[2.25rem_minmax(0,1fr)_2rem] items-center gap-2">
+      <span className="text-xs text-ns-muted">{label}</span>
+      <GrowBar value={score / 10} growOnMount fillClassName={fill} />
+      <span className="text-right text-xs tabular-nums text-ns-text">{score}</span>
+    </div>
+  )
 }
 
 export default function WhyModal({ rec, onClose }: Props) {
+  const titleId = `why-title-${rec.tmdbId}`
   const hasContent =
     rec.matchedFavorites.length > 0  ||
     rec.matchedRatings.length   > 0  ||
@@ -39,156 +43,80 @@ export default function WhyModal({ rec, onClose }: Props) {
     rec.ratingInsight !== null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
-
-      <div className="relative z-10 w-full max-w-md bg-ns-bg border border-ns-border rounded-2xl
-                      shadow-2xl shadow-black/80 overflow-hidden max-h-[85vh] flex flex-col">
-
-        {/* Gold accent strip */}
-        <div className="h-0.5 w-full bg-gradient-to-r from-ns-secondary/0 via-ns-secondary to-ns-secondary/0 flex-shrink-0" />
-
-        {/* Header */}
-        <div className="flex-shrink-0 p-5 pb-0">
-          <div className="flex items-start gap-4">
-            {/* Mini poster */}
-            <div className="relative w-14 h-20 rounded-lg overflow-hidden flex-shrink-0 border border-ns-border">
-              <Image
-                src={tmdbImageUrl(rec.posterPath, 'w185')}
-                alt={rec.title}
-                fill
-                className="object-cover"
-                sizes="56px"
-              />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <p className="text-ns-secondary-readable text-[9px] tracking-widest uppercase font-body mb-1">
-                Why this recommendation?
-              </p>
-              <h2 className="font-display text-xl tracking-wider text-ns-text leading-tight line-clamp-2">
-                {rec.title.toUpperCase()}
-              </h2>
-              {rec.releaseDate && (
-                <p className="text-ns-muted text-xs font-body mt-0.5">{formatYear(rec.releaseDate)}</p>
-              )}
-            </div>
-
-            <button
-              onClick={onClose}
-              className="text-ns-muted hover:text-ns-text transition-colors flex-shrink-0"
-            >
-              <CloseIcon size={18} />
-            </button>
+    <Modal onClose={onClose} ariaLabelledBy={titleId} maxWidth="max-w-lg">
+      <div className="p-6 sm:p-7">
+        <div className="flex items-start gap-4 pr-10">
+          <div className="relative aspect-[2/3] w-16 flex-shrink-0 overflow-hidden rounded-lg bg-ns-surface-2">
+            <PosterImage path={rec.posterPath} size="w185" sizes="64px" alt={rec.title} />
           </div>
-
-          {/* Match score + view link */}
-          <div className="flex items-center justify-between mt-4">
-            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border
-                             text-sm font-body font-semibold ${matchColor(rec.matchScore)} ${matchBg(rec.matchScore)}`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${
-                rec.matchScore >= 85 ? 'bg-emerald-400' :
-                rec.matchScore >= 70 ? 'bg-ns-secondary' : 'bg-blue-400'
-              }`} />
-              {rec.matchScore}% Match
-            </div>
-            <Link href={`/movie/${rec.tmdbId}`}
-              className="text-ns-secondary-readable text-xs font-body hover:text-amber-400 transition-colors">
-              View film <ArrowRightIcon size={11} className="inline-block" />
-            </Link>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-ns-muted">Why this recommendation?</p>
+            <h2 id={titleId} className="mt-0.5 line-clamp-2 font-display text-2xl text-ns-text">{rec.title}</h2>
+            {rec.releaseDate && (
+              <p className="mt-0.5 text-sm tabular-nums text-ns-muted">{formatYear(rec.releaseDate)}</p>
+            )}
           </div>
         </div>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        <div className="mt-5 rounded-xl bg-ns-surface-2 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-display text-3xl tabular-nums text-ns-text">
+              {rec.matchScore}% <span className="font-body text-sm font-medium text-ns-muted">match</span>
+            </p>
+            <Button href={`/movie/${rec.tmdbId}`} size="sm">View film</Button>
+          </div>
+          <GrowBar value={rec.matchScore / 100} growOnMount className="mt-3" />
+        </div>
 
-          {/* Explanation */}
-          <p className="text-ns-text font-body text-sm leading-relaxed border-l-2 border-ns-secondary/40 pl-3">
-            {rec.explanation}
-          </p>
+        <p className="mt-5 text-base leading-relaxed text-ns-text">{rec.explanation}</p>
 
-          {/* Because you liked… */}
+        <div className="mt-5 divide-y divide-ns-border border-t border-ns-border pt-5">
           {rec.matchedFavorites.length > 0 && (
-            <Section Icon={FilmIcon} title="Because you liked">
-              <div className="flex flex-col gap-1.5">
-                {rec.matchedFavorites.map(title => (
-                  <div key={title} className="flex items-center gap-2">
-                    <span className="w-1 h-1 rounded-full bg-ns-secondary flex-shrink-0" />
-                    <span className="text-ns-text font-body text-sm">{title}</span>
-                  </div>
-                ))}
-              </div>
+            <Section title="Because you liked">
+              <ul className="space-y-1.5 text-sm text-ns-muted">
+                {rec.matchedFavorites.map(title => <li key={title}>{title}</li>)}
+              </ul>
             </Section>
           )}
 
-          {/* Because you rated… */}
           {rec.matchedRatings.length > 0 && (
-            <Section Icon={RatingsIcon} title="Because you rated">
-              <div className="flex flex-col gap-1.5">
+            <Section title="Because you rated">
+              <ul className="space-y-1.5">
                 {rec.matchedRatings.map(rating => (
-                  <div key={`${rating.title}-${rating.score}`} className="flex items-center justify-between gap-3">
-                    <span className="text-ns-text font-body text-sm">{rating.title}</span>
-                    <span className="text-ns-secondary-readable font-mono text-xs flex-shrink-0">{rating.score}/100</span>
-                  </div>
+                  <li key={`${rating.title}-${rating.score}`} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="min-w-0 truncate text-ns-muted">{rating.title}</span>
+                    <span className="flex-shrink-0 font-semibold tabular-nums text-ns-text">{rating.score}/100</span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </Section>
           )}
 
-          {/* Learned from recommendation feedback */}
           {rec.matchedLikedPicks.length > 0 && (
-            <Section Icon={RecsIcon} title="Learned from your feedback">
-              <p className="text-ns-text font-body text-sm">
+            <Section title="Learned from your feedback">
+              <p className="text-sm leading-relaxed text-ns-muted">
                 You liked {rec.matchedLikedPicks.join(' and ')}, so this pick follows that signal.
               </p>
             </Section>
           )}
 
-          {/* Matched genres */}
           {rec.matchedGenres.length > 0 && (
-            <Section Icon={CompassIcon} title="Shared genres">
+            <Section title="Shared genres">
               <div className="flex flex-wrap gap-1.5">
-                {rec.matchedGenres.map(g => (
-                  <span key={g}
-                    className="px-2.5 py-1 rounded-full border border-ns-border bg-ns-surface
-                               text-ns-muted text-xs font-body">
-                    {g}
-                  </span>
-                ))}
+                {rec.matchedGenres.map(genre => <Badge key={genre} className="!bg-ns-surface-3">{genre}</Badge>)}
               </div>
             </Section>
           )}
 
-          {/* DNA trait matches */}
           {rec.matchedTraits.length > 0 && (
-            <Section Icon={MovieDnaIcon} title="Shared DNA traits">
-              <div className="space-y-3">
-                {rec.matchedTraits.map(t => (
-                  <div key={t.trait}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-ns-text text-xs font-body flex items-center gap-1.5">
-                        {t.trait}
-                      </span>
-                    </div>
-                    {/* Two independent bars — one per score */}
+            <Section title="Shared DNA traits">
+              <div className="space-y-3.5">
+                {rec.matchedTraits.map(trait => (
+                  <div key={trait.trait}>
+                    <p className="mb-1.5 text-sm text-ns-text">{trait.trait}</p>
                     <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-body text-ns-secondary-readable w-6 flex-shrink-0">You</span>
-                        <div className="flex-1 h-1.5 bg-ns-bg rounded-full overflow-hidden">
-                          <div className="h-full rounded-full bg-ns-secondary transition-all duration-500"
-                            style={{ width: `${t.yourScore * 10}%` }} />
-                        </div>
-                        <span className="text-[9px] font-body text-ns-secondary-readable w-5 text-right">{t.yourScore}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-body text-ns-muted w-6 flex-shrink-0">Film</span>
-                        <div className="flex-1 h-1.5 bg-ns-bg rounded-full overflow-hidden">
-                          <div className="h-full rounded-full bg-white/30 transition-all duration-500"
-                            style={{ width: `${t.movieScore * 10}%` }} />
-                        </div>
-                        <span className="text-[9px] font-body text-ns-muted w-5 text-right">{t.movieScore}</span>
-                      </div>
+                      <ScoreBar label="You" score={trait.yourScore} fill="bg-ns-secondary" />
+                      <ScoreBar label="Film" score={trait.movieScore} fill="bg-ns-muted" />
                     </div>
                   </div>
                 ))}
@@ -196,26 +124,24 @@ export default function WhyModal({ rec, onClose }: Props) {
             </Section>
           )}
 
-          {/* Rating pattern insight */}
           {rec.ratingInsight && (
-            <Section Icon={RatingsIcon} title="Rating patterns">
-              <p className="text-ns-text font-body text-sm">{rec.ratingInsight}</p>
+            <Section title="Rating patterns">
+              <p className="text-sm leading-relaxed text-ns-muted">{rec.ratingInsight}</p>
             </Section>
           )}
 
-          {/* Expand / classic extras */}
           {rec.expandTrait && (
-            <Section Icon={TrendingIcon} title="Expands your taste">
-              <p className="text-ns-muted font-body text-xs">
+            <Section title="Expands your taste">
+              <p className="text-sm leading-relaxed text-ns-muted">
                 This film scores highly in <span className="text-ns-text">{rec.expandTrait}</span>
-                — a dimension below your usual preferences. Great for broadening your cinematic range.
+                {' '}— a dimension below your usual preferences. Great for broadening your cinematic range.
               </p>
             </Section>
           )}
 
           {rec.classicEra && (
-            <Section Icon={CalendarIcon} title="Classic era">
-              <p className="text-ns-muted font-body text-xs">
+            <Section title="Classic era">
+              <p className="text-sm leading-relaxed text-ns-muted">
                 From the <span className="text-ns-text">{rec.classicEra}</span>, a highly-regarded film
                 that matches your DNA profile.
               </p>
@@ -223,29 +149,12 @@ export default function WhyModal({ rec, onClose }: Props) {
           )}
 
           {!hasContent && (
-            <p className="text-ns-muted font-body text-sm text-center py-4">
+            <p className="py-2 text-sm text-ns-muted">
               This recommendation aligns broadly with your Movie DNA profile.
             </p>
           )}
         </div>
       </div>
-    </div>
-  )
-}
-
-// ─── Section sub-component ────────────────────────────────────────────────────
-
-function Section({ Icon, title, children }: {
-  Icon: React.ComponentType<IconProps>
-  title: string
-  children: React.ReactNode
-}) {
-  return (
-    <div>
-      <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-2 flex items-center gap-1.5">
-        <Icon size={12} className="flex-shrink-0" /> {title}
-      </p>
-      {children}
-    </div>
+    </Modal>
   )
 }

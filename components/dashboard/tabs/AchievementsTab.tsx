@@ -1,7 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import Button from '@/components/ui/Button'
+import EmptyState from '@/components/ui/EmptyState'
+import { Skeleton } from '@/components/ui/Skeleton'
+import SectionHeading, { SectionLink } from '../SectionHeading'
 import AchievementCard from '@/components/achievements/AchievementCard'
 import XPBar from '@/components/achievements/XPBar'
 import type { UserAchievementData, XPLevel } from '@/types'
@@ -27,38 +30,50 @@ export default function AchievementsTab() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <p className="text-ns-muted text-xs font-body">{earned.length} unlocked</p>
-        <Link href="/achievements" className="text-xs font-body text-ns-muted hover:text-ns-secondary-readable transition-colors">
-          Full page →
-        </Link>
-      </div>
+      <SectionHeading
+        title={`${earned.length} unlocked`}
+        action={<SectionLink href="/achievements">Full page</SectionLink>}
+      />
 
-      {xp && <div className="mb-6"><XPBar level={xp} /></div>}
+      {xp && <div className="mb-8 rounded-2xl bg-ns-surface p-6"><XPBar level={xp} /></div>}
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div aria-hidden="true" className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="animate-pulse bg-ns-surface border border-ns-border rounded-2xl h-24" />
+            <Skeleton key={i} className="h-24 rounded-2xl" />
           ))}
         </div>
+      ) : earned.length === 0 && inProgress.length === 0 ? (
+        <EmptyState
+          title="No achievements yet"
+          description="Rate and watch movies to start earning badges."
+          action={<Button variant="secondary" href="/discover" className="bg-ns-surface-2 hover:bg-ns-surface-3">Discover movies</Button>}
+        />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {earned.length > 0 && (
-            <div>
-              <p className="text-[10px] font-body text-ns-muted uppercase tracking-widest mb-3">Earned</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {earned.map(a => <AchievementCard key={a.slug} achievement={a} />)}
+            <section>
+              <h3 className="mb-3 font-heading text-xl font-bold text-ns-text">Earned</h3>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {earned.map((a, index) => (
+                  <div key={a.slug} className="ns-reveal" style={{ '--i': Math.min(index, 7) } as React.CSSProperties}>
+                    <AchievementCard achievement={a} />
+                  </div>
+                ))}
               </div>
-            </div>
+            </section>
           )}
           {inProgress.length > 0 && (
-            <div>
-              <p className="text-[10px] font-body text-ns-muted uppercase tracking-widest mb-3">In Progress</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {inProgress.slice(0, 6).map(a => <AchievementCard key={a.slug} achievement={a} />)}
+            <section>
+              <h3 className="mb-3 font-heading text-xl font-bold text-ns-text">In progress</h3>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {inProgress.slice(0, 6).map((a, index) => (
+                  <div key={a.slug} className="ns-reveal" style={{ '--i': index } as React.CSSProperties}>
+                    <AchievementCard achievement={a} />
+                  </div>
+                ))}
               </div>
-            </div>
+            </section>
           )}
         </div>
       )}

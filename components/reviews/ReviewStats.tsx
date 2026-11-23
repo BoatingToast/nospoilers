@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import GrowBar from '@/components/movie/GrowBar'
 
 interface Stats {
   total:        number
@@ -25,50 +26,36 @@ export default function ReviewStats({ tmdbId }: Props) {
   if (!stats || stats.total === 0) return null
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 p-4 rounded-2xl bg-ns-surface border border-ns-border">
-
-      {/* Recommend % — hero stat */}
+    <div className="mb-8 grid animate-fade-up grid-cols-2 gap-3 lg:grid-cols-4">
       {stats.recommendPct !== null && (
-        <div className="col-span-2 sm:col-span-1 flex flex-col items-start gap-0.5">
-          <p className="font-display text-4xl tracking-wider text-ns-secondary-readable leading-none">
-            {stats.recommendPct}%
-          </p>
-          <p className="text-ns-muted text-xs font-body">would recommend</p>
+        <div className="col-span-2 rounded-xl bg-ns-tile-rose p-5 lg:col-span-1">
+          <p className="font-display text-5xl tabular-nums text-ns-text">{stats.recommendPct}%</p>
+          <p className="mt-1 text-sm text-ns-muted">would recommend</p>
+          <GrowBar value={stats.recommendPct / 100} className="mt-3" trackClassName="bg-black/25" />
         </div>
       )}
 
-      {/* Avg rating */}
       {stats.avgRating !== null && (
-        <div className="flex flex-col gap-0.5">
-          <p className="font-display text-3xl tracking-wider text-white leading-none">
-            {(stats.avgRating / 10).toFixed(1)}
-          </p>
-          <p className="text-ns-muted text-xs font-body">avg rating</p>
+        <div className="rounded-xl bg-ns-tile-yellow p-5">
+          <p className="font-display text-4xl tabular-nums text-ns-text">{(stats.avgRating / 10).toFixed(1)}</p>
+          <p className="mt-1 text-sm text-ns-muted">avg rating</p>
         </div>
       )}
 
-      {/* Total reviews */}
-      <div className="flex flex-col gap-0.5">
-        <p className="font-display text-3xl tracking-wider text-white leading-none">
-          {stats.total}
-        </p>
-        <p className="text-ns-muted text-xs font-body">reviews</p>
+      <div className="rounded-xl bg-ns-tile-blue p-5">
+        <p className="font-display text-4xl tabular-nums text-ns-text">{stats.total}</p>
+        <p className="mt-1 text-sm text-ns-muted">reviews</p>
       </div>
 
-      {/* Breakdown */}
-      <div className="flex flex-col gap-1 justify-center">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-          <span className="text-xs font-body text-ns-muted">
-            {stats.spoilerFree} spoiler-free
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
-          <span className="text-xs font-body text-ns-muted">
-            {stats.spoilerCount} with spoilers
-          </span>
-        </div>
+      <div className="col-span-2 flex flex-col justify-center gap-2 rounded-xl bg-ns-surface p-5 lg:col-span-1">
+        <p className="flex items-center gap-2 text-sm text-ns-muted">
+          <span aria-hidden="true" className="h-2 w-2 flex-shrink-0 rounded-full bg-ns-success" />
+          <span><span className="font-semibold tabular-nums text-ns-text">{stats.spoilerFree}</span> spoiler-free</span>
+        </p>
+        <p className="flex items-center gap-2 text-sm text-ns-muted">
+          <span aria-hidden="true" className="h-2 w-2 flex-shrink-0 rounded-full bg-ns-warning" />
+          <span><span className="font-semibold tabular-nums text-ns-text">{stats.spoilerCount}</span> with spoilers</span>
+        </p>
       </div>
     </div>
   )

@@ -28,22 +28,24 @@ export default function PendingActions({ requestId }: Props) {
     }
   }
 
-  if (done === 'accepted') return <span className="text-emerald-400 text-xs font-body">Friends</span>
-  if (done === 'rejected') return <span className="text-ns-muted text-xs font-body">Declined</span>
+  if (done === 'accepted') return <span className="animate-fade-up text-sm font-semibold text-ns-success">Friends</span>
+  if (done === 'rejected') return <span className="animate-fade-up text-sm font-semibold text-ns-muted">Declined</span>
 
   return (
     <div className="flex items-center gap-2">
       <button
+        type="button"
         onClick={() => handle('accept')}
         disabled={loading}
-        className="px-3 py-1.5 rounded-xl text-xs font-body bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary/90 transition-colors disabled:opacity-50"
+        className="min-h-11 rounded-full bg-ns-text px-5 text-sm font-semibold text-ns-bg transition-colors duration-150 hover:bg-ns-muted disabled:cursor-wait disabled:opacity-50 sm:min-h-10"
       >
         Accept
       </button>
       <button
+        type="button"
         onClick={() => handle('reject')}
         disabled={loading}
-        className="px-3 py-1.5 rounded-xl text-xs font-body border border-ns-border text-ns-muted hover:text-ns-text transition-colors disabled:opacity-50"
+        className="min-h-11 rounded-full px-4 text-sm font-semibold text-ns-text transition-colors duration-150 hover:bg-ns-text/10 disabled:cursor-wait disabled:opacity-50 sm:min-h-10"
       >
         Decline
       </button>

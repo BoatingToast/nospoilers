@@ -1,6 +1,7 @@
 import { publicPageMetadata } from '@/lib/seo'
-import Link from 'next/link'
 import Footer from '@/components/landing/Footer'
+import Logo from '@/components/ui/Logo'
+import PolicyContents from './PolicyContents'
 
 export const metadata = publicPageMetadata({
   title: 'Shield Privacy Policy',
@@ -10,29 +11,33 @@ export const metadata = publicPageMetadata({
 
 const UPDATED = 'July 13, 2026'
 
+const SECTIONS = [
+  { id: 'summary', title: 'Summary' },
+  { id: 'information', title: 'Information the extension handles' },
+  { id: 'use', title: 'How information is used' },
+  { id: 'storage', title: 'Storage, sharing, and retention' },
+  { id: 'permissions', title: 'Permissions' },
+  { id: 'limited-use', title: 'Limited use' },
+  { id: 'choices', title: 'Your choices' },
+  { id: 'contact', title: 'Contact' },
+]
+
 export default function ExtensionPrivacyPage() {
   return (
-    <main className="min-h-screen bg-ns-bg text-ns-text">
-      <div className="mx-auto max-w-3xl px-6 py-14 sm:py-20">
-        <Link
-          href="/"
-          className="text-xs font-heading font-semibold uppercase tracking-[0.22em] text-ns-secondary-readable transition-colors hover:text-white"
-        >
-          NoSpoilers
-        </Link>
+    <main className="min-h-dvh bg-ns-bg text-ns-text">
+      <div className="mx-auto max-w-6xl px-4 pb-20 pt-24 sm:px-6 sm:pt-28">
+        <Logo />
 
-        <header className="mt-8 border-b border-ns-border pb-10">
-          <p className="text-xs font-heading font-semibold uppercase tracking-[0.2em] text-ns-muted">
-            Chrome extension
-          </p>
-          <h1 className="mt-3 font-display text-4xl tracking-wide sm:text-5xl">
+        <header className="mt-10 max-w-3xl">
+          <h1 className="font-display text-4xl text-ns-text sm:text-5xl lg:text-6xl">
             NoSpoilers Shield Privacy Policy
           </h1>
-          <p className="mt-4 text-sm leading-7 text-ns-muted">Last updated: {UPDATED}</p>
+          <p className="mt-4 text-base text-ns-muted">Chrome extension · Last updated: {UPDATED}</p>
         </header>
 
-        <div className="space-y-10 py-10 text-sm leading-7 text-ns-muted">
-          <PolicySection title="Summary">
+        <div className="mt-12 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-16">
+        <div className="max-w-2xl space-y-12 text-lg leading-8 text-ns-muted">
+          <PolicySection id="summary" title="Summary" first>
             <p>
               NoSpoilers Shield identifies and obscures likely movie and television spoilers on webpages.
               Page classification happens locally in your browser. NoSpoilers does not receive, sell, or use
@@ -40,8 +45,8 @@ export default function ExtensionPrivacyPage() {
             </p>
           </PolicySection>
 
-          <PolicySection title="Information the extension handles">
-            <ul className="list-disc space-y-3 pl-5 marker:text-ns-secondary-readable">
+          <PolicySection id="information" title="Information the extension handles">
+            <ul className="list-disc space-y-4 pl-6 marker:text-ns-secondary-readable">
               <li>
                 <strong className="text-ns-text">Website content:</strong> Visible text and labels are inspected
                 temporarily in browser memory to decide whether a page element is likely to contain a spoiler.
@@ -65,7 +70,7 @@ export default function ExtensionPrivacyPage() {
             </ul>
           </PolicySection>
 
-          <PolicySection title="How information is used">
+          <PolicySection id="use" title="How information is used">
             <p>
               Information is used only to provide the extension&apos;s user-facing spoiler-protection features:
               matching protected titles, applying the selected sensitivity, pausing chosen domains, hiding likely
@@ -73,7 +78,7 @@ export default function ExtensionPrivacyPage() {
             </p>
           </PolicySection>
 
-          <PolicySection title="Storage, sharing, and retention">
+          <PolicySection id="storage" title="Storage, sharing, and retention">
             <p>
               NoSpoilers operates no server for this extension and does not receive its settings or page content.
               Chrome may synchronize extension settings between browsers signed in to your Google account under
@@ -83,15 +88,15 @@ export default function ExtensionPrivacyPage() {
             </p>
           </PolicySection>
 
-          <PolicySection title="Permissions">
-            <ul className="list-disc space-y-3 pl-5 marker:text-ns-secondary-readable">
+          <PolicySection id="permissions" title="Permissions">
+            <ul className="list-disc space-y-4 pl-6 marker:text-ns-secondary-readable">
               <li><strong className="text-ns-text">Website access</strong> is required to identify and cover likely spoilers on webpages.</li>
               <li><strong className="text-ns-text">Storage</strong> saves and synchronizes your protection preferences.</li>
               <li><strong className="text-ns-text">Context menus</strong> let you protect selected titles or pause a site.</li>
             </ul>
           </PolicySection>
 
-          <PolicySection title="Limited use">
+          <PolicySection id="limited-use" title="Limited use">
             <p>
               NoSpoilers Shield&apos;s use and transfer of information received from Google APIs complies with the
               Chrome Web Store User Data Policy, including its Limited Use requirements. The extension does not
@@ -99,21 +104,23 @@ export default function ExtensionPrivacyPage() {
             </p>
           </PolicySection>
 
-          <PolicySection title="Your choices">
+          <PolicySection id="choices" title="Your choices">
             <p>
               You can remove individual protected titles, resume paused domains, disable protection, clear the
               extension&apos;s storage, or uninstall the extension at any time through Chrome.
             </p>
           </PolicySection>
 
-          <PolicySection title="Contact">
+          <PolicySection id="contact" title="Contact">
             <p>
               Questions about this policy can be sent to{' '}
-              <a className="text-ns-secondary-readable hover:text-white" href="mailto:nospoilers641@gmail.com">
+              <a className="font-semibold text-ns-secondary-readable underline underline-offset-4 transition-colors hover:text-ns-text" href="mailto:nospoilers641@gmail.com">
                 nospoilers641@gmail.com
               </a>.
             </p>
           </PolicySection>
+        </div>
+        <PolicyContents sections={SECTIONS} />
         </div>
       </div>
       <Footer />
@@ -121,11 +128,21 @@ export default function ExtensionPrivacyPage() {
   )
 }
 
-function PolicySection({ title, children }: { title: string; children: React.ReactNode }) {
+function PolicySection({
+  id,
+  title,
+  first = false,
+  children,
+}: {
+  id: string
+  title: string
+  first?: boolean
+  children: React.ReactNode
+}) {
   return (
-    <section>
-      <h2 className="font-heading text-lg font-semibold text-ns-text">{title}</h2>
-      <div className="mt-3">{children}</div>
+    <section id={id} data-policy-section className={`scroll-mt-28 ${first ? '' : 'ns-reveal'}`}>
+      <h2 className="font-display text-2xl text-ns-text sm:text-3xl">{title}</h2>
+      <div className="mt-4">{children}</div>
     </section>
   )
 }

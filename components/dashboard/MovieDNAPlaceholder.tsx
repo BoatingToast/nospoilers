@@ -1,37 +1,22 @@
+import Badge from '@/components/ui/Badge'
+
+const TRAITS = ['Genre Affinity', 'Decade Preference', 'Mood Profile', 'Director Taste']
+
 export default function MovieDNAPlaceholder() {
-  const traits = [
-    { label: 'Genre Affinity',     value: 'Needs more data' },
-    { label: 'Decade Preference',  value: 'Needs more data' },
-    { label: 'Mood Profile',       value: 'Needs more data' },
-    { label: 'Director Taste',     value: 'Needs more data' },
-  ]
-
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
-        <h2 className="font-display text-2xl tracking-wider text-ns-text">MOVIE DNA</h2>
-        <span className="px-2 py-0.5 rounded-full bg-ns-secondary/10 border border-ns-secondary/20
-                         text-ns-secondary-readable text-xs font-body tracking-wider uppercase">
-          Coming Soon
-        </span>
+    <section className="rounded-2xl bg-ns-surface p-6">
+      <div className="mb-4 flex items-center gap-3">
+        <h2 className="font-display text-2xl text-ns-text">Movie DNA</h2>
+        <Badge variant="secondary">Coming Soon</Badge>
       </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {traits.map(trait => (
-          <div
-            key={trait.label}
-            className="p-5 rounded-2xl bg-ns-surface border border-ns-border"
-          >
-            <p className="text-ns-muted text-xs uppercase tracking-widest font-body mb-3">
-              {trait.label}
-            </p>
-            <div className="h-2 bg-ns-border rounded-full overflow-hidden">
-              <div className="h-full w-0 bg-ns-secondary/30 rounded-full" />
-            </div>
-            <p className="text-ns-muted/50 text-xs font-body mt-2">{trait.value}</p>
+      <dl className="divide-y divide-ns-border">
+        {TRAITS.map(trait => (
+          <div key={trait} className="flex items-center justify-between gap-4 py-3">
+            <dt className="text-sm font-semibold text-ns-text">{trait}</dt>
+            <dd className="text-sm text-ns-muted">Needs more data</dd>
           </div>
         ))}
-      </div>
-    </div>
+      </dl>
+    </section>
   )
 }

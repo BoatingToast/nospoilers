@@ -7,8 +7,10 @@ import ReviewStats    from './ReviewStats'
 import WriteReview    from './WriteReview'
 import ReviewCard     from './ReviewCard'
 import type { ReviewWithMeta } from '@/services/reviews'
-import { FilmIcon, ArrowRightIcon } from '@/components/icons'
 import Avatar from '@/components/ui/Avatar'
+import Button from '@/components/ui/Button'
+import EmptyState from '@/components/ui/EmptyState'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 type SortMode = 'helpful' | 'popular' | 'top' | 'newest' | 'friends'
 
@@ -18,11 +20,11 @@ interface Props {
 }
 
 const SORT_OPTIONS: { value: SortMode; label: string }[] = [
-  { value: 'helpful',  label: 'Most Helpful'  },
-  { value: 'popular',  label: 'Most Popular'  },
-  { value: 'top',      label: 'Highest Rated' },
-  { value: 'newest',   label: 'Newest'        },
-  { value: 'friends',  label: 'Friends'       },
+  { value: 'helpful', label: 'Most helpful' },
+  { value: 'popular', label: 'Most popular' },
+  { value: 'top', label: 'Highest rated' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'friends', label: 'Friends' },
 ]
 
 export default function ReviewSection({ tmdbId, movieTitle }: Props) {
@@ -38,6 +40,7 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
   const [showForm,     setShowForm]     = useState(false)
   const [editingOwn,   setEditingOwn]   = useState(false)
   const [statsRefresh, setStatsRefresh] = useState(0)
+  const [loadFailed,   setLoadFailed]   = useState(false)
 
   const fetchReviews = useCallback(async () => {
     setLoading(true)
@@ -46,6 +49,7 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
         fetch(`/api/reviews?tmdbId=${tmdbId}&sort=${sort}`),
         sessionId ? fetch(`/api/reviews/stats?tmdbId=${tmdbId}`) : null,
       ])
+      setLoadFailed(!reviewsRes.ok)
       const reviewData = await reviewsRes.json()
       setReviews(reviewData.reviews ?? [])
 
@@ -54,7 +58,7 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
         setUserReview(statsData.userReview ?? null)
       }
     } catch {
-      // silently fail
+      setLoadFailed(true)
     } finally {
       setLoading(false)
     }
@@ -88,18 +92,21 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
   // Reviews excluding own (shown separately at top)
   const otherReviews = reviews.filter(r => r.userId !== sessionId)
 
+  const listedReviews = sort === 'friends' ? otherReviews : otherReviews.filter(r => !r.isFriend)
+  const pillClass = (selected: boolean) => `min-h-11 flex-shrink-0 rounded-full px-4 text-sm font-semibold transition-colors duration-150 ${
+    selected ? 'bg-ns-text text-ns-bg' : 'text-ns-muted hover:bg-ns-surface-2 hover:text-ns-text'
+  }`
+
   return (
-    <section className="mt-14">
-      {/* Section header */}
-      <div className="flex items-baseline justify-between mb-6">
-        <h2 className="font-display text-3xl tracking-wider text-ns-text">COMMUNITY REVIEWS</h2>
+    <section aria-labelledby="community-reviews-heading">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h2 id="community-reviews-heading" className="font-display text-4xl text-ns-text sm:text-5xl">
+          Community reviews
+        </h2>
         {session && !userReview && !showForm && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="text-sm font-heading font-medium text-ns-secondary-readable hover:text-amber-400 transition-colors"
-          >
-            + Write a Review
-          </button>
+          <Button variant="secondary" onClick={() => setShowForm(true)}>
+            Write a review
+          </Button>
         )}
       </div>
 
@@ -122,7 +129,7 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
       {/* Own review — pinned at top */}
       {userReview && (
         <div className="mb-8">
-          <p className="text-[10px] font-body text-ns-muted uppercase tracking-widest mb-3">Your Review</p>
+          <h3 className="mb-3 font-heading text-lg font-semibold text-ns-text">Your review</h3>
           {editingOwn ? (
             <WriteReview
               tmdbId={tmdbId}
@@ -148,21 +155,18 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
       {/* Friend reviews banner */}
       {friendReviews.length > 0 && (
         <div className="mb-8">
-          <p className="text-[10px] font-body text-ns-muted uppercase tracking-widest mb-3">
-            Friends Who Reviewed This
-          </p>
-          <div className="flex flex-wrap gap-2 p-4 rounded-2xl bg-ns-secondary/4 border border-ns-secondary/15">
+          <h3 className="mb-3 font-heading text-lg font-semibold text-ns-text">Friends who reviewed this</h3>
+          <div className="flex flex-wrap gap-2">
             {friendReviews.map(r => (
               <Link
                 key={r.id}
                 href={`/profile/${r.username}`}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-ns-secondary/10 border border-ns-secondary/20
-                           hover:bg-ns-secondary/20 transition-colors"
+                className="flex min-h-11 max-w-full items-center gap-2 rounded-full bg-ns-surface px-3 transition-colors duration-150 hover:bg-ns-surface-2"
               >
                 <Avatar src={r.avatarUrl} username={r.username} size="xs" />
-                <span className="text-ns-secondary-readable text-xs font-heading font-medium">@{r.username}</span>
+                <span className="truncate font-heading text-sm font-semibold text-ns-text">@{r.username}</span>
                 {r.rating !== null && (
-                  <span className="text-ns-muted text-[10px] font-body">{r.rating}/100</span>
+                  <span className="flex-shrink-0 text-sm tabular-nums text-ns-muted">{r.rating}/100</span>
                 )}
               </Link>
             ))}
@@ -172,118 +176,104 @@ export default function ReviewSection({ tmdbId, movieTitle }: Props) {
 
       {/* Sort controls */}
       {(otherReviews.length > 0 || loading) && (
-        <div className="flex items-center gap-1.5 mb-6 overflow-x-auto scrollbar-hide pb-1">
+        <div role="group" aria-label="Sort reviews" className="scrollbar-hide -mx-4 mb-6 flex items-center gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0">
           {SORT_OPTIONS.map(opt => (
             <button
               key={opt.value}
+              type="button"
+              aria-pressed={sort === opt.value}
               onClick={() => setSort(opt.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-heading font-medium whitespace-nowrap border transition-all ${
-                sort === opt.value
-                  ? 'bg-ns-secondary/15 border-ns-secondary/40 text-ns-secondary-readable'
-                  : 'border-ns-border text-ns-muted hover:text-white hover:border-white/20'
-              }`}
+              className={pillClass(sort === opt.value)}
             >
               {opt.label}
             </button>
           ))}
-          <div className="flex-1" />
         </div>
       )}
 
       {/* Review list */}
       {loading ? (
-        <div className="space-y-4">
+        <div className="space-y-4" role="status" aria-label="Loading reviews">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="animate-pulse rounded-2xl bg-ns-surface border border-ns-border p-5 h-40" />
+            <Skeleton key={i} className="h-40 rounded-2xl" />
           ))}
         </div>
-      ) : otherReviews.length === 0 && !userReview ? (
-        <div className="text-center py-16">
-          <FilmIcon size={44} className="text-ns-secondary-readable/30 mx-auto mb-4" />
-          <p className="font-heading text-lg text-white mb-2">No reviews yet</p>
-          <p className="text-ns-muted text-sm font-body mb-6">
-            Be the first to share your thoughts on {movieTitle}.
-          </p>
-          {session ? (
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold
-                         hover:bg-amber-400 transition-colors"
-            >
-              Write the First Review
-            </button>
-          ) : (
-            <Link
-              href="/login"
-              className="px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold
-                         hover:bg-amber-400 transition-colors"
-            >
-              Sign In to Review
-            </Link>
-          )}
+      ) : loadFailed && otherReviews.length === 0 ? (
+        <div role="alert">
+          <EmptyState
+            title="Reviews could not load"
+            description="Check your connection and try again."
+            action={<Button variant="secondary" className="!bg-ns-surface-2 hover:!bg-ns-surface-3" onClick={() => void fetchReviews()}>Try again</Button>}
+          />
         </div>
+      ) : otherReviews.length === 0 && !userReview ? (
+        showForm ? null : (
+          <EmptyState
+            title="No reviews yet"
+            description={session
+              ? `Be the first to share your thoughts on ${movieTitle}.`
+              : `Be the first to share your thoughts on ${movieTitle}. Sign in to write a review, vote, and see friend reviews.`}
+            action={session ? (
+              <Button variant="secondary" className="!bg-ns-surface-2 hover:!bg-ns-surface-3" onClick={() => setShowForm(true)}>
+                Write the first review
+              </Button>
+            ) : (
+              <Button variant="secondary" className="!bg-ns-surface-2 hover:!bg-ns-surface-3" href="/login">
+                Sign in to review
+              </Button>
+            )}
+          />
+        )
       ) : (
         <div className="space-y-4">
           {/* Friend reviews first in default sort */}
-          {sort !== 'friends' && friendReviews.length > 0 && (
-            <div className="space-y-4">
-              {friendReviews.map(review => (
-                <ReviewCard
-                  key={review.id}
-                  review={review}
-                  isOwn={false}
-                  sessionId={sessionId}
-                  sessionAvatarUrl={sessionAvatarUrl}
-                  sessionUsername={sessionUsername}
-                />
-              ))}
-              {otherReviews.filter(r => !r.isFriend).length > 0 && (
-                <div className="border-t border-ns-border pt-4" />
-              )}
+          {sort !== 'friends' && friendReviews.map((review, index) => (
+            <div key={review.id} className="ns-reveal" style={{ '--i': Math.min(index, 7) } as React.CSSProperties}>
+              <ReviewCard
+                review={review}
+                isOwn={false}
+                sessionId={sessionId}
+                sessionAvatarUrl={sessionAvatarUrl}
+                sessionUsername={sessionUsername}
+              />
             </div>
-          )}
+          ))}
 
           {/* Remaining reviews */}
-          {(sort === 'friends' ? otherReviews : otherReviews.filter(r => !r.isFriend)).map(review => (
-            <ReviewCard
-              key={review.id}
-              review={review}
-              isOwn={review.userId === sessionId}
-              onEdit={review.userId === sessionId ? () => setEditingOwn(true) : undefined}
-              onDeleted={review.userId === sessionId ? handleDeleted : undefined}
-              sessionId={sessionId}
-              sessionAvatarUrl={sessionAvatarUrl}
-              sessionUsername={sessionUsername}
-            />
+          {listedReviews.map((review, index) => (
+            <div key={review.id} className="ns-reveal" style={{ '--i': Math.min(index, 7) } as React.CSSProperties}>
+              <ReviewCard
+                review={review}
+                isOwn={review.userId === sessionId}
+                onEdit={review.userId === sessionId ? () => setEditingOwn(true) : undefined}
+                onDeleted={review.userId === sessionId ? handleDeleted : undefined}
+                sessionId={sessionId}
+                sessionAvatarUrl={sessionAvatarUrl}
+                sessionUsername={sessionUsername}
+              />
+            </div>
           ))}
 
           {/* CTA to write if no own review yet */}
           {session && !userReview && !showForm && otherReviews.length > 0 && (
             <div className="pt-2 text-center">
-              <button
-                onClick={() => setShowForm(true)}
-                className="px-5 py-2 rounded-xl border border-ns-secondary/40 text-ns-secondary-readable text-sm font-heading font-medium
-                           hover:bg-ns-secondary/10 transition-colors"
-              >
-                Add Your Review
-              </button>
+              <Button variant="outline" onClick={() => setShowForm(true)}>
+                Add your review
+              </Button>
             </div>
           )}
         </div>
       )}
 
       {/* Not signed in CTA */}
-      {!session && (
-        <div className="mt-8 text-center py-8 rounded-2xl border border-dashed border-ns-border">
-          <p className="text-ns-muted text-sm font-body mb-3">
+      {!session && !loading && otherReviews.length > 0 && (
+        <div className="mt-6 flex flex-col gap-3 rounded-2xl bg-ns-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <p className="text-base text-ns-muted">
             Sign in to write a review, vote, and see friend reviews.
           </p>
-          <Link
-            href="/login"
-            className="text-ns-secondary-readable text-sm font-heading font-medium hover:text-amber-400 transition-colors"
-          >
-            Sign In <ArrowRightIcon size={12} className="inline-block ml-0.5" />
-          </Link>
+          <Button variant="secondary" href="/login" className="flex-shrink-0 !bg-ns-surface-2 hover:!bg-ns-surface-3">
+            Sign in
+          </Button>
         </div>
       )}
     </section>

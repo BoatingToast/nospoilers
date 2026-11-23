@@ -35,6 +35,9 @@ import { authOptions } from '@/lib/auth'
 import { isRomComMovie, type RomComRoastResult } from '@/lib/rom-com-roast'
 import { getRomComRoastForUser } from '@/services/rom-com-roast'
 import JsonLd from '@/components/seo/JsonLd'
+import Badge from '@/components/ui/Badge'
+import PosterImage from '@/components/discover/PosterImage'
+import { StarIcon } from '@/components/icons'
 
 interface Props {
   params: Promise<{ tmdbId: string }>
@@ -126,7 +129,22 @@ export default async function MoviePage({ params }: Props) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10">
+    <div className="relative isolate">
+      {/* Color wash from the poster only. Film stills could show cast or story. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[38rem] overflow-hidden">
+        {movie.poster_path && (
+          <Image
+            src={tmdbImageUrl(movie.poster_path, 'w342')}
+            alt=""
+            fill
+            sizes="100vw"
+            className="scale-110 object-cover opacity-40 blur-3xl"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-ns-bg/40 via-ns-bg/75 to-ns-bg" />
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6 sm:pt-6 lg:pb-24">
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@graph': [
@@ -152,77 +170,74 @@ export default async function MoviePage({ params }: Props) {
           },
         ],
       }} />
-      <nav aria-label="Breadcrumb" className="mb-8 text-xs text-ns-muted">
-        <ol className="flex flex-wrap items-center gap-2">
-          <li><Link href="/" className="hover:text-ns-text">NoSpoilers</Link></li>
+      <nav aria-label="Breadcrumb" className="mb-4 text-sm text-ns-muted sm:mb-6">
+        <ol className="flex min-w-0 flex-wrap items-center gap-x-2">
+          <li><Link href="/" className="inline-flex min-h-11 items-center transition-colors hover:text-ns-text">NoSpoilers</Link></li>
           <li aria-hidden="true">/</li>
-          <li><Link href="/discover" className="hover:text-ns-text">Discover movies</Link></li>
+          <li><Link href="/discover" className="inline-flex min-h-11 items-center transition-colors hover:text-ns-text">Discover movies</Link></li>
           <li aria-hidden="true">/</li>
-          <li aria-current="page">{movie.title}</li>
+          <li aria-current="page" className="min-w-0 truncate text-ns-text">{movie.title}</li>
         </ol>
       </nav>
 
       {/* Hero */}
-      <div className="flex flex-col sm:flex-row gap-8 mb-12">
-        {/* Poster */}
-        <div className="flex-shrink-0">
-          <div className="relative w-[200px] sm:w-[240px] aspect-[2/3] rounded-2xl overflow-hidden
-                          border border-ns-border shadow-2xl shadow-black/60 mx-auto sm:mx-0">
-            <Image
-              src={tmdbImageUrl(movie.poster_path, 'w500')}
-              alt={movie.title}
-              fill
-              className="object-cover"
-              sizes="240px"
-              priority
-            />
-          </div>
+      <div className="grid gap-8 lg:grid-cols-[22rem_minmax(0,1fr)] lg:items-end lg:gap-14">
+        <div className="relative mx-auto aspect-[2/3] w-56 overflow-hidden rounded-xl bg-ns-surface shadow-2xl ring-1 ring-inset ring-white/5 sm:w-64 lg:mx-0 lg:w-full">
+          <PosterImage
+            path={movie.poster_path}
+            size="w500"
+            alt={movie.title}
+            sizes="(min-width: 1024px) 352px, 256px"
+            preload
+          />
         </div>
 
-        {/* Info */}
-        <div className="flex flex-col gap-4 justify-center">
-          {/* Genres */}
-          <div className="flex flex-wrap gap-2">
-            {movie.genres.map(g => (
-              <span key={g.id}
-                className="px-2.5 py-1 rounded-full border border-ns-border text-ns-muted text-xs font-body">
-                {g.name}
-              </span>
-            ))}
-          </div>
-
-          <h1 className="font-display text-5xl sm:text-6xl tracking-wider text-ns-text leading-none">
-            {movie.title.toUpperCase()}
-          </h1>
-
-          <p className="max-w-xl text-sm leading-6 text-ns-muted">{movieSearchDescription(movie)}</p>
-
-          {movie.tagline && (
-            <p className="text-ns-muted font-body text-sm italic">"{movie.tagline}"</p>
+        <div className="min-w-0">
+          {movie.genres.length > 0 && (
+            <div className="mb-4 flex flex-wrap gap-2">
+              {movie.genres.map(genre => (
+                <Badge key={genre.id} size="md">{genre.name}</Badge>
+              ))}
+            </div>
           )}
 
-          {/* Meta row */}
-          <div className="flex flex-wrap items-center gap-4 text-sm font-body text-ns-muted">
+          <h1 className="break-words font-display text-5xl text-ns-text sm:text-6xl lg:text-7xl xl:text-8xl">
+            {movie.title}
+          </h1>
+
+          {movie.tagline && (
+            <p className="mt-4 max-w-2xl text-xl italic leading-snug text-ns-muted">“{movie.tagline}”</p>
+          )}
+
+          <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-base tabular-nums text-ns-muted">
             <span>{formatYear(movie.release_date)}</span>
-            {runtime && <span>{runtime}</span>}
+            {runtime && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{runtime}</span>
+              </>
+            )}
             {movie.vote_average > 0 && (
-              <span className="flex items-center gap-1.5 text-ns-secondary-readable font-semibold">
-                <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                </svg>
-                {movie.vote_average.toFixed(1)} TMDb
-              </span>
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="inline-flex items-center gap-1.5 font-semibold text-ns-text">
+                  <StarIcon size={15} className="text-ns-accent" />
+                  {movie.vote_average.toFixed(1)} TMDb
+                </span>
+              </>
+            )}
+            {director && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>Directed by <span className="text-ns-text">{director.name}</span></span>
+              </>
             )}
           </div>
 
-          {director && (
-            <p className="text-ns-muted text-sm font-body">
-              Directed by <span className="text-ns-text">{director.name}</span>
-            </p>
-          )}
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-ns-muted">{movieSearchDescription(movie)}</p>
 
           {/* Action buttons */}
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="mt-6 flex flex-wrap items-center gap-2.5">
             {watchAvailability && watchAvailability.providers.length > 0 && (
               <WhereToWatch
                 movieTitle={movie.title}
@@ -272,37 +287,40 @@ export default async function MoviePage({ params }: Props) {
         </div>
       </div>
 
-      <MovieSpoilerSafety
-        movieTitle={movie.title}
-        overview={movie.overview}
-        condensedPremise={condensedPremise}
-        cast={topCast}
-        trailers={trailers}
-      />
-
-      {isRomCom && (
-        <RomComDnaRoast
+      <div className="mt-10 space-y-12 lg:mt-14 lg:space-y-16">
+        <MovieSpoilerSafety
           movieTitle={movie.title}
-          tmdbId={movie.id}
-          access={roastAccess}
-          result={romComRoast}
+          overview={movie.overview}
+          condensedPremise={condensedPremise}
+          cast={topCast}
+          trailers={trailers}
         />
-      )}
 
-      {/* Vibe + Audience grid */}
-      <div className="grid sm:grid-cols-2 gap-6 mb-10">
-        <MovieVibeProfile scores={vibe} />
-        <WhoWouldEnjoy wouldEnjoy={audience.wouldEnjoy} mightNotEnjoy={audience.mightNotEnjoy} />
+        {isRomCom && (
+          <RomComDnaRoast
+            movieTitle={movie.title}
+            tmdbId={movie.id}
+            access={roastAccess}
+            result={romComRoast}
+          />
+        )}
+
+        {/* Vibe + Audience grid */}
+        <div className="ns-reveal grid gap-5 lg:grid-cols-2">
+          <MovieVibeProfile scores={vibe} />
+          <WhoWouldEnjoy wouldEnjoy={audience.wouldEnjoy} mightNotEnjoy={audience.mightNotEnjoy} />
+        </div>
+
+        {/* Similar movies */}
+        <SimilarMovies matches={relatedMovies} />
+
+        {/* Community reviews */}
+        <ReviewSection tmdbId={movie.id} movieTitle={movie.title} />
+
+        {/* Spoiler Zone */}
+        <SpoilerZone tmdbId={movie.id} movieTitle={movie.title} />
       </div>
-
-      {/* Similar movies */}
-      <SimilarMovies matches={relatedMovies} />
-
-      {/* Community reviews */}
-      <ReviewSection tmdbId={movie.id} movieTitle={movie.title} />
-
-      {/* Spoiler Zone */}
-      <SpoilerZone tmdbId={movie.id} movieTitle={movie.title} />
+      </div>
     </div>
   )
 }

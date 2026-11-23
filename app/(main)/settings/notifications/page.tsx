@@ -1,70 +1,39 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import {
-  FriendsIcon, PersonIcon, CollectionsIcon, ReviewsIcon,
-  AchievementsIcon, MovieDnaIcon, RecsIcon, NotificationsIcon,
-} from '@/components/icons'
+import { useId, useState, useEffect } from 'react'
+import PageHeader from '@/components/ui/PageHeader'
+import { SavedNote, Toggle } from '@/components/settings/FormControls'
 import type { NotificationPrefs } from '@/services/notifications'
-
-// ── Toggle switch ─────────────────────────────────────────────────────────────
-
-function Toggle({
-  checked,
-  onChange,
-  disabled,
-}: {
-  checked:  boolean
-  onChange: (v: boolean) => void
-  disabled?: boolean
-}) {
-  return (
-    <button
-      role="switch"
-      aria-checked={checked}
-      onClick={() => !disabled && onChange(!checked)}
-      disabled={disabled}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none
-        ${checked ? 'bg-ns-secondary' : 'bg-ns-border'}
-        ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
-    >
-      <span
-        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200
-          ${checked ? 'translate-x-6' : 'translate-x-1'}`}
-      />
-    </button>
-  )
-}
 
 // ── Pref row ─────────────────────────────────────────────────────────────────
 
 function PrefRow({
-  icon,
   label,
   description,
   value,
   onChange,
   saving,
 }: {
-  icon:        React.ReactNode
   label:       string
   description: string
   value:       boolean
   onChange:    (v: boolean) => void
   saving:      boolean
 }) {
+  const id = useId()
   return (
-    <div className="flex items-center justify-between gap-4 py-4">
-      <div className="flex items-start gap-3 flex-1 min-w-0">
-        <div className="w-9 h-9 rounded-xl bg-ns-bg/50 border border-ns-border/40 flex items-center justify-center flex-shrink-0 mt-0.5">
-          {icon}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-body font-semibold text-ns-text leading-tight">{label}</p>
-          <p className="text-xs font-body text-ns-muted/60 mt-0.5 leading-snug">{description}</p>
-        </div>
+    <div className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
+      <div className="min-w-0 flex-1">
+        <p id={`${id}-label`} className="text-base font-semibold leading-snug text-ns-text">{label}</p>
+        <p id={`${id}-description`} className="mt-0.5 text-sm leading-snug text-ns-muted">{description}</p>
       </div>
-      <Toggle checked={value} onChange={onChange} disabled={saving} />
+      <Toggle
+        checked={value}
+        onChange={onChange}
+        disabled={saving}
+        labelledBy={`${id}-label`}
+        describedBy={`${id}-description`}
+      />
     </div>
   )
 }
@@ -81,6 +50,33 @@ const DEFAULTS: NotificationPrefs = {
   dnaUpdates:        true,
   recsRefreshed:     true,
 }
+
+type PrefDefinition = {
+  key:         keyof NotificationPrefs
+  label:       string
+  description: string
+}
+
+const GROUPS: { title: string; rows: PrefDefinition[] }[] = [
+  {
+    title: 'People',
+    rows: [
+      { key: 'newFollowers', label: 'New followers', description: 'When someone starts following you' },
+      { key: 'newFriends', label: 'New friends', description: 'When a mutual follow creates a friendship' },
+      { key: 'friendActivity', label: 'Friend activity', description: 'When friends rate movies, update their Top 5, or earn achievements' },
+    ],
+  },
+  {
+    title: 'Your movies',
+    rows: [
+      { key: 'collectionUpvotes', label: 'Collection upvotes', description: 'When someone upvotes one of your collections' },
+      { key: 'reviewReplies', label: 'Review replies', description: 'When someone replies to one of your reviews' },
+      { key: 'achievementUnlocks', label: 'Achievement unlocks', description: 'When you earn a new achievement or badge' },
+      { key: 'dnaUpdates', label: 'Movie DNA evolution', description: 'When your taste profile shifts and your DNA title changes' },
+      { key: 'recsRefreshed', label: 'New recommendations', description: 'When your personalised recommendations are refreshed' },
+    ],
+  },
+]
 
 export default function NotificationSettingsPage() {
   const [prefs,   setPrefs]   = useState<NotificationPrefs>(DEFAULTS)
@@ -116,116 +112,57 @@ export default function NotificationSettingsPage() {
     }
   }
 
-  const rows: {
-    key:         keyof NotificationPrefs
-    label:       string
-    description: string
-    icon:        React.ReactNode
-  }[] = [
-    {
-      key:         'newFollowers',
-      label:       'New Followers',
-      description: 'When someone starts following you',
-      icon:        <PersonIcon size={16} className="text-ns-secondary-readable/70" />,
-    },
-    {
-      key:         'newFriends',
-      label:       'New Friends',
-      description: 'When a mutual follow creates a friendship',
-      icon:        <FriendsIcon size={16} className="text-ns-secondary-readable/70" />,
-    },
-    {
-      key:         'friendActivity',
-      label:       'Friend Activity',
-      description: 'When friends rate movies, update their Top 5, or earn achievements',
-      icon:        <FriendsIcon size={16} className="text-ns-muted/60" />,
-    },
-    {
-      key:         'collectionUpvotes',
-      label:       'Collection Upvotes',
-      description: 'When someone upvotes one of your collections',
-      icon:        <CollectionsIcon size={16} className="text-ns-secondary-readable/70" />,
-    },
-    {
-      key:         'reviewReplies',
-      label:       'Review Replies',
-      description: 'When someone replies to one of your reviews',
-      icon:        <ReviewsIcon size={16} className="text-ns-secondary-readable/70" />,
-    },
-    {
-      key:         'achievementUnlocks',
-      label:       'Achievement Unlocks',
-      description: 'When you earn a new achievement or badge',
-      icon:        <AchievementsIcon size={16} className="text-ns-secondary-readable/70" />,
-    },
-    {
-      key:         'dnaUpdates',
-      label:       'Movie DNA Evolution',
-      description: 'When your taste profile shifts and your DNA title changes',
-      icon:        <MovieDnaIcon size={16} className="text-ns-secondary-readable/70" />,
-    },
-    {
-      key:         'recsRefreshed',
-      label:       'New Recommendations',
-      description: 'When your personalised recommendations are refreshed',
-      icon:        <RecsIcon size={16} className="text-ns-secondary-readable/70" />,
-    },
-  ]
-
   return (
-    <div className="max-w-xl mx-auto px-4 py-10">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 rounded-2xl bg-ns-secondary/10 border border-ns-secondary/20 flex items-center justify-center">
-          <NotificationsIcon size={18} className="text-ns-secondary-readable" />
-        </div>
-        <div>
-          <h1 className="text-xl font-heading font-bold text-ns-text">Notification Settings</h1>
-          <p className="text-xs font-body text-ns-muted/60 mt-0.5">Choose what you want to hear about</p>
-        </div>
-        {saved && (
-          <span className="ml-auto text-xs font-body text-ns-secondary-readable/80 bg-ns-secondary/10 px-3 py-1 rounded-full">
-            Saved
-          </span>
-        )}
-      </div>
+    <>
+      <PageHeader
+        title="Notification settings"
+        description="Choose what you want to hear about"
+        actions={<SavedNote show={saved} />}
+      />
 
-      {/* Prefs card */}
-      <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
+      <div className="mt-8 space-y-4">
         {loading ? (
-          // Skeleton
-          <div className="divide-y divide-ns-border/30 px-5">
-            {[1,2,3,4,5,6,7,8].map(i => (
-              <div key={i} className="flex items-center gap-3 py-4 animate-pulse">
-                <div className="w-9 h-9 rounded-xl bg-ns-border/50 flex-shrink-0" />
-                <div className="flex-1 space-y-1.5">
-                  <div className="h-3.5 bg-ns-border/50 rounded w-1/3" />
-                  <div className="h-2.5 bg-ns-border/30 rounded w-2/3" />
-                </div>
-                <div className="w-11 h-6 rounded-full bg-ns-border/50" />
+          [3, 5].map(count => (
+            <div key={count} className="rounded-2xl bg-ns-surface p-6 sm:p-8">
+              <div className="h-6 w-32 animate-pulse rounded-sm bg-ns-surface-2" />
+              <div className="mt-6 space-y-5">
+                {Array.from({ length: count }).map((_, i) => (
+                  <div key={i} className="flex animate-pulse items-center justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-1/3 rounded-sm bg-ns-surface-2" />
+                      <div className="h-3.5 w-2/3 rounded-sm bg-ns-surface-2" />
+                    </div>
+                    <div className="h-7 w-12 rounded-full bg-ns-surface-2" />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))
         ) : (
-          <div className="divide-y divide-ns-border/30 px-5">
-            {rows.map(r => (
-              <PrefRow
-                key={r.key}
-                icon={r.icon}
-                label={r.label}
-                description={r.description}
-                value={prefs[r.key]}
-                onChange={v => update(r.key, v)}
-                saving={saving}
-              />
-            ))}
-          </div>
+          GROUPS.map((group, index) => (
+            <section
+              key={group.title}
+              className={`rounded-2xl bg-ns-surface p-6 sm:p-8 ${index > 0 ? 'ns-reveal' : ''}`}
+            >
+              <h2 className="font-heading text-xl font-bold text-ns-text">{group.title}</h2>
+              <div className="mt-5 divide-y divide-ns-border">
+                {group.rows.map(row => (
+                  <PrefRow
+                    key={row.key}
+                    label={row.label}
+                    description={row.description}
+                    value={prefs[row.key]}
+                    onChange={v => update(row.key, v)}
+                    saving={saving}
+                  />
+                ))}
+              </div>
+            </section>
+          ))
         )}
       </div>
 
-      <p className="text-xs font-body text-ns-muted/40 mt-4 text-center">
-        Changes are saved automatically.
-      </p>
-    </div>
+      <p className="mt-4 text-sm text-ns-muted">Changes are saved automatically.</p>
+    </>
   )
 }

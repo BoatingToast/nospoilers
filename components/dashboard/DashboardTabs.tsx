@@ -1,17 +1,8 @@
 'use client'
 
-import { useState, Suspense, lazy, type KeyboardEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, Suspense, lazy, type KeyboardEvent, type ReactNode } from 'react'
+import { Skeleton } from '@/components/ui/Skeleton'
 import type { MovieDnaProfile } from '@/types'
-import {
-  DashboardIcon,
-  WatchlistIcon,
-  RatingsIcon,
-  AchievementsIcon,
-  FriendsIcon,
-  MovieDnaIcon,
-  RecsIcon,
-  WrappedIcon,
-} from '@/components/icons'
 
 // ─── Lazy tab imports ─────────────────────────────────────────────────────────
 
@@ -34,30 +25,26 @@ type TabKey =
   | 'achievements'
   | 'wrapped'
 
-interface TabDef {
-  key:   TabKey
-  label: string
-  Icon:  React.ComponentType<{ size?: number; className?: string }>
-}
-
-const TABS: TabDef[] = [
-  { key: 'overview',     label: 'Overview',     Icon: DashboardIcon     },
-  { key: 'recommendations', label: 'For You',  Icon: RecsIcon          },
-  { key: 'watchlist',    label: 'Watchlist',    Icon: WatchlistIcon     },
-  { key: 'ratings',      label: 'Ratings',      Icon: RatingsIcon       },
-  { key: 'friends',      label: 'Friends',      Icon: FriendsIcon       },
-  { key: 'dna',          label: 'Movie DNA',    Icon: MovieDnaIcon      },
-  { key: 'achievements', label: 'Achievements', Icon: AchievementsIcon  },
-  { key: 'wrapped',      label: 'Wrapped',      Icon: WrappedIcon       },
+const TABS: { key: TabKey; label: string }[] = [
+  { key: 'overview', label: 'Overview' },
+  { key: 'recommendations', label: 'For You' },
+  { key: 'watchlist', label: 'Watchlist' },
+  { key: 'ratings', label: 'Ratings' },
+  { key: 'friends', label: 'Friends' },
+  { key: 'dna', label: 'Movie DNA' },
+  { key: 'achievements', label: 'Achievements' },
+  { key: 'wrapped', label: 'Wrapped' },
 ]
+
+const TAB_CLASSES = 'inline-flex min-h-11 flex-shrink-0 items-center whitespace-nowrap rounded-full px-4 text-sm font-semibold'
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 function TabSkeleton() {
   return (
-    <div className="space-y-4 pt-2">
+    <div aria-hidden="true" className="space-y-4">
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="animate-pulse bg-ns-surface border border-ns-border rounded-2xl h-32" />
+        <Skeleton key={i} className="h-32 rounded-2xl" />
       ))}
     </div>
   )
@@ -85,6 +72,35 @@ export default function DashboardTabs({
   username,
 }: Props) {
   const [active, setActive] = useState<TabKey>('overview')
+  const [indicator, setIndicator] = useState<string | null>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  // The selected pill is a second copy of the labels, clipped to the active tab,
+  // so it slides between tabs and inverts the text it passes over.
+  useEffect(() => {
+    const list = listRef.current
+    const tab = document.getElementById(`dashboard-tab-${active}`)
+    if (!list || !tab) return
+
+    const measure = () => {
+      const right = list.offsetWidth - tab.offsetLeft - tab.offsetWidth
+      setIndicator(`inset(0 ${right}px 0 ${tab.offsetLeft}px round 999px)`)
+    }
+    measure()
+
+    const scroller = list.parentElement
+    if (scroller && scroller.scrollWidth > scroller.clientWidth) {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      scroller.scrollTo({
+        left: tab.offsetLeft - (scroller.clientWidth - tab.offsetWidth) / 2,
+        behavior: reduced ? 'auto' : 'smooth',
+      })
+    }
+
+    const observer = new ResizeObserver(measure)
+    observer.observe(list)
+    return () => observer.disconnect()
+  }, [active])
 
   function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, key: TabKey) {
     const currentIndex = TABS.findIndex(tab => tab.key === key)
@@ -105,43 +121,60 @@ export default function DashboardTabs({
   return (
     <div>
       {/* Tab bar */}
-      <div
-        role="tablist"
-        aria-label="Dashboard sections"
-        className="flex gap-0.5 border-b border-ns-border mb-8 overflow-x-auto scrollbar-hide -mx-1 px-1"
-      >
-        {TABS.map(({ key, label, Icon }) => {
-          const isActive = active === key
-          return (
-            <button
-              key={key}
-              id={`dashboard-tab-${key}`}
-              role="tab"
-              aria-selected={isActive}
-              aria-controls={`dashboard-panel-${key}`}
-              tabIndex={isActive ? 0 : -1}
-              onClick={() => setActive(key)}
-              onKeyDown={event => handleTabKeyDown(event, key)}
-              className={`flex items-center gap-1.5 px-3 py-3 text-sm font-body whitespace-nowrap border-b-2 transition-colors flex-shrink-0
-                ${isActive
-                  ? 'border-ns-secondary text-white'
-                  : 'border-transparent text-ns-muted hover:text-ns-text'
+      <div className="-mx-4 mb-8 overflow-x-auto px-4 scrollbar-hide sm:mx-0 sm:px-0">
+        <div
+          ref={listRef}
+          role="tablist"
+          aria-label="Dashboard sections"
+          className="relative flex w-max gap-1"
+        >
+          {TABS.map(({ key, label }) => {
+            const isActive = active === key
+            return (
+              <button
+                key={key}
+                id={`dashboard-tab-${key}`}
+                role="tab"
+                type="button"
+                aria-selected={isActive}
+                aria-controls={`dashboard-panel-${key}`}
+                tabIndex={isActive ? 0 : -1}
+                onClick={() => setActive(key)}
+                onKeyDown={event => handleTabKeyDown(event, key)}
+                className={`${TAB_CLASSES} transition-colors duration-150 ${
+                  isActive
+                    ? indicator ? 'text-ns-text' : 'bg-ns-text text-ns-bg'
+                    : 'text-ns-muted [@media(hover:hover)]:hover:bg-ns-surface-2 [@media(hover:hover)]:hover:text-ns-text'
                 }`}
+              >
+                {label}
+              </button>
+            )
+          })}
+
+          {indicator && (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 flex gap-1 bg-ns-text text-ns-bg transition-[clip-path] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
+              style={{ clipPath: indicator }}
             >
-              <Icon size={16} className={isActive ? 'text-ns-secondary-readable' : 'text-current'} />
-              <span className="hidden sm:inline">{label}</span>
-            </button>
-          )
-        })}
+              {TABS.map(({ key, label }) => (
+                <span key={key} className={TAB_CLASSES}>{label}</span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Tab content */}
+      {/* Tab content. The fade must not fill forwards: a lingering transform or
+          stacking context would trap the modals rendered inside these panels. */}
       <div
+        key={active}
         id={`dashboard-panel-${active}`}
         role="tabpanel"
         aria-labelledby={`dashboard-tab-${active}`}
         tabIndex={0}
-        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary-readable/60"
+        className="rounded-2xl motion-safe:animate-[fadeUp_320ms_cubic-bezier(0.23,1,0.32,1)_backwards]"
       >
         {active === 'overview' && overview}
         {active === 'recommendations' && recommendations}

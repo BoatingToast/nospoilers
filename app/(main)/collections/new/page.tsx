@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import BackLink from '@/components/collections/BackLink'
 import CreateCollectionForm from '@/components/collections/CreateCollectionForm'
-import Link from 'next/link'
+import PageHeader from '@/components/ui/PageHeader'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'New Collection — NoSpoilers' }
@@ -12,16 +13,10 @@ export default async function NewCollectionPage() {
   if (!session) redirect('/login')
 
   return (
-    <div className="min-h-screen pb-20">
-      <div className="max-w-xl mx-auto px-4 sm:px-6">
-        <Link href="/collections" className="inline-flex items-center gap-2 text-ns-muted text-sm font-body hover:text-ns-text transition-colors mb-8">
-          ← Collections
-        </Link>
-        <h1 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-text mb-8">
-          NEW COLLECTION
-        </h1>
-        <CreateCollectionForm />
-      </div>
+    <div className="mx-auto min-h-dvh max-w-2xl px-4 pb-20 pt-6 sm:px-6 lg:pt-10">
+      <BackLink href="/collections">Collections</BackLink>
+      <PageHeader className="mb-8 mt-4" title="New collection." />
+      <CreateCollectionForm />
     </div>
   )
 }

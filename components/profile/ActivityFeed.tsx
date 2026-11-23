@@ -32,25 +32,24 @@ function timeAgo(iso: string): string {
 
 export default function ActivityFeed({ events, username }: Props) {
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-5">
-      <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-4">
-        Activity
-      </p>
-      <div className="flex flex-col gap-3">
-        {events.map(event => (
-          <div key={event.id} className="flex items-start gap-3">
-            {(() => { const Ico = EVENT_ICONS[event.type] ?? FilmIcon; return <Ico size={14} className="text-ns-secondary-readable/70 flex-shrink-0 mt-0.5" /> })()}
-            <div className="flex-1 min-w-0">
-              <p className="text-ns-text text-xs font-body leading-snug">
-                {formatActivityEvent(event, username)}
-              </p>
-              <p className="text-ns-muted/50 text-[10px] font-body mt-0.5">
-                {timeAgo(event.createdAt)}
-              </p>
+    <section className="rounded-2xl bg-ns-surface p-6">
+      <h2 className="font-heading text-xl font-bold text-ns-text">Activity</h2>
+      <div className="mt-4 divide-y divide-ns-border">
+        {events.map(event => {
+          const EventIcon = EVENT_ICONS[event.type] ?? FilmIcon
+          return (
+            <div key={event.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
+              <EventIcon size={16} className="mt-0.5 flex-shrink-0 text-ns-muted" />
+              <div className="min-w-0 flex-1">
+                <p className="break-words text-sm leading-snug text-ns-text">
+                  {formatActivityEvent(event, username)}
+                </p>
+                <p className="mt-0.5 text-xs text-ns-subtle">{timeAgo(event.createdAt)}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
-    </div>
+    </section>
   )
 }

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { DnaEvolution, DNAScores } from '@/types'
 import {
-  MovieDnaIcon,
   SuspenseIcon,
   EmotionIcon,
   ComplexityIcon,
@@ -12,9 +11,9 @@ import {
   RealismIcon,
   ActionIcon,
   DarknessIcon,
-  ArrowRightIcon,
   type IconProps,
 } from '@/components/icons'
+import { SectionLink } from './SectionHeading'
 
 // ─── Label map ────────────────────────────────────────────────────────────────
 
@@ -30,25 +29,22 @@ const DIM_LABELS: Record<keyof DNAScores, { label: string; Icon: React.Component
 
 // ─── Delta pill ───────────────────────────────────────────────────────────────
 
-function DeltaPill({ dim, delta }: { dim: keyof DNAScores; delta: number }) {
+function DeltaPill({ dim, delta, index }: { dim: keyof DNAScores; delta: number; index: number }) {
   const { label, Icon } = DIM_LABELS[dim]
   const positive = delta > 0
   const abs      = Math.abs(delta).toFixed(1)
 
   return (
-    <div className={`
-      flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-body border
-      ${positive
-        ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
-        : 'bg-rose-500/10 border-rose-500/25 text-rose-400'
-      }
-    `}>
-      <Icon size={12} className="flex-shrink-0" />
-      <span className="text-white/80">{label}</span>
-      <span className="font-medium">
+    <li
+      className="ns-reveal inline-flex min-h-10 items-center gap-2 rounded-full bg-ns-surface-2 px-4 text-sm"
+      style={{ '--i': index } as React.CSSProperties}
+    >
+      <Icon size={14} className="flex-shrink-0 text-ns-muted" />
+      <span className="text-ns-text">{label}</span>
+      <span className={`font-semibold tabular-nums ${positive ? 'text-ns-success' : 'text-ns-danger'}`}>
         {positive ? '+' : '−'}{abs}
       </span>
-    </div>
+    </li>
   )
 }
 
@@ -56,12 +52,11 @@ function DeltaPill({ dim, delta }: { dim: keyof DNAScores; delta: number }) {
 
 function Skeleton() {
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-5 animate-pulse space-y-3">
-      <div className="h-3 bg-ns-border rounded w-48" />
-      <div className="flex gap-2 flex-wrap">
-        {[1, 2, 3].map(i => <div key={i} className="h-6 bg-ns-border rounded-full w-28" />)}
+    <div aria-hidden="true" className="animate-pulse space-y-4 rounded-2xl bg-ns-surface p-6">
+      <div className="h-5 w-48 rounded bg-ns-surface-2" />
+      <div className="flex flex-wrap gap-2">
+        {[1, 2, 3].map(i => <div key={i} className="h-10 w-32 rounded-full bg-ns-surface-2" />)}
       </div>
-      <div className="h-2 bg-ns-border rounded w-64" />
     </div>
   )
 }
@@ -86,15 +81,12 @@ export default function DnaEvolutionWidget() {
     if (!data || data.ratingCount < 5) return null
 
     return (
-      <div className="bg-ns-surface border border-ns-border rounded-2xl p-5">
-        <div className="flex items-center gap-2 mb-1">
-          <MovieDnaIcon size={16} className="text-ns-secondary-readable flex-shrink-0" />
-          <h2 className="text-sm font-heading text-white">Your Taste Is Evolving</h2>
-        </div>
-        <p className="text-xs font-body text-ns-muted">
+      <section className="rounded-2xl bg-ns-surface p-6">
+        <h2 className="font-heading text-xl font-bold text-ns-text">Your Taste Is Evolving</h2>
+        <p className="mt-1 text-base leading-relaxed text-ns-muted">
           Keep rating movies — we&apos;ll show how your DNA changes over time as you build your profile.
         </p>
-      </div>
+      </section>
     )
   }
 
@@ -105,54 +97,41 @@ export default function DnaEvolutionWidget() {
   const sorted = [...deltaEntries].sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
 
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-5 space-y-4">
-      {/* Header */}
+    <section className="space-y-5 rounded-2xl bg-ns-surface p-6">
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <MovieDnaIcon size={16} className="text-ns-secondary-readable flex-shrink-0" />
-            <h2 className="text-sm font-heading text-white">Your Taste Is Evolving</h2>
-          </div>
-          <p className="text-[11px] font-body text-ns-muted">
+        <div className="min-w-0">
+          <h2 className="font-heading text-xl font-bold text-ns-text">Your Taste Is Evolving</h2>
+          <p className="mt-1 text-sm leading-relaxed text-ns-muted">
             Based on {data.ratingCount} rating{data.ratingCount === 1 ? '' : 's'} · DNA updated
             {data.snapshotAt ? ` since ${new Date(data.snapshotAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}
           </p>
         </div>
-        <Link
-          href="/my-recommendations"
-          className="text-[11px] font-body text-ns-secondary-readable hover:text-ns-secondary-readable/80 transition-colors flex-shrink-0 flex items-center gap-1"
-        >
-          See recs <ArrowRightIcon size={11} />
-        </Link>
+        <SectionLink href="/my-recommendations">See recs</SectionLink>
       </div>
 
-      {/* Delta pills */}
-      <div className="flex flex-wrap gap-2">
-        {sorted.slice(0, 6).map(([dim, delta]) => (
-          <DeltaPill key={dim} dim={dim} delta={delta} />
+      <ul className="flex flex-wrap gap-2">
+        {sorted.slice(0, 6).map(([dim, delta], index) => (
+          <DeltaPill key={dim} dim={dim} delta={delta} index={index} />
         ))}
-      </div>
+      </ul>
 
-      {/* Top influencers */}
       {data.topInfluencers.length > 0 && (
-        <div>
-          <p className="text-[10px] font-body text-ns-muted mb-2 uppercase tracking-wide">
-            Top rated this period
-          </p>
-          <div className="flex gap-2 flex-wrap">
+        <div className="border-t border-ns-border pt-4">
+          <h3 className="mb-2 text-sm font-semibold text-ns-text">Top rated this period</h3>
+          <div className="flex flex-wrap gap-2">
             {data.topInfluencers.slice(0, 4).map(film => (
               <Link
                 key={film.tmdbId}
                 href={`/movie/${film.tmdbId}`}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+                className="inline-flex min-h-10 max-w-full items-center gap-2 rounded-full bg-ns-surface-2 px-4 text-sm transition-colors duration-150 hover:bg-ns-surface-3"
               >
-                <span className="text-[10px] font-body text-white/70 truncate max-w-[100px]">{film.title}</span>
-                <span className="text-[10px] font-body text-ns-secondary-readable font-medium">{film.score}</span>
+                <span className="truncate text-ns-text">{film.title}</span>
+                <span className="flex-shrink-0 font-semibold tabular-nums text-ns-muted">{film.score}</span>
               </Link>
             ))}
           </div>
         </div>
       )}
-    </div>
+    </section>
   )
 }

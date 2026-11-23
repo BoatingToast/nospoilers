@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, type RefObject } from 'react'
+import { useEffect, useRef, useSyncExternalStore, type RefObject } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { CloseIcon } from '@/components/icons'
 
@@ -35,12 +36,21 @@ function focusableElements(panel: HTMLElement): HTMLElement[] {
     .filter(element => element.getAttribute('aria-hidden') !== 'true' && element.getClientRects().length > 0)
 }
 
+const subscribeToNothing = () => () => {}
+
 /**
  * Shared accessible modal shell. It owns dialog semantics, focus management,
  * Escape/backdrop dismissal, and page scroll locking. Feature modals compose
- * their own header/body/footer inside `children`.
+ * their own header/body/footer inside `children`. It renders into document.body
+ * so a transformed or spaced parent can never displace it.
  */
-export default function Modal({
+export default function Modal(props: ModalProps) {
+  const isClient = useSyncExternalStore(subscribeToNothing, () => true, () => false)
+  if (!isClient) return null
+  return createPortal(<ModalDialog {...props} />, document.body)
+}
+
+function ModalDialog({
   onClose,
   children,
   maxWidth  = 'max-w-md',
@@ -124,7 +134,7 @@ export default function Modal({
       onMouseDown={event => {
         if (event.target === backdropRef.current) onCloseRef.current()
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      className="ns-backdrop-in fixed inset-0 z-[90] flex items-center justify-center bg-black/70 p-4"
     >
       <div
         ref={panelRef}
@@ -134,18 +144,17 @@ export default function Modal({
         aria-labelledby={ariaLabelledBy}
         aria-describedby={ariaDescribedBy}
         tabIndex={-1}
-        className={cn('relative w-full bg-ns-bg border border-ns-border rounded-2xl overflow-hidden shadow-2xl outline-none', maxWidth, className)}
+        className={cn('ns-dialog-in relative max-h-[calc(100dvh-2rem)] w-full overflow-y-auto rounded-2xl bg-ns-surface shadow-2xl outline-none', maxWidth, className)}
       >
         {showClose && (
           <button
             type="button"
             onClick={() => onCloseRef.current()}
             aria-label="Close dialog"
-            className="absolute top-5 right-5 z-10 w-7 h-7 flex items-center justify-center rounded-full
-                       text-ns-muted hover:text-ns-text hover:bg-ns-surface transition-colors
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary"
+            className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full
+                       bg-ns-surface-2 text-ns-text transition-colors hover:bg-ns-surface-3"
           >
-            <CloseIcon size={12} />
+            <CloseIcon size={16} />
           </button>
         )}
         {children}

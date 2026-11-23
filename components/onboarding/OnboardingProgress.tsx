@@ -1,42 +1,37 @@
-const STEPS = ['Favorite Movies', 'Your Genres', 'Your Preferences']
+const STEPS = ['Favorite movies', 'Your genres', 'Your preferences']
 
-export default function OnboardingProgress({ currentStep }: { currentStep: number }) {
+interface OnboardingProgressProps {
+  currentStep: number
+  /** How much of the current step is complete, from 0 to 1. */
+  stepProgress?: number
+}
+
+export default function OnboardingProgress({ currentStep, stepProgress = 1 }: OnboardingProgressProps) {
   return (
-    <div className="w-full max-w-lg mx-auto mb-12">
-      <div className="flex items-center justify-between mb-3">
-        {STEPS.map((label, i) => {
-          const step = i + 1
-          const done    = step < currentStep
-          const active  = step === currentStep
+    <nav aria-label="Onboarding progress">
+      <ol className="grid grid-cols-3 gap-2 sm:gap-3">
+        {STEPS.map((label, index) => {
+          const step = index + 1
+          const done = step < currentStep
+          const active = step === currentStep
+          const fill = done ? 1 : active ? Math.min(1, Math.max(0.06, stepProgress)) : 0
+
           return (
-            <div key={step} className="flex flex-col items-center gap-1.5 flex-1">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold font-body
-                              transition-all duration-300
-                              ${done   ? 'bg-ns-secondary text-ns-secondary-foreground' :
-                                active ? 'bg-ns-secondary/20 border-2 border-ns-secondary text-ns-secondary-readable' :
-                                         'bg-ns-surface border border-ns-border text-ns-muted'}`}>
-                {done ? (
-                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                ) : step}
+            <li key={label} aria-current={active ? 'step' : undefined}>
+              <div className="h-1.5 overflow-hidden rounded-full bg-ns-surface-2">
+                <div
+                  className="h-full origin-left rounded-full bg-ns-secondary transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none"
+                  style={{ transform: `scaleX(${fill})` }}
+                />
               </div>
-              <span className={`text-[10px] tracking-wider uppercase font-body transition-colors
-                               ${active ? 'text-ns-secondary-readable' : done ? 'text-ns-muted' : 'text-ns-muted/40'}`}>
+              <span className={`mt-2 block text-xs font-semibold transition-colors duration-300 sm:text-sm ${active ? 'text-ns-text' : 'text-ns-muted'}`}>
+                <span className="sr-only">{done ? 'Completed: ' : active ? 'Current: ' : 'Upcoming: '}</span>
                 {label}
               </span>
-            </div>
+            </li>
           )
         })}
-      </div>
-
-      {/* Track */}
-      <div className="relative h-px bg-ns-border mt-1 -mx-2">
-        <div
-          className="absolute left-0 top-0 h-full bg-ns-secondary transition-all duration-500 ease-out"
-          style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
-        />
-      </div>
-    </div>
+      </ol>
+    </nav>
   )
 }

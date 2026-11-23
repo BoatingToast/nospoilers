@@ -1,20 +1,17 @@
 'use client'
 
 /**
- * UserSocialCard — premium user card used on Followers / Following / Friends pages.
- *
- * Layout:
- *  [Avatar] [Name + @username + DNA badge + genres + meta] [Actions: Follow + View]
- *
- * The entire card is clickable (navigates to profile) except the Follow button.
+ * UserSocialCard — person row used on Followers / Following / Friends pages.
+ * The entire row is clickable (navigates to profile) except the Follow button.
  */
 
 import { useState }              from 'react'
 import Link                      from 'next/link'
 import { useRouter }             from 'next/navigation'
 import { useSession }            from 'next-auth/react'
-import { FriendsIcon, MovieDnaIcon } from '@/components/icons'
+import { CheckIcon, FriendsIcon, PlusIcon } from '@/components/icons'
 import Avatar from '@/components/ui/Avatar'
+import { growOnReveal } from '@/components/profile/motion'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -35,14 +32,21 @@ export interface SocialUser {
   friendSince?:   string
 }
 
-// ── Taste match ring ─────────────────────────────────────────────────────────
+// ── Taste match meter ────────────────────────────────────────────────────────
 
-function TasteMatchBadge({ pct }: { pct: number }) {
-  const color = pct >= 80 ? 'text-ns-secondary-readable' : pct >= 60 ? 'text-amber-400' : 'text-ns-muted/60'
+function TasteMatchMeter({ pct }: { pct: number }) {
   return (
-    <span className={`text-[10px] font-body font-semibold ${color} whitespace-nowrap`}>
-      {pct}% match
-    </span>
+    <div className="flex items-center gap-2">
+      <span className="h-1.5 w-10 overflow-hidden sm:w-16 rounded-full bg-ns-surface-3" aria-hidden="true">
+        <span
+          className={`block h-full rounded-full bg-ns-secondary ${growOnReveal}`}
+          style={{ width: `${pct}%` }}
+        />
+      </span>
+      <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-ns-text">
+        {pct}% match
+      </span>
+    </div>
   )
 }
 
@@ -87,18 +91,32 @@ function InlineFollowBtn({
 
   return (
     <button
+      type="button"
       onClick={toggle}
       disabled={loading}
-      className={`px-3 py-1.5 rounded-xl text-xs font-body font-semibold transition-all duration-200 whitespace-nowrap
+      aria-busy={loading || undefined}
+      className={`inline-flex min-h-11 min-w-28 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-4 text-sm font-semibold transition-colors duration-150 disabled:cursor-wait sm:min-h-10
         ${following
-          ? 'bg-ns-border/60 text-ns-muted hover:bg-red-900/30 hover:text-red-400 hover:border-red-500/30 border border-transparent'
-          : 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary/90 border border-transparent'
-        }
-        ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          ? 'bg-ns-surface-3 text-ns-text hover:bg-ns-danger/10 hover:text-ns-danger'
+          : 'border border-ns-border-strong text-ns-text hover:bg-ns-surface-3'
+        }`}
     >
       {loading ? (
-        <span className="inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-      ) : following ? 'Following' : 'Follow'}
+        <>
+          <span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          <span className="sr-only">Updating</span>
+        </>
+      ) : following ? (
+        <>
+          <CheckIcon size={14} />
+          Following
+        </>
+      ) : (
+        <>
+          <PlusIcon size={14} />
+          Follow
+        </>
+      )}
     </button>
   )
 }
@@ -121,99 +139,52 @@ export default function UserSocialCard({
 
   return (
     <div
-      className="group relative bg-ns-surface border border-ns-border/60 rounded-2xl
-                 hover:border-ns-secondary/25 hover:shadow-[0_0_20px_rgb(var(--ns-secondary)/0.06)]
-                 transition-all duration-300 cursor-pointer overflow-hidden"
+      className="group flex cursor-pointer flex-wrap items-center gap-x-4 gap-y-3 px-4 py-4 transition-colors duration-150 hover:bg-ns-surface-2 sm:flex-nowrap sm:px-6"
       onClick={() => router.push(`/profile/${user.username}`)}
     >
-      {/* Subtle gold shimmer on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-ns-secondary/0 to-ns-secondary/0 group-hover:from-ns-secondary/[0.02] group-hover:to-transparent transition-all duration-500 pointer-events-none rounded-2xl" />
-
-      <div className="flex items-center gap-4 p-4 relative">
-        {/* Avatar */}
-        <div className="relative flex-shrink-0">
-          <Avatar
-            src={user.avatarUrl}
-            username={user.username}
-            size="md"
-            className="ring-2 ring-ns-border/40"
-          />
-          {showFriendBadge && user.isFriend && (
-            <span
-              className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-ns-secondary
-                         flex items-center justify-center shadow-sm"
-              title="Friend"
-            >
-              <FriendsIcon size={10} className="text-black" />
-            </span>
-          )}
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          {/* Name row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-body font-semibold text-ns-text leading-tight truncate">
-              {user.displayName ?? user.username}
-            </p>
-            {user.tasteMatch !== null && (
-              <TasteMatchBadge pct={user.tasteMatch} />
-            )}
-          </div>
-          <p className="text-[11px] font-body text-ns-muted/60 mt-0.5">@{user.username}</p>
-
-          {/* DNA badge */}
-          {user.personality && (
-            <div className="flex items-center gap-1.5 mt-1.5">
-              <div className="flex items-center gap-1 bg-ns-secondary/10 border border-ns-secondary/25 rounded-full px-2 py-0.5">
-                <MovieDnaIcon size={10} className="text-ns-secondary-readable/70 flex-shrink-0" />
-                <span className="text-[10px] font-body text-ns-secondary-readable/80 font-medium whitespace-nowrap">
-                  {user.personality}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Genres */}
-          {user.genres.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1.5">
-              {user.genres.slice(0, 3).map(g => (
-                <span
-                  key={g}
-                  className="text-[9px] font-body text-ns-muted/50 bg-ns-border/30 rounded-full px-2 py-0.5"
-                >
-                  {g}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Follower / following counts */}
-          <div className="flex items-center gap-3 mt-1.5">
-            <span className="text-[10px] font-body text-ns-muted/50">
-              <span className="text-ns-text/70 font-semibold">{user.followerCount.toLocaleString()}</span> followers
-            </span>
-            <span className="text-[10px] font-body text-ns-muted/50">
-              <span className="text-ns-text/70 font-semibold">{user.followingCount.toLocaleString()}</span> following
-            </span>
-          </div>
-        </div>
-
-        {/* Actions — stop propagation so card click doesn't fire */}
-        <div className="flex flex-col items-end gap-2 flex-shrink-0">
-          <InlineFollowBtn
-            username={user.username}
-            initial={user.isFollowing}
-            onToggle={handleToggle}
-          />
-          <Link
-            href={`/profile/${user.username}`}
-            onClick={e => e.stopPropagation()}
-            className="text-[10px] font-body text-ns-muted/50 hover:text-ns-secondary-readable transition-colors whitespace-nowrap"
+      <div className="relative flex-shrink-0">
+        <Avatar src={user.avatarUrl} username={user.username} size="md" />
+        {showFriendBadge && user.isFriend && (
+          <span
+            className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-ns-accent text-ns-secondary-foreground ring-2 ring-ns-surface"
+            title="Friend"
           >
-            View Profile →
-          </Link>
-        </div>
+            <FriendsIcon size={11} />
+            <span className="sr-only">Friend</span>
+          </span>
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1 basis-40">
+        <Link
+          href={`/profile/${user.username}`}
+          onClick={e => e.stopPropagation()}
+          className="-my-1 block truncate py-1 font-heading text-base font-bold text-ns-text transition-colors group-hover:text-ns-secondary-readable"
+        >
+          {user.displayName ?? user.username}
+        </Link>
+        <p className="truncate text-sm text-ns-muted">
+          @{user.username}
+          {user.personality && <span> · {user.personality}</span>}
+        </p>
+        <p className="mt-1 truncate text-sm text-ns-subtle">
+          <span className="tabular-nums">{user.followerCount.toLocaleString()}</span> follower{user.followerCount === 1 ? '' : 's'}
+          {' · '}
+          <span className="tabular-nums">{user.followingCount.toLocaleString()}</span> following
+          {user.genres.length > 0 && <span className="hidden md:inline"> · {user.genres.slice(0, 3).join(', ')}</span>}
+        </p>
+      </div>
+
+      <div
+        className="flex w-full flex-shrink-0 items-center justify-between gap-2 pl-16 sm:w-auto sm:justify-end sm:gap-4 sm:pl-0"
+        onClick={e => e.stopPropagation()}
+      >
+        {user.tasteMatch !== null ? <TasteMatchMeter pct={user.tasteMatch} /> : <span />}
+        <InlineFollowBtn
+          username={user.username}
+          initial={user.isFollowing}
+          onToggle={handleToggle}
+        />
       </div>
     </div>
   )

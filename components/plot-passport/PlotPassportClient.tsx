@@ -1,11 +1,14 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import Image from 'next/image'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
+import PosterFill from '@/components/watchlist/PosterFill'
 import type { WatchlistItemData } from '@/types'
-import { tmdbImageUrl, formatYear } from '@/lib/utils'
-import { LockIcon, ArrowRightIcon } from '@/components/icons'
+import { cn, formatYear } from '@/lib/utils'
+import Button from '@/components/ui/Button'
+import EmptyState from '@/components/ui/EmptyState'
+import { ArrowRightIcon, CheckIcon } from '@/components/icons'
+import { Meter, posterZoomClass, revealDelay, useInView } from '@/components/watchlist/LibraryControls'
 
 interface Props {
   initialItems: WatchlistItemData[]
@@ -13,11 +16,103 @@ interface Props {
 
 type SyncState = 'idle' | 'syncing' | 'success' | 'missing'
 
+const QUICK_STOPS: [string, number][] = [
+  ['Not started', 0],
+  ['Halfway', 50],
+  ['Finished', 100],
+]
+
 function boundaryCopy(progress: number) {
-  if (progress >= 100) return { label: 'Full story cleared', color: 'text-emerald-400' }
-  if (progress >= 50) return { label: 'Mid-movie cleared', color: 'text-amber-300' }
-  if (progress > 0) return { label: 'Spoiler shield active', color: 'text-violet-300' }
+  if (progress >= 100) return { label: 'Full story cleared', color: 'text-ns-success' }
+  if (progress >= 50) return { label: 'Mid-movie cleared', color: 'text-ns-warning' }
+  if (progress > 0) return { label: 'Spoiler shield active', color: 'text-ns-secondary-readable' }
   return { label: 'Everything protected', color: 'text-ns-secondary-readable' }
+}
+
+/**
+ * The film as a coral redaction bar. Progress wipes the bar away from the left,
+ * and the marker sits exactly where the viewer's permission ends.
+ */
+function BoundaryTrack({
+  title,
+  progress,
+  disabled,
+  onDraft,
+  onCommit,
+}: {
+  title: string
+  progress: number
+  disabled: boolean
+  onDraft: (value: number) => void
+  onCommit: (value: number) => void
+}) {
+  const [ref, inView] = useInView<HTMLDivElement>()
+  const [settled, setSettled] = useState(false)
+
+  // The first slide is slow and cinematic. After that the marker tracks the thumb.
+  useEffect(() => {
+    if (!inView) return
+    const timer = window.setTimeout(() => setSettled(true), 950)
+    return () => window.clearTimeout(timer)
+  }, [inView])
+
+  const motion = cn(
+    'transition-transform ease-[cubic-bezier(0.23,1,0.32,1)]',
+    settled ? 'duration-150' : 'duration-[900ms]',
+  )
+
+  return (
+    <div ref={ref} className="relative h-11 overflow-hidden" style={{ '--boundary': progress / 100 } as CSSProperties}>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        step="5"
+        value={progress}
+        onChange={event => onDraft(Number(event.target.value))}
+        onPointerUp={event => onCommit(Number(event.currentTarget.value))}
+        onKeyUp={event => {
+          if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(event.key)) {
+            onCommit(Number(event.currentTarget.value))
+          }
+        }}
+        disabled={disabled}
+        aria-label={`Viewing progress for ${title}`}
+        aria-valuetext={`${progress}% cleared`}
+        className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-wait"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-3.5 top-1/2 h-3 -translate-y-1/2 overflow-hidden rounded-full bg-ns-secondary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-[6px] peer-focus-visible:outline-ns-text"
+      >
+        <div
+          data-in={inView ? 'true' : undefined}
+          className={cn(
+            'h-full w-full bg-ns-text',
+            motion,
+            '[transform:translateX(calc((var(--boundary)-1)*100%))]',
+            '[html[data-motion=on]_&:not([data-in=true])]:[transform:translateX(-100%)]',
+          )}
+        />
+      </div>
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-3.5 inset-y-0">
+        <div
+          data-in={inView ? 'true' : undefined}
+          className={cn(
+            'h-full w-full',
+            motion,
+            '[transform:translateX(calc(var(--boundary)*100%))]',
+            '[html[data-motion=on]_&:not([data-in=true])]:[transform:translateX(0)]',
+          )}
+        >
+          <span className={cn(
+            'absolute left-0 top-1/2 block h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-[5px] border-ns-text bg-ns-bg shadow-2xl',
+            disabled && 'animate-pulse',
+          )} />
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function PlotPassportClient({ initialItems }: Props) {
@@ -95,186 +190,168 @@ export default function PlotPassportClient({ initialItems }: Props) {
   }
 
   return (
-    <main className="min-h-screen pb-24">
-      <section className="relative overflow-hidden border-b border-ns-border">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_12%,rgba(124,58,237,0.22),transparent_34%),radial-gradient(circle_at_15%_70%,rgba(245,158,11,0.08),transparent_32%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-          <div className="max-w-3xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-ns-secondary/30 bg-ns-secondary/10 px-3 py-1.5 text-[11px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-secondary-readable">
-              <LockIcon size={13} /> Plot Passport
-            </div>
-            <h1 className="font-display text-5xl tracking-wide text-white sm:text-7xl">
-              THE INTERNET STOPS WHERE YOU STOPPED.
-            </h1>
-            <p className="mt-5 max-w-2xl text-sm leading-7 text-ns-muted sm:text-base">
-              Your progress is now your permission system. Reviews and conversations unlock only when you reach their safe viewing point, while unfinished titles can transfer directly to NoSpoilers Shield.
+    <div className="mx-auto min-h-dvh max-w-7xl px-4 pb-24 pt-10 sm:px-6 lg:pt-16">
+      <header className="grid gap-10 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:items-end lg:gap-16">
+        <div>
+          <h1 className="max-w-3xl font-display text-5xl text-ns-text lg:text-7xl">
+            The internet stops where you <span className="ns-unredact" style={{ animationDelay: '420ms' }}>stopped.</span>
+          </h1>
+          <p className="ns-rise mt-5 max-w-2xl text-lg leading-relaxed text-ns-muted" style={{ animationDelay: '80ms' }}>
+            Your progress is now your permission system. Reviews and conversations unlock only when you reach their safe viewing point, while unfinished titles can transfer directly to NoSpoilers Shield.
+          </p>
+          <div className="ns-rise mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center" style={{ animationDelay: '160ms' }}>
+            <Button size="lg" onClick={syncChromeShield} loading={syncState === 'syncing'} className="flex-shrink-0">
+              {syncState === 'success' && <CheckIcon size={18} strokeWidth={2.5} />}
+              {syncState === 'syncing' ? 'Finding extension…'
+                : syncState === 'success' ? 'Chrome Shield synced'
+                  : syncState === 'missing' ? 'Extension not detected'
+                    : 'Sync Chrome Shield'}
+            </Button>
+            <p key={syncState} role="status" className={cn('max-w-sm animate-fade-up text-sm leading-relaxed', syncState === 'missing' ? 'text-ns-warning' : 'text-ns-muted')}>
+              {syncState === 'missing'
+                ? 'Install or reload NoSpoilers Shield, then refresh this page and try again.'
+                : <>Send {protectedTitles.length} unfinished {protectedTitles.length === 1 ? 'title' : 'titles'} to the Chrome shield. Finished titles are removed automatically.</>}
             </p>
           </div>
+        </div>
 
-          <div className="mt-10 grid max-w-2xl grid-cols-3 gap-3">
-            {[
-              ['Protected', stats.protected, 'text-ns-secondary-readable'],
-              ['In progress', stats.inProgress, 'text-amber-300'],
-              ['Cleared', stats.cleared, 'text-emerald-400'],
-            ].map(([label, value, color]) => (
-              <div key={String(label)} className="rounded-2xl border border-ns-border bg-ns-surface/70 p-4 backdrop-blur-sm">
-                <p className={`font-display text-3xl ${color}`}>{value}</p>
-                <p className="mt-1 text-[10px] uppercase tracking-widest text-ns-muted">{label}</p>
+        <section aria-label="Passport summary" className="rounded-3xl bg-ns-surface p-7 sm:p-8">
+          <dl className="grid grid-cols-3 gap-3">
+            {([
+              ['Protected', stats.protected],
+              ['In progress', stats.inProgress],
+              ['Cleared', stats.cleared],
+            ] as const).map(([label, value]) => (
+              <div key={label} className="flex flex-col-reverse">
+                <dt className="mt-1 text-sm text-ns-muted">{label}</dt>
+                <dd key={value} className="animate-fade-up font-display text-4xl tabular-nums text-ns-text sm:text-5xl">{value}</dd>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <section className="mb-8 flex flex-col gap-5 rounded-2xl border border-blue-400/25 bg-gradient-to-r from-blue-950/50 to-ns-surface p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-heading font-semibold uppercase tracking-[0.16em] text-blue-300">Where Was I?</p>
-            <h2 className="mt-1 font-heading text-lg font-semibold text-white">Forgot the story, but don&apos;t want the future?</h2>
-            <p className="mt-1 max-w-2xl text-xs leading-5 text-ns-muted">
-              This viewing companion uses your Passport checkpoint for spoiler-safe recaps, character knowledge, and sourced answers. Opening it never advances your progress.
-            </p>
-          </div>
-          <Link
-            href="/where-was-i"
-            className="inline-flex flex-shrink-0 items-center justify-center gap-1 rounded-xl bg-blue-400 px-5 py-2.5 text-sm font-heading font-semibold text-slate-950 transition-colors hover:bg-blue-300"
-          >
-            Try the mystery demo <ArrowRightIcon size={14} />
-          </Link>
-        </section>
-
-        <section className="mb-8 flex flex-col gap-5 rounded-2xl border border-ns-secondary/25 bg-gradient-to-r from-violet-950/50 to-ns-surface p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-heading font-semibold uppercase tracking-[0.16em] text-ns-secondary-readable">Browser handoff</p>
-            <h2 className="mt-1 font-heading text-lg font-semibold text-white">Carry your Passport onto the web</h2>
-            <p className="mt-1 text-xs leading-5 text-ns-muted">
-              Send {protectedTitles.length} unfinished {protectedTitles.length === 1 ? 'title' : 'titles'} to the Chrome shield. Finished titles are removed automatically.
-            </p>
-          </div>
-          <button
-            onClick={syncChromeShield}
-            disabled={syncState === 'syncing'}
-            className="flex-shrink-0 rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-heading font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/90 disabled:opacity-60"
-          >
-            {syncState === 'syncing' ? 'Finding extension…'
-              : syncState === 'success' ? 'Chrome Shield synced ✓'
-                : syncState === 'missing' ? 'Extension not detected'
-                  : 'Sync Chrome Shield'}
-          </button>
-        </section>
-
-        {syncState === 'missing' && (
-          <p className="-mt-5 mb-8 text-right text-xs text-amber-300/80">
-            Install or reload NoSpoilers Shield, then refresh this page and try again.
+          </dl>
+          <Meter
+            value={items.length > 0 ? stats.cleared / items.length : 0}
+            className="mt-6 h-2 bg-ns-secondary"
+            fillClassName="bg-ns-text"
+          />
+          <p className="mt-2 text-sm tabular-nums text-ns-muted">
+            {stats.cleared} of {items.length} {items.length === 1 ? 'title' : 'titles'} fully cleared
           </p>
-        )}
+        </section>
+      </header>
+
+      <section className="mt-14 lg:mt-20" aria-labelledby="passport-progress">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <h2 id="passport-progress" className="font-display text-3xl text-ns-text sm:text-4xl">Viewing progress</h2>
+          <Link href="/discover" className="inline-flex min-h-11 flex-shrink-0 items-center gap-1 text-sm font-semibold text-ns-secondary-readable transition-colors duration-150 hover:text-ns-text">
+            Add movies <ArrowRightIcon size={15} />
+          </Link>
+        </div>
 
         {error && (
-          <p role="alert" className="mb-6 rounded-xl border border-rose-500/25 bg-rose-500/8 px-4 py-3 text-xs text-rose-300">
-            {error}
-          </p>
+          <p role="alert" className="mb-5 rounded-xl bg-ns-danger/10 px-4 py-3 text-sm text-ns-danger">{error}</p>
         )}
 
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-ns-muted">Your boundaries</p>
-            <h2 className="mt-1 font-display text-3xl tracking-wide text-white">VIEWING PROGRESS</h2>
-          </div>
-          <Link href="/discover" className="hidden items-center gap-1 text-xs text-ns-secondary-readable hover:text-white sm:flex">
-            Add movies <ArrowRightIcon size={13} />
-          </Link>
-        </div>
-
         {items.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-ns-border px-6 py-16 text-center">
-            <LockIcon size={42} className="mx-auto text-ns-secondary-readable/40" />
-            <h3 className="mt-4 font-heading text-lg font-semibold text-white">Your Passport is empty</h3>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ns-muted">Add a movie to your watchlist and it will become protected automatically.</p>
-            <Link href="/discover" className="mt-5 inline-flex items-center gap-1 rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-heading font-semibold text-ns-secondary-foreground">
-              Discover movies <ArrowRightIcon size={14} />
-            </Link>
-          </div>
+          <EmptyState
+            title="Your Passport is empty"
+            description="Add a movie to your watchlist and it will become protected automatically."
+            action={<Button href="/discover">Discover movies <ArrowRightIcon size={16} /></Button>}
+          />
         ) : (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {items.map(item => {
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {items.map((item, index) => {
               const progress = drafts[item.tmdbId] ?? item.progressPercent
               const boundary = boundaryCopy(progress)
               const isResumeDemo = item.tmdbId === 9900001
               const itemHref = isResumeDemo ? '/where-was-i' : `/movie/${item.tmdbId}`
+              const isUpdating = updating === item.tmdbId
               return (
-                <article key={item.tmdbId} className="flex gap-4 rounded-2xl border border-ns-border bg-ns-surface/75 p-4 transition-colors hover:border-ns-secondary/25">
-                  <Link href={itemHref} className="relative h-32 w-[86px] flex-shrink-0 overflow-hidden rounded-xl bg-ns-bg">
-                    <Image src={tmdbImageUrl(item.posterPath, 'w342')} alt={item.title} fill className="object-cover" sizes="86px" />
-                  </Link>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <Link href={itemHref} className="line-clamp-1 font-heading text-sm font-semibold text-white hover:text-ns-secondary-readable">{item.title}</Link>
-                        <p className="mt-0.5 text-[10px] text-ns-muted">{formatYear(item.releaseDate)}</p>
-                      </div>
-                      <span className={`whitespace-nowrap text-[10px] font-semibold ${boundary.color}`}>{boundary.label}</span>
-                    </div>
+                <div key={item.tmdbId} className={index > 3 ? 'ns-reveal' : undefined} style={index > 3 ? revealDelay(index) : undefined}>
+                  <article className="group flex h-full gap-4 rounded-2xl bg-ns-surface p-4 sm:gap-5 sm:p-5">
+                    <Link
+                      href={itemHref}
+                      aria-label={`View ${item.title}`}
+                      className="relative aspect-[2/3] w-20 flex-shrink-0 self-start overflow-hidden rounded-xl bg-ns-surface-2 sm:w-28"
+                    >
+                      <PosterFill path={item.posterPath} size="w342" className={posterZoomClass} sizes="112px" />
+                    </Link>
 
-                    {isResumeDemo ? (
-                      <div className="mt-4 border-l-2 border-blue-400/40 pl-3">
-                        <p className="text-xs text-blue-100">
-                          {item.currentSeason && item.currentEpisode
-                            ? `Finished S${item.currentSeason} E${item.currentEpisode}`
-                            : 'No episode confirmed'}
-                        </p>
-                        <p className="mt-1 text-[11px] leading-4 text-ns-muted">Episode checkpoints are managed in Where Was I? so the progress boundary stays exact.</p>
-                        <Link href="/where-was-i" className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-ns-secondary-readable hover:text-white">
-                          Update episode or resume <ArrowRightIcon size={12} />
-                        </Link>
-                      </div>
-                    ) : (
-                      <div className="mt-5">
-                        <div className="mb-2 flex items-center justify-between text-[10px] text-ns-muted">
-                          <span>Plot clearance</span>
-                          <span className="font-semibold text-white">{progress}%</span>
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <Link href={itemHref} tabIndex={-1} className="flex min-h-11 items-center truncate font-heading text-lg font-bold text-ns-text transition-colors duration-150 hover:text-ns-secondary-readable">
+                        {item.title}
+                      </Link>
+                      <p className="flex flex-wrap items-center gap-x-2 text-sm text-ns-muted">
+                        <span className="tabular-nums">{formatYear(item.releaseDate)}</span>
+                        <span aria-hidden="true">·</span>
+                        <span key={boundary.label} className={cn('animate-fade-up font-semibold', boundary.color)}>{boundary.label}</span>
+                      </p>
+
+                      {isResumeDemo ? (
+                        <div className="mt-auto pt-4">
+                          <p className="text-base font-semibold text-ns-text">
+                            {item.currentSeason && item.currentEpisode
+                              ? `Finished S${item.currentSeason} E${item.currentEpisode}`
+                              : 'No episode confirmed'}
+                          </p>
+                          <p className="mt-1 text-sm leading-relaxed text-ns-muted">
+                            Episode checkpoints are managed in Where Was I? so the progress boundary stays exact.
+                          </p>
+                          <Link href="/where-was-i" className="mt-1 inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-ns-secondary-readable transition-colors duration-150 hover:text-ns-text">
+                            Update episode or resume <ArrowRightIcon size={14} />
+                          </Link>
                         </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          step="5"
-                          value={progress}
-                          onChange={event => setDrafts(current => ({ ...current, [item.tmdbId]: Number(event.target.value) }))}
-                          onPointerUp={event => void saveProgress(item, Number(event.currentTarget.value))}
-                          onKeyUp={event => void saveProgress(item, Number(event.currentTarget.value))}
-                          disabled={updating === item.tmdbId}
-                          aria-label={`Viewing progress for ${item.title}`}
-                          className="h-1.5 w-full cursor-pointer accent-violet-500"
-                        />
-                        <div className="mt-3 grid grid-cols-3 gap-1.5">
-                          {[
-                            ['Not started', 0],
-                            ['Halfway', 50],
-                            ['Finished', 100],
-                          ].map(([label, value]) => (
-                            <button
-                              key={String(label)}
-                              onClick={() => void saveProgress(item, Number(value))}
-                              disabled={updating === item.tmdbId}
-                              className={`rounded-lg border px-2 py-1.5 text-[10px] transition-colors ${
-                                progress === value
-                                  ? 'border-ns-secondary/50 bg-ns-secondary/15 text-ns-secondary-readable'
-                                  : 'border-ns-border text-ns-muted hover:border-white/20 hover:text-white'
-                              }`}
-                            >
-                              {label}
-                            </button>
-                          ))}
+                      ) : (
+                        <div className="mt-auto pt-3">
+                          <div className="flex items-baseline justify-between gap-3">
+                            <span className="text-sm text-ns-muted">Plot clearance</span>
+                            <span className="font-display text-2xl tabular-nums text-ns-text">{progress}%</span>
+                          </div>
+                          <BoundaryTrack
+                            title={item.title}
+                            progress={progress}
+                            disabled={isUpdating}
+                            onDraft={value => setDrafts(current => ({ ...current, [item.tmdbId]: value }))}
+                            onCommit={value => void saveProgress(item, value)}
+                          />
+                          <div className="mt-1 grid grid-cols-3 gap-1 rounded-full bg-ns-surface-2 p-1">
+                            {QUICK_STOPS.map(([label, value]) => (
+                              <button
+                                key={label}
+                                type="button"
+                                aria-pressed={progress === value}
+                                onClick={() => void saveProgress(item, value)}
+                                disabled={isUpdating}
+                                className={cn(
+                                  'min-h-11 min-w-0 rounded-full px-1 text-xs font-semibold transition-colors duration-150 disabled:cursor-wait sm:text-sm',
+                                  progress === value ? 'bg-ns-text text-ns-bg' : 'text-ns-muted hover:bg-ns-surface-3 hover:text-ns-text',
+                                )}
+                              >
+                                {label}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                </article>
+                      )}
+                    </div>
+                  </article>
+                </div>
               )
             })}
           </div>
         )}
-      </div>
-    </main>
+      </section>
+
+      <section className="ns-reveal mt-14 flex flex-col gap-5 rounded-3xl bg-ns-tile-blue p-7 sm:flex-row sm:items-center sm:justify-between sm:p-10 lg:mt-20">
+        <div className="min-w-0">
+          <h2 className="font-heading text-2xl font-bold text-ns-text">Forgot the story, but don&apos;t want the future?</h2>
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-ns-muted">
+            Where Was I? uses your Passport checkpoint for spoiler-safe recaps, character knowledge, and sourced answers. Opening it never advances your progress.
+          </p>
+        </div>
+        <Button href="/where-was-i" variant="outline" className="flex-shrink-0">
+          Try the mystery demo <ArrowRightIcon size={16} />
+        </Button>
+      </section>
+    </div>
   )
 }

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import Button from '@/components/ui/Button'
+import Modal from '@/components/ui/Modal'
 import ScoreDial from './ScoreDial'
 import type { MovieRatingData } from '@/types'
 
@@ -100,82 +102,36 @@ export default function QuickRatingModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+    <Modal onClose={onClose} ariaLabelledBy="quick-rating-title" maxWidth="max-w-sm">
+      <div className="p-6">
+        <div className="mb-5 pr-12">
+          <h2 id="quick-rating-title" className="break-words font-display text-2xl text-ns-text">{movie.title}</h2>
+          <p className="mt-1 text-sm text-ns-muted">Rate this film</p>
+        </div>
 
-      <div className="relative z-10 w-full max-w-sm bg-ns-bg border border-ns-border rounded-2xl
-                      shadow-2xl shadow-black/80 overflow-hidden">
-        {/* Gold top strip */}
-        <div className="h-0.5 w-full bg-gradient-to-r from-ns-secondary/0 via-ns-secondary to-ns-secondary/0" />
+        <div className="flex justify-center">
+          <ScoreDial value={score} onChange={setScore} size={180} />
+        </div>
+        <p className="mb-5 mt-3 text-center text-sm text-ns-muted">Your overall rating, 1 to 100</p>
 
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <p className="text-ns-secondary-readable text-[10px] tracking-widest uppercase font-body mb-1">
-                Rate this film
-              </p>
-              <h2 className="font-display text-2xl tracking-wider text-ns-text leading-tight">
-                {movie.title.toUpperCase()}
-              </h2>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-ns-muted hover:text-ns-text transition-colors mt-1"
-            >
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M18 6L6 18M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
+        {error && (
+          <p role="alert" className="mb-4 rounded-xl bg-ns-danger/10 px-3 py-2 text-center text-sm text-ns-danger">{error}</p>
+        )}
 
-          {/* Dial */}
-          <div className="flex justify-center mb-2">
-            <ScoreDial value={score} onChange={setScore} size={180} />
-          </div>
-          <p className="text-ns-muted/60 text-[11px] font-body text-center mb-6">
-            Your overall rating — 1 to 100
-          </p>
-
-          {error && (
-            <p className="text-red-400 text-xs font-body text-center mb-4">{error}</p>
+        <div className="flex flex-col gap-2">
+          <Button onClick={handleSave} loading={saving} className="w-full">
+            {saving ? 'Saving…' : existing ? 'Update Rating' : 'Save Rating'}
+          </Button>
+          <Button variant="outline" onClick={onGoDetailed} className="w-full">
+            Add dimension ratings
+          </Button>
+          {existing && (
+            <Button variant="ghost" onClick={handleDelete} loading={deleting} className="w-full text-ns-danger hover:bg-ns-danger/10">
+              {deleting ? 'Removing…' : 'Remove rating'}
+            </Button>
           )}
-
-          {/* Actions */}
-          <div className="flex flex-col gap-2">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="w-full py-3 rounded-xl bg-ns-secondary text-ns-secondary-foreground font-body font-semibold
-                         text-sm tracking-wide hover:bg-amber-400 disabled:opacity-50
-                         transition-colors"
-            >
-              {saving ? 'Saving…' : existing ? 'Update Rating' : 'Save Rating'}
-            </button>
-
-            <button
-              onClick={onGoDetailed}
-              className="w-full py-2.5 rounded-xl border border-ns-border text-ns-muted
-                         font-body text-sm hover:text-ns-text hover:border-ns-border/60
-                         transition-colors"
-            >
-              Add Dimension Ratings →
-            </button>
-
-            {existing && (
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="w-full py-2 text-red-400/70 font-body text-xs hover:text-red-400
-                           transition-colors disabled:opacity-50"
-              >
-                {deleting ? 'Removing…' : 'Remove rating'}
-              </button>
-            )}
-          </div>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

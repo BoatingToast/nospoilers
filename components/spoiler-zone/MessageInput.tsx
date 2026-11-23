@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { TheoryIcon } from '@/components/icons'
+import Button from '@/components/ui/Button'
+import { CloseIcon, TheoryIcon } from '@/components/icons'
 import type { SZMessageData } from '@/types'
 
 const REACTION_EMOJI = ['🔥', '💀', '🤯', '😭', '👀', '❤️', '👏', '🎬']
@@ -18,6 +19,8 @@ interface Props {
   onCancelEdit:  () => void
   onTyping:      () => void
   knownUsernames: string[]   // for @mention autocomplete
+  /** Text from a conversation starter. Never replaces what the viewer already typed. */
+  draft?:        { text: string; nonce: number } | null
   disabled?:     boolean
   /** Whether the current user is a member of this Spoiler Zone */
   isMember?:     boolean
@@ -36,12 +39,13 @@ function MentionDropdown({
 }) {
   if (suggestions.length === 0) return null
   return (
-    <div className="absolute bottom-full mb-1 left-0 w-48 bg-ns-surface border border-ns-border rounded-xl overflow-hidden shadow-xl z-20">
+    <div className="absolute bottom-full left-0 z-20 mb-3 w-56 max-w-full animate-fade-up overflow-hidden rounded-2xl bg-ns-surface-3 py-1 shadow-2xl">
       {suggestions.map(u => (
         <button
           key={u}
+          type="button"
           onMouseDown={e => { e.preventDefault(); onSelect(u) }}
-          className="w-full text-left px-3 py-2 text-xs font-body text-ns-text hover:bg-ns-secondary/10 hover:text-ns-secondary-readable transition-colors"
+          className="flex min-h-11 w-full items-center truncate px-4 text-left text-sm font-semibold text-ns-text transition-colors hover:bg-ns-surface-2"
         >
           @{u}
         </button>
@@ -57,6 +61,7 @@ export default function MessageInput({
   onSend, onEdit,
   onCancelReply, onCancelEdit,
   onTyping, knownUsernames,
+  draft = null,
   disabled = false,
   isMember = true,
   onJoinClick,
@@ -78,6 +83,19 @@ export default function MessageInput({
       textareaRef.current?.focus()
     }
   }, [editTarget])
+
+  // A picked conversation starter fills an empty composer and takes focus
+  useEffect(() => {
+    if (!draft) return
+    setValue(current => (current.trim() ? current : draft.text.slice(0, MAX_CHARS)))
+    const frame = window.requestAnimationFrame(() => {
+      const el = textareaRef.current
+      if (!el) return
+      el.focus()
+      el.setSelectionRange(el.value.length, el.value.length)
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [draft])
 
   // Auto-resize textarea
   useEffect(() => {
@@ -102,7 +120,7 @@ export default function MessageInput({
     // @mention detection
     const sel = e.target.selectionStart
     const before = v.slice(0, sel)
-    const match = before.match(/@(\w*)$/)
+    const match = before.match(/@([\w-]*)$/)
     if (match) {
       const q = match[1].toLowerCase()
       setMentionQuery(q)
@@ -121,7 +139,7 @@ export default function MessageInput({
     const sel = el.selectionStart
     const before = value.slice(0, sel)
     const after  = value.slice(sel)
-    const replaced = before.replace(/@(\w*)$/, `@${username} `)
+    const replaced = before.replace(/@([\w-]*)$/, () => `@${username} `)
     setValue(replaced + after)
     setMentionQuery(null)
     setMentionSuggestions([])
@@ -182,59 +200,51 @@ export default function MessageInput({
   const charsLeft = MAX_CHARS - value.length
   const isEdit = !!editTarget
 
+  const iconButton = 'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full transition-colors duration-150'
+
   // Non-member gate
   if (!isMember) {
     return (
-      <div className="border-t border-ns-border bg-ns-bg/80 backdrop-blur-sm px-4 py-4 text-center">
-        <p className="text-xs font-body text-ns-muted mb-2">
+      <div className="flex flex-shrink-0 flex-wrap items-center justify-between gap-3 border-t border-ns-border px-4 py-4 sm:px-6">
+        <p className="min-w-0 flex-1 basis-52 text-sm text-ns-muted">
           Join this Spoiler Zone to post messages and react.
         </p>
-        <button
-          onClick={onJoinClick}
-          className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-body font-bold
-                     bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/40
-                     hover:bg-ns-secondary hover:text-ns-secondary-foreground hover:shadow-md hover:shadow-ns-secondary/20
-                     active:scale-95 transition-all duration-200"
-        >
-          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <line x1="12" y1="5"  x2="12" y2="19" />
-            <line x1="5"  y1="12" x2="19" y2="12" />
-          </svg>
+        <Button variant="outline" size="sm" onClick={onJoinClick} className="min-h-11 sm:min-h-10">
           Join Spoiler Zone
-        </button>
+        </Button>
       </div>
     )
   }
 
   return (
-    <div className="border-t border-ns-border bg-ns-bg/80 backdrop-blur-sm px-4 pt-3 pb-4">
+    <div className="flex-shrink-0 border-t border-ns-border px-2 pb-1.5 pt-2 sm:px-5 sm:pb-2 sm:pt-3">
 
       {/* Reply preview strip */}
       {replyTo && !isEdit && (
-        <div className="flex items-start gap-2 mb-2 pl-2 border-l-2 border-ns-secondary/40 bg-ns-surface/40 rounded-r-lg py-1.5 pr-2">
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-body text-ns-secondary-readable/70 mb-0.5">Replying to @{replyTo.username}</p>
-            <p className="text-xs font-body text-ns-muted/70 truncate">{replyTo.content}</p>
+        <div className="mb-2 flex animate-fade-up items-center gap-2 rounded-xl bg-ns-surface-2 py-1 pl-3 pr-1">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-ns-secondary-readable">Replying to @{replyTo.username}</p>
+            <p className="truncate text-sm text-ns-muted">{replyTo.content}</p>
           </div>
           <button
+            type="button"
             onClick={onCancelReply}
-            className="text-ns-muted/40 hover:text-ns-muted transition-colors mt-0.5 flex-shrink-0"
+            className={`${iconButton} text-ns-muted hover:bg-ns-surface-3 hover:text-ns-text`}
             aria-label="Cancel reply"
           >
-            <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
+            <CloseIcon size={14} />
           </button>
         </div>
       )}
 
       {/* Edit mode indicator */}
       {isEdit && (
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-body text-ns-secondary-readable/70">Editing message</span>
+        <div className="mb-2 flex animate-fade-up items-center justify-between gap-2 rounded-xl bg-ns-surface-2 py-1 pl-3 pr-1">
+          <span className="text-sm font-semibold text-ns-text">Editing message</span>
           <button
+            type="button"
             onClick={() => { onCancelEdit(); setValue('') }}
-            className="text-[10px] font-body text-ns-muted/60 hover:text-ns-muted underline transition-colors"
+            className="min-h-11 rounded-full px-3 text-sm font-semibold text-ns-muted transition-colors hover:bg-ns-surface-3 hover:text-ns-text"
           >
             Cancel
           </button>
@@ -242,22 +252,24 @@ export default function MessageInput({
       )}
 
       {/* Input row */}
-      <div className="relative flex items-end gap-2">
+      <div className="relative flex items-end gap-0.5 rounded-3xl border border-ns-border-strong bg-ns-bg p-1 transition-colors duration-150 focus-within:border-ns-text">
 
         {/* Theory toggle */}
         {!isEdit && (
           <button
+            type="button"
             onClick={() => setIsTheory(v => !v)}
             title="Mark as theory"
-            className={`flex-shrink-0 w-8 h-8 mb-0.5 rounded-lg flex items-center justify-center transition-colors
-              ${isTheory ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30' : 'text-ns-muted/40 hover:text-ns-muted'}`}
+            aria-label="Mark as theory"
+            aria-pressed={isTheory}
+            className={`${iconButton} ${isTheory ? 'bg-ns-text text-ns-bg' : 'text-ns-muted hover:bg-ns-surface-2 hover:text-ns-text'}`}
           >
-            <TheoryIcon size={14} strokeWidth={isTheory ? 2.5 : 2} />
+            <TheoryIcon size={16} strokeWidth={isTheory ? 2.5 : 2} />
           </button>
         )}
 
         {/* Mention suggestions */}
-        <div className="relative flex-1">
+        <div className="relative min-w-0 flex-1">
           <MentionDropdown suggestions={mentionSuggestions} onSelect={handleMentionSelect} />
 
           <textarea
@@ -266,43 +278,44 @@ export default function MessageInput({
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             disabled={disabled || sending}
+            aria-label={replyTo ? `Reply to @${replyTo.username}` : 'Message'}
             placeholder={
               replyTo
                 ? `Reply to @${replyTo.username}…`
                 : isTheory
-                ? 'Share your theory… (marked as Theory)'
-                : 'Add to the discussion… (Enter to send, Shift+Enter for newline)'
+                ? 'Share your theory…'
+                : 'Add to the discussion…'
             }
             rows={1}
-            className="w-full resize-none bg-ns-surface border border-ns-border rounded-xl px-4 py-2.5
-                       text-sm font-body text-ns-text placeholder:text-ns-muted/40
-                       focus:outline-none focus:border-ns-secondary/40 transition-colors
-                       disabled:opacity-50 disabled:cursor-not-allowed
-                       scrollbar-hide leading-relaxed"
-            style={{ minHeight: '42px', maxHeight: '160px' }}
+            className="block max-h-40 min-h-11 w-full resize-none bg-transparent px-1 py-2.5 sm:px-2 text-base leading-6 text-ns-text scrollbar-hide placeholder:text-ns-subtle focus:outline-none disabled:cursor-not-allowed disabled:text-ns-muted"
           />
         </div>
 
         {/* Emoji toggle */}
         <div className="relative flex-shrink-0">
           <button
+            type="button"
             onClick={() => setShowEmoji(v => !v)}
             disabled={disabled || sending}
-            className="w-8 h-8 mb-0.5 flex items-center justify-center rounded-lg text-ns-muted/50 hover:text-ns-secondary-readable transition-colors disabled:opacity-40"
+            className={`${iconButton} text-ns-muted hover:bg-ns-surface-2 hover:text-ns-text disabled:opacity-40`}
             title="Emoji"
+            aria-label="Insert emoji"
+            aria-expanded={showEmoji}
           >
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10"/>
               <path d="M8 13s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>
             </svg>
           </button>
           {showEmoji && (
-            <div className="absolute bottom-full mb-1 right-0 bg-ns-surface border border-ns-border rounded-xl p-2 flex gap-1 shadow-xl z-20">
+            <div className="absolute bottom-full right-0 z-20 mb-3 grid w-max animate-fade-up grid-cols-[repeat(4,auto)] gap-0.5 rounded-2xl bg-ns-surface-3 p-1.5 shadow-2xl">
               {REACTION_EMOJI.map(e => (
                 <button
                   key={e}
+                  type="button"
+                  aria-label={`Insert ${e}`}
                   onMouseDown={ev => { ev.preventDefault(); insertEmoji(e) }}
-                  className="text-lg hover:scale-125 transition-transform"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl text-xl transition-colors hover:bg-ns-surface-2"
                 >
                   {e}
                 </button>
@@ -313,40 +326,39 @@ export default function MessageInput({
 
         {/* Send */}
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={!value.trim() || sending || disabled}
-          className="flex-shrink-0 w-9 h-9 mb-0.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground flex items-center justify-center
-                     hover:bg-amber-400 active:scale-95 transition-all duration-150
-                     disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100"
+          className={`${iconButton} bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-readable disabled:cursor-not-allowed disabled:bg-ns-surface-2 disabled:text-ns-subtle`}
           title={isEdit ? 'Save' : 'Send'}
+          aria-label={isEdit ? 'Save' : 'Send'}
         >
           {sending ? (
-            <svg className="animate-spin" width="14" height="14" fill="none" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="animate-spin" width="16" height="16" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
             </svg>
           ) : isEdit ? (
-            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
             </svg>
           ) : (
-            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
               <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
             </svg>
           )}
         </button>
       </div>
 
-      {/* Character counter + error */}
-      <div className="flex items-center justify-between mt-1 min-h-[14px]">
+      {/* Hint, character counter, and error */}
+      <div className="mt-1 flex min-h-5 items-center justify-between gap-3 px-2">
         {sendError ? (
-          <p className="text-[10px] font-body text-red-400">{sendError}</p>
+          <p role="alert" className="text-sm text-ns-danger">{sendError}</p>
         ) : (
-          <span />
+          <p className="hidden text-xs text-ns-subtle sm:block">Enter to send, Shift+Enter for newline</p>
         )}
         {value.length > 0 && (
-          <span className={`text-[10px] font-body tabular-nums
-            ${charsLeft < 100 ? 'text-amber-400' : charsLeft < 0 ? 'text-red-400' : 'text-ns-muted/40'}`}>
+          <span className={`ml-auto text-xs tabular-nums ${charsLeft < 100 ? 'text-ns-warning' : 'text-ns-subtle'}`}>
             {charsLeft}
           </span>
         )}

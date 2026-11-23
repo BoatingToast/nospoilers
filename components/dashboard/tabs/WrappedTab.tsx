@@ -1,25 +1,21 @@
 'use client'
 
-import Link from 'next/link'
-import { WrappedIcon, ArrowRightIcon } from '@/components/icons'
+import Button from '@/components/ui/Button'
+import { ArrowRightIcon } from '@/components/icons'
 
 export default function WrappedTab() {
   const year = new Date().getFullYear()
   return (
-    <div className="py-12 text-center">
-      <div className="flex justify-center mb-5">
-        <WrappedIcon size={52} className="text-ns-secondary-readable" />
+    <section className="flex flex-col items-start gap-6 rounded-3xl bg-ns-tile-lilac p-7 sm:p-10 lg:flex-row lg:items-end lg:justify-between lg:p-14">
+      <div>
+        <h2 className="font-display text-4xl text-ns-text sm:text-6xl">{year} Wrapped</h2>
+        <p className="mt-3 max-w-xl text-lg leading-relaxed text-ns-muted">
+          Your year in film — genres, ratings, and milestones.
+        </p>
       </div>
-      <h2 className="font-heading text-2xl text-white mb-2">{year} Wrapped</h2>
-      <p className="text-ns-muted font-body text-sm mb-8">
-        Your year in film — genres, ratings, and milestones.
-      </p>
-      <Link
-        href="/wrapped"
-        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium hover:bg-amber-400 hover:text-ns-bg transition-colors"
-      >
-        View {year} Wrapped <ArrowRightIcon size={14} />
-      </Link>
-    </div>
+      <Button size="lg" href="/wrapped" className="flex-shrink-0">
+        View {year} Wrapped <ArrowRightIcon size={16} />
+      </Button>
+    </section>
   )
 }

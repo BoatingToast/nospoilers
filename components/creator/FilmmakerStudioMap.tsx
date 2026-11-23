@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ArrowRightIcon } from '@/components/icons'
 
 const modules = [
   { name: 'Audience Labs', description: 'Test screenings with verified feedback and taste-fit analysis.', status: 'Live beta', href: '#audience-labs' },
@@ -11,12 +12,53 @@ const modules = [
   { name: 'Collaborators', description: 'Find trusted creative and distribution partners by real work.', status: 'Planned' },
 ] as const
 
+function statusDot(status: string) {
+  if (status.startsWith('Live')) return 'bg-ns-success'
+  if (status === 'Next') return 'bg-ns-warning'
+  return 'bg-ns-subtle'
+}
+
 export default function FilmmakerStudioMap() {
-  return <section aria-labelledby="studio-map-title" className="mb-8">
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] uppercase tracking-[.2em] text-ns-secondary-readable">One film · One audience · One workspace</p><h2 id="studio-map-title" className="mt-1 font-heading text-xl font-semibold text-ns-text">Your filmmaker operating system</h2></div><p className="max-w-md text-xs leading-5 text-ns-muted">Each module will use the same film and audience record, so filmmakers never rebuild their community or export it into disconnected tools.</p></div>
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{modules.map(module => {
-      const content = <><div className="flex items-center justify-between gap-3"><span className={`h-2 w-2 rounded-full ${module.status.startsWith('Live') ? 'bg-emerald-400' : module.status === 'Next' ? 'bg-amber-400' : 'bg-ns-muted/40'}`} /><span className="text-[9px] uppercase tracking-[.16em] text-ns-muted">{module.status}</span></div><h3 className="mt-4 font-heading text-sm font-semibold text-ns-text">{module.name}</h3><p className="mt-2 text-xs leading-5 text-ns-muted">{module.description}</p></>
-      return 'href' in module ? <Link key={module.name} href={module.href} className="rounded-2xl border border-ns-border bg-ns-surface/45 p-5 transition-colors hover:border-ns-secondary/40">{content}</Link> : <div key={module.name} className="rounded-2xl border border-ns-border bg-ns-surface/25 p-5">{content}</div>
-    })}</div>
-  </section>
+  return (
+    <section aria-labelledby="studio-map-title" className="rounded-2xl bg-ns-surface p-6">
+      <h2 id="studio-map-title" className="font-heading text-xl font-bold text-ns-text">Your filmmaker operating system</h2>
+      <p className="mt-2 text-sm leading-relaxed text-ns-muted">
+        Each module will use the same film and audience record, so filmmakers never rebuild their community or export it into disconnected tools.
+      </p>
+
+      <ul className="mt-4 divide-y divide-ns-border">
+        {modules.map((module, index) => {
+          const content = (
+            <>
+              <span className="flex items-center justify-between gap-3">
+                <span className="flex min-w-0 items-center gap-1.5 font-heading text-base font-semibold text-ns-text">
+                  {module.name}
+                  {'href' in module && (
+                    <ArrowRightIcon size={14} className="flex-shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5 motion-reduce:transform-none" />
+                  )}
+                </span>
+                <span className="flex flex-shrink-0 items-center gap-1.5 text-xs text-ns-muted">
+                  <span aria-hidden="true" className={`h-2 w-2 rounded-full ${statusDot(module.status)}`} />
+                  {module.status}
+                </span>
+              </span>
+              <span className="mt-1 block text-sm leading-relaxed text-ns-muted">{module.description}</span>
+            </>
+          )
+
+          return (
+            <li key={module.name} className="ns-reveal" style={{ '--i': Math.min(index, 7) } as React.CSSProperties}>
+              {'href' in module ? (
+                <Link href={module.href} className="group -mx-2 block rounded-xl px-2 py-3 transition-colors duration-150 hover:bg-ns-surface-2">
+                  {content}
+                </Link>
+              ) : (
+                <div className="py-3">{content}</div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
 }

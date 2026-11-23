@@ -1,13 +1,21 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import Link from 'next/link'
 import { PersonIcon } from '@/components/icons'
 import { tmdbImageUrl, formatYear } from '@/lib/utils'
 import type { SearchApiResponse, TMDbMovie, TMDbPerson } from '@/types'
 
-export default function SearchModal() {
+interface SearchModalProps {
+  /** Icon-only trigger below the xl breakpoint, for the header. */
+  compact?: boolean
+  /** Only one mounted instance should own the Cmd/Ctrl+K shortcut. */
+  enableShortcut?: boolean
+}
+
+export default function SearchModal({ compact = false, enableShortcut = true }: SearchModalProps) {
   const [open,    setOpen]    = useState(false)
   const [query,   setQuery]   = useState('')
   const [movies,  setMovies]  = useState<TMDbMovie[]>([])
@@ -75,11 +83,11 @@ export default function SearchModal() {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setOpen(false)
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setOpen(true) }
+      if (enableShortcut && (e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setOpen(true) }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [enableShortcut])
 
   function handleClose() { setOpen(false); setQuery('') }
   const hasResults = movies.length > 0 || people.length > 0
@@ -92,28 +100,28 @@ export default function SearchModal() {
         type="button"
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
-        className="flex w-full min-w-0 items-center gap-3 px-4 py-2.5 bg-ns-surface border border-ns-border
-                   rounded-xl text-ns-muted text-sm font-body hover:border-ns-muted/40 transition-colors
-                   sm:w-auto sm:min-w-[200px]"
+        aria-label="Search movies and people"
+        className={compact
+          ? 'flex h-11 w-11 items-center justify-center rounded-full text-ns-text transition-colors hover:bg-ns-text/5 xl:h-10 xl:w-52 xl:justify-start xl:gap-2 xl:bg-ns-surface xl:px-3.5 xl:text-ns-muted xl:ring-1 xl:ring-ns-border xl:hover:bg-ns-surface-2'
+          : 'flex min-h-11 w-full min-w-0 items-center gap-2 rounded-full bg-ns-surface-2 px-4 text-sm font-medium text-ns-muted transition-colors hover:bg-ns-surface-3'}
       >
-        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="flex-shrink-0">
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
-        <span className="min-w-0 truncate">Search movies and people...</span>
-        <span className="ml-auto hidden rounded bg-ns-border px-1.5 py-0.5 text-[10px] text-ns-muted/60 min-[360px]:block">⌘K</span>
+        <span className={compact ? 'hidden min-w-0 truncate text-sm xl:block' : 'min-w-0 truncate'}>Search movies</span>
+        <kbd className={compact ? 'ml-auto hidden rounded-sm bg-ns-surface-3 px-1.5 py-0.5 font-body text-xs text-ns-muted xl:block' : 'hidden'}>⌘K</kbd>
       </button>
 
       {/* Modal overlay */}
-      {open && (
+      {open && createPortal(
         <div
           className="fixed inset-0 z-[100] flex items-start justify-center pt-[12vh] px-4"
           onClick={handleClose}
         >
-          <div className="absolute inset-0 bg-ns-bg/80 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/70" />
 
           <div
-            className="relative w-full max-w-xl bg-ns-surface border border-ns-border rounded-2xl
-                       shadow-2xl shadow-black/80 overflow-hidden"
+            className="relative w-full max-w-xl overflow-hidden rounded-2xl bg-ns-surface shadow-2xl"
             onClick={e => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -140,10 +148,10 @@ export default function SearchModal() {
                 aria-label="Search movies and people"
                 placeholder="Search movies, actors, directors..."
                 autoComplete="off"
-                className="min-w-0 flex-1 bg-transparent text-ns-text placeholder:text-ns-muted/50 text-sm font-body focus:outline-none"
+                className="min-w-0 flex-1 bg-transparent font-body text-base text-ns-text placeholder:text-ns-subtle focus:outline-none"
               />
-              <button type="button" onClick={handleClose} aria-label="Close search" className="text-ns-muted hover:text-ns-text text-xs font-body">
-                ESC
+              <button type="button" onClick={handleClose} aria-label="Close search" className="min-h-9 rounded-full bg-ns-surface-2 px-3 font-body text-xs font-semibold text-ns-text hover:bg-ns-surface-3">
+                Esc
               </button>
             </div>
 
@@ -154,7 +162,7 @@ export default function SearchModal() {
               <div className="max-h-[60vh] overflow-y-auto">
                 {movies.length > 0 && (
                   <div className="p-2">
-                    <h3 className="text-ns-muted/60 text-[10px] tracking-widest uppercase font-body px-2 py-1.5">Movies</h3>
+                    <h3 className="px-2 py-1.5 font-heading text-xs font-semibold text-ns-muted">Movies</h3>
                     {movies.map(movie => (
                       <Link
                         key={movie.id}
@@ -186,7 +194,7 @@ export default function SearchModal() {
 
                 {people.length > 0 && (
                   <div className="p-2 border-t border-ns-border">
-                    <h3 className="text-ns-muted/60 text-[10px] tracking-widest uppercase font-body px-2 py-1.5">People</h3>
+                    <h3 className="px-2 py-1.5 font-heading text-xs font-semibold text-ns-muted">People</h3>
                     {people.map(person => (
                       <Link
                         key={person.id}
@@ -203,7 +211,7 @@ export default function SearchModal() {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <PersonIcon size={15} className="text-ns-muted/50" />
+                            <PersonIcon size={15} className="text-ns-muted" />
                           )}
                         </div>
                         <div className="min-w-0">
@@ -225,7 +233,7 @@ export default function SearchModal() {
 
             {error && !loading && (
               <div className="p-8 text-center" role="alert">
-                <p className="text-sm font-body text-red-400">{error}</p>
+                <p className="text-sm font-body text-ns-danger">{error}</p>
                 <button
                   type="button"
                   onClick={() => search(query)}
@@ -243,7 +251,7 @@ export default function SearchModal() {
             )}
 
             {!normalizedQuery && !error && (
-              <div className="p-6 text-center text-ns-muted/50 text-xs font-body">
+              <div className="p-6 text-center font-body text-sm text-ns-muted">
                 Search for any movie, actor, or director
               </div>
             )}
@@ -260,7 +268,8 @@ export default function SearchModal() {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   )

@@ -5,14 +5,14 @@ type Variant = 'surface' | 'outline'
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?:     Variant
-  /** Adds the shared hover border/glow treatment used by clickable grid items (movie posters, rec cards, etc). */
+  /** Adds the shared hover treatment used by clickable grid items. */
   interactive?: boolean
   href?:        string
   children?:    React.ReactNode
 }
 
 const variantClasses: Record<Variant, string> = {
-  surface: 'bg-ns-surface border border-ns-border',
+  surface: 'bg-ns-surface',
   outline: 'bg-transparent border border-ns-border',
 }
 
@@ -25,9 +25,9 @@ export default function Card({
   ...props
 }: CardProps) {
   const classes = cn(
-    'rounded-2xl transition-all duration-300',
+    'rounded-2xl transition-colors duration-150',
     variantClasses[variant],
-    interactive && 'hover:border-ns-secondary/30 hover:shadow-[0_0_20px_rgb(var(--ns-secondary)/0.1)]',
+    interactive && 'hover:bg-ns-surface-2',
     className,
   )
 
