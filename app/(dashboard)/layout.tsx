@@ -8,11 +8,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!session) redirect('/login')
 
   return (
-    <div className="min-h-screen bg-ns-bg">
+    <div className="min-h-dvh bg-ns-bg">
       <Navbar />
       {/* pt-16 matches the fixed navbar height (h-16) */}
       <main className="pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-12">
           {children}
         </div>
       </main>

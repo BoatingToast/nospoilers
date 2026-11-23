@@ -26,8 +26,8 @@ function timeAgo(iso: string): string {
 }
 
 function ActivityIcon({ type }: { type: string }) {
-  const cls = 'text-ns-secondary-readable/60'
-  const size = 14
+  const cls = 'text-ns-muted'
+  const size = 16
   switch (type) {
     case 'rated_movie':        return <RatingsIcon     size={size} className={cls} />
     case 'added_to_watchlist': return <WatchlistIcon   size={size} className={cls} />
@@ -121,23 +121,23 @@ function activityCopy(e: ActivityEvent): { text: string; link?: string; poster?:
 function EventRow({ e }: { e: ActivityEvent }) {
   const { text, link, poster } = activityCopy(e)
   const inner = (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-ns-bg/30 transition-colors group">
-      {/* Icon or poster */}
-      <div className="w-8 h-8 rounded-lg overflow-hidden bg-ns-bg/50 border border-ns-border/40 flex items-center justify-center flex-shrink-0">
+    <div className="group flex min-h-14 items-center gap-3 py-2.5">
+      <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-ns-surface-2">
         {poster ? (
           <Image
             src={`https://image.tmdb.org/t/p/w92${poster}`}
             alt=""
-            width={32} height={32}
-            className="object-cover w-full h-full"
+            fill
+            sizes="40px"
+            className="object-cover"
           />
         ) : (
           <ActivityIcon type={e.type} />
         )}
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-body text-ns-text leading-snug line-clamp-2">{text}</p>
-        <p className="text-[10px] font-body text-ns-muted/40 mt-0.5">{timeAgo(e.createdAt)}</p>
+      <div className="min-w-0 flex-1">
+        <p className={`line-clamp-2 text-sm leading-snug text-ns-text ${link ? 'transition-colors duration-150 group-hover:text-ns-secondary-readable' : ''}`}>{text}</p>
+        <p className="mt-0.5 text-xs text-ns-muted">{timeAgo(e.createdAt)}</p>
       </div>
     </div>
   )
@@ -148,15 +148,15 @@ function EventRow({ e }: { e: ActivityEvent }) {
   return <div>{inner}</div>
 }
 
-function Skeleton() {
+function ListSkeleton() {
   return (
-    <div className="divide-y divide-ns-border/20">
+    <div aria-hidden="true" className="divide-y divide-ns-border">
       {[1, 2, 3].map(i => (
-        <div key={i} className="flex items-center gap-3 px-4 py-3 animate-pulse">
-          <div className="w-8 h-8 rounded-lg bg-ns-border flex-shrink-0" />
-          <div className="flex-1 space-y-1.5">
-            <div className="h-2.5 bg-ns-border rounded w-3/4" />
-            <div className="h-2 bg-ns-border/50 rounded w-1/4" />
+        <div key={i} className="flex animate-pulse items-center gap-3 py-2.5">
+          <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-ns-surface-2" />
+          <div className="flex-1 space-y-2">
+            <div className="h-3.5 w-3/4 rounded bg-ns-surface-2" />
+            <div className="h-3 w-1/4 rounded bg-ns-surface-2" />
           </div>
         </div>
       ))}
@@ -179,26 +179,21 @@ export default function MyActivityWidget() {
   }, [])
 
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3.5 border-b border-ns-border/50">
-        <span className="text-xs font-body font-semibold text-ns-text uppercase tracking-wide">
-          My Activity
-        </span>
-      </div>
+    <section aria-labelledby="my-activity-title" className="flex flex-col rounded-2xl bg-ns-surface p-6">
+      <h2 id="my-activity-title" className="mb-3 font-heading text-xl font-bold text-ns-text">My Activity</h2>
 
       {loading ? (
-        <Skeleton />
+        <ListSkeleton />
       ) : events.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-          <p className="text-ns-muted/50 text-xs font-body">No recent activity</p>
-          <p className="text-ns-muted/30 text-[10px] font-body mt-1">Rate a movie to get started</p>
+        <div className="flex flex-1 flex-col justify-center py-4">
+          <p className="font-heading text-lg font-bold text-ns-text">No recent activity</p>
+          <p className="mt-1 text-base text-ns-muted">Rate a movie to get started</p>
         </div>
       ) : (
-        <div className="divide-y divide-ns-border/20">
+        <div className="divide-y divide-ns-border motion-safe:animate-fade-up">
           {events.map(e => <EventRow key={e.id} e={e} />)}
         </div>
       )}
-    </div>
+    </section>
   )
 }

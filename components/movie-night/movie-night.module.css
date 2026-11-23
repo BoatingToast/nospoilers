@@ -1,0 +1,192 @@
+/* Movie Night motion. Colors, type, and layout come from the shared tokens.
+   Every entrance is scoped to data-motion so reduced motion shows final states. */
+
+.meter {
+  transform-origin: left center;
+  transition: transform 520ms var(--ns-ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meter { transition: none; }
+}
+
+.ghost {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.curtain {
+  display: none;
+}
+
+:global(html[data-motion='on']) .stage {
+  animation-name: mnStage;
+  animation-duration: 560ms;
+  animation-timing-function: var(--ns-ease-out);
+  animation-fill-mode: both;
+}
+
+:global(html[data-motion='on']) .arrive {
+  animation-name: mnArrive;
+  animation-duration: 420ms;
+  animation-timing-function: var(--ns-ease-snap);
+  animation-delay: calc(var(--i, 0) * 60ms);
+  animation-fill-mode: both;
+}
+
+:global(html[data-motion='on']) .codeTile {
+  animation-name: mnTile;
+  animation-duration: 620ms;
+  animation-timing-function: var(--ns-ease-out);
+  animation-delay: calc(120ms + var(--i, 0) * 60ms);
+  animation-fill-mode: both;
+}
+
+:global(html[data-motion='on']) .cardIn {
+  animation-name: mnCardIn;
+  animation-duration: 520ms;
+  animation-timing-function: var(--ns-ease-out);
+  animation-fill-mode: both;
+}
+
+:global(html[data-motion='on']) .flyPass,
+:global(html[data-motion='on']) .flyMaybe,
+:global(html[data-motion='on']) .flyWatch {
+  animation-duration: 440ms;
+  animation-timing-function: var(--ns-ease-snap);
+  animation-fill-mode: both;
+}
+
+:global(html[data-motion='on']) .flyPass { animation-name: mnFlyPass; }
+:global(html[data-motion='on']) .flyMaybe { animation-name: mnFlyMaybe; }
+:global(html[data-motion='on']) .flyWatch { animation-name: mnFlyWatch; }
+
+:global(html[data-motion='on']) .barGrow {
+  animation-name: mnBar;
+  animation-duration: 820ms;
+  animation-timing-function: var(--ns-ease-out);
+  animation-delay: calc(var(--i, 0) * 60ms);
+  animation-fill-mode: backwards;
+}
+
+:global(html[data-motion='on']) .ping::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  animation-name: mnPing;
+  animation-duration: 1500ms;
+  animation-timing-function: var(--ns-ease-out);
+  animation-iteration-count: 3;
+}
+
+/* The match reveal: a coral redaction bar holds the news, then wipes away. */
+:global(html[data-motion='on']) .curtain {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgb(var(--ns-secondary));
+  color: rgb(var(--ns-secondary-foreground));
+  pointer-events: none;
+  animation-name: mnCurtain;
+  animation-duration: 780ms;
+  animation-timing-function: var(--ns-ease-out);
+  animation-delay: 1150ms;
+  animation-fill-mode: forwards;
+}
+
+:global(html[data-motion='on']) .curtainWord {
+  animation-name: mnCurtainWord;
+  animation-duration: 620ms;
+  animation-timing-function: var(--ns-ease-snap);
+  animation-delay: 120ms;
+  animation-fill-mode: both;
+}
+
+:global(html[data-motion='on']) .matchRise {
+  animation-name: mnStage;
+  animation-duration: 680ms;
+  animation-timing-function: var(--ns-ease-out);
+  animation-delay: calc(1380ms + var(--i, 0) * 80ms);
+  animation-fill-mode: both;
+}
+
+:global(html[data-motion='on']) .matchPoster {
+  animation-name: mnPoster;
+  animation-duration: 900ms;
+  animation-timing-function: var(--ns-ease-out);
+  animation-delay: 1250ms;
+  animation-fill-mode: both;
+}
+
+:global(html[data-motion='on']) .matchVoter {
+  animation-name: mnArrive;
+  animation-duration: 420ms;
+  animation-timing-function: var(--ns-ease-snap);
+  animation-delay: calc(1750ms + var(--i, 0) * 70ms);
+  animation-fill-mode: both;
+}
+
+@keyframes mnStage {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mnArrive {
+  from { opacity: 0; transform: scale(0.82); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mnTile {
+  from { opacity: 0; transform: translateY(42%); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mnCardIn {
+  from { opacity: 0; transform: translateY(22px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mnFlyPass {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateX(-54%) rotate(-7deg); }
+}
+
+@keyframes mnFlyMaybe {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-26%) scale(0.94); }
+}
+
+@keyframes mnFlyWatch {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateX(54%) rotate(7deg); }
+}
+
+@keyframes mnBar {
+  from { transform: scaleX(0); }
+}
+
+@keyframes mnPing {
+  from { opacity: 0.6; transform: scale(1); }
+  to { opacity: 0; transform: scale(3); }
+}
+
+@keyframes mnCurtain {
+  from { clip-path: inset(0 0 0 0); }
+  to { clip-path: inset(0 0 0 100%); }
+}
+
+@keyframes mnCurtainWord {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes mnPoster {
+  from { opacity: 0; transform: scale(0.92); clip-path: inset(8% 8% 8% 8% round 16px); }
+  to { opacity: 1; transform: none; clip-path: inset(0 0 0 0 round 16px); }
+}

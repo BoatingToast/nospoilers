@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { ArrowRightIcon } from '@/components/icons'
 
 export default function SearchBar({ initialValue = '' }: { initialValue?: string }) {
   const [query, setQuery] = useState(initialValue)
@@ -10,8 +11,8 @@ export default function SearchBar({ initialValue = '' }: { initialValue?: string
 
   useEffect(() => setQuery(initialValue), [initialValue])
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
     if (!query.trim()) return
     startTransition(() => {
       router.push(`/search?q=${encodeURIComponent(query.trim())}`)
@@ -19,37 +20,25 @@ export default function SearchBar({ initialValue = '' }: { initialValue?: string
   }
 
   return (
-    <form onSubmit={handleSubmit} className="relative mx-auto w-full min-w-0 max-w-xl">
-      <div className="flex w-full min-w-0 items-center gap-0 rounded-2xl border border-ns-border bg-ns-surface
-                      overflow-hidden focus-within:border-ns-secondary/40 focus-within:shadow-[0_0_20px_rgb(var(--ns-secondary)/0.1)]
-                      transition-all duration-300">
-        {/* Search icon */}
-        <div className="flex-shrink-0 pl-4 text-ns-muted sm:pl-5">
-          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.35-4.35" />
-          </svg>
-        </div>
-
+    <form onSubmit={handleSubmit} className="w-full min-w-0 max-w-xl">
+      <div className="flex h-14 w-full min-w-0 items-center rounded-full bg-ns-surface pl-5 pr-1.5 ring-1 ring-ns-border transition-shadow focus-within:ring-2 focus-within:ring-ns-text">
         <input
           type="text"
           value={query}
-          onChange={e => setQuery(e.target.value)}
+          onChange={event => setQuery(event.target.value)}
           aria-label="Search movies and people"
-          placeholder="Search movies, actors, directors..."
+          placeholder="Search any movie or actor"
           autoComplete="off"
-          className="w-0 min-w-0 flex-1 bg-transparent px-3 py-4 text-ns-text placeholder:text-ns-muted/50 sm:px-4
-                     focus:outline-none text-sm font-body"
+          className="h-full w-0 min-w-0 flex-1 bg-transparent font-body text-base text-ns-text placeholder:text-ns-subtle focus:outline-none"
         />
 
         <button
           type="submit"
+          aria-label="Search"
           disabled={!query.trim()}
-          className="m-1.5 flex-shrink-0 rounded-xl bg-ns-secondary px-3 py-2.5 text-sm font-semibold text-ns-secondary-foreground sm:px-5 font-body
-                     hover:bg-amber-400 hover:text-ns-bg transition-colors disabled:opacity-40
-                     disabled:cursor-not-allowed"
+          className="ml-2 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-ns-secondary text-ns-secondary-foreground transition-colors hover:bg-ns-secondary-readable disabled:cursor-not-allowed disabled:bg-ns-surface-3 disabled:text-ns-muted"
         >
-          Search
+          <ArrowRightIcon size={18} />
         </button>
       </div>
     </form>

@@ -4,18 +4,9 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { FriendFeedItem } from '@/services/friends-feed'
 import Avatar from '@/components/ui/Avatar'
-
-// ── Icons ─────────────────────────────────────────────────────────────────────
-
-function HeartIcon({ filled = false, size = 14 }: { filled?: boolean; size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24"
-         fill={filled ? 'currentColor' : 'none'}
-         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-    </svg>
-  )
-}
+import Button from '@/components/ui/Button'
+import { HeartIcon } from '@/components/icons'
+import SectionHeading, { SectionLink } from './SectionHeading'
 
 // ── Activity copy ─────────────────────────────────────────────────────────────
 
@@ -121,11 +112,15 @@ function LikeBtn({ eventId, initialLiked, initialCount }: {
 
   return (
     <button
+      type="button"
       onClick={toggle}
-      className={`flex items-center gap-1 text-[10px] font-body transition-colors
-        ${liked ? 'text-red-400' : 'text-ns-muted/50 hover:text-red-400'}`}
+      aria-pressed={liked}
+      aria-label={`Like${count > 0 ? `, ${count} ${count === 1 ? 'like' : 'likes'}` : ''}`}
+      className={`-ml-2 inline-flex min-h-10 min-w-10 items-center justify-center gap-1.5 rounded-full px-2 text-sm tabular-nums transition-colors duration-150 hover:bg-ns-surface-2 ${
+        liked ? 'text-ns-danger' : 'text-ns-muted hover:text-ns-text'
+      }`}
     >
-      <HeartIcon filled={liked} size={11} />
+      <HeartIcon key={String(liked)} size={15} className={`motion-safe:animate-fade-up ${liked ? 'fill-current' : ''}`} />
       {count > 0 && count}
     </button>
   )
@@ -136,23 +131,20 @@ function LikeBtn({ eventId, initialLiked, initialCount }: {
 function ActivityRow({ item }: { item: FeedItem }) {
   const { text, href } = activityLabel(item)
   return (
-    <div className="flex items-start gap-3 py-3 px-4 hover:bg-ns-bg/30 transition-colors group">
-      {/* Avatar */}
+    <div className="flex items-start gap-3 py-3">
       <Avatar src={item.authorAvatarUrl} username={item.authorUsername} size="sm" href />
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-body text-ns-text leading-snug">
-          <Link href={`/profile/${item.authorUsername}`}
-                className="font-semibold hover:text-ns-secondary-readable transition-colors">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm leading-snug text-ns-text [overflow-wrap:anywhere]">
+          <Link href={`/profile/${item.authorUsername}`} className="font-semibold transition-colors hover:text-ns-secondary-readable">
             @{item.authorUsername}
           </Link>{' '}
-          <Link href={href} className="text-ns-muted/80 hover:text-ns-text transition-colors">
+          <Link href={href} className="text-ns-muted transition-colors hover:text-ns-text">
             {text}
           </Link>
         </p>
-        <div className="flex items-center gap-3 mt-1">
-          <span className="text-[10px] font-body text-ns-muted/40">{timeAgo(item.createdAt)}</span>
+        <div className="mt-0.5 flex items-center gap-3">
           <LikeBtn eventId={item.id} initialLiked={item.userLiked} initialCount={item.likeCount} />
+          <span className="text-xs tabular-nums text-ns-muted">{timeAgo(item.createdAt)}</span>
         </div>
       </div>
     </div>
@@ -174,49 +166,33 @@ export default function FriendsActivityWidget() {
   }, [])
 
   return (
-    <section>
-      <div className="flex items-center justify-between mb-4 px-0">
-        <div>
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Social</p>
-          <h2 className="font-display text-2xl tracking-wider text-ns-text mt-0.5">Friends Activity</h2>
-        </div>
-        <Link
-          href="/feed"
-          className="text-xs font-body text-ns-secondary-readable hover:text-amber-400 transition-colors"
-        >
-          View All →
-        </Link>
-      </div>
+    <section aria-labelledby="friends-activity-title">
+      <SectionHeading
+        id="friends-activity-title"
+        title="Friends Activity"
+        action={<SectionLink href="/feed">View All</SectionLink>}
+      />
 
-      <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
+      <div className="rounded-2xl bg-ns-surface px-6 py-3">
         {loading ? (
-          <div className="divide-y divide-ns-border/30">
+          <div aria-hidden="true" className="divide-y divide-ns-border">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="flex gap-3 p-4 animate-pulse">
-                <div className="w-8 h-8 rounded-full bg-ns-border flex-shrink-0" />
-                <div className="flex-1 space-y-1.5">
-                  <div className="h-3 bg-ns-border rounded w-3/4" />
-                  <div className="h-2 bg-ns-border rounded w-1/4" />
+              <div key={i} className="flex animate-pulse gap-3 py-3">
+                <div className="h-8 w-8 flex-shrink-0 rounded-full bg-ns-surface-2" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3.5 w-3/4 rounded bg-ns-surface-2" />
+                  <div className="h-3 w-1/4 rounded bg-ns-surface-2" />
                 </div>
               </div>
             ))}
           </div>
         ) : items.length === 0 ? (
-          <div className="py-10 text-center px-6">
-            <p className="text-ns-muted/50 text-sm font-body">
-              Follow people to see their activity here.
-            </p>
-            <Link
-              href="/friends/find"
-              className="mt-3 inline-block px-4 py-2 rounded-xl text-xs font-body
-                         bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/30
-                         hover:bg-ns-secondary hover:text-ns-secondary-foreground transition-all"
-            >
-              Find People
-            </Link>
+          <div className="flex flex-col items-start gap-4 py-5">
+            <p className="text-base text-ns-muted">Follow people to see their activity here.</p>
+            <Button variant="secondary" href="/friends/find" className="bg-ns-surface-2 hover:bg-ns-surface-3">Find People</Button>
           </div>
         ) : (
-          <div className="divide-y divide-ns-border/30">
+          <div className="divide-y divide-ns-border motion-safe:animate-fade-up">
             {items.map(item => (
               <ActivityRow key={item.id} item={item} />
             ))}

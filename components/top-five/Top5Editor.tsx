@@ -1,12 +1,16 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
-import { tmdbImageUrl, formatYear } from '@/lib/utils'
+import { cn, tmdbImageUrl, formatYear } from '@/lib/utils'
+import Button from '@/components/ui/Button'
+import Modal from '@/components/ui/Modal'
+import { Skeleton } from '@/components/ui/Skeleton'
 import DnaPreview from './DnaPreview'
 import type { TopFiveEntry } from '@/services/top-five'
 import type { DNAScores } from '@/types'
-import { FilmIcon } from '@/components/icons'
+import { ChevronIcon, CloseIcon, FilmIcon, PlusIcon, SearchIcon } from '@/components/icons'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,131 +36,119 @@ interface Props {
 
 // ─── Slot component ───────────────────────────────────────────────────────────
 
+const slotControlClass = 'flex h-11 min-w-0 flex-1 items-center justify-center rounded-full text-ns-muted transition-colors duration-150 hover:bg-ns-surface-3 hover:text-ns-text disabled:cursor-not-allowed disabled:text-ns-subtle disabled:hover:bg-transparent'
+
 function Slot({
   movie,
   position,
   isDragOver,
+  isSearching,
   onDragStart,
   onDragOver,
   onDrop,
   onDragEnd,
   onRemove,
   onAddClick,
+  onMove,
 }: {
   movie:       TopFiveEntry | null
   position:    number
   isDragOver:  boolean
+  isSearching: boolean
   onDragStart: (pos: number) => void
   onDragOver:  (e: React.DragEvent, pos: number) => void
   onDrop:      (pos: number) => void
   onDragEnd:   () => void
   onRemove:    (pos: number) => void
   onAddClick:  (pos: number) => void
+  onMove:      (pos: number, delta: -1 | 1) => void
 }) {
   return (
     <div
       onDragOver={e => onDragOver(e, position)}
       onDrop={() => onDrop(position)}
-      className={`relative flex-1 min-w-0 transition-all duration-150 ${
-        isDragOver ? 'scale-105' : ''
-      }`}
+      className="w-[8.5rem] flex-shrink-0 snap-start sm:w-auto sm:min-w-0 sm:flex-1"
     >
-      {/* Rank badge */}
-      <div className={`absolute -top-2.5 left-1/2 -translate-x-1/2 z-20 w-6 h-6 rounded-full
-                       flex items-center justify-center text-[10px] font-display leading-none
-                       border-2 transition-colors ${
-                         movie
-                           ? 'bg-ns-bg border-ns-secondary text-ns-secondary-readable'
-                           : 'bg-ns-bg border-ns-border text-ns-muted'
-                       }`}>
-        {position}
-      </div>
-
       {movie ? (
         <div
           draggable
           onDragStart={() => onDragStart(position)}
           onDragEnd={onDragEnd}
-          className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-ns-surface group cursor-grab active:cursor-grabbing
-                       border-2 transition-all duration-150 shadow-lg
-                       ${isDragOver ? 'border-ns-secondary shadow-ns-secondary/20' : 'border-ns-border hover:border-ns-secondary/40'}`}
+          className={cn(
+            'relative aspect-[2/3] cursor-grab overflow-hidden rounded-xl bg-ns-surface-2 ring-2 transition-[box-shadow] duration-150 active:cursor-grabbing',
+            isDragOver ? 'ring-ns-text' : 'ring-transparent',
+          )}
         >
-          {/* Poster */}
           {movie.posterPath ? (
             <Image
               src={tmdbImageUrl(movie.posterPath, 'w342')}
-              alt={movie.title}
+              alt=""
               fill
               sizes="140px"
               className="object-cover"
               draggable={false}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <FilmIcon size={28} className="text-ns-muted/30" />
-            </div>
+            <span className="absolute inset-0 flex items-center justify-center">
+              <FilmIcon size={28} className="text-ns-subtle" />
+            </span>
           )}
-
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent
-                          opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-
-          {/* Drag handle hint */}
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100
-                          transition-opacity duration-200">
-            <div className="flex flex-col gap-0.5 items-center">
-              {[0, 1, 2].map(i => (
-                <div key={i} className="flex gap-0.5">
-                  <div className="w-1 h-1 rounded-full bg-white/60" />
-                  <div className="w-1 h-1 rounded-full bg-white/60" />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Remove button */}
-          <button
-            onClick={() => onRemove(position)}
-            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 border border-white/20
-                       flex items-center justify-center text-white text-xs
-                       opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-500/80"
-            aria-label={`Remove ${movie.title}`}
-          >
-            ✕
-          </button>
-
-          {/* Title at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <p className="text-white text-[10px] font-heading font-semibold leading-tight line-clamp-2">{movie.title}</p>
-            {movie.releaseDate && (
-              <p className="text-white/60 text-[9px] font-body">{formatYear(movie.releaseDate)}</p>
-            )}
-          </div>
+          <span className="absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/75 text-sm font-bold tabular-nums text-white">
+            {position}
+          </span>
         </div>
       ) : (
-        /* Empty slot */
         <button
+          type="button"
           onClick={() => onAddClick(position)}
-          className={`w-full aspect-[2/3] rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1.5
-                       transition-all duration-150 group
-                       ${isDragOver
-                           ? 'border-ns-secondary bg-ns-secondary/10'
-                           : 'border-ns-border hover:border-ns-secondary/50 hover:bg-ns-secondary/5'
-                       }`}
+          aria-label={`Add a film at position ${position}`}
+          className={cn(
+            'relative flex aspect-[2/3] w-full flex-col items-center justify-center gap-1 rounded-xl text-ns-muted ring-2 transition-colors duration-150 hover:bg-ns-surface-3 hover:text-ns-text',
+            isDragOver || isSearching ? 'bg-ns-surface-3 text-ns-text ring-ns-text' : 'bg-ns-surface-2 ring-transparent',
+          )}
         >
-          <span className={`text-xl transition-colors ${isDragOver ? 'text-ns-secondary-readable' : 'text-ns-muted group-hover:text-ns-secondary-readable'}`}>
-            +
+          <span className="absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-ns-bg text-sm font-bold tabular-nums text-ns-muted">
+            {position}
           </span>
-          <span className="text-[10px] font-body text-ns-muted group-hover:text-white transition-colors hidden sm:block">
-            Add film
-          </span>
+          <PlusIcon size={20} />
+          <span className="text-sm font-semibold">Add film</span>
         </button>
       )}
 
-      {/* Title below slot */}
-      <p className="text-[10px] font-body text-ns-muted text-center mt-2 truncate px-0.5">
-        {movie ? movie.title : `Position ${position}`}
+      <p className="mt-2 truncate text-center text-sm font-semibold text-ns-text">
+        {movie ? movie.title : <span className="font-normal text-ns-muted">Position {position}</span>}
       </p>
+
+      {movie && (
+        <div className="mt-1 flex items-center rounded-full bg-ns-surface-2">
+          <button
+            type="button"
+            aria-label={`Move ${movie.title} earlier`}
+            disabled={position === 1}
+            onClick={() => onMove(position, -1)}
+            className={slotControlClass}
+          >
+            <ChevronIcon direction="left" size={16} />
+          </button>
+          <button
+            type="button"
+            aria-label={`Remove ${movie.title}`}
+            onClick={() => onRemove(position)}
+            className={cn(slotControlClass, 'hover:text-ns-danger')}
+          >
+            <CloseIcon size={14} />
+          </button>
+          <button
+            type="button"
+            aria-label={`Move ${movie.title} later`}
+            disabled={position === 5}
+            onClick={() => onMove(position, 1)}
+            className={slotControlClass}
+          >
+            <ChevronIcon direction="right" size={16} />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
@@ -210,61 +202,51 @@ function MovieSearch({
   return (
     <div className="flex flex-col gap-3">
       <div className="relative">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ns-muted pointer-events-none"
-          fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
+        <SearchIcon size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ns-muted" />
         <input
           autoFocus
           value={query}
           onChange={e => search(e.target.value)}
           placeholder="Search for a film…"
-          className="w-full pl-10 pr-4 py-2.5 bg-ns-bg border border-ns-border rounded-xl text-sm font-body
-                     text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-secondary/50 transition-colors"
+          aria-label="Search for a film"
+          className="min-h-12 w-full rounded-xl border border-ns-border-strong bg-ns-bg py-2 pl-11 pr-11 text-base text-ns-text transition-colors duration-150 placeholder:text-ns-subtle focus:border-ns-text focus:outline-none focus:ring-1 focus:ring-ns-text"
         />
         {loading && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-ns-secondary/30 border-t-ns-secondary rounded-full animate-spin" />
+          <span role="status" aria-label="Searching" className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-ns-border-strong border-t-ns-text" />
         )}
       </div>
 
       {results.length > 0 && (
-        <div className="space-y-1 max-h-[280px] overflow-y-auto scrollbar-hide">
+        <div className="max-h-[280px] space-y-0.5 overflow-y-auto">
           {results.map(r => {
             const already = excludeIds.has(r.tmdbId)
             return (
               <button
                 key={r.tmdbId}
+                type="button"
                 onClick={() => !already && onSelect(r)}
                 disabled={already}
-                className={`w-full flex items-center gap-3 p-2 rounded-xl text-left transition-colors ${
-                  already
-                    ? 'opacity-40 cursor-not-allowed'
-                    : 'hover:bg-white/5 cursor-pointer'
-                }`}
-              >
-                <div className="w-8 h-12 rounded-lg overflow-hidden bg-ns-surface flex-shrink-0">
-                  {r.posterPath ? (
-                    <Image
-                      src={tmdbImageUrl(r.posterPath, 'w185')}
-                      alt={r.title}
-                      width={32} height={48}
-                      className="object-cover w-full h-full"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <FilmIcon size={14} className="text-ns-muted/30" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-heading font-medium text-white truncate">{r.title}</p>
-                  {r.releaseDate && (
-                    <p className="text-[11px] font-body text-ns-muted">{formatYear(r.releaseDate)}</p>
-                  )}
-                </div>
-                {already && (
-                  <span className="text-[10px] font-body text-ns-muted flex-shrink-0">Already in Top 5</span>
+                className={cn(
+                  'flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors duration-150',
+                  already ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-ns-surface-3',
                 )}
+              >
+                <span className="relative aspect-[2/3] w-9 flex-shrink-0 overflow-hidden rounded-lg bg-ns-surface-3">
+                  {r.posterPath ? (
+                    <Image src={tmdbImageUrl(r.posterPath, 'w185')} alt="" fill sizes="36px" className="object-cover" />
+                  ) : (
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <FilmIcon size={14} className="text-ns-subtle" />
+                    </span>
+                  )}
+                </span>
+                <span className="block min-w-0 flex-1">
+                  <span className={cn('block truncate text-sm font-semibold', already ? 'text-ns-muted' : 'text-ns-text')}>{r.title}</span>
+                  {r.releaseDate && (
+                    <span className="block text-sm tabular-nums text-ns-muted">{formatYear(r.releaseDate)}</span>
+                  )}
+                </span>
+                {already && <span className="flex-shrink-0 text-sm text-ns-muted">Already in Top 5</span>}
               </button>
             )
           })}
@@ -272,7 +254,7 @@ function MovieSearch({
       )}
 
       {query && !loading && results.length === 0 && (
-        <p className="text-sm font-body text-ns-muted text-center py-4">No results for "{query}"</p>
+        <p className="py-4 text-center text-sm text-ns-muted">No results for &ldquo;{query}&rdquo;</p>
       )}
     </div>
   )
@@ -299,49 +281,48 @@ function HistoryPanel({ onRestore }: { onRestore: (movies: TopFiveEntry[]) => vo
     setRestoring(null)
   }
 
-  if (loading) return <div className="animate-pulse h-24 bg-ns-surface rounded-xl" />
+  if (loading) return <Skeleton className="h-24 rounded-xl bg-ns-surface-2" />
   if (history.length === 0) return (
-    <p className="text-ns-muted text-sm font-body text-center py-4">No previous lists saved yet.</p>
+    <p className="py-4 text-center text-sm text-ns-muted">No previous lists saved yet.</p>
   )
 
   return (
-    <div className="space-y-3 max-h-[300px] overflow-y-auto scrollbar-hide">
+    <ul className="max-h-[300px] divide-y divide-ns-border overflow-y-auto rounded-xl bg-ns-surface-2 px-3">
       {history.map(snap => (
-        <div key={snap.id} className="flex items-center gap-3 p-3 rounded-xl bg-ns-surface border border-ns-border">
-          {/* Mini poster strip */}
-          <div className="flex gap-1 flex-shrink-0">
+        <li key={snap.id} className="flex items-center gap-3 py-2.5">
+          <div aria-hidden="true" className="flex flex-shrink-0 gap-1">
             {snap.movies.slice(0, 3).map(m => (
-              <div key={m.tmdbId} className="w-7 h-10 rounded overflow-hidden bg-ns-border">
+              <div key={m.tmdbId} className="relative aspect-[2/3] w-7 overflow-hidden rounded bg-ns-surface-3">
                 {m.posterPath && (
-                  <Image src={tmdbImageUrl(m.posterPath, 'w185')} alt={m.title}
-                    width={28} height={40} className="object-cover w-full h-full" />
+                  <Image src={tmdbImageUrl(m.posterPath, 'w185')} alt="" fill sizes="28px" className="object-cover" />
                 )}
               </div>
             ))}
             {snap.movies.length > 3 && (
-              <div className="w-7 h-10 rounded bg-ns-border flex items-center justify-center">
-                <span className="text-[9px] text-ns-muted font-body">+{snap.movies.length - 3}</span>
+              <div className="flex aspect-[2/3] w-7 items-center justify-center rounded bg-ns-surface-3">
+                <span className="text-xs tabular-nums text-ns-muted">+{snap.movies.length - 3}</span>
               </div>
             )}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-heading font-medium text-white truncate">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-ns-text">
               {snap.movies.map(m => m.title).join(', ')}
             </p>
-            <p className="text-[10px] font-body text-ns-muted">
+            <p className="text-sm tabular-nums text-ns-muted">
               {new Date(snap.savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </p>
           </div>
           <button
+            type="button"
             onClick={() => restore(snap)}
             disabled={restoring === snap.id}
-            className="text-xs font-heading font-medium text-ns-secondary-readable hover:text-amber-400 transition-colors flex-shrink-0"
+            className="min-h-11 flex-shrink-0 rounded-full px-3 text-sm font-semibold text-ns-text transition-colors duration-150 hover:bg-ns-surface-3"
           >
             Restore
           </button>
-        </div>
+        </li>
       ))}
-    </div>
+    </ul>
   )
 }
 
@@ -429,6 +410,18 @@ export default function Top5Editor({ initialMovies, onSaved, onClose }: Props) {
     setDragOverPos(null)
   }
 
+  function moveSlot(position: number, delta: -1 | 1) {
+    const from = position - 1
+    const to = from + delta
+    if (to < 0 || to > 4) return
+    setSlots(prev => {
+      const next = [...prev]
+      ;[next[from], next[to]] = [next[to], next[from]]
+      fetchPreview(next)
+      return next
+    })
+  }
+
   // ── Search result selected ────────────────────────────────────────────────────
 
   function handleSearchSelect(result: SearchResult) {
@@ -506,122 +499,104 @@ export default function Top5Editor({ initialMovies, onSaved, onClose }: Props) {
   const excludeIds = new Set(slots.filter(Boolean).map(m => m!.tmdbId))
   const filledCount = slots.filter(Boolean).length
 
-  return (
-    /* Backdrop */
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-3xl max-h-[90vh] flex flex-col bg-ns-surface border border-ns-border rounded-3xl shadow-2xl overflow-hidden">
+  return createPortal(
+    <Modal onClose={onClose} ariaLabelledBy="top5-editor-title" maxWidth="max-w-3xl">
+      <div className="px-6 pb-2 pr-16 pt-6">
+        <h2 id="top5-editor-title" className="font-display text-3xl text-ns-text">Edit Top 5</h2>
+        <p className="mt-1 text-sm tabular-nums text-ns-muted">
+          {filledCount}/5 films · Drag to reorder · Changes update your Movie DNA
+        </p>
+      </div>
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-ns-border flex-shrink-0">
-          <div>
-            <h2 className="font-display text-2xl tracking-wider text-white">EDIT TOP 5</h2>
-            <p className="text-xs font-body text-ns-muted mt-0.5">
-              {filledCount}/5 films · Drag to reorder · Changes update your Movie DNA
-            </p>
-          </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-ns-muted hover:text-white transition-colors text-xl">
-            ✕
-          </button>
-        </div>
-
-        <div className="overflow-y-auto flex-1 p-6 space-y-6">
-
-          {/* Slot grid */}
-          <div className="flex gap-3 sm:gap-4 mt-3">
-            {slots.map((movie, i) => (
-              <Slot
-                key={i}
-                movie={movie}
-                position={i + 1}
-                isDragOver={dragOverPos === i}
-                onDragStart={handleDragStart}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-                onDragEnd={handleDragEnd}
-                onRemove={removeSlot}
-                onAddClick={pos => setSearchingFor(pos)}
-              />
-            ))}
-          </div>
-
-          {/* Search panel */}
-          {searchingFor !== null ? (
-            <div className="rounded-2xl bg-ns-bg border border-ns-border p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-heading font-semibold text-white">
-                  Choose film for position #{searchingFor}
-                </p>
-                <button onClick={() => setSearchingFor(null)} className="text-ns-muted hover:text-white text-sm transition-colors">
-                  Cancel
-                </button>
-              </div>
-              <MovieSearch onSelect={handleSearchSelect} excludeIds={excludeIds} />
-            </div>
-          ) : filledCount < 5 ? (
-            /* Quick-add button when slots are empty */
-            <button
-              onClick={() => {
-                const firstEmpty = slots.findIndex(s => s === null) + 1
-                setSearchingFor(firstEmpty)
-              }}
-              className="w-full py-3 rounded-xl border border-dashed border-ns-border text-ns-muted text-sm font-body hover:border-ns-secondary/40 hover:text-white transition-colors"
-            >
-              + Search for a film to add
-            </button>
-          ) : null}
-
-          {/* DNA Preview */}
-          {preview && (
-            <DnaPreview
-              current={preview.current}
-              predicted={preview.predicted}
-              deltas={preview.deltas}
-              loading={previewLoading}
+      <div className="space-y-6 p-6">
+        <div className="-mx-6 flex snap-x gap-3 overflow-x-auto px-6 pb-1 scrollbar-hide sm:mx-0 sm:overflow-visible sm:px-0">
+          {slots.map((movie, i) => (
+            <Slot
+              key={i}
+              movie={movie}
+              position={i + 1}
+              isDragOver={dragOverPos === i}
+              isSearching={searchingFor === i + 1}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onDragEnd={handleDragEnd}
+              onRemove={removeSlot}
+              onAddClick={pos => setSearchingFor(pos)}
+              onMove={moveSlot}
             />
-          )}
-
-          {/* History */}
-          <div>
-            <button
-              onClick={() => setShowHistory(v => !v)}
-              className="flex items-center gap-2 text-xs font-heading font-medium text-ns-muted hover:text-white transition-colors"
-            >
-              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {showHistory ? 'Hide' : 'Show'} Previous Lists
-            </button>
-            {showHistory && (
-              <div className="mt-3">
-                <HistoryPanel onRestore={handleRestore} />
-              </div>
-            )}
-          </div>
-
-          {error && <p className="text-rose-400 text-sm font-body">{error}</p>}
+          ))}
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-ns-border flex items-center justify-between gap-3 flex-shrink-0 bg-ns-surface">
-          <p className="text-xs font-body text-ns-muted">
-            Your DNA updates automatically after saving.
-          </p>
-          <div className="flex gap-2">
-            <button onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-ns-border text-ns-muted text-sm font-heading font-medium hover:text-white hover:border-white/20 transition-colors">
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving || filledCount === 0}
-              className="px-6 py-2 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold
-                         hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              {saving ? 'Saving…' : 'Save Top 5'}
-            </button>
+        {searchingFor !== null ? (
+          <div className="animate-fade-up rounded-2xl bg-ns-surface-2 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="font-heading text-base font-bold text-ns-text">
+                Choose film for position #{searchingFor}
+              </p>
+              <Button variant="ghost" size="sm" onClick={() => setSearchingFor(null)} className="hover:bg-ns-surface-3">
+                Cancel
+              </Button>
+            </div>
+            <MovieSearch onSelect={handleSearchSelect} excludeIds={excludeIds} />
           </div>
+        ) : filledCount < 5 ? (
+          <Button
+            variant="outline"
+            onClick={() => {
+              const firstEmpty = slots.findIndex(s => s === null) + 1
+              setSearchingFor(firstEmpty)
+            }}
+            className="w-full hover:bg-ns-surface-2"
+          >
+            <PlusIcon size={16} />
+            Search for a film to add
+          </Button>
+        ) : null}
+
+        {preview && (
+          <DnaPreview
+            current={preview.current}
+            predicted={preview.predicted}
+            deltas={preview.deltas}
+            loading={previewLoading}
+          />
+        )}
+
+        <div>
+          <button
+            type="button"
+            aria-expanded={showHistory}
+            onClick={() => setShowHistory(v => !v)}
+            className="-ml-1 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-sm font-semibold text-ns-muted transition-colors duration-150 hover:text-ns-text"
+          >
+            <ChevronIcon
+              direction="down"
+              size={16}
+              className={cn('transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]', showHistory && 'rotate-180')}
+            />
+            {showHistory ? 'Hide' : 'Show'} previous lists
+          </button>
+          {showHistory && (
+            <div className="mt-2 animate-fade-up">
+              <HistoryPanel onRestore={handleRestore} />
+            </div>
+          )}
+        </div>
+
+        {error && <p role="alert" className="rounded-xl bg-ns-danger/10 px-3 py-2 text-sm text-ns-danger">{error}</p>}
+      </div>
+
+      <div className="sticky bottom-0 z-[5] flex flex-col gap-3 border-t border-ns-border bg-ns-surface px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-ns-muted">Your DNA updates automatically after saving.</p>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onClose} className="flex-1 sm:flex-none">Cancel</Button>
+          <Button onClick={handleSave} loading={saving} disabled={filledCount === 0} className="flex-1 sm:flex-none">
+            {saving ? 'Saving…' : 'Save Top 5'}
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>,
+    document.body,
   )
 }

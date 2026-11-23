@@ -50,8 +50,8 @@ export default function ProfileTop5Section({ userId, isOwn }: Props) {
       />
 
       {loading && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="w-8 h-8 border-2 border-ns-secondary/30 border-t-ns-secondary rounded-full animate-spin" />
+        <div role="status" aria-label="Loading your Top 5" className="fixed inset-0 z-[100] flex animate-fade-in items-center justify-center bg-black/70">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-ns-border-strong border-t-ns-text" />
         </div>
       )}
 

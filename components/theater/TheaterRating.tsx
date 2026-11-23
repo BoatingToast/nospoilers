@@ -1,9 +1,14 @@
 'use client'
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import Button from '@/components/ui/Button'
 import { AUDIENCE_REACTIONS, PACING_SIGNALS, pacingLabel, reactionLabel, type AudienceReaction, type PacingSignal } from '@/lib/audience-lab'
-import { theaterRequest } from './TheaterShared'
-import styles from './theater.module.css'
+import { fieldClass, labelClass, theaterRequest } from './TheaterShared'
+
+const choiceClass = (active: boolean) => [
+  'min-h-11 rounded-full px-4 text-sm font-semibold transition-colors duration-150',
+  active ? 'bg-ns-text text-ns-bg' : 'bg-ns-surface-2 text-ns-muted hover:bg-ns-surface-3 hover:text-ns-text',
+].join(' ')
 
 export default function TheaterRating({ id, title, onRated }: { id: string; title: string; onRated: () => Promise<void> }) {
   const dialog = useRef<HTMLDialogElement>(null)
@@ -38,23 +43,109 @@ export default function TheaterRating({ id, title, onRated }: { id: string; titl
     }
   }
 
-  return <dialog ref={dialog} className={styles.dialog} aria-labelledby="theater-rating-title" aria-describedby="theater-rating-description" onCancel={e => e.preventDefault()}>
-    <form onSubmit={submit}>
-      <div className="text-center"><p className={styles.eyebrow}>Audience Lab · Private filmmaker feedback</p><div className="mx-auto mb-4 mt-5 text-3xl text-[#ddbd86]" aria-hidden="true">✧</div><h2 id="theater-rating-title" className={`${styles.title} text-4xl`}>Help shape the next cut.</h2><p className="mt-3 break-words text-sm text-white/70">{title}</p><p id="theater-rating-description" className="mx-auto mt-3 max-w-lg text-xs leading-6 text-white/45">Your response is anonymous in the filmmaker’s report. The overall rating is required; every other signal is optional.</p></div>
+  return (
+    <dialog
+      ref={dialog}
+      className="m-auto max-h-[calc(100svh-2rem)] w-[min(44rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl bg-ns-surface p-6 text-ns-text shadow-2xl backdrop:bg-black/80 sm:p-10"
+      aria-labelledby="theater-rating-title"
+      aria-describedby="theater-rating-description"
+      onCancel={event => event.preventDefault()}
+    >
+      <form onSubmit={submit}>
+        <div className="text-center">
+          <h2 id="theater-rating-title" className="font-display text-3xl text-ns-text sm:text-4xl">Help shape the next cut.</h2>
+          <p className="mt-2 break-words text-base font-semibold text-ns-secondary-readable">{title}</p>
+          <p id="theater-rating-description" className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-ns-muted">
+            Your response is anonymous in the filmmaker’s report. The overall rating is required; every other signal is optional.
+          </p>
+        </div>
 
-      <fieldset className="mt-6"><legend className="mb-2 text-center text-xs text-white/65">Overall response <span className="text-[#ddbd86]">· required</span></legend><div className="flex justify-center gap-2">{[1, 2, 3, 4, 5].map(star => <label key={star} className="relative cursor-pointer"><input className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" type="radio" name="premiere-rating" value={star} checked={rating === star} onChange={() => setRating(star)} aria-label={`${star} ${star === 1 ? 'star' : 'stars'}`} /><span aria-hidden="true" className={`flex h-11 w-11 items-center justify-center rounded-lg text-3xl transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-[#ddbd86] ${rating >= star ? 'text-[#ddbd86]' : 'text-white/20 hover:text-[#ddbd86]/60'}`}>★</span></label>)}</div></fieldset>
+        <fieldset className="mt-7">
+          <legend className="mx-auto mb-3 text-center text-sm font-semibold text-ns-text">Overall response <span className="font-normal text-ns-muted">· required</span></legend>
+          <div className="flex justify-center gap-1 sm:gap-2">
+            {[1, 2, 3, 4, 5].map(star => (
+              <label key={star} className="relative cursor-pointer">
+                <input
+                  className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                  type="radio"
+                  name="premiere-rating"
+                  value={star}
+                  checked={rating === star}
+                  onChange={() => setRating(star)}
+                  aria-label={`${star} ${star === 1 ? 'star' : 'stars'}`}
+                />
+                <span
+                  aria-hidden="true"
+                  style={{ transitionDelay: rating >= star ? `${(star - 1) * 35}ms` : '0ms' }}
+                  className={`flex h-12 w-12 items-center justify-center rounded-full transition-[color,transform] duration-200 ease-[var(--ns-ease-snap)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-ns-text ${rating >= star ? 'scale-110 text-ns-accent' : 'text-ns-subtle hover:text-ns-secondary-readable'}`}
+                >
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill={rating >= star ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+                    <path d="m12 3 2.7 5.8 6.3.8-4.6 4.3 1.2 6.2L12 17.1 6.4 20.1l1.2-6.2L3 9.6l6.3-.8z" />
+                  </svg>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
-      <div className="mt-6 grid gap-5 border-t border-white/10 pt-6 sm:grid-cols-2">
-        <fieldset><legend className="mb-3 text-xs text-white/65">Would you recommend it? <span className="text-white/30">0–10</span></legend><div className="grid grid-cols-6 gap-1.5">{Array.from({ length: 11 }, (_, score) => <button type="button" key={score} aria-pressed={recommendScore === score} onClick={() => setRecommendScore(recommendScore === score ? null : score)} className={`min-h-9 rounded-md border text-[11px] ${recommendScore === score ? 'border-[#ddbd86] bg-[#ddbd86] text-[#211a12]' : 'border-white/10 text-white/55 hover:border-[#ddbd86]/50'}`}>{score}</button>)}</div></fieldset>
-        <fieldset><legend className="mb-3 text-xs text-white/65">How did the pacing feel?</legend><div className="grid gap-2">{PACING_SIGNALS.map(value => <button type="button" key={value} aria-pressed={pacing === value} onClick={() => setPacing(pacing === value ? null : value)} className={`min-h-9 rounded-md border px-3 text-left text-[11px] ${pacing === value ? 'border-[#ddbd86] bg-[#ddbd86]/10 text-[#ddbd86]' : 'border-white/10 text-white/55'}`}>{pacingLabel(value)}</button>)}</div></fieldset>
-      </div>
+        <div className="mt-7 space-y-6 border-t border-ns-border pt-6">
+          <fieldset>
+            <legend className="mb-3 text-sm font-semibold text-ns-text">Would you recommend it? <span className="font-normal text-ns-muted">0–10</span></legend>
+            <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-11">
+              {Array.from({ length: 11 }, (_, score) => (
+                <button
+                  type="button"
+                  key={score}
+                  aria-pressed={recommendScore === score}
+                  onClick={() => setRecommendScore(recommendScore === score ? null : score)}
+                  className={`min-h-11 rounded-full text-sm font-semibold tabular-nums transition-colors duration-150 ${recommendScore === score ? 'bg-ns-text text-ns-bg' : 'bg-ns-surface-2 text-ns-muted hover:bg-ns-surface-3 hover:text-ns-text'}`}
+                >
+                  {score}
+                </button>
+              ))}
+            </div>
+          </fieldset>
 
-      <fieldset className="mt-5"><legend className="mb-3 text-xs text-white/65">What did you feel? <span className="text-white/30">Choose up to 3</span></legend><div className="flex flex-wrap gap-2">{AUDIENCE_REACTIONS.map(reaction => <button type="button" key={reaction} aria-pressed={reactions.includes(reaction)} onClick={() => toggleReaction(reaction)} className={`min-h-9 rounded-full border px-3 text-[11px] ${reactions.includes(reaction) ? 'border-[#ddbd86] bg-[#ddbd86]/10 text-[#ddbd86]' : 'border-white/10 text-white/55'}`}>{reactionLabel(reaction)}</button>)}</div></fieldset>
+          <fieldset>
+            <legend className="mb-3 text-sm font-semibold text-ns-text">How did the pacing feel?</legend>
+            <div className="flex flex-wrap gap-2">
+              {PACING_SIGNALS.map(value => (
+                <button type="button" key={value} aria-pressed={pacing === value} onClick={() => setPacing(pacing === value ? null : value)} className={choiceClass(pacing === value)}>
+                  {pacingLabel(value)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2"><label className={styles.field}>What stayed with you?<textarea className={styles.input} rows={3} maxLength={600} value={standoutMoment} onChange={event => setStandoutMoment(event.target.value)} placeholder="A moment, character, image…" /></label><label className={styles.field}>What would make it stronger?<textarea className={styles.input} rows={3} maxLength={600} value={improvement} onChange={event => setImprovement(event.target.value)} placeholder="One honest, useful note…" /></label></div>
+          <fieldset>
+            <legend className="mb-3 text-sm font-semibold text-ns-text">What did you feel? <span className="font-normal text-ns-muted">Choose up to 3</span></legend>
+            <div className="flex flex-wrap gap-2">
+              {AUDIENCE_REACTIONS.map(reaction => (
+                <button type="button" key={reaction} aria-pressed={reactions.includes(reaction)} onClick={() => toggleReaction(reaction)} className={choiceClass(reactions.includes(reaction))}>
+                  {reactionLabel(reaction)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5"><p className="text-[11px] text-[#ddbd86]">+25 Audience XP for completing this response</p><button className={styles.button} disabled={!rating || saving}>{saving ? 'Sending feedback…' : 'Send private feedback'}</button></div>
-      {error && <p role="alert" className="mt-4 text-center text-xs text-rose-200">{error}</p>}
-    </form>
-  </dialog>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className={labelClass}>
+              What stayed with you?
+              <textarea className={fieldClass} rows={3} maxLength={600} value={standoutMoment} onChange={event => setStandoutMoment(event.target.value)} placeholder="A moment, character, image…" />
+            </label>
+            <label className={labelClass}>
+              What would make it stronger?
+              <textarea className={fieldClass} rows={3} maxLength={600} value={improvement} onChange={event => setImprovement(event.target.value)} placeholder="One honest, useful note…" />
+            </label>
+          </div>
+        </div>
+
+        {error && <p role="alert" className="mt-5 animate-fade-up text-center text-sm text-ns-danger motion-reduce:animate-none">{error}</p>}
+        <div className="sticky -bottom-6 -mx-6 -mb-6 mt-6 flex flex-col gap-3 border-t border-ns-border bg-ns-surface px-6 py-4 sm:-bottom-10 sm:-mx-10 sm:-mb-10 sm:flex-row sm:items-center sm:justify-between sm:px-10">
+          <p className="text-sm text-ns-muted">+25 Audience XP for completing this response</p>
+          <Button type="submit" size="lg" disabled={!rating || saving}>{saving ? 'Sending feedback…' : 'Send private feedback'}</Button>
+        </div>
+      </form>
+    </dialog>
+  )
 }

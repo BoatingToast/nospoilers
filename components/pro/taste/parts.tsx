@@ -3,6 +3,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
 import { ArrowRightIcon, CheckIcon, CloseIcon } from '@/components/icons'
 import {
   FACET_IDS,
@@ -30,45 +32,22 @@ import styles from './taste.module.css'
 
 export type SpoilerMode = 'blind' | 'safe' | 'standard'
 
-const TILE_TOKENS = ['--ns-chart-1', '--ns-chart-7', '--ns-chart-3', '--ns-chart-4', '--ns-chart-6', '--ns-chart-5']
-
-export function Eyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="font-heading text-[11px] font-semibold uppercase tracking-[0.18em] text-ns-secondary-readable">
-      {children}
-    </p>
-  )
-}
-
-export function Tag({ tone = 'muted', children }: { tone?: 'muted' | 'warning' | 'success'; children: React.ReactNode }) {
-  const color = tone === 'warning'
-    ? 'border-ns-warning/40 text-ns-warning'
-    : tone === 'success'
-      ? 'border-ns-success/40 text-ns-success'
-      : 'border-ns-border text-ns-muted'
-  return (
-    <span className={`inline-flex items-center rounded-sm border px-1.5 py-0.5 font-heading text-[10px] font-semibold uppercase tracking-[0.12em] ${color}`}>
-      {children}
-    </span>
-  )
-}
+const POSTER_TILES = ['bg-ns-tile-blue', 'bg-ns-tile-peach', 'bg-ns-tile-lilac', 'bg-ns-tile-green', 'bg-ns-tile-yellow', 'bg-ns-tile-rose']
 
 export function FilmPoster({ film, sizes = '160px' }: { film: Pick<TasteFilm, 'tmdbId' | 'title' | 'year' | 'posterPath'>; sizes?: string }) {
   if (film.posterPath) {
     return (
-      <div className={styles.poster}>
-        <Image src={tmdbImageUrl(film.posterPath, 'w342')} alt="" fill sizes={sizes} className="object-cover" />
-      </div>
+      <span className="relative block aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface-2">
+        <Image src={tmdbImageUrl(film.posterPath, 'w342')} alt="" fill sizes={sizes} className="object-cover transition-transform duration-500 group-hover:scale-105" />
+      </span>
     )
   }
-  const token = TILE_TOKENS[film.tmdbId % TILE_TOKENS.length]
+  // Typographic stand-in when a film has no poster (always, in fixture mode).
   return (
-    <div className={styles.poster}>
-      <div className={styles.posterType} style={{ '--tile': `var(${token})` } as React.CSSProperties}>
-        <strong>{film.title}</strong>
-        <span>{film.year ?? ''}</span>
-      </div>
-    </div>
+    <span className={`flex aspect-[2/3] flex-col justify-between overflow-hidden rounded-xl p-2.5 ${POSTER_TILES[film.tmdbId % POSTER_TILES.length]}`}>
+      <strong className="break-words font-heading text-sm font-bold leading-tight text-ns-text sm:text-base">{film.title}</strong>
+      <span className="text-xs tabular-nums text-ns-muted">{film.year ?? ''}</span>
+    </span>
   )
 }
 
@@ -82,33 +61,32 @@ const MODES: Array<{ mode: SpoilerMode; label: string; description: string }> = 
 
 /** The same Blind / Safe / Standard control movie pages use. */
 export function SpoilerModeControl({ mode, onChange }: { mode: SpoilerMode; onChange: (mode: SpoilerMode) => void }) {
+  const description = MODES.find(option => option.mode === mode)?.description
   return (
     <div>
-      <div className="grid grid-cols-3 gap-1 rounded-xl border border-ns-border bg-ns-bg/60 p-1" role="group" aria-label="Spoiler safety level">
+      <div className="grid grid-cols-3 gap-1 rounded-full bg-ns-surface p-1" role="group" aria-label="Spoiler safety level">
         {MODES.map(option => (
           <button
             key={option.mode}
             type="button"
             aria-pressed={mode === option.mode}
             onClick={() => onChange(option.mode)}
-            className={`min-h-10 rounded-lg px-3 font-body text-xs transition-colors ${
-              mode === option.mode
-                ? 'bg-ns-secondary text-ns-secondary-foreground'
-                : 'text-ns-muted hover:bg-ns-surface hover:text-ns-text'
+            className={`min-h-11 rounded-full px-3 text-sm font-semibold transition-colors duration-150 ${
+              mode === option.mode ? 'bg-ns-text text-ns-bg' : 'text-ns-muted hover:bg-ns-surface-2 hover:text-ns-text'
             }`}
           >
             {option.label}
           </button>
         ))}
       </div>
-      <p className="mt-2 text-xs text-ns-muted" aria-live="polite">
-        {MODES.find(option => option.mode === mode)?.description}
-      </p>
+      <p key={mode} className="mt-2 animate-fade-up text-sm text-ns-muted" aria-live="polite">{description}</p>
     </div>
   )
 }
 
 // ─── Hypothesis ───────────────────────────────────────────────────────────────
+
+const VERDICT_BASE = 'aria-pressed:bg-ns-text aria-pressed:text-ns-bg aria-pressed:border-ns-text'
 
 export function HypothesisCard({
   index,
@@ -137,80 +115,72 @@ export function HypothesisCard({
       ? `${hypothesis.grounding.ratedFilmCount} ${hypothesis.grounding.ratedFilmCount === 1 ? 'film' : 'films'} you rated ${hypothesis.grounding.ratedFilmTone === 'low' ? 'low' : 'highly'}`
       : null,
   ].filter(Boolean)
+  const hasStatus = hypothesis.tentative || Boolean(note?.status)
 
   return (
-    <li className="grid grid-cols-[auto_1fr] gap-x-4 border-t border-ns-border py-5">
-      <span className={`${styles.numeral} text-3xl text-ns-muted/70`} aria-hidden="true">0{index + 1}</span>
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          {hypothesis.tentative && <Tag tone="warning">Tentative</Tag>}
-          {note?.status === 'agree' && <Tag tone="success">You agreed</Tag>}
-          {note?.status === 'disagree' && <Tag>You disagreed</Tag>}
-          {note?.status === 'refined' && <Tag tone="success">Your wording</Tag>}
+    <li className="py-6">
+      {hasStatus && (
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          {hypothesis.tentative && <Badge variant="warning">Tentative</Badge>}
+          {note?.status === 'agree' && <Badge variant="success">You agreed</Badge>}
+          {note?.status === 'disagree' && <Badge>You disagreed</Badge>}
+          {note?.status === 'refined' && <Badge variant="success">Your wording</Badge>}
         </div>
+      )}
 
-        {editing ? (
-          <form
-            className="mt-2"
-            onSubmit={event => {
-              event.preventDefault()
-              const next = draft.trim()
-              if (next.length < 4) return
-              onRefine(next)
-              setEditing(false)
-            }}
-          >
-            <label htmlFor={fieldId} className="sr-only">Reword hypothesis {index + 1}</label>
-            <textarea
-              id={fieldId}
-              value={draft}
-              onChange={event => setDraft(event.target.value.slice(0, 220))}
-              rows={3}
-              className="w-full rounded-lg border border-ns-border bg-ns-bg/60 p-3 font-heading text-base leading-snug text-ns-text outline-none focus:border-ns-secondary-readable"
-            />
-            <div className="mt-2 flex flex-wrap gap-2">
-              <button type="submit" disabled={busy} className="min-h-10 rounded-lg bg-ns-secondary px-4 text-xs font-heading font-semibold text-ns-secondary-foreground disabled:opacity-60">
-                Use my wording
-              </button>
-              <button type="button" onClick={() => { setEditing(false); setDraft(text) }} className="min-h-10 rounded-lg border border-ns-border px-4 text-xs font-heading font-semibold text-ns-muted hover:text-ns-text">
-                Cancel
-              </button>
-            </div>
-          </form>
-        ) : (
-          <p className="mt-2 font-heading text-lg leading-snug text-ns-text sm:text-xl">{text}</p>
-        )}
-
-        {grounding.length > 0 && (
-          <p className="mt-2 text-xs leading-5 text-ns-muted">
-            {hypothesis.tentative ? 'Thin evidence so far: ' : 'Based on: '}
-            {grounding.join(' · ')}
-          </p>
-        )}
-
-        {!editing && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" disabled={busy} aria-pressed={note?.status === 'agree'} onClick={() => onVerdict('agree')} className="min-h-10 rounded-lg border border-ns-border px-3.5 text-xs font-heading font-semibold text-ns-text transition-colors hover:border-ns-success/60 aria-pressed:border-ns-success/60 aria-pressed:text-ns-success disabled:opacity-60">
-              That’s right
-            </button>
-            <button type="button" disabled={busy} aria-pressed={note?.status === 'disagree'} onClick={() => onVerdict('disagree')} className="min-h-10 rounded-lg border border-ns-border px-3.5 text-xs font-heading font-semibold text-ns-text transition-colors hover:border-ns-warning/60 aria-pressed:border-ns-warning/60 aria-pressed:text-ns-warning disabled:opacity-60">
-              Not really
-            </button>
-            <button type="button" disabled={busy} onClick={() => { setDraft(text); setEditing(true) }} className="min-h-10 rounded-lg border border-ns-border px-3.5 text-xs font-heading font-semibold text-ns-muted transition-colors hover:text-ns-text disabled:opacity-60">
-              Reword it
-            </button>
+      {editing ? (
+        <form
+          className="animate-fade-up"
+          onSubmit={event => {
+            event.preventDefault()
+            const next = draft.trim()
+            if (next.length < 4) return
+            onRefine(next)
+            setEditing(false)
+          }}
+        >
+          <label htmlFor={fieldId} className="sr-only">Reword hypothesis {index + 1}</label>
+          <textarea
+            id={fieldId}
+            value={draft}
+            onChange={event => setDraft(event.target.value.slice(0, 220))}
+            rows={3}
+            className="w-full rounded-xl border border-ns-border-strong bg-ns-bg p-3 text-base leading-snug text-ns-text transition-colors focus:border-ns-text focus:outline-none"
+          />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Button type="submit" size="sm" variant="secondary" disabled={busy}>Use my wording</Button>
+            <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setDraft(text) }}>Cancel</Button>
           </div>
-        )}
-      </div>
+        </form>
+      ) : (
+        <p className="font-heading text-xl font-semibold leading-snug text-ns-text">{text}</p>
+      )}
+
+      {grounding.length > 0 && (
+        <p className="mt-2 text-sm leading-6 text-ns-muted">
+          {hypothesis.tentative ? 'Thin evidence so far: ' : 'Based on: '}
+          {grounding.join(' · ')}
+        </p>
+      )}
+
+      {!editing && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" className={VERDICT_BASE} disabled={busy} aria-pressed={note?.status === 'agree'} onClick={() => onVerdict('agree')}>
+            That’s right
+          </Button>
+          <Button size="sm" variant="outline" className={VERDICT_BASE} disabled={busy} aria-pressed={note?.status === 'disagree'} onClick={() => onVerdict('disagree')}>
+            Not really
+          </Button>
+          <Button size="sm" variant="ghost" disabled={busy} onClick={() => { setDraft(text); setEditing(true) }}>
+            Reword it
+          </Button>
+        </div>
+      )}
     </li>
   )
 }
 
 // ─── Ledger ───────────────────────────────────────────────────────────────────
-
-function percent(value: number): string {
-  return `${Math.max(0, Math.min(100, value))}%`
-}
 
 /**
  * The taste representation itself: every facet, where the estimate sits, how
@@ -233,53 +203,48 @@ export function TasteLedger({
   const facets = [...FACET_IDS].sort((a, b) => Math.abs(belief[b].mean) - Math.abs(belief[a].mean))
 
   return (
-    <ul className="border-b border-ns-border">
+    <ul className="divide-y divide-ns-border">
       {facets.map(facet => {
         const entry = belief[facet]
         const items = evidence.filter(item => item.facet === facet)
         const low = Math.max(-1, entry.mean - entry.sd)
         const high = Math.min(1, entry.mean + entry.sd)
+        const ratingsPosition = 50 + prior[facet].mean * 50 * (prior[facet].weight / (prior[facet].weight + 4))
         return (
-          <li key={facet} className="border-t border-ns-border py-3">
+          <li key={facet} className="py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-              <span className="font-heading text-sm font-semibold text-ns-text">{FACET_COPY[facet].label}</span>
-              <span className="text-xs text-ns-muted">
+              <span className="font-heading text-base font-bold text-ns-text">{FACET_COPY[facet].label}</span>
+              <span className="text-sm text-ns-muted">
                 {describeLean(entry.mean)}
                 {entry.tentative ? ' · unsure' : ''}
                 {temporary?.facet === facet && <span className="text-ns-warning"> · for now: {temporary.label.toLowerCase()}</span>}
               </span>
             </div>
-            <div className={`${styles.track} mt-2`} role="img" aria-label={`${FACET_COPY[facet].label}: ${describeLean(entry.mean)}${entry.tentative ? ', still unsure' : ''}`}>
-              <span className={styles.band} style={{ left: percent(50 + low * 50), width: percent((high - low) * 50) }} />
-              <span
-                className={styles.fill}
-                data-lean={entry.mean < 0 ? 'against' : 'toward'}
-                style={entry.mean >= 0
-                  ? { left: '50%', width: percent(entry.mean * 50) }
-                  : { left: percent(50 + entry.mean * 50), width: percent(-entry.mean * 50) }}
-              />
+            <div className={`${styles.track} mt-2.5`} role="img" aria-label={`${FACET_COPY[facet].label}: ${describeLean(entry.mean)}${entry.tentative ? ', still unsure' : ''}`}>
+              <span className={styles.band} style={{ transform: `translateX(${(low + 1) * 50}%) scaleX(${(high - low) / 2})` }} />
+              <span className={styles.fill} data-lean={entry.mean < 0 ? 'against' : 'toward'} style={{ transform: `scaleX(${entry.mean})` }} />
               {items.length > 0 && (
-                <span className={styles.ratingsMark} style={{ left: percent(50 + prior[facet].mean * 50 * (prior[facet].weight / (prior[facet].weight + 4))) }} />
+                <span className={styles.ratingsMark} style={{ transform: `translateX(${Math.max(0, Math.min(100, ratingsPosition))}%)` }} />
               )}
             </div>
-            <details className="mt-2 text-xs text-ns-muted">
-              <summary className="cursor-pointer py-1 hover:text-ns-text">
+            <details className="group mt-1 text-sm text-ns-muted">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 transition-colors hover:text-ns-text [&::-webkit-details-marker]:hidden">
                 From {entry.sources.length ? entry.sources.map(sourceLabel).join(', ') : 'nothing yet'}
               </summary>
-              <ul className="mt-1 space-y-1.5">
-                <li>
+              <ul className="animate-fade-up space-y-2 pb-1">
+                <li className="leading-6">
                   {prior[facet].weight >= 0.5
                     ? `Ratings alone read this as ${describeLean(prior[facet].mean)}${prior[facet].tangledWith ? `, but cannot separate it from ${FACET_COPY[prior[facet].tangledWith].label.toLowerCase()}` : ''}.`
                     : 'Your ratings say little about this.'}
                 </li>
                 {items.map(item => (
-                  <li key={item.id} className="flex items-start justify-between gap-3">
-                    <span className="min-w-0">
+                  <li key={item.id} className="flex items-center justify-between gap-3">
+                    <span className="min-w-0 leading-6">
                       {item.note || sourceLabel(item.source)}
                       {item.scope === 'session' && <span> (not saved yet)</span>}
                     </span>
-                    <button type="button" onClick={() => onRemove(item.id)} aria-label={`Remove: ${item.note || sourceLabel(item.source)}`} className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-md border border-ns-border text-ns-muted hover:text-ns-text">
-                      <CloseIcon size={12} />
+                    <button type="button" onClick={() => onRemove(item.id)} aria-label={`Remove: ${item.note || sourceLabel(item.source)}`} className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-full text-ns-muted transition-colors hover:bg-ns-surface-2 hover:text-ns-text">
+                      <CloseIcon size={15} />
                     </button>
                   </li>
                 ))}
@@ -297,13 +262,13 @@ export function TasteLedger({
 export function ChangePanel({ cause, change }: { cause: string; change: TasteChange }) {
   const nothing = change.facets.length === 0 && change.picks.length === 0 && change.movers.length === 0
   return (
-    <div className={`${styles.settle} border-l-2 border-ns-success bg-ns-success/[0.06] py-3 pl-4 pr-3`}>
-      <p className="font-heading text-[11px] font-semibold uppercase tracking-[0.16em] text-ns-success">What changed</p>
-      <p className="mt-1 text-sm leading-6 text-ns-text">{cause}</p>
+    <div className={`${styles.settle} rounded-2xl bg-ns-surface p-5`}>
+      <p className="font-heading text-sm font-bold text-ns-success">What changed</p>
+      <p className="mt-1 text-base leading-relaxed text-ns-text">{cause}</p>
       {nothing ? (
-        <p className="mt-1 text-xs leading-5 text-ns-muted">Nothing moved. That did not change a preference we rank by.</p>
+        <p className="mt-1 text-sm leading-6 text-ns-muted">Nothing moved. That did not change a preference we rank by.</p>
       ) : (
-        <ul className="mt-2 space-y-1 text-xs leading-5 text-ns-muted">
+        <ul className="mt-2 space-y-1 text-sm leading-6 text-ns-muted">
           {change.facets.slice(0, 3).map(item => (
             <li key={item.facet}>
               <span className="text-ns-text">{FACET_COPY[item.facet].label}:</span>{' '}
@@ -349,49 +314,51 @@ export function PickCard({
   const meta = [pick.film.year, pick.film.runtime ? `${pick.film.runtime} min` : null].filter(Boolean).join(' · ')
 
   return (
-    <article className={`${styles.pick} grid grid-cols-[84px_1fr] gap-4 px-1 py-5 sm:grid-cols-[104px_1fr] sm:gap-5`} data-fresh={fresh} data-role={pick.role}>
-      <FilmPoster film={pick.film} sizes="104px" />
+    <article className={`${styles.pick} grid grid-cols-[88px_minmax(0,1fr)] gap-4 py-6 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-6`} data-fresh={fresh} data-role={pick.role}>
+      <div key={pick.film.tmdbId} className="group animate-fade-up">
+        <FilmPoster film={pick.film} sizes="120px" />
+      </div>
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <span className={`${styles.numeral} text-xl text-ns-secondary-readable`}>{role.label}</span>
-          {fresh && <Tag tone="success">Changed</Tag>}
-          {pick.support === 'tentative' && <Tag tone="warning">Tentative</Tag>}
+          <span className="font-heading text-sm font-bold text-ns-secondary-readable">{role.label}</span>
+          {fresh && <Badge variant="success">Changed</Badge>}
+          {pick.support === 'tentative' && <Badge variant="warning">Tentative</Badge>}
         </div>
-        <p className="text-xs text-ns-muted">{role.line}</p>
+        <p className="text-sm text-ns-muted">{role.line}</p>
 
-        <h4 className="mt-2 font-heading text-lg font-semibold leading-tight text-ns-text">{pick.film.title}</h4>
-        {meta && <p className="mt-0.5 text-xs text-ns-muted">{meta}</p>}
+        <h4 key={pick.film.tmdbId} className="mt-2 animate-fade-up font-heading text-xl font-bold leading-tight text-ns-text">{pick.film.title}</h4>
+        {meta && <p className="mt-0.5 text-sm tabular-nums text-ns-muted">{meta}</p>}
 
         <ul className="mt-3 space-y-2">
           {pick.reasons.map(reason => (
-            <li key={reason.facet} className="flex gap-2 text-sm leading-5 text-ns-text">
-              <CheckIcon size={14} className="mt-0.5 flex-shrink-0 text-ns-success" />
+            <li key={reason.facet} className="flex gap-2 text-sm leading-6 text-ns-text">
+              <CheckIcon size={15} className="mt-1 flex-shrink-0 text-ns-success" />
               <span className="min-w-0">
                 {reasonSentence(reason.facet, reason.because, reason.tentative)}
                 {mode !== 'blind' && reason.tags.length > 0 && (
-                  <span className="block text-xs text-ns-muted">Catalog: {reason.tags.join(', ')}</span>
+                  <span className="block text-sm text-ns-muted">Catalog: {reason.tags.join(', ')}</span>
                 )}
               </span>
             </li>
           ))}
           {pick.reasons.length === 0 && (
-            <li className="text-sm leading-5 text-ns-muted">A well-regarded film that does not clash with anything you told us.</li>
+            <li className="text-sm leading-6 text-ns-muted">A well-regarded film that does not clash with anything you told us.</li>
           )}
         </ul>
 
         {pick.tradeoff && (
-          <p className="mt-3 text-sm leading-5 text-ns-muted">{tradeoffSentence(pick.tradeoff.facet, pick.tradeoff.direction, pick.role)}</p>
+          <p className="mt-3 text-sm leading-6 text-ns-muted">{tradeoffSentence(pick.tradeoff.facet, pick.tradeoff.direction, pick.role)}</p>
         )}
-        <p className="mt-2 text-xs text-ns-muted">{matchedSentence(pick.matched, pick.of)}</p>
+        <p className="mt-2 text-sm text-ns-muted">{matchedSentence(pick.matched, pick.of)}</p>
 
         {mode !== 'blind' && (
-          <p className="mt-3 border-t border-ns-border pt-3 text-sm leading-6 text-ns-text">
+          <p key={`${mode}:${story ? 'story' : 'loading'}`} className="mt-3 animate-fade-up border-t border-ns-border pt-3 text-sm leading-6 text-ns-text">
             {story ?? 'Loading premise…'}
           </p>
         )}
 
-        <Link href={`/movie/${pick.film.tmdbId}`} className="mt-3 inline-flex min-h-10 items-center gap-1.5 text-sm font-semibold text-ns-secondary-readable hover:text-ns-text">
-          Open film page <ArrowRightIcon size={14} />
+        <Link href={`/movie/${pick.film.tmdbId}`} className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-ns-secondary-readable transition-colors hover:text-ns-text">
+          Open film page <ArrowRightIcon size={15} />
         </Link>
       </div>
     </article>

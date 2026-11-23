@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from 'recharts'
 import Badge from '@/components/ui/Badge'
-import { MovieDnaIcon } from '@/components/icons'
+import Meter from './Meter'
 import type { DNAScores, MovieDnaProfile } from '@/types'
 
 interface MovieDNACardProps {
@@ -23,26 +23,23 @@ interface MovieDNACardProps {
 }
 
 const LABELS: { key: keyof DNAScores; label: string }[] = [
-  { key: 'suspenseScore',        label: 'Suspense'  },
+  { key: 'suspenseScore', label: 'Suspense'  },
   { key: 'emotionalImpactScore', label: 'Emotion'   },
-  { key: 'complexityScore',      label: 'Complexity'},
-  { key: 'humorScore',           label: 'Humor'     },
-  { key: 'realismScore',         label: 'Realism'   },
-  { key: 'actionScore',          label: 'Action'    },
-  { key: 'darknessScore',        label: 'Darkness'  },
+  { key: 'complexityScore', label: 'Complexity'},
+  { key: 'humorScore', label: 'Humor'     },
+  { key: 'realismScore', label: 'Realism'   },
+  { key: 'actionScore', label: 'Action'    },
+  { key: 'darknessScore', label: 'Darkness'  },
 ]
 
-function ScoreBar({ label, value }: { label: string; value: number }) {
+function ScoreBar({ label, value, index }: { label: string; value: number; index: number }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-ns-muted text-xs font-body w-20 text-right flex-shrink-0">{label}</span>
-      <div className="flex-1 h-1.5 bg-ns-border rounded-full overflow-hidden">
-        <div
-          className="h-full bg-gradient-to-r from-ns-secondary/60 to-ns-secondary rounded-full transition-all duration-700"
-          style={{ width: `${(value / 10) * 100}%` }}
-        />
+    <div>
+      <div className="mb-1.5 flex items-baseline justify-between gap-3">
+        <span className="text-sm font-semibold text-ns-text">{label}</span>
+        <span className="text-sm tabular-nums text-ns-muted">{value}</span>
       </div>
-      <span className="text-ns-secondary-readable text-xs font-body w-6 flex-shrink-0">{value}</span>
+      <Meter value={(value / 10) * 100} index={index} />
     </div>
   )
 }
@@ -50,9 +47,9 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
 function CardShell({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <h2 className="font-display text-2xl tracking-wider text-ns-text">MOVIE DNA</h2>
-        <Badge variant="secondary" className="uppercase tracking-wider">Generated</Badge>
+      <div className="mb-6 flex items-center gap-3">
+        <h2 className="font-display text-2xl text-ns-text sm:text-3xl">Movie DNA</h2>
+        <Badge variant="secondary">Generated</Badge>
       </div>
       {children}
     </div>
@@ -62,9 +59,9 @@ function CardShell({ children }: { children: React.ReactNode }) {
 function Skeleton() {
   return (
     <CardShell>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-pulse">
-        <div className="bg-ns-surface border border-ns-border rounded-2xl h-64" />
-        <div className="bg-ns-surface border border-ns-border rounded-2xl h-64" />
+      <div aria-hidden="true" className="grid animate-pulse grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="h-64 rounded-2xl bg-ns-surface-2" />
+        <div className="h-64 rounded-2xl bg-ns-surface-2" />
       </div>
     </CardShell>
   )
@@ -72,9 +69,9 @@ function Skeleton() {
 
 function EmptyState({ username }: { username?: string }) {
   return (
-    <div className="py-16 text-center">
-      <MovieDnaIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
-      <p className="text-ns-muted font-body text-sm">
+    <div className="py-12 text-center">
+      <h2 className="font-heading text-2xl font-bold text-ns-text">Movie DNA</h2>
+      <p className="mx-auto mt-2 max-w-md text-base leading-relaxed text-ns-muted">
         {username
           ? `@${username} hasn't rated any films yet.`
           : 'Rate a few films or set your Top 5 to generate your Movie DNA.'}
@@ -97,76 +94,72 @@ export default function MovieDNACard({ profile, loading = false, compact = false
   const traitPills: { label: string; value: string }[] = [
     ...(favoriteDecades.length > 0 ? [{ label: 'Decades', value: favoriteDecades.join(', ') }] : []),
     { label: 'Pacing', value: pacing },
-    { label: 'Tone',   value: tone   },
+    { label: 'Tone', value: tone   },
     ...(rewatchTendency ? [{ label: 'Rewatches', value: rewatchTendency }] : []),
   ]
 
   return (
     <CardShell>
-      {/* Identity + summary */}
       <div className="mb-6">
         {identity && (
-          <p className="font-display text-xl tracking-wider mb-1" style={{ color: identity.accentHex }}>
+          <p className="mb-1 font-display text-xl text-ns-secondary-readable sm:text-2xl">
             {identity.name}
           </p>
         )}
-        <p className="text-ns-muted text-sm font-body leading-relaxed">{summary}</p>
+        <p className="max-w-2xl text-base leading-relaxed text-ns-muted">{summary}</p>
       </div>
 
-      {/* Genres + trait pills */}
       {(topGenres.length > 0 || traitPills.length > 0) && (
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="mb-6 flex flex-wrap gap-2">
           {topGenres.map(g => (
-            <Badge key={g} variant="outline">{g}</Badge>
+            <Badge key={g} variant="outline" size="md">{g}</Badge>
           ))}
           {traitPills.map(t => (
-            <Badge key={t.label} variant="muted">{t.label}: {t.value}</Badge>
+            <Badge key={t.label} variant="muted" size="md" className="max-w-full whitespace-normal">{t.label}: {t.value}</Badge>
           ))}
         </div>
       )}
 
-      <div className={`grid grid-cols-1 ${compact ? '' : 'sm:grid-cols-2'} gap-6`}>
-
-        {/* Radar chart */}
-        <div className="bg-ns-surface border border-ns-border rounded-2xl p-6 flex flex-col items-center">
-          <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-4">Profile</p>
-          <ResponsiveContainer width="100%" height={compact ? 200 : 240}>
-            <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
-              <PolarGrid stroke="rgb(var(--ns-border))" />
+      <div className={`grid grid-cols-1 gap-4 ${compact ? '' : 'sm:grid-cols-2'}`}>
+        <div className="flex min-w-0 flex-col rounded-2xl bg-ns-surface-2 p-5 sm:p-6">
+          <h3 className="font-heading text-lg font-bold text-ns-text">Profile</h3>
+          <ResponsiveContainer width="100%" height={compact ? 220 : 280}>
+            <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="68%">
+              <PolarGrid stroke="rgb(var(--ns-border-strong))" />
               <PolarAngleAxis
                 dataKey="dimension"
-                tick={{ fill: 'rgb(var(--ns-muted))', fontSize: 11, fontFamily: 'var(--font-inter)' }}
+                tick={{ fill: 'rgb(var(--ns-muted))', fontSize: 12 }}
               />
               <Radar
                 name="DNA"
                 dataKey="value"
-                stroke="rgb(var(--ns-secondary))"
-                fill="rgb(var(--ns-secondary))"
-                fillOpacity={0.15}
+                stroke="rgb(var(--ns-chart-1))"
+                fill="rgb(var(--ns-chart-1))"
+                fillOpacity={0.2}
                 strokeWidth={2}
               />
               <Tooltip
                 contentStyle={{
-                  background: 'rgb(var(--ns-surface))',
-                  border: '1px solid rgb(var(--ns-border))',
-                  borderRadius: '8px',
+                  background: 'rgb(var(--ns-surface-3))',
+                  border: 'none',
+                  borderRadius: '12px',
                   color: 'rgb(var(--ns-text))',
-                  fontSize: '12px',
-                  fontFamily: 'var(--font-inter)',
+                  fontSize: '13px',
                 }}
+                itemStyle={{ color: 'rgb(var(--ns-text))' }}
+                labelStyle={{ color: 'rgb(var(--ns-muted))' }}
                 formatter={(v: number) => [v.toFixed(1), '']}
               />
             </RadarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Score bars */}
         {!compact && (
-          <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
-            <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-5">Breakdown</p>
+          <div className="min-w-0 rounded-2xl bg-ns-surface-2 p-5 sm:p-6">
+            <h3 className="mb-5 font-heading text-lg font-bold text-ns-text">Breakdown</h3>
             <div className="flex flex-col gap-4">
-              {LABELS.map(({ key, label }) => (
-                <ScoreBar key={key} label={label} value={scores[key]} />
+              {LABELS.map(({ key, label }, index) => (
+                <ScoreBar key={key} label={label} value={scores[key]} index={index} />
               ))}
             </div>
           </div>

@@ -64,7 +64,7 @@ test('member can submit a rating and see it reflected immediately', async ({ pag
 
   await gotoHydrated(page, '/movie/603')
   await page.getByRole('button', { name: 'Rate this film' }).click()
-  await expect(page.getByText('Your overall rating — 1 to 100')).toBeVisible()
+  await expect(page.getByText('Your overall rating, 1 to 100')).toBeVisible()
   await page.getByRole('button', { name: 'Save Rating' }).click()
 
   await expect.poll(() => ratingRequest?.score).toBe(70)

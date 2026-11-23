@@ -1,19 +1,24 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
+import EmptyState from '@/components/ui/EmptyState'
 import Input from '@/components/ui/Input'
+import PageHeader from '@/components/ui/PageHeader'
 import MovieNightIcebreaker from './MovieNightIcebreaker'
 import { formatYear, tmdbImageUrl } from '@/lib/utils'
 import {
   CheckIcon,
+  ChevronIcon,
   ClapperboardIcon,
+  CloseIcon,
   FilmIcon,
+  FilterIcon,
   FriendsIcon,
   RecsIcon,
   ShareIcon,
@@ -21,6 +26,7 @@ import {
   WatchlistIcon,
 } from '@/components/icons'
 import type { MovieNightCandidate, MovieNightSeed, MovieNightSupport } from '@/types'
+import styles from './movie-night.module.css'
 
 const GENRE_NAMES: Record<number, string> = {
   28: 'Action',
@@ -44,10 +50,10 @@ const GENRE_NAMES: Record<number, string> = {
 }
 
 const MOODS = [
-  { key: 'crowd', label: 'Crowd Pleaser', genreIds: [35, 12, 16, 10751, 28] },
+  { key: 'crowd', label: 'Crowd pleaser', genreIds: [35, 12, 16, 10751, 28] },
   { key: 'tense', label: 'Tense', genreIds: [53, 27, 9648, 80, 28] },
   { key: 'chill', label: 'Chill', genreIds: [35, 16, 10749, 10402, 99] },
-  { key: 'deep', label: 'Deep Cut', genreIds: [18, 878, 9648, 36, 99] },
+  { key: 'deep', label: 'Deep cut', genreIds: [18, 878, 9648, 36, 99] },
   { key: 'wildcard', label: 'Wildcard', genreIds: [] },
 ] as const
 
@@ -139,114 +145,184 @@ function scoreCandidate(
   }
 }
 
-function EmptyState({ hasFriends }: { hasFriends: boolean }) {
+const pillClass = (active: boolean) => [
+  'min-h-11 rounded-full px-4 text-sm font-semibold transition-colors duration-150',
+  active ? 'bg-ns-text text-ns-bg' : 'bg-ns-surface-2 text-ns-muted hover:bg-ns-surface-3 hover:text-ns-text',
+].join(' ')
+
+/** Slides rows to their new rank when the group or filters change the order. */
+function useFlipList(order: string) {
+  const listRef = useRef<HTMLOListElement>(null)
+  const positions = useRef(new Map<string, number>())
+
+  useLayoutEffect(() => {
+    const list = listRef.current
+    if (!list) {
+      positions.current = new Map()
+      return
+    }
+    const animate = document.documentElement.dataset.motion === 'on'
+    const origin = list.getBoundingClientRect().top
+    const next = new Map<string, number>()
+
+    list.querySelectorAll<HTMLElement>('[data-flip-id]').forEach(row => {
+      const id = row.dataset.flipId as string
+      const top = row.getBoundingClientRect().top - origin
+      const previous = positions.current.get(id)
+      next.set(id, top)
+      if (!animate || positions.current.size === 0) return
+      if (previous === undefined) {
+        row.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 320, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' })
+      } else if (Math.abs(previous - top) > 1) {
+        row.animate(
+          [{ transform: `translateY(${previous - top}px)` }, { transform: 'none' }],
+          { duration: 460, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' },
+        )
+      }
+    })
+    positions.current = next
+  }, [order])
+
+  return listRef
+}
+
+function Toggle({ label, on, onToggle }: { label: string; on: boolean; onToggle: () => void }) {
   return (
-    <div className="border border-ns-border bg-ns-surface rounded-2xl p-8 text-center">
-      <ClapperboardIcon size={34} className="mx-auto text-ns-secondary-readable mb-3" />
-      <h2 className="text-lg font-heading text-white mb-2">No group picks yet</h2>
-      <p className="text-sm font-body text-ns-muted max-w-md mx-auto leading-relaxed">
-        Add films to watchlists, rate a few movies, or generate recommendations to build a better shared pool.
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={on}
+      className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl text-left"
+    >
+      <span className="text-sm text-ns-text">{label}</span>
+      <span
+        aria-hidden="true"
+        className={`relative h-6 w-10 flex-shrink-0 rounded-full transition-colors duration-200 ${on ? 'bg-ns-secondary' : 'bg-ns-surface-3'}`}
+      >
+        <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-ns-text transition-transform duration-200 ease-[var(--ns-ease-snap)] ${on ? 'translate-x-4' : ''}`} />
+      </span>
+    </button>
+  )
+}
+
+function Stat({ value, label }: { value: number; label: string }) {
+  return (
+    <div>
+      <dd className="font-display text-3xl tabular-nums text-ns-text">
+        <span key={value} className="inline-block animate-fade-up motion-reduce:animate-none">{value}</span>
+      </dd>
+      <dt className="text-sm text-ns-muted">{label}</dt>
+    </div>
+  )
+}
+
+function FitMeter({ value, index = 0 }: { value: number; index?: number }) {
+  const tone = value >= 85 ? 'text-ns-success' : value >= 72 ? 'text-ns-secondary-readable' : 'text-ns-muted'
+
+  return (
+    <div>
+      <p className={`text-sm font-semibold tabular-nums ${tone}`}>
+        <span key={value} className="inline-block animate-fade-up motion-reduce:animate-none">{value}%</span> group fit
       </p>
-      <div className="mt-5 flex justify-center gap-3">
-        <Button href="/watchlist" variant="secondary" size="sm">
-          <WatchlistIcon size={15} />
-          Watchlist
-        </Button>
-        {!hasFriends && (
-          <Button href="/friends/find" variant="primary" size="sm">
-            <FriendsIcon size={15} />
-            Find Friends
-          </Button>
-        )}
+      <div aria-hidden="true" className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ns-surface-3">
+        <div
+          className={`h-full rounded-full bg-ns-secondary ${styles.meter} ${styles.barGrow}`}
+          style={{ '--i': Math.min(index, 7), transform: `scaleX(${value / 100})` } as CSSProperties}
+        />
       </div>
     </div>
   )
 }
 
-function PickCard({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
-  const scoreTone =
-    pick.displayScore >= 85 ? 'text-ns-success' :
-    pick.displayScore >= 72 ? 'text-ns-secondary-readable' :
-    'text-ns-muted'
+function NoPicks({ hasFriends }: { hasFriends: boolean }) {
+  return (
+    <EmptyState
+      className="rounded-3xl"
+      title="No group picks yet"
+      description="Add films to watchlists, rate a few movies, or generate recommendations to build a better shared pool."
+      action={(
+        <div className="flex flex-wrap justify-center gap-3">
+          <Button href="/watchlist" variant="outline">
+            <WatchlistIcon size={15} />
+            Watchlist
+          </Button>
+          {!hasFriends && (
+            <Button href="/friends/find" variant="outline">
+              <FriendsIcon size={15} />
+              Find friends
+            </Button>
+          )}
+        </div>
+      )}
+    />
+  )
+}
+
+function PickRow({ pick, rank }: { pick: ScoredCandidate; rank: number }) {
   const labels = genreLabels(pick.genreIds)
 
   return (
-    <article className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
-      <div className="flex gap-4 p-4">
-        <Link
-          href={`/movie/${pick.tmdbId}`}
-          className="relative w-[82px] h-[123px] sm:w-[104px] sm:h-[156px] rounded-xl overflow-hidden bg-ns-border flex-shrink-0"
-        >
-          <Image
-            src={tmdbImageUrl(pick.posterPath, 'w185')}
-            alt={pick.title}
-            fill
-            className="object-cover"
-            sizes="104px"
-          />
-        </Link>
+    <article data-flip-id={pick.tmdbId} className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-4 py-5 sm:grid-cols-[5.5rem_minmax(0,1fr)_11rem] sm:gap-6">
+      <Link
+        href={`/movie/${pick.tmdbId}`}
+        aria-label={`Open ${pick.title}`}
+        className="group relative block aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface-2"
+      >
+        <Image
+          src={tmdbImageUrl(pick.posterPath, 'w185')}
+          alt=""
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="88px"
+        />
+      </Link>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            <Badge variant="secondary">#{rank}</Badge>
-            <span className={`text-xs font-body font-semibold ${scoreTone}`}>{pick.displayScore}% Group Fit</span>
-            {pick.selectedSeenBy.length === 0 ? (
-              <Badge variant="success">New to selected group</Badge>
-            ) : (
-              <Badge variant="warning">{pick.selectedSeenBy.length} seen</Badge>
-            )}
-          </div>
-
-          <Link href={`/movie/${pick.tmdbId}`} className="group">
-            <h3 className="text-base sm:text-lg font-heading text-white leading-tight group-hover:text-ns-secondary-readable transition-colors line-clamp-2">
+      <div className="min-w-0">
+        <div className="flex items-start gap-2">
+          <span className="font-display text-lg leading-tight tabular-nums text-ns-subtle">{rank}</span>
+          <Link href={`/movie/${pick.tmdbId}`} className="group -my-2.5 block min-w-0 py-2.5">
+            <h3 className="line-clamp-2 font-heading text-lg font-bold leading-tight text-ns-text transition-colors group-hover:text-ns-secondary-readable">
               {pick.title}
             </h3>
           </Link>
-
-          <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs font-body text-ns-muted">
-            <span>{formatYear(pick.releaseDate)}</span>
-            <span>{pick.runtime ? `${pick.runtime} min` : 'Runtime open'}</span>
-            {pick.voteAverage && <span>{pick.voteAverage.toFixed(1)} TMDb</span>}
-          </div>
-
-          {labels.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              {labels.map(label => <Badge key={label} variant="outline">{label}</Badge>)}
-            </div>
-          )}
-
-          <p className="text-sm font-body text-ns-muted leading-relaxed mt-3 line-clamp-2">
-            {pick.groupReason}
-          </p>
         </div>
-      </div>
 
-      <div className="border-t border-ns-border px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
+        <p className="mt-1 text-sm text-ns-muted">
+          {[
+            formatYear(pick.releaseDate),
+            pick.runtime ? `${pick.runtime} min` : 'Runtime open',
+            pick.voteAverage ? `${pick.voteAverage.toFixed(1)} TMDb` : null,
+            labels.slice(0, 2).join(', ') || null,
+          ].filter(Boolean).join(' · ')}
+        </p>
+
+        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-ns-muted">{pick.groupReason}</p>
+
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          {pick.selectedSeenBy.length === 0
+            ? <Badge variant="success">New to selected group</Badge>
+            : <Badge variant="warning">{pick.selectedSeenBy.length} seen</Badge>}
           {pick.selectedSupporters.slice(0, 3).map(support => {
             const Icon = supportIcon(support.type)
             return (
               <span
                 key={`${support.userId}-${support.type}`}
-                className="inline-flex items-center gap-1.5 text-[11px] font-body text-ns-muted bg-ns-surface-2 border border-ns-border rounded-full px-2 py-1"
+                className="inline-flex max-w-[9rem] items-center gap-1 rounded-full bg-ns-surface-2 px-2 py-0.5 text-xs text-ns-muted"
               >
-                <Icon size={12} className="text-ns-secondary-readable" />
-                {support.username}
+                <Icon size={12} className="flex-shrink-0 text-ns-secondary-readable" />
+                <span className="truncate">{support.username}</span>
               </span>
             )
           })}
         </div>
+      </div>
 
-        <div className="flex gap-2">
-          <Button href={`/movie/${pick.tmdbId}`} variant="secondary" size="sm">
-            <FilmIcon size={14} />
-            Movie
-          </Button>
-          <Button href={`/movie/${pick.tmdbId}#spoiler-zone`} variant="outline" size="sm">
-            <SpoilerZoneIcon size={14} />
-            Zone
-          </Button>
-        </div>
+      <div className="col-span-2 flex items-center justify-between gap-4 sm:col-span-1 sm:flex-col sm:items-stretch sm:justify-center">
+        <div className="min-w-0 flex-1 sm:flex-none"><FitMeter value={pick.displayScore} index={rank - 1} /></div>
+        <Button href={`/movie/${pick.tmdbId}#spoiler-zone`} variant="ghost" size="sm" aria-label={`Spoiler zone for ${pick.title}`}>
+          <SpoilerZoneIcon size={14} />
+          Zone
+        </Button>
       </div>
     </article>
   )
@@ -267,6 +343,7 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
   const [creatingRoom, setCreatingRoom] = useState(false)
   const [liveError, setLiveError] = useState('')
   const [joinCode, setJoinCode] = useState('')
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const selectedCount = selectedIds.size
   const hasFriends = seed.participants.some(p => !p.isViewer)
@@ -368,97 +445,82 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
     router.push(`/movie-night/${code}`)
   }
 
+  const activeFilters = (runtime !== 'any' ? 1 : 0) + vetoGenres.size + (unseenOnly ? 1 : 0) + (avoidDivisive ? 1 : 0)
+  const rankedOrder = ranked.slice(0, 12).map(pick => pick.tmdbId).join(',')
+  const rankedListRef = useFlipList(rankedOrder)
+
+  function resetFilters() {
+    setRuntime('any')
+    setUnseenOnly(false)
+    setAvoidDivisive(false)
+    setVetoGenres(new Set())
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      <div className="mb-8 flex flex-col lg:flex-row lg:items-end justify-between gap-5">
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <ClapperboardIcon size={22} className="text-ns-secondary-readable" />
-            <Badge variant="secondary" className="uppercase tracking-wider">Group Picker</Badge>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-heading text-white">Movie Night Picker</h1>
-          <p className="text-sm font-body text-ns-muted mt-2 max-w-2xl leading-relaxed">
-            Ranked from watchlists, recommendations, ratings, and Movie DNA across your selected group.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3 min-w-full sm:min-w-[360px] lg:min-w-[420px]">
-          <div className="bg-ns-surface border border-ns-border rounded-2xl px-4 py-3">
-            <p className="font-display text-2xl text-white">{selectedCount}</p>
-            <p className="text-[11px] font-body text-ns-muted">Selected</p>
-          </div>
-          <div className="bg-ns-surface border border-ns-border rounded-2xl px-4 py-3">
-            <p className="font-display text-2xl text-white">{ranked.length}</p>
-            <p className="text-[11px] font-body text-ns-muted">Fits</p>
-          </div>
-          <div className="bg-ns-surface border border-ns-border rounded-2xl px-4 py-3">
-            <p className="font-display text-2xl text-white">{seed.candidates.length}</p>
-            <p className="text-[11px] font-body text-ns-muted">Pool</p>
-          </div>
-        </div>
-      </div>
-
-      <MovieNightIcebreaker
-        players={seed.participants
-          .filter(participant => selectedIds.has(participant.id))
-          .map(participant => ({
-            id: participant.id,
-            label: participant.isViewer ? 'You' : participant.username,
-          }))}
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-16">
+      <PageHeader
+        title="Movie night picker."
+        description="Ranked from watchlists, recommendations, ratings, and Movie DNA across your selected group."
+        actions={(
+          <dl className="flex gap-8">
+            <Stat value={selectedCount} label="Selected" />
+            <Stat value={ranked.length} label="Fits" />
+            <Stat value={seed.candidates.length} label="Pool" />
+          </dl>
+        )}
       />
 
-      <section className="relative overflow-hidden rounded-3xl border border-ns-secondary/30 bg-ns-surface mb-6">
-        <div className="absolute inset-0 bg-gradient-to-r from-ns-secondary/12 via-transparent to-ns-success/5 pointer-events-none" />
-        <div className="relative p-5 sm:p-7 flex flex-col xl:flex-row xl:items-center justify-between gap-5">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-ns-secondary/10 border border-ns-secondary/30 flex items-center justify-center flex-shrink-0">
-              <FriendsIcon size={23} className="text-ns-secondary-readable" />
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                <h2 className="text-lg font-heading text-white">Make it a live vote</h2>
-                <Badge variant="success">New</Badge>
-              </div>
-              <p className="text-sm font-body text-ns-muted leading-relaxed max-w-xl">
-                Open a lobby, gather the group, then start one private ballot for everyone at the same time.
-              </p>
-            </div>
-          </div>
+      <div className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <section className="rounded-3xl bg-ns-tile-rose p-6 sm:p-8 lg:p-10">
+          <h2 className="font-display text-3xl text-ns-text sm:text-4xl">Make it a live vote</h2>
+          <p className="mt-2 max-w-xl text-lg leading-relaxed text-ns-muted">
+            Open a lobby, gather the group, then start one private ballot for everyone at the same time.
+          </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 xl:flex-shrink-0">
-            <div className="flex rounded-xl border border-ns-border bg-ns-surface-2 overflow-hidden focus-within:border-ns-secondary/50">
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Button onClick={startLiveRoom} loading={creatingRoom} disabled={ranked.length < 2} variant="primary" size="lg">
+              <ShareIcon size={17} />
+              Open live lobby
+            </Button>
+            <div className="flex h-14 items-center rounded-full bg-ns-bg p-1 focus-within:ring-1 focus-within:ring-ns-text sm:w-64">
               <input
                 value={joinCode}
                 onChange={event => setJoinCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
                 onKeyDown={event => { if (event.key === 'Enter') openRoomByCode() }}
-                placeholder="ROOM CODE"
+                placeholder="Room code"
                 aria-label="Room code"
-                className="w-32 bg-transparent px-3 py-2.5 text-sm font-display tracking-widest text-white placeholder:text-ns-muted/50 focus:outline-none"
+                className="h-full min-w-0 flex-1 rounded-full bg-transparent px-4 font-display text-base text-ns-text placeholder:font-body placeholder:text-ns-subtle focus:outline-none"
               />
               <button
                 type="button"
                 onClick={openRoomByCode}
-                className="px-3 text-xs font-body text-ns-muted border-l border-ns-border hover:text-white hover:bg-white/5 transition-colors"
+                className="h-full flex-shrink-0 rounded-full bg-ns-surface-2 px-5 text-sm font-semibold text-ns-text transition-colors duration-150 hover:bg-ns-surface-3"
               >
                 Join
               </button>
             </div>
-            <Button onClick={startLiveRoom} loading={creatingRoom} disabled={ranked.length < 2} variant="primary">
-              <ShareIcon size={16} />
-              Open live lobby
-            </Button>
           </div>
-        </div>
-        {liveError && (
-          <div className="relative border-t border-ns-danger/20 bg-ns-danger/5 px-5 sm:px-7 py-2.5 text-xs font-body text-ns-danger">
-            {liveError}
-          </div>
-        )}
-      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-6 items-start">
-        <aside className="bg-ns-surface border border-ns-border rounded-2xl p-5 lg:sticky lg:top-24">
-          <div className="space-y-6">
+          {liveError && (
+            <p role="alert" className="mt-4 animate-fade-up text-sm font-semibold text-ns-danger motion-reduce:animate-none">
+              {liveError}
+            </p>
+          )}
+        </section>
+
+        <MovieNightIcebreaker
+          players={seed.participants
+            .filter(participant => selectedIds.has(participant.id))
+            .map(participant => ({
+              id: participant.id,
+              label: participant.isViewer ? 'You' : participant.username,
+            }))}
+        />
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
+        <aside className="rounded-3xl bg-ns-surface p-6 lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto">
+          <div className="space-y-7">
             <Input
               id="movie-night-name"
               label="Session"
@@ -467,15 +529,15 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
             />
 
             <section>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-heading text-white">Group</h2>
+              <div className="mb-2 flex items-center justify-between">
+                <h2 className="font-heading text-lg font-bold text-ns-text">Group</h2>
                 <Button href="/friends/find" variant="ghost" size="sm">
                   <FriendsIcon size={14} />
                   Add
                 </Button>
               </div>
 
-              <div className="space-y-2">
+              <div className="-mx-2 space-y-1">
                 {seed.participants.map(participant => {
                   const selected = selectedIds.has(participant.id)
                   return (
@@ -484,27 +546,22 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
                       type="button"
                       onClick={() => toggleParticipant(participant.id)}
                       aria-pressed={selected}
-                      className={[
-                        'w-full flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors',
-                        selected
-                          ? 'border-ns-secondary/45 bg-ns-secondary/10'
-                          : 'border-ns-border bg-ns-surface-2 hover:border-ns-secondary/30',
-                      ].join(' ')}
+                      className={`flex min-h-14 w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors duration-150 ${selected ? 'bg-ns-surface-2' : 'hover:bg-ns-surface-2'}`}
                     >
                       <Avatar src={participant.avatarUrl} username={participant.username} size="sm" />
                       <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-body text-white truncate">
+                        <span className="block truncate text-sm font-semibold text-ns-text">
                           {participant.isViewer ? 'You' : participant.username}
                         </span>
-                        <span className="block text-[11px] font-body text-ns-muted truncate">
+                        <span className="block truncate text-xs text-ns-muted">
                           {participant.topGenres.length ? participant.topGenres.join(', ') : 'Building taste profile'}
                         </span>
                       </span>
-                      <span className={[
-                        'w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0',
-                        selected ? 'border-ns-secondary bg-ns-secondary text-ns-secondary-foreground' : 'border-ns-border',
-                      ].join(' ')}>
-                        {selected && <CheckIcon size={13} />}
+                      <span
+                        aria-hidden="true"
+                        className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full transition-colors duration-150 ${selected ? 'bg-ns-secondary text-ns-secondary-foreground' : 'bg-ns-surface-3 text-transparent'}`}
+                      >
+                        <CheckIcon size={13} />
                       </span>
                     </button>
                   )
@@ -513,20 +570,15 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
             </section>
 
             <section>
-              <h2 className="text-sm font-heading text-white mb-3">Mood</h2>
-              <div className="grid grid-cols-2 gap-2">
+              <h2 className="mb-3 font-heading text-lg font-bold text-ns-text">Mood</h2>
+              <div className="flex flex-wrap gap-2">
                 {MOODS.map(option => (
                   <button
                     key={option.key}
                     type="button"
                     onClick={() => setMood(option.key)}
                     aria-pressed={mood === option.key}
-                    className={[
-                      'rounded-xl border px-3 py-2 text-xs font-body transition-colors',
-                      mood === option.key
-                        ? 'border-ns-secondary/45 bg-ns-secondary/10 text-ns-secondary-readable'
-                        : 'border-ns-border bg-ns-surface-2 text-ns-muted hover:text-white',
-                    ].join(' ')}
+                    className={pillClass(mood === option.key)}
                   >
                     {option.label}
                   </button>
@@ -534,194 +586,166 @@ export default function MovieNightPlanner({ seed }: { seed: MovieNightSeed }) {
               </div>
             </section>
 
-            <section>
-              <h2 className="text-sm font-heading text-white mb-3">Runtime</h2>
-              <div className="grid grid-cols-4 gap-2">
-                {RUNTIME_OPTIONS.map(option => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setRuntime(option.value)}
-                    aria-pressed={runtime === option.value}
-                    className={[
-                      'rounded-lg border px-2 py-2 text-xs font-body transition-colors',
-                      runtime === option.value
-                        ? 'border-ns-secondary/45 bg-ns-secondary/10 text-ns-secondary-readable'
-                        : 'border-ns-border bg-ns-surface-2 text-ns-muted hover:text-white',
-                    ].join(' ')}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </section>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(open => !open)}
+              aria-expanded={filtersOpen}
+              aria-controls="movie-night-filters"
+              className="flex min-h-12 w-full items-center justify-between rounded-full bg-ns-surface-2 px-5 text-sm font-semibold text-ns-text transition-colors duration-150 hover:bg-ns-surface-3 lg:hidden"
+            >
+              <span className="flex items-center gap-2">
+                <FilterIcon size={16} />
+                More filters
+                {activeFilters > 0 && <span className="rounded-full bg-ns-accent px-2 text-xs tabular-nums text-ns-secondary-foreground">{activeFilters}</span>}
+              </span>
+              <ChevronIcon direction="down" size={16} className={`transition-transform duration-200 ${filtersOpen ? 'rotate-180' : ''}`} />
+            </button>
 
-            <section>
-              <h2 className="text-sm font-heading text-white mb-3">Veto Genres</h2>
-              <div className="flex flex-wrap gap-2">
-                {VETO_GENRES.map(id => {
-                  const active = vetoGenres.has(id)
-                  return (
+            <div id="movie-night-filters" className={`space-y-7 ${filtersOpen ? 'animate-fade-up motion-reduce:animate-none' : 'hidden'} lg:block`}>
+              <section>
+                <h2 className="mb-3 font-heading text-lg font-bold text-ns-text">Runtime</h2>
+                <div className="grid grid-cols-4 gap-1 rounded-full bg-ns-surface-2 p-1">
+                  {RUNTIME_OPTIONS.map(option => (
                     <button
-                      key={id}
+                      key={option.value}
                       type="button"
-                      onClick={() => toggleGenre(id)}
-                      aria-pressed={active}
-                      className={[
-                        'rounded-full border px-3 py-1.5 text-[11px] font-body transition-colors',
-                        active
-                          ? 'border-ns-danger/40 bg-ns-danger/10 text-ns-danger'
-                          : 'border-ns-border bg-ns-surface-2 text-ns-muted hover:text-white',
-                      ].join(' ')}
+                      onClick={() => setRuntime(option.value)}
+                      aria-pressed={runtime === option.value}
+                      className={`min-h-10 whitespace-nowrap rounded-full px-1 text-xs font-semibold transition-colors duration-150 ${runtime === option.value ? 'bg-ns-text text-ns-bg' : 'text-ns-muted hover:text-ns-text'}`}
                     >
-                      {GENRE_NAMES[id]}
+                      {option.label}
                     </button>
-                  )
-                })}
-              </div>
-            </section>
+                  ))}
+                </div>
+              </section>
 
-            <section className="space-y-2">
-              <button
-                type="button"
-                onClick={() => setUnseenOnly(v => !v)}
-                aria-pressed={unseenOnly}
-                className="w-full flex items-center justify-between gap-3 rounded-xl border border-ns-border bg-ns-surface-2 px-3 py-2.5"
-              >
-                <span className="text-sm font-body text-white">No one selected has seen it</span>
-                <span className={[
-                  'w-9 h-5 rounded-full border transition-colors relative',
-                  unseenOnly ? 'bg-ns-secondary/30 border-ns-secondary/50' : 'bg-ns-border/40 border-ns-border',
-                ].join(' ')}>
-                  <span className={[
-                    'absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform',
-                    unseenOnly ? 'translate-x-4' : 'translate-x-0.5',
-                  ].join(' ')} />
-                </span>
-              </button>
+              <section>
+                <h2 className="mb-3 font-heading text-lg font-bold text-ns-text">Veto genres</h2>
+                <div className="flex flex-wrap gap-2">
+                  {VETO_GENRES.map(id => {
+                    const active = vetoGenres.has(id)
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => toggleGenre(id)}
+                        aria-pressed={active}
+                        className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors duration-150 ${active ? 'bg-ns-danger/10 text-ns-danger' : 'bg-ns-surface-2 text-ns-muted hover:bg-ns-surface-3 hover:text-ns-text'}`}
+                      >
+                        {active && <CloseIcon size={12} />}
+                        {GENRE_NAMES[id]}
+                      </button>
+                    )
+                  })}
+                </div>
+              </section>
 
-              <button
-                type="button"
-                onClick={() => setAvoidDivisive(v => !v)}
-                aria-pressed={avoidDivisive}
-                className="w-full flex items-center justify-between gap-3 rounded-xl border border-ns-border bg-ns-surface-2 px-3 py-2.5"
-              >
-                <span className="text-sm font-body text-white">Avoid low consensus picks</span>
-                <span className={[
-                  'w-9 h-5 rounded-full border transition-colors relative',
-                  avoidDivisive ? 'bg-ns-secondary/30 border-ns-secondary/50' : 'bg-ns-border/40 border-ns-border',
-                ].join(' ')}>
-                  <span className={[
-                    'absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform',
-                    avoidDivisive ? 'translate-x-4' : 'translate-x-0.5',
-                  ].join(' ')} />
-                </span>
-              </button>
-            </section>
+              <section className="divide-y divide-ns-border">
+                <Toggle label="No one selected has seen it" on={unseenOnly} onToggle={() => setUnseenOnly(v => !v)} />
+                <Toggle label="Avoid low consensus picks" on={avoidDivisive} onToggle={() => setAvoidDivisive(v => !v)} />
+              </section>
+            </div>
           </div>
         </aside>
 
-        <main className="space-y-6 min-w-0">
+        <div className="min-w-0 space-y-6">
           {topPick ? (
-            <section className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
-              <div className="p-5 sm:p-6 border-b border-ns-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="success">Best Fit</Badge>
-                    <span className="text-xs font-body text-ns-muted">{topPick.displayScore}% group fit</span>
-                  </div>
-                  <h2 className="text-xl sm:text-2xl font-heading text-white leading-tight">{topPick.title}</h2>
-                  <p className="text-sm font-body text-ns-muted mt-1">{topPick.groupReason}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={copyPlan} variant="secondary" size="sm">
-                    {copied ? <CheckIcon size={15} /> : <ShareIcon size={15} />}
-                    {copied ? 'Copied' : 'Share'}
-                  </Button>
-                  <Button href={`/movie/${topPick.tmdbId}`} variant="primary" size="sm">
-                    <FilmIcon size={15} />
-                    Open
-                  </Button>
-                </div>
-              </div>
-
-              <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-[180px_minmax(0,1fr)] gap-5">
+            <section className="overflow-hidden rounded-3xl bg-ns-surface">
+              <div key={topPick.tmdbId} className={`grid gap-6 p-6 sm:grid-cols-[200px_minmax(0,1fr)] sm:gap-8 sm:p-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:p-10 ${styles.cardIn}`}>
                 <Link
                   href={`/movie/${topPick.tmdbId}`}
-                  className="relative w-full max-w-[180px] mx-auto md:mx-0 aspect-[2/3] rounded-2xl overflow-hidden bg-ns-border"
+                  aria-label={`Open ${topPick.title}`}
+                  className="group relative mx-auto block aspect-[2/3] w-48 overflow-hidden rounded-xl bg-ns-surface-2 shadow-2xl sm:w-full"
                 >
                   <Image
                     src={tmdbImageUrl(topPick.posterPath, 'w342')}
-                    alt={topPick.title}
+                    alt=""
                     fill
-                    className="object-cover"
-                    sizes="180px"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 640px) 192px, 260px"
                     priority
                   />
                 </Link>
-                <div className="space-y-4 min-w-0">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="rounded-xl bg-ns-surface-2 border border-ns-border px-3 py-2">
-                      <p className="text-lg font-display text-white">{formatYear(topPick.releaseDate)}</p>
-                      <p className="text-[11px] font-body text-ns-muted">Year</p>
-                    </div>
-                    <div className="rounded-xl bg-ns-surface-2 border border-ns-border px-3 py-2">
-                      <p className="text-lg font-display text-white">{topPick.runtime ? `${topPick.runtime}` : 'Any'}</p>
-                      <p className="text-[11px] font-body text-ns-muted">Minutes</p>
-                    </div>
-                    <div className="rounded-xl bg-ns-surface-2 border border-ns-border px-3 py-2">
-                      <p className="text-lg font-display text-white">{topPick.selectedSupporters.length}</p>
-                      <p className="text-[11px] font-body text-ns-muted">Signals</p>
-                    </div>
-                    <div className="rounded-xl bg-ns-surface-2 border border-ns-border px-3 py-2">
-                      <p className="text-lg font-display text-white">{topPick.selectedSeenBy.length}</p>
-                      <p className="text-[11px] font-body text-ns-muted">Seen</p>
-                    </div>
-                  </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    {genreLabels(topPick.genreIds).map(label => <Badge key={label} variant="outline" size="md">{label}</Badge>)}
+                <div className="flex min-w-0 flex-col justify-center">
+                  <div><Badge variant="success" size="md">Best fit</Badge></div>
+                  <h2 className="mt-3 break-words font-display text-3xl text-ns-text sm:text-5xl">{topPick.title}</h2>
+                  <div className="mt-4 max-w-sm"><FitMeter value={topPick.displayScore} /></div>
+                  <p className="mt-4 max-w-xl text-base leading-relaxed text-ns-muted">{topPick.groupReason}</p>
+
+                  <dl className="mt-5 grid max-w-md grid-cols-4 gap-2">
+                    {[
+                      ['Year', formatYear(topPick.releaseDate)],
+                      ['Minutes', topPick.runtime ? `${topPick.runtime}` : 'Any'],
+                      ['Signals', `${topPick.selectedSupporters.length}`],
+                      ['Seen', `${topPick.selectedSeenBy.length}`],
+                    ].map(([label, value]) => (
+                      <div key={label} className="min-w-0">
+                        <dd className="truncate font-display text-xl tabular-nums text-ns-text">{value}</dd>
+                        <dt className="text-xs text-ns-muted">{label}</dt>
+                      </div>
+                    ))}
+                  </dl>
+
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {genreLabels(topPick.genreIds).map(label => <Badge key={label} variant="muted" size="md">{label}</Badge>)}
                     {genreLabels(topPick.genreIds).length === 0 && <Badge variant="muted" size="md">Genre flexible</Badge>}
                   </div>
 
-                  <div className="space-y-2">
-                    {topPick.selectedSupporters.slice(0, 5).map(support => {
-                      const Icon = supportIcon(support.type)
-                      return (
-                        <div key={`${support.userId}-${support.type}`} className="flex items-start gap-2 text-sm font-body text-ns-muted">
-                          <Icon size={15} className="text-ns-secondary-readable mt-0.5 flex-shrink-0" />
-                          <span>{support.note}</span>
-                        </div>
-                      )
-                    })}
+                  {topPick.selectedSupporters.length > 0 && (
+                    <ul className="mt-5 space-y-2">
+                      {topPick.selectedSupporters.slice(0, 5).map(support => {
+                        const Icon = supportIcon(support.type)
+                        return (
+                          <li key={`${support.userId}-${support.type}`} className="flex items-start gap-2 text-sm text-ns-muted">
+                            <Icon size={15} className="mt-0.5 flex-shrink-0 text-ns-secondary-readable" />
+                            <span className="min-w-0">{support.note}</span>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
+
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    <Button href={`/movie/${topPick.tmdbId}`} variant="outline">
+                      <FilmIcon size={15} />
+                      Open
+                    </Button>
+                    <Button onClick={copyPlan} variant="ghost">
+                      {copied ? <CheckIcon size={15} /> : <ShareIcon size={15} />}
+                      {copied ? 'Copied' : 'Share'}
+                    </Button>
                   </div>
                 </div>
               </div>
             </section>
           ) : seed.candidates.length === 0 ? (
-            <EmptyState hasFriends={hasFriends} />
+            <NoPicks hasFriends={hasFriends} />
           ) : (
-            <div className="border border-ns-border bg-ns-surface rounded-2xl p-8 text-center">
-              <RecsIcon size={32} className="mx-auto text-ns-secondary-readable mb-3" />
-              <h2 className="text-lg font-heading text-white mb-2">No matches under these filters</h2>
-              <p className="text-sm font-body text-ns-muted">Relax the runtime, veto, or unseen filters to reopen the pool.</p>
-            </div>
+            <EmptyState
+              className="rounded-3xl"
+              title="No matches under these filters"
+              description="Relax the runtime, veto, or unseen filters to reopen the pool."
+              action={<Button onClick={resetFilters} variant="outline">Reset filters</Button>}
+            />
           )}
 
           {ranked.length > 0 && (
-            <section className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-heading text-white">Ranked Picks</h2>
-                <span className="text-xs font-body text-ns-muted">{ranked.length} movies</span>
+            <section className="ns-reveal rounded-3xl bg-ns-surface px-5 py-6 sm:px-8 sm:py-8">
+              <div className="flex items-baseline justify-between gap-3">
+                <h2 className="font-display text-2xl text-ns-text sm:text-3xl">Ranked picks</h2>
+                <span className="text-sm tabular-nums text-ns-muted">{ranked.length} movies</span>
               </div>
-              <div className="space-y-3">
+              <ol ref={rankedListRef} className="mt-2 divide-y divide-ns-border">
                 {ranked.slice(0, 12).map((pick, index) => (
-                  <PickCard key={pick.tmdbId} pick={pick} rank={index + 1} />
+                  <li key={pick.tmdbId}>
+                    <PickRow pick={pick} rank={index + 1} />
+                  </li>
                 ))}
-              </div>
+              </ol>
             </section>
           )}
-        </main>
+        </div>
       </div>
     </div>
   )

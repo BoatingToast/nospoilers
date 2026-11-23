@@ -10,19 +10,19 @@ interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  primary:   'bg-ns-primary text-ns-primary-foreground border border-ns-primary',
-  secondary: 'bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/30',
-  muted:     'bg-ns-surface-2 text-ns-muted border border-ns-border',
-  outline:   'bg-transparent text-ns-text border border-ns-border',
-  danger:    'bg-ns-danger/10 text-ns-danger border border-ns-danger/30',
-  success:   'bg-ns-success/10 text-ns-success border border-ns-success/30',
-  warning:   'bg-ns-warning/10 text-ns-warning border border-ns-warning/30',
-  info:      'bg-ns-info/10 text-ns-info border border-ns-info/30',
+  primary:   'bg-ns-text text-ns-bg',
+  secondary: 'bg-ns-tile-rose text-ns-secondary-readable',
+  muted:     'bg-ns-surface-2 text-ns-muted',
+  outline:   'border border-ns-border-strong text-ns-text',
+  danger:    'bg-ns-danger/10 text-ns-danger',
+  success:   'bg-ns-success/10 text-ns-success',
+  warning:   'bg-ns-warning/10 text-ns-warning',
+  info:      'bg-ns-info/10 text-ns-info',
 }
 
 const sizeClasses: Record<Size, string> = {
-  sm: 'text-[10px] px-2 py-0.5 gap-1',
-  md: 'text-xs px-2.5 py-1 gap-1.5',
+  sm: 'px-2 py-0.5 text-xs gap-1',
+  md: 'px-3 py-1 text-sm gap-1.5',
 }
 
 export default function Badge({
@@ -35,7 +35,7 @@ export default function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full font-body font-medium tracking-wide whitespace-nowrap',
+        'inline-flex items-center whitespace-nowrap rounded-full font-body font-semibold',
         variantClasses[variant],
         sizeClasses[size],
         className,

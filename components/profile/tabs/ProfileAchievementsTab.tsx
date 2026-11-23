@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { ACHIEVEMENTS } from '@/services/achievements'
-import { AchievementsIcon, CheckIcon, getAchievementIcon } from '@/components/icons'
+import { CheckIcon, getAchievementIcon } from '@/components/icons'
+import EmptyState from '@/components/ui/EmptyState'
+import Modal from '@/components/ui/Modal'
+import { growOnReveal } from '../motion'
 
 interface AchievementItem {
   slug:     string
@@ -30,128 +33,117 @@ export default function ProfileAchievementsTab({ username }: { username: string 
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="animate-pulse bg-ns-surface border border-ns-border rounded-2xl p-4 h-24" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="h-36 animate-pulse rounded-2xl bg-ns-surface" />
         ))}
       </div>
     )
   }
 
   if (achievements.length === 0) {
-    return (
-      <div className="py-20 text-center">
-        <AchievementsIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
-        <p className="text-ns-muted font-body text-sm">No achievements yet.</p>
-      </div>
-    )
+    return <EmptyState title="No achievements yet." />
   }
 
-  function AchCard({ item }: { item: AchievementItem }) {
-    const def = ACHIEVEMENTS.find(a => a.slug === item.slug)
-    if (!def) return null
-    const pct    = Math.min(100, Math.round((item.progress / item.goal) * 100))
-    const AchIco = getAchievementIcon(item.slug)
-
-    return (
-      <button
-        onClick={() => setSelected(item)}
-        className={`text-left p-4 rounded-2xl border transition-all
-          ${item.earned
-            ? 'bg-ns-secondary/5 border-ns-secondary/30 hover:border-ns-secondary/60'
-            : 'bg-ns-surface border-ns-border hover:border-ns-muted/40'
-          }`}
-      >
-        <AchIco size={22} className={`mb-2 ${item.earned ? 'text-ns-secondary-readable' : 'text-ns-muted/40'}`} />
-        <p className={`text-xs font-body font-medium mb-1 ${item.earned ? 'text-white' : 'text-ns-muted'}`}>
-          {def.name}
-        </p>
-        {item.earned ? (
-          <p className="text-[10px] font-body text-ns-secondary-readable flex items-center gap-0.5">
-            <CheckIcon size={10} /> Earned
-          </p>
-        ) : (
-          <div>
-            <div className="h-1 bg-ns-border rounded-full overflow-hidden mt-1">
-              <div
-                className="h-full bg-ns-secondary/40 rounded-full"
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <p className="text-[10px] font-body text-ns-muted mt-1">{item.progress}/{item.goal}</p>
-          </div>
-        )}
-      </button>
-    )
-  }
+  const selectedDef = selected ? ACHIEVEMENTS.find(a => a.slug === selected.slug) : null
+  const SelectedIcon = selected ? getAchievementIcon(selected.slug) : null
 
   return (
-    <div>
+    <div className="space-y-8">
       {earned.length > 0 && (
-        <div className="mb-8">
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-3">
-            Unlocked · {earned.length}
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {earned.map(a => <AchCard key={a.slug} item={a} />)}
+        <section>
+          <h3 className="mb-3 font-heading text-lg font-bold text-ns-text">
+            Unlocked <span className="ml-1 font-body text-base font-medium tabular-nums text-ns-muted">{earned.length}</span>
+          </h3>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            {earned.map((a, index) => <AchievementTile key={a.slug} item={a} index={index} onSelect={setSelected} />)}
           </div>
-        </div>
+        </section>
       )}
 
       {inProgress.length > 0 && (
-        <div>
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-3">
-            In Progress · {inProgress.length}
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {inProgress.map(a => <AchCard key={a.slug} item={a} />)}
+        <section>
+          <h3 className="mb-3 font-heading text-lg font-bold text-ns-text">
+            In progress <span className="ml-1 font-body text-base font-medium tabular-nums text-ns-muted">{inProgress.length}</span>
+          </h3>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            {inProgress.map((a, index) => <AchievementTile key={a.slug} item={a} index={index} onSelect={setSelected} />)}
           </div>
-        </div>
+        </section>
       )}
 
       {/* Detail modal */}
-      {selected && (() => {
-        const def = ACHIEVEMENTS.find(a => a.slug === selected.slug)
-        if (!def) return null
-        return (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-            onClick={() => setSelected(null)}
-          >
-            <div
-              className="bg-ns-surface border border-ns-border rounded-3xl p-8 max-w-sm w-full text-center"
-              onClick={e => e.stopPropagation()}
-            >
-              {(() => { const Icon = getAchievementIcon(selected.slug); return <Icon size={44} className="text-ns-secondary-readable mx-auto mb-4" /> })()}
-              <h3 className="font-heading text-white text-xl mb-2">{def.name}</h3>
-              <p className="text-ns-muted text-sm font-body mb-4">{def.description}</p>
-              {selected.earned ? (
-                <p className="text-ns-secondary-readable text-sm font-body flex items-center justify-center gap-1">
-                  <CheckIcon size={13} /> Earned {selected.earnedAt
-                    ? new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(selected.earnedAt))
-                    : ''}
-                </p>
-              ) : (
-                <div>
-                  <div className="h-2 bg-ns-border rounded-full overflow-hidden mb-2">
-                    <div
-                      className="h-full bg-ns-secondary/60 rounded-full"
-                      style={{ width: `${Math.min(100, (selected.progress / selected.goal) * 100)}%` }}
-                    />
-                  </div>
-                  <p className="text-ns-muted text-xs font-body">{selected.progress} / {selected.goal}</p>
+      {selected && selectedDef && SelectedIcon && (
+        <Modal onClose={() => setSelected(null)} ariaLabel={selectedDef.name} maxWidth="max-w-sm">
+          <div className="p-8 text-center">
+            <SelectedIcon size={44} className="mx-auto text-ns-secondary-readable" />
+            <h3 className="mt-4 font-heading text-2xl font-bold text-ns-text">{selectedDef.name}</h3>
+            <p className="mt-2 text-base leading-relaxed text-ns-muted">{selectedDef.description}</p>
+            {selected.earned ? (
+              <p className="mt-5 flex items-center justify-center gap-1.5 text-sm font-semibold text-ns-success">
+                <CheckIcon size={14} /> Earned {selected.earnedAt
+                  ? new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(selected.earnedAt))
+                  : ''}
+              </p>
+            ) : (
+              <div className="mt-5">
+                <div className="h-2 overflow-hidden rounded-full bg-ns-surface-3">
+                  <div
+                    className="h-full rounded-full bg-ns-secondary"
+                    style={{ width: `${Math.min(100, (selected.progress / selected.goal) * 100)}%` }}
+                  />
                 </div>
-              )}
-              <button
-                onClick={() => setSelected(null)}
-                className="mt-6 text-ns-muted text-sm font-body hover:text-ns-text transition-colors"
-              >
-                Close
-              </button>
-            </div>
+                <p className="mt-2 text-sm tabular-nums text-ns-muted">{selected.progress} / {selected.goal}</p>
+              </div>
+            )}
           </div>
-        )
-      })()}
+        </Modal>
+      )}
+    </div>
+  )
+}
+
+function AchievementTile({
+  item,
+  index,
+  onSelect,
+}: {
+  item: AchievementItem
+  index: number
+  onSelect: (item: AchievementItem) => void
+}) {
+  const def = ACHIEVEMENTS.find(a => a.slug === item.slug)
+  if (!def) return null
+  const pct = Math.min(100, Math.round((item.progress / item.goal) * 100))
+  const AchIco = getAchievementIcon(item.slug)
+
+  return (
+    <div className="ns-reveal" style={{ '--i': Math.min(index, 7) } as React.CSSProperties}>
+      <button
+        type="button"
+        onClick={() => onSelect(item)}
+        className={`flex h-full min-h-36 w-full flex-col rounded-2xl p-5 text-left transition-colors duration-150
+          ${item.earned ? 'bg-ns-tile-peach hover:bg-ns-surface-3' : 'bg-ns-surface hover:bg-ns-surface-2'}`}
+      >
+        <AchIco size={24} className={item.earned ? 'text-ns-text' : 'text-ns-muted'} />
+        <span className={`mt-3 block text-sm font-semibold leading-snug ${item.earned ? 'text-ns-text' : 'text-ns-muted'}`}>
+          {def.name}
+        </span>
+        <span className="mt-auto block pt-3">
+          {item.earned ? (
+            <span className="flex items-center gap-1 text-sm font-semibold text-ns-text">
+              <CheckIcon size={13} /> Earned
+            </span>
+          ) : (
+            <>
+              <span className="block h-1.5 overflow-hidden rounded-full bg-ns-surface-3">
+                <span className={`block h-full rounded-full bg-ns-secondary ${growOnReveal}`} style={{ width: `${pct}%` }} />
+              </span>
+              <span className="mt-1.5 block text-sm tabular-nums text-ns-muted">{item.progress}/{item.goal}</span>
+            </>
+          )}
+        </span>
+      </button>
     </div>
   )
 }

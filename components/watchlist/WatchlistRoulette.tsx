@@ -1,177 +1,124 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { FilmIcon } from '@/components/icons'
-import { formatYear, tmdbImageUrl } from '@/lib/utils'
+import PosterFill from '@/components/watchlist/PosterFill'
+import Button from '@/components/ui/Button'
+import Modal from '@/components/ui/Modal'
+import { cn, formatYear } from '@/lib/utils'
 import type { WatchlistItemData } from '@/types'
-
-
-
-
-
-
-// CHUNK 1 — ROULETTE SETUP AND RANDOM PICKER
-
-
-
-
 
 interface Props {
   movies: WatchlistItemData[]
 }
 
+const REEL_LEAD_IN = 7
+
 export default function WatchlistRoulette({ movies }: Props) {
   const [selectedMovie, setSelectedMovie] = useState<WatchlistItemData | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [isPicking, setIsPicking] = useState(false)
+  const [reel, setReel] = useState<WatchlistItemData[]>([])
+  const [spinning, setSpinning] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout>>()
+  const frameRef = useRef<number>()
 
   function pickMovie() {
     const unpicked = movies.filter(movie => movie.tmdbId !== selectedMovie?.tmdbId)
     const choices = unpicked.length > 0 ? unpicked : movies
 
-    if (choices.length ===   0) return
+    if (choices.length === 0) return
 
+    const winner = choices[Math.floor(Math.random() * choices.length)]
+
+    // The reel is a strip of posters that always lands on the winner.
+    const others = movies.filter(movie => movie.tmdbId !== winner.tmdbId)
+    const start = others.length > 0 ? Math.floor(Math.random() * others.length) : 0
+    const leadIn = Array.from({ length: REEL_LEAD_IN }, (_, index) =>
+      others.length > 0 ? others[(start + index) % others.length] : winner)
+
+    setReel([...leadIn, winner])
+    setSpinning(false)
     setIsOpen(true)
     setIsPicking(true)
     clearTimeout(timerRef.current)
+    if (frameRef.current) cancelAnimationFrame(frameRef.current)
+
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = requestAnimationFrame(() => setSpinning(true))
+    })
 
     timerRef.current = setTimeout(() => {
-      const index = Math.floor(Math.random() * choices.length)
-      setSelectedMovie(choices[index])
+      setSelectedMovie(winner)
       setIsPicking(false)
     }, 700)
   }
 
   useEffect(() => {
-    return () => clearTimeout(timerRef.current)
+    return () => {
+      clearTimeout(timerRef.current)
+      if (frameRef.current) cancelAnimationFrame(frameRef.current)
+    }
   }, [])
 
   if (movies.length === 0) return null
 
-
-
-
-
-  // CHUNK 2 — ROULETTE BUTTON AND POPUP
-
-
-
-
+  const reelOffset = reel.length > 0 ? ((reel.length - 1) / reel.length) * 100 : 0
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-ns-secondary/25 bg-gradient-to-r from-ns-secondary/10 to-transparent p-4 sm:p-5">
-        <div>
-          <p className="text-sm font-heading font-semibold text-ns-text">
-            Can&apos;t decide what to watch?
-          </p>
-          <p className="mt-1 text-xs font-body text-ns-muted">
-            Let NoSpoilers choose from {movies.length} unwatched{' '}
-            {movies.length === 1 ? 'movie' : 'movies'}.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={pickMovie}
-          className="inline-flex items-center gap-2 rounded-xl bg-ns-secondary px-5 py-2.5 text-sm font-body font-semibold text-ns-secondary-foreground transition-all hover:-translate-y-0.5 hover:bg-ns-secondary/90"
-        >
-          <FilmIcon size={16} />
-          Pick for Me
-        </button>
-      </div>
+      <Button onClick={pickMovie}>Pick for me</Button>
 
       {isOpen && (
-        <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Watchlist Roulette result"
-          onClick={() => !isPicking && setIsOpen(false)}
+        <Modal
+          onClose={() => { if (!isPicking) setIsOpen(false) }}
+          ariaLabel="Watchlist Roulette result"
+          maxWidth="max-w-sm"
+          showClose={!isPicking}
+          className="p-6 text-center"
         >
-          <div
-            className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-ns-border bg-ns-surface p-5 text-center shadow-2xl"
-            onClick={event => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              disabled={isPicking}
-              className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-ns-bg/80 text-lg text-ns-muted transition-colors hover:text-white disabled:opacity-0"
-              aria-label="Close roulette"
+          <div className="relative mx-auto aspect-[2/3] w-full max-w-[230px] overflow-hidden rounded-xl bg-ns-surface-2">
+            <div
+              aria-hidden="true"
+              style={{ transform: `translateY(-${spinning ? reelOffset : 0}%)` }}
+              className={cn(
+                'absolute inset-x-0 top-0 flex flex-col',
+                spinning && 'transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]',
+              )}
             >
-              ×
-            </button>
-
-            {isPicking || !selectedMovie ? (
-              <div className="flex min-h-[30rem] flex-col items-center justify-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full border border-ns-secondary/30 bg-ns-secondary/10">
-                  <FilmIcon size={34} className="animate-spin text-ns-secondary-readable" />
-                </div>
-                <p className="mt-6 font-display text-2xl tracking-wider text-ns-text">
-                  SHUFFLING…
-                </p>
-                <p className="mt-2 text-xs font-body text-ns-muted">
-                  Searching your watchlist
-                </p>
-              </div>
-            ) : (
-
-
-
-
-
-              // CHUNK 3 — SELECTED MOVIE RESULT
-
-
-
-
-
-              <div className="animate-[fadeIn_250ms_ease-out]">
-                <p className="mb-3 text-[10px] font-body uppercase tracking-[0.25em] text-ns-secondary-readable">
-                  Tonight&apos;s pick
-                </p>
-
-                <div className="relative mx-auto aspect-[2/3] w-full max-w-[230px] overflow-hidden rounded-2xl border border-ns-border bg-ns-bg shadow-xl">
-                  <Image
-                    src={tmdbImageUrl(selectedMovie.posterPath, 'w500')}
-                    alt={selectedMovie.title}
-                    fill
+              {reel.map((movie, index) => (
+                <div key={`${movie.tmdbId}-${index}`} className="relative aspect-[2/3] w-full flex-shrink-0">
+                  <PosterFill
+                    path={movie.posterPath}
+                    size="w342"
                     className="object-cover"
                     sizes="230px"
-                    priority
+                    priority={index === reel.length - 1}
                   />
                 </div>
+              ))}
+            </div>
+          </div>
 
-                <h2 className="mt-4 font-display text-3xl tracking-wider text-ns-text">
-                  {selectedMovie.title.toUpperCase()}
-                </h2>
-                <p className="mt-1 text-xs font-body text-ns-muted">
-                  {formatYear(selectedMovie.releaseDate)}
-                </p>
+          <div role="status" className="mt-5 min-h-[10.5rem]">
+            {isPicking || !selectedMovie ? (
+              <>
+                <p className="font-heading text-2xl font-bold text-ns-text">Shuffling…</p>
+                <p className="mt-1 text-sm text-ns-muted">Searching your watchlist</p>
+              </>
+            ) : (
+              <div className="animate-fade-up">
+                <p className="text-sm font-semibold text-ns-secondary-readable">Tonight&apos;s pick</p>
+                <h2 className="mt-1 break-words font-display text-3xl text-ns-text">{selectedMovie.title}</h2>
+                <p className="mt-1 text-sm tabular-nums text-ns-muted">{formatYear(selectedMovie.releaseDate)}</p>
 
                 <div className="mt-5 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={pickMovie}
-                    className="rounded-xl border border-ns-border px-4 py-2.5 text-sm font-body text-ns-muted transition-colors hover:border-ns-secondary/40 hover:text-ns-text"
-                  >
-                    Reroll
-                  </button>
-                  <Link
-                    href={`/movie/${selectedMovie.tmdbId}`}
-                    className="rounded-xl bg-ns-secondary px-4 py-2.5 text-sm font-body font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/90"
-                  >
-                    View Movie
-                  </Link>
+                  <Button variant="outline" onClick={pickMovie}>Reroll</Button>
+                  <Button href={`/movie/${selectedMovie.tmdbId}`}>View movie</Button>
                 </div>
               </div>
             )}
           </div>
-        </div>
+        </Modal>
       )}
     </>
   )

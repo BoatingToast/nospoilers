@@ -1,8 +1,11 @@
 'use client'
 
-import Link from 'next/link'
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRightIcon, CheckIcon, LockIcon } from '@/components/icons'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { ArrowRightIcon, CheckIcon } from '@/components/icons'
 import {
   FACET_IDS,
   QUESTION_LIMIT,
@@ -41,12 +44,10 @@ import {
 import type { TasteBootstrap } from '@/services/taste-reasons'
 import {
   ChangePanel,
-  Eyebrow,
   FilmPoster,
   HypothesisCard,
   PickCard,
   SpoilerModeControl,
-  Tag,
   TasteLedger,
   facetList,
   type SpoilerMode,
@@ -504,15 +505,15 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
 
   // ── Render ──────────────────────────────────────────────────────────────────
   const header = (
-    <header className="border-b border-ns-border pb-5">
-      <h2 className={`${styles.title} text-ns-text`}>Why did I love that<span>?</span></h2>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-ns-muted sm:text-base">
+    <header>
+      <h2 className="font-display text-3xl text-ns-text sm:text-4xl">Why did I love that?</h2>
+      <p className="mt-3 max-w-2xl text-base leading-relaxed text-ns-muted sm:text-lg">
         Two people can love the same film for different reasons. Confirm a few films, answer up to three questions, and correct what we get wrong.
       </p>
       {boot && (boot.catalog === 'fixture' || boot.ai === 'fixture') && (
         <div className="mt-4 flex flex-wrap gap-2">
-          {boot.catalog === 'fixture' && <Tag tone="warning">Fixture mode: sample ratings, not yours</Tag>}
-          {boot.ai === 'fixture' && <Tag>Built-in wording: live AI is not configured</Tag>}
+          {boot.catalog === 'fixture' && <Badge variant="warning" size="md" className="whitespace-normal">Fixture mode: sample ratings, not yours</Badge>}
+          {boot.ai === 'fixture' && <Badge size="md" className="whitespace-normal">Built-in wording: live AI is not configured</Badge>}
         </div>
       )}
     </header>
@@ -520,45 +521,46 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
 
   if (loadError) {
     return (
-      <section aria-label="Why did I love that?" className="mb-10">
+      <section aria-label="Why did I love that?" className="mb-10 lg:mb-14">
         {header}
-        <p className="mt-6 text-sm text-ns-danger" role="alert">{loadError}</p>
-        <Link href="/pro/taste-lab?demo=1" className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-ns-secondary-readable">
-          Explore with sample ratings <ArrowRightIcon size={14} />
-        </Link>
+        <div className="mt-6 rounded-3xl bg-ns-surface p-6 sm:p-8">
+          <p className="text-base text-ns-danger" role="alert">{loadError}</p>
+          <Button href="/pro/taste-lab?demo=1" variant="secondary" className="mt-4 bg-ns-surface-2 hover:bg-ns-surface-3">
+            Explore with sample ratings <ArrowRightIcon size={15} />
+          </Button>
+        </div>
       </section>
     )
   }
 
   if (!boot || !ready) {
     return (
-      <section aria-label="Why did I love that?" className="mb-10" aria-busy="true">
+      <section aria-label="Why did I love that?" className="mb-10 lg:mb-14" aria-busy="true">
         {header}
-        <p className="mt-6 text-sm text-ns-muted">Reading your ratings…</p>
+        <p className="mt-6 text-base text-ns-muted">Reading your ratings…</p>
+        <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+          {Array.from({ length: 8 }).map((_, index) => <Skeleton key={index} className="aspect-[2/3] rounded-xl" />)}
+        </div>
       </section>
     )
   }
 
   if (boot.status !== 'ready') {
     return (
-      <section aria-label="Why did I love that?" className="mb-10">
+      <section aria-label="Why did I love that?" className="mb-10 lg:mb-14">
         {header}
-        <div className="mt-6 max-w-xl">
-          <h3 className="font-heading text-xl font-semibold text-ns-text">
+        <div className="mt-6 rounded-3xl bg-ns-surface p-7 sm:p-10">
+          <h3 className="font-heading text-2xl font-bold text-ns-text">
             {boot.status === 'needs-ratings' ? 'A few more ratings first' : 'No candidates to rank right now'}
           </h3>
-          <p className="mt-2 text-sm leading-6 text-ns-muted">
+          <p className="mt-2 max-w-xl text-base leading-relaxed text-ns-muted">
             {boot.status === 'needs-ratings'
               ? `This works from films you have rated, including at least one you rated highly. You have ${boot.ratingCount} usable ${boot.ratingCount === 1 ? 'rating' : 'ratings'}; four is the minimum.`
               : 'The film catalog did not return enough candidates for your ratings. Try again in a moment.'}
           </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Link href="/ratings" className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-ns-secondary px-4 text-sm font-heading font-semibold text-ns-secondary-foreground">
-              Rate films <ArrowRightIcon size={14} />
-            </Link>
-            <Link href="/pro/taste-lab?demo=1" className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-ns-border px-4 text-sm font-heading font-semibold text-ns-text">
-              Explore with sample ratings
-            </Link>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button href="/ratings">Rate films <ArrowRightIcon size={15} /></Button>
+            <Button href="/pro/taste-lab?demo=1" variant="outline">Explore with sample ratings</Button>
           </div>
         </div>
       </section>
@@ -573,12 +575,12 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
       : templateQuestion(questionSpec(question))
 
   return (
-    <section aria-label="Why did I love that?" className="mb-12">
+    <section aria-label="Why did I love that?" className="mb-12 lg:mb-16">
       {header}
 
       {boot.catalog === 'fixture' && (
-        <div className="mt-5 border-l-2 border-ns-warning py-1 pl-4 text-sm leading-6 text-ns-muted">
-          <p className="text-ns-text">Two sample viewers share this exact rating sheet.</p>
+        <div className="mt-5 rounded-2xl bg-ns-surface p-5 text-sm leading-6 text-ns-muted sm:p-6">
+          <p className="font-semibold text-ns-text">Two sample viewers share this exact rating sheet.</p>
           <ul className="mt-1 space-y-0.5">
             {FIXTURE_VIEWERS.map(viewer => (
               <li key={viewer.id}><span className="text-ns-text">{viewer.name}.</span> {viewer.blurb}</li>
@@ -588,37 +590,44 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
         </div>
       )}
 
-      <ol ref={railRef} className="mt-6 grid scroll-mt-28 grid-cols-3 border-b border-ns-border" aria-label="Progress">
-        {STAGES.map((item, index) => {
-          const reachable = index < stageIndex
-          const current = item.id === stage
-          return (
-            <li key={item.id} className={`border-b-2 pb-3 ${current ? 'border-ns-secondary-readable' : 'border-transparent'}`}>
-              <button
-                type="button"
-                disabled={!reachable}
-                aria-current={current ? 'step' : undefined}
-                onClick={() => setStage(item.id)}
-                className={`flex min-h-11 w-full flex-col items-start gap-1 text-left sm:flex-row sm:items-baseline sm:gap-3 ${current ? 'text-ns-text' : 'text-ns-muted'} ${reachable ? 'hover:text-ns-text' : 'cursor-default'}`}
-              >
-                <span className={`${styles.numeral} text-2xl`}>0{index + 1}</span>
-                <span className="font-heading text-xs font-semibold sm:text-sm">{item.label}</span>
-              </button>
-            </li>
-          )
-        })}
-      </ol>
+      <div className="relative mt-7 scroll-mt-28">
+        <ol ref={railRef} className="grid scroll-mt-28 grid-cols-3 rounded-full bg-ns-surface p-1" aria-label="Progress">
+          {STAGES.map((item, index) => {
+            const reachable = index < stageIndex
+            const current = item.id === stage
+            return (
+              <li key={item.id} className="relative z-10 min-w-0">
+                <button
+                  type="button"
+                  disabled={!reachable}
+                  aria-current={current ? 'step' : undefined}
+                  onClick={() => setStage(item.id)}
+                  className={`flex min-h-11 w-full items-center justify-center rounded-full px-2 text-center text-xs font-semibold leading-tight transition-colors duration-200 sm:text-sm ${
+                    current ? 'text-ns-bg' : reachable ? 'text-ns-text hover:text-ns-secondary-readable' : 'cursor-default text-ns-muted'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              </li>
+            )
+          })}
+        </ol>
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-1 left-1 top-1 w-[calc((100%-0.5rem)/3)] rounded-full bg-ns-text transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
+          style={{ transform: `translateX(${stageIndex * 100}%)` }}
+        />
+      </div>
 
-      {/* ── 01 Your films ─────────────────────────────────────────────────── */}
       {stage === 'films' && (
         <div className={`${styles.settle} mt-8`}>
-          <h3 ref={headingRef} tabIndex={-1} className="font-heading text-2xl font-semibold text-ns-text outline-none">
+          <h3 ref={headingRef} tabIndex={-1} className="font-heading text-2xl font-bold text-ns-text outline-none sm:text-3xl">
             Which of these do you remember well?
           </h3>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-ns-muted">
+          <p className="mt-2 max-w-2xl text-base leading-relaxed text-ns-muted">
             These are films you rated highly. Questions only use the ones you confirm, so you are never asked to compare something you have half forgotten.
           </p>
-          <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4 lg:grid-cols-8">
+          <ul className="mt-6 grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-4 sm:gap-x-4 lg:grid-cols-8">
             {liked.map(film => {
               const selected = state.confirmedIds.includes(film.tmdbId)
               return (
@@ -628,31 +637,26 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
                     aria-pressed={selected}
                     aria-label={`${film.title}${selected ? ', confirmed' : ''}`}
                     onClick={() => toggleFilm(film.tmdbId)}
-                    className={`block w-full rounded-lg border p-1.5 text-left transition-colors ${selected ? 'border-ns-success bg-ns-success/[0.06]' : 'border-ns-border hover:border-ns-muted'}`}
+                    className="group block w-full rounded-xl text-left"
                   >
-                    <FilmPoster film={film} sizes="(max-width: 640px) 45vw, 150px" />
-                    <span className="mt-2 flex items-start justify-between gap-2 px-0.5">
-                      <span className="min-w-0 text-xs font-semibold leading-4 text-ns-text">{film.title}</span>
-                      <span className={`grid h-5 w-5 flex-shrink-0 place-items-center rounded-full border ${selected ? 'border-ns-success bg-ns-success text-ns-bg' : 'border-ns-border text-transparent'}`}>
-                        <CheckIcon size={11} strokeWidth={3} />
+                    <span className={`relative block rounded-xl ring-2 ring-offset-2 ring-offset-ns-bg transition-shadow duration-150 ${selected ? 'ring-ns-secondary' : 'ring-transparent'}`}>
+                      <FilmPoster film={film} sizes="(max-width: 640px) 30vw, 150px" />
+                      <span className={`absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-ns-secondary text-ns-secondary-foreground transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${selected ? 'scale-100 opacity-100' : 'scale-75 opacity-0'}`}>
+                        <CheckIcon size={14} strokeWidth={3} />
                       </span>
                     </span>
-                    <span className="mt-0.5 block px-0.5 text-[11px] text-ns-muted">You rated it {film.score}</span>
+                    {film.posterPath && <span className="mt-2 block text-sm font-semibold leading-5 text-ns-text">{film.title}</span>}
+                    <span className="mt-1.5 block text-xs text-ns-muted">You rated it {film.score}</span>
                   </button>
                 </li>
               )
             })}
           </ul>
-          <div className="mt-7 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              disabled={state.confirmedIds.length < 2}
-              onClick={() => setStage('questions')}
-              className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-ns-secondary px-5 text-sm font-heading font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/90 disabled:cursor-not-allowed disabled:bg-ns-secondary-dim disabled:text-ns-muted"
-            >
-              Ask me about these <ArrowRightIcon size={15} />
-            </button>
-            <p className="text-xs text-ns-muted" aria-live="polite">
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Button size="lg" disabled={state.confirmedIds.length < 2} onClick={() => setStage('questions')}>
+              Ask me about these <ArrowRightIcon size={16} />
+            </Button>
+            <p key={state.confirmedIds.length} className="animate-fade-up text-sm tabular-nums text-ns-muted" aria-live="polite">
               {state.confirmedIds.length < 2
                 ? `Confirm at least two. ${state.confirmedIds.length} so far.`
                 : `${state.confirmedIds.length} confirmed.`}
@@ -661,27 +665,26 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
         </div>
       )}
 
-      {/* ── 02 Three questions ────────────────────────────────────────────── */}
       {stage === 'questions' && question && (
-        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-          <div key={question.id} className={`${styles.settle} rounded-xl bg-ns-text p-5 text-ns-bg sm:p-8`}>
-            <p className="font-heading text-[11px] font-semibold uppercase tracking-[0.18em] text-ns-bg/70">
+        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:gap-12">
+          <div key={question.id} className={`${styles.settle} rounded-3xl bg-ns-surface p-6 sm:p-10`}>
+            <p className="text-sm font-semibold tabular-nums text-ns-muted">
               Question {state.asked.length + 1} of up to {QUESTION_LIMIT}
             </p>
-            <div className="mt-4 flex gap-4">
+            <div className="mt-4 flex gap-4 sm:gap-6">
               {question.filmIds.map(id => {
                 const film = ratedById.get(id)
-                return film ? <div key={id} className="w-20 flex-shrink-0 text-ns-text sm:w-24"><FilmPoster film={film} sizes="96px" /></div> : null
+                return film ? <div key={id} className="w-20 flex-shrink-0 sm:w-28"><FilmPoster film={film} sizes="112px" /></div> : null
               })}
               <div className="min-w-0 self-center">
-                <h3 ref={headingRef} tabIndex={-1} className="font-heading text-2xl font-semibold leading-tight outline-none sm:text-3xl">
+                <h3 ref={headingRef} tabIndex={-1} className="font-display text-2xl text-ns-text outline-none sm:text-4xl">
                   {wording ? wording.prompt : 'Finding the right words…'}
                 </h3>
-                {wording?.context && <p className="mt-2 text-sm leading-6 text-ns-bg/75">{wording.context}</p>}
+                {wording?.context && <p className="mt-2 text-base leading-relaxed text-ns-muted">{wording.context}</p>}
               </div>
             </div>
 
-            <div className="mt-6 grid gap-2 sm:grid-cols-2">
+            <div className="mt-7 grid gap-2 sm:grid-cols-2">
               {(['a', 'b'] as const).map(choice => (
                 <button
                   key={choice}
@@ -710,13 +713,13 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
           </div>
 
           <aside className="min-w-0">
-            <Eyebrow>Why this question</Eyebrow>
-            <p className="mt-2 text-sm leading-6 text-ns-text">
+            <h3 className="font-heading text-lg font-bold text-ns-text">Why this question</h3>
+            <p className="mt-2 text-base leading-relaxed text-ns-text">
               {question.coOccurCount > 1
                 ? `${FACET_COPY[question.facetA].label} and ${FACET_COPY[question.facetB].label.toLowerCase()} show up together in ${question.coOccurCount} of the ${question.likedCount} films you rated highest, so your ratings cannot tell which one you were responding to.`
                 : `Your ratings leave it open whether ${FACET_COPY[question.facetA].label.toLowerCase()} or ${FACET_COPY[question.facetB].label.toLowerCase()} matters to you.`}
             </p>
-            <p className="mt-2 text-sm leading-6 text-ns-muted">
+            <p className="mt-2 text-base leading-relaxed text-ns-muted">
               Of the questions we could ask, this is the one most likely to reorder your picks. On average, about {Math.max(1, Math.round(question.expectedSwaps))} of your top five would change.
             </p>
             {lastChange && state.asked.length > 0 && (
@@ -724,22 +727,20 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
                 <ChangePanel cause={lastChange.cause} change={lastChange.change} />
               </div>
             )}
-            <button type="button" onClick={() => setStage('results')} className="mt-5 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-ns-muted hover:text-ns-text">
-              Skip to my picks <ArrowRightIcon size={14} />
+            <button type="button" onClick={() => setStage('results')} className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-ns-muted transition-colors hover:text-ns-text">
+              Skip to my picks <ArrowRightIcon size={15} />
             </button>
           </aside>
         </div>
       )}
 
-      {/* ── 03 Reasons and picks ──────────────────────────────────────────── */}
       {stage === 'results' && (
-        <div className={`${styles.settle} mt-8 grid gap-10 lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:gap-x-12`}>
+        <div className={`${styles.settle} mt-8 grid gap-10 lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:gap-x-14`}>
           <div className="min-w-0 lg:col-start-1 lg:row-start-1">
-            <Eyebrow>What we think</Eyebrow>
-            <h3 ref={headingRef} tabIndex={-1} className="mt-1 font-heading text-2xl font-semibold text-ns-text outline-none">
+            <h3 ref={headingRef} tabIndex={-1} className="font-heading text-2xl font-bold text-ns-text outline-none sm:text-3xl">
               Three hypotheses. Correct any of them.
             </h3>
-            <ol className="mt-4 border-b border-ns-border">
+            <ol className="mt-2 divide-y divide-ns-border border-b border-ns-border">
               {baseView.hypotheses.map((hypothesis, index) => {
                 const note = state.notes[hypothesis.key]
                 const text = note?.text ?? hypothesisText[hypothesis.key] ?? templateHypothesis(hypothesis)
@@ -758,51 +759,50 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
               })}
             </ol>
 
-            <form onSubmit={onCorrection} className="mt-6">
-              <label htmlFor="taste-correction" className="font-heading text-sm font-semibold text-ns-text">
-                Tell it what it got wrong
-              </label>
-              <p className="mt-1 text-xs leading-5 text-ns-muted">One sentence in your own words. Your picks update straight away.</p>
-              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-                <input
-                  id="taste-correction"
-                  value={correction}
-                  onChange={event => setCorrection(event.target.value.slice(0, 400))}
-                  placeholder="I liked the atmosphere, not the violence"
-                  className="min-h-12 min-w-0 flex-1 rounded-lg border border-ns-border bg-ns-bg/60 px-4 text-sm text-ns-text outline-none placeholder:text-ns-muted/60 focus:border-ns-secondary-readable"
-                />
-                <button type="submit" disabled={busy || correction.trim().length < 3} className="min-h-12 rounded-lg bg-ns-secondary px-5 text-sm font-heading font-semibold text-ns-secondary-foreground disabled:cursor-not-allowed disabled:bg-ns-secondary-dim disabled:text-ns-muted">
+            <form onSubmit={onCorrection} className="mt-7">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                <div className="min-w-0 flex-1">
+                  <Input
+                    id="taste-correction"
+                    label="Tell it what it got wrong"
+                    value={correction}
+                    onChange={event => setCorrection(event.target.value.slice(0, 400))}
+                    placeholder="I liked the atmosphere, not the violence"
+                    aria-describedby="taste-correction-help"
+                  />
+                </div>
+                <Button type="submit" variant="secondary" loading={busy} disabled={correction.trim().length < 3} className="sm:min-h-12">
                   {busy ? 'Reading…' : 'Apply'}
-                </button>
+                </Button>
               </div>
-              {correctionNote && <p className="mt-2 text-xs leading-5 text-ns-warning">{correctionNote}</p>}
+              <p id="taste-correction-help" className="mt-2 text-sm leading-6 text-ns-muted">One sentence in your own words. Your picks update straight away.</p>
+              {correctionNote && <p className="mt-2 animate-fade-up text-sm leading-6 text-ns-warning">{correctionNote}</p>}
             </form>
 
             {/* On a phone the picks sit below, so the effect is repeated here. */}
             {lastChange && (
               <div className="mt-5 lg:hidden">
                 <ChangePanel key={lastChange.cause + lastChange.change.overlap} cause={lastChange.cause} change={lastChange.change} />
-                <a href="#taste-picks" className="mt-2 inline-flex min-h-10 items-center gap-1.5 text-sm font-semibold text-ns-secondary-readable">
-                  See your picks <ArrowRightIcon size={14} className="rotate-90" />
+                <a href="#taste-picks" className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-ns-secondary-readable">
+                  See your picks <ArrowRightIcon size={15} className="rotate-90" />
                 </a>
               </div>
             )}
           </div>
 
           <div id="taste-picks" className="min-w-0 scroll-mt-28 lg:col-start-2 lg:row-span-2 lg:row-start-1">
-            <Eyebrow>Three picks</Eyebrow>
-            <h3 className="mt-1 font-heading text-2xl font-semibold text-ns-text">A close match, a neighbour, and a stretch.</h3>
+            <h3 className="font-heading text-2xl font-bold text-ns-text sm:text-3xl">A close match, a neighbour, and a stretch.</h3>
 
-            <div className="mt-4">
+            <div className="mt-5">
               <SpoilerModeControl mode={mode} onChange={setMode} />
             </div>
 
-            <fieldset className="mt-6">
-              <legend className="font-heading text-sm font-semibold text-ns-text">Change one thing</legend>
-              <p className="mt-1 text-xs leading-5 text-ns-muted">
+            <fieldset className="mt-7">
+              <legend className="font-heading text-base font-bold text-ns-text">Change one thing</legend>
+              <p className="mt-1 text-sm leading-6 text-ns-muted">
                 {strongest.length ? `Same ${facetList(strongest)}, but:` : 'Try a different direction:'}
               </p>
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
                 {TWEAKS.map(tweak => {
                   const active = activeTweak?.facet === tweak.facet && Math.sign(activeTweak.value) === tweak.direction
                   return (
@@ -811,7 +811,7 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
                       type="button"
                       aria-pressed={active}
                       onClick={() => setTweak(active ? null : tweak)}
-                      className={`min-h-10 rounded-full border px-3.5 text-xs font-heading font-semibold transition-colors ${active ? 'border-ns-warning bg-ns-warning/10 text-ns-warning' : 'border-ns-border text-ns-muted hover:border-ns-muted hover:text-ns-text'}`}
+                      className={`min-h-11 rounded-full px-4 text-sm font-semibold transition-colors duration-150 ${active ? 'bg-ns-text text-ns-bg' : 'bg-ns-surface text-ns-muted hover:bg-ns-surface-2 hover:text-ns-text'}`}
                     >
                       {tweakLabel(tweak)}
                     </button>
@@ -819,13 +819,13 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
                 })}
               </div>
               {activeTweak && (
-                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-ns-muted">
-                  <Tag tone="warning">This session only</Tag>
-                  <label className="inline-flex min-h-10 items-center gap-2">
-                    <input type="checkbox" checked={keepTweak} onChange={event => setKeepTweak(event.target.checked)} className="h-4 w-4 accent-ns-secondary" />
+                <div className="mt-3 flex animate-fade-up flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ns-muted">
+                  <Badge variant="warning" size="md">This session only</Badge>
+                  <label className="inline-flex min-h-11 cursor-pointer items-center gap-2">
+                    <input type="checkbox" checked={keepTweak} onChange={event => setKeepTweak(event.target.checked)} className="h-5 w-5 accent-ns-secondary" />
                     Keep this when I save
                   </label>
-                  <button type="button" onClick={() => setTweak(null)} className="min-h-10 font-semibold text-ns-text underline underline-offset-4">Clear it</button>
+                  <button type="button" onClick={() => setTweak(null)} className="min-h-11 font-semibold text-ns-text underline underline-offset-4">Clear it</button>
                 </div>
               )}
             </fieldset>
@@ -834,7 +834,7 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
               {lastChange && <ChangePanel key={lastChange.cause + lastChange.change.overlap} cause={lastChange.cause} change={lastChange.change} />}
             </div>
 
-            <div className="mt-4 border-b border-ns-border">
+            <div className="mt-2 divide-y divide-ns-border border-b border-ns-border">
               {view.picks.map(pick => (
                 <PickCard
                   key={pick.role}
@@ -845,14 +845,14 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
                 />
               ))}
             </div>
-            <p className="mt-3 text-xs leading-5 text-ns-muted">
+            <p className="mt-3 text-sm leading-6 text-ns-muted">
               Picks are ordered by how well a film’s catalog qualities line up with your stated reasons. They are not predictions of how you will rate it.
             </p>
           </div>
 
-          <div className="min-w-0 lg:col-start-1 lg:row-start-2">
-            <Eyebrow>Taste ledger</Eyebrow>
-            <p className="mt-1 text-xs leading-5 text-ns-muted">
+          <div className="ns-reveal min-w-0 lg:col-start-1 lg:row-start-2">
+            <h3 className="font-heading text-2xl font-bold text-ns-text">Taste ledger</h3>
+            <p className="mt-1 text-sm leading-6 text-ns-muted">
               Each bar is an estimate, not a score. The pale band shows how unsure it is. Open a row to see where it came from or take something back.
             </p>
             <div className="mt-3">
@@ -866,43 +866,37 @@ export default function WhyDidILoveThat({ userId, demo }: { userId: string; demo
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 border-t border-ns-border pt-6 lg:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 gap-3">
-              <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-lg bg-ns-secondary/15 text-ns-secondary-readable"><LockIcon size={17} /></span>
-              <div className="min-w-0 text-sm leading-6" role="status">
-                {save.kind === 'saved' ? (
-                  <p className="text-ns-success">{save.detail}</p>
-                ) : save.kind === 'error' ? (
-                  <p className="text-ns-danger">{save.detail}</p>
-                ) : boot.catalog === 'fixture' ? (
-                  <p className="text-ns-muted">Sample ratings. Nothing here is written to your account.</p>
-                ) : unsaved || (activeTweak && keepTweak) ? (
-                  <p className="text-ns-text">What you taught it is not saved yet. Saving updates your Movie DNA preferences and rebuilds your recommendations.</p>
-                ) : state.evidence.some(item => item.scope === 'saved') ? (
-                  <p className="text-ns-muted">Your saved taste reasons are in use.</p>
-                ) : (
-                  <p className="text-ns-muted">Nothing to save yet. Answer a question or correct a hypothesis.</p>
-                )}
-              </div>
+          <div className="flex flex-col gap-4 rounded-3xl bg-ns-surface p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8 lg:col-span-2">
+            <div className="min-w-0 text-base leading-relaxed" role="status">
+              {save.kind === 'saved' ? (
+                <p className="text-ns-success">{save.detail}</p>
+              ) : save.kind === 'error' ? (
+                <p className="text-ns-danger">{save.detail}</p>
+              ) : boot.catalog === 'fixture' ? (
+                <p className="text-ns-muted">Sample ratings. Nothing here is written to your account.</p>
+              ) : unsaved || (activeTweak && keepTweak) ? (
+                <p className="text-ns-text">What you taught it is not saved yet. Saving updates your Movie DNA preferences and rebuilds your recommendations.</p>
+              ) : state.evidence.some(item => item.scope === 'saved') ? (
+                <p className="text-ns-muted">Your saved taste reasons are in use.</p>
+              ) : (
+                <p className="text-ns-muted">Nothing to save yet. Answer a question or correct a hypothesis.</p>
+              )}
             </div>
             <div className="flex flex-shrink-0 flex-wrap gap-2">
               {boot.catalog === 'member' && (
-                <button
-                  type="button"
-                  disabled={save.kind === 'saving' || !(unsaved || (activeTweak && keepTweak))}
+                <Button
+                  loading={save.kind === 'saving'}
+                  disabled={!(unsaved || (activeTweak && keepTweak))}
                   onClick={() => void saveProfile()}
-                  className="min-h-11 rounded-lg bg-ns-secondary px-5 text-sm font-heading font-semibold text-ns-secondary-foreground disabled:cursor-not-allowed disabled:bg-ns-secondary-dim disabled:text-ns-muted"
                 >
                   {save.kind === 'saving' ? 'Saving…' : 'Save to my Movie DNA'}
-                </button>
+                </Button>
               )}
-              <button type="button" onClick={startOver} className="min-h-11 rounded-lg border border-ns-border px-4 text-sm font-heading font-semibold text-ns-text hover:border-ns-muted">
-                Start over
-              </button>
+              <Button variant="outline" onClick={startOver}>Start over</Button>
               {boot.catalog === 'member' && boot.saved && (
-                <button type="button" disabled={save.kind === 'saving'} onClick={() => void forgetProfile()} className="min-h-11 rounded-lg border border-ns-border px-4 text-sm font-heading font-semibold text-ns-muted hover:text-ns-text">
+                <Button variant="ghost" disabled={save.kind === 'saving'} onClick={() => void forgetProfile()} className="hover:bg-ns-surface-2">
                   Forget saved reasons
-                </button>
+                </Button>
               )}
             </div>
           </div>

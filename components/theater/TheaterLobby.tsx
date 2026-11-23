@@ -3,15 +3,49 @@
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRightIcon, ClapperboardIcon } from '@/components/icons'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import Button from '@/components/ui/Button'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { ArrowRightIcon, CloseIcon } from '@/components/icons'
 import type { TheaterPremiere } from '@/lib/theater'
 import type { TheaterDoor, WalkControls, WalkDirection } from './TheaterMultiplexScene'
-import { durationLabel, premiereDate, theaterRequest } from './TheaterShared'
+import { durationLabel, hudControl, hudSurface, LivePing, premiereDate, theaterRequest } from './TheaterShared'
 import styles from './theater.module.css'
 
 const TheaterMultiplexScene = dynamic(() => import('./TheaterMultiplexScene'), { ssr: false })
 type Lobby = { premieres: TheaterPremiere[]; pendingRatingId: string | null }
+
+const WALK_CONTROLS: Array<[WalkDirection, string, string, string]> = [
+  ['forward', '-rotate-90', 'Move forward', 'col-start-2'],
+  ['left', 'rotate-180', 'Move left', 'col-start-1 row-start-2'],
+  ['backward', 'rotate-90', 'Move backward', 'col-start-2 row-start-2'],
+  ['right', '', 'Move right', 'col-start-3 row-start-2'],
+]
+
+function ShowtimeRow({ premiere, index }: { premiere: TheaterPremiere; index: number }) {
+  const live = premiere.status === 'live'
+  const filled = premiere.capacity ? premiere.reservedSeats / premiere.capacity : 0
+
+  return (
+    <li className={styles.rowIn} style={{ '--i': Math.min(index, 7) } as CSSProperties}>
+      <Link href={`/theater/${premiere.id}?enter=1`} className="block rounded-xl bg-ns-surface-2 p-4 transition-colors duration-150 hover:bg-ns-surface-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className={`flex items-center gap-2 text-sm font-semibold ${live ? 'text-ns-secondary-readable' : 'text-ns-muted'}`}>
+            {live && <LivePing />}
+            {premiere.kind === 'film' ? 'Film' : 'Trailer'} · {live ? 'Now showing' : premiere.status === 'upcoming' ? 'Upcoming' : premiere.status}
+          </p>
+          <span className="flex-shrink-0 text-sm tabular-nums text-ns-muted">{premiere.reservedSeats}/{premiere.capacity} seats</span>
+        </div>
+        <h3 className="mt-2 break-words font-heading text-xl font-bold text-ns-text">{premiere.title}</h3>
+        <p className="mt-1 text-sm text-ns-muted">{premiereDate(premiere.startsAt)} · {durationLabel(premiere.durationSeconds)}</p>
+        <p className="mt-1 text-sm text-ns-muted">By {premiere.creatorName}{premiere.isOwner ? ' · Your premiere' : ''}</p>
+        <div aria-hidden="true" className="mt-3 h-1 overflow-hidden rounded-full bg-ns-bg">
+          <div className={`h-full rounded-full bg-ns-accent ${styles.meter} ${styles.barGrow}`} style={{ transform: `scaleX(${filled})` }} />
+        </div>
+      </Link>
+    </li>
+  )
+}
 
 export default function TheaterLobby() {
   const router = useRouter()
@@ -63,41 +97,177 @@ export default function TheaterLobby() {
   const stopMoving = () => { for (const key of ['forward', 'backward', 'left', 'right'] as const) movementRef.current?.(key, false) }
   const promotion = premieres.find(p => p.promoted)
 
-  return <div ref={lobbyRef} className={styles.room}>
-    <TheaterMultiplexScene doors={doors} paused={showtimes} onNearDoor={setNearDoor} onEnter={enterDoor} onControls={controlsReady} />
-    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(#0b0811b3,transparent_22%,transparent_67%,#0b0811e6)]" />
+  return (
+    <div ref={lobbyRef} className="fixed inset-0 isolate z-[80] overflow-hidden bg-black text-white">
+      <TheaterMultiplexScene doors={doors} paused={showtimes} onNearDoor={setNearDoor} onEnter={enterDoor} onControls={controlsReady} />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-black/80 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-black/85 to-transparent" />
 
-    <header className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 p-5 sm:p-8">
-      <Link href="/pro" className="pointer-events-auto flex items-center gap-3"><span className="rounded-xl border border-[#ddbd86]/30 bg-black/25 p-3 text-[#ddbd86]"><ClapperboardIcon size={20} /></span><div><p className="text-[8px] uppercase tracking-[.24em] text-[#ddbd86]">NoSpoilers Pro</p><h1 className="mt-1 font-serif text-2xl tracking-tight">Theater</h1></div></Link>
-      <div className="pointer-events-auto flex gap-2"><button onClick={() => { stopMoving(); setShowtimes(v => !v) }} className={`${styles.glass} ${styles.control} gap-2 px-4 text-xs`} aria-expanded={showtimes} aria-controls="theater-showtimes">Showtimes <span className="text-[#ddbd86]" aria-hidden="true">☷</span></button><Link href="/theater/new" className={`${styles.button} hidden sm:inline-flex`}>Host a premiere <ArrowRightIcon size={13} /></Link><Link href="/pro" aria-label="Exit Theater" className={`${styles.glass} ${styles.control} px-3 text-xs`}>Exit</Link></div>
-    </header>
+      <header className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4 sm:p-6">
+        <Link href="/pro" className="pointer-events-auto min-w-0">
+          <h1 className="font-display text-3xl text-white sm:text-4xl">Theater</h1>
+        </Link>
+        <div className="pointer-events-auto flex flex-shrink-0 items-center gap-2">
+          <button
+            onClick={() => { stopMoving(); setShowtimes(v => !v) }}
+            className={`min-h-11 rounded-full px-5 text-sm font-semibold transition-colors duration-150 ${showtimes ? 'bg-ns-text text-ns-bg' : 'bg-ns-surface text-ns-text hover:bg-ns-surface-2'}`}
+            aria-expanded={showtimes}
+            aria-controls="theater-showtimes"
+          >
+            Showtimes
+          </button>
+          <span className="hidden sm:inline-flex">
+            <Button href="/theater/new">Host a premiere <ArrowRightIcon size={14} /></Button>
+          </span>
+          <Link href="/pro" aria-label="Exit Theater" className="inline-flex min-h-11 items-center rounded-full bg-ns-surface px-4 text-sm font-semibold text-ns-text transition-colors duration-150 hover:bg-ns-surface-2">Exit</Link>
+        </div>
+      </header>
 
-    <div className="pointer-events-none absolute left-5 top-28 sm:left-8"><div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-2 text-[9px] uppercase tracking-[.16em] text-white/65"><span className="h-1.5 w-1.5 rounded-full bg-[#ddbd86]" />Main lobby <span className="text-white/25">/</span> 8 screening rooms</div></div>
-    <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/40" />
+      <div className="pointer-events-none absolute left-4 top-[6.5rem] sm:left-6 sm:top-28">
+        <div className="inline-flex items-center gap-2 rounded-full bg-ns-surface px-3 py-2 text-sm text-ns-muted">
+          <LivePing />
+          Main lobby / 8 screening rooms
+        </div>
+      </div>
+      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white" />
 
-    {help && !showtimes && !nearDoor && <div className={`${styles.glass} absolute bottom-44 left-5 max-w-[min(330px,calc(100vw-40px))] rounded-2xl p-5 sm:bottom-36 sm:left-8 sm:p-6`}><button className="absolute right-3 top-2 p-2 text-lg text-white/40" aria-label="Dismiss walking instructions" onClick={() => setHelp(false)}>×</button><p className={styles.eyebrow}>Your night starts here</p><h2 className={`${styles.title} mt-3 text-3xl`}>Welcome to the movies.</h2><p className="mt-3 text-xs leading-6 text-white/55">Walk through the lobby. Pick a door. Find your first frame.</p><div className="mt-4 flex flex-wrap items-center gap-2 text-[10px] text-white/60"><span className="rounded border border-white/20 px-2 py-1 font-mono text-[#ddbd86]">↑ ← ↓ →</span><span>or WASD to walk</span></div><p className="mt-2 text-[10px] text-white/40">Drag to look · E to enter a nearby theater</p></div>}
+      {help && !showtimes && !nearDoor && (
+        <div className={`${hudSurface} absolute bottom-44 left-4 max-w-[min(22rem,calc(100vw-2rem))] p-6 sm:bottom-32 sm:left-6 ${styles.hudIn}`}>
+          <button className={`${hudControl} absolute right-2 top-2 text-ns-muted`} aria-label="Dismiss walking instructions" onClick={() => setHelp(false)}>
+            <CloseIcon size={16} />
+          </button>
+          <h2 className="pr-10 font-display text-2xl text-ns-text sm:text-3xl">Welcome to the movies.</h2>
+          <p className="mt-2 text-sm leading-relaxed text-ns-muted">Walk through the lobby. Pick a door. Find your first frame.</p>
+          <p className="mt-3 text-sm text-ns-muted">
+            <kbd className="rounded-md bg-ns-surface-2 px-2 py-1 text-xs font-semibold text-ns-text">Arrows</kbd> or <kbd className="rounded-md bg-ns-surface-2 px-2 py-1 text-xs font-semibold text-ns-text">WASD</kbd> to walk
+          </p>
+          <p className="mt-2 text-sm text-ns-muted">Drag to look · E to enter a nearby theater</p>
+        </div>
+      )}
 
-    {nearDoor && !showtimes && <div className="absolute inset-x-5 bottom-40 flex justify-center sm:bottom-36"><div className={`${styles.glass} w-full max-w-md rounded-2xl p-5 text-center`}><p className={styles.eyebrow}>Theater {String(nearDoor.number).padStart(2, '0')}</p><h2 className={`${styles.title} mt-3 text-3xl`}>{nearDoor.title}</h2><p className="mt-2 text-xs text-white/50">{nearDoor.subtitle}</p>{nearDoor.href ? <button className={`${styles.button} mt-5 w-full`} onClick={() => enterDoor(nearDoor)}>Enter theater <kbd className="ml-2 hidden rounded border border-black/25 px-1.5 text-[10px] sm:inline">E</kbd></button> : <p className="mt-4 text-[10px] text-[#ddbd86]">This room is waiting for its next premiere.</p>}</div></div>}
+      {nearDoor && !showtimes && (
+        <div className="absolute inset-x-4 bottom-44 flex justify-center sm:bottom-32">
+          <div key={nearDoor.number} className={`${hudSurface} w-full max-w-md p-6 text-center ${styles.hudIn}`}>
+            <p className="text-sm font-semibold text-ns-secondary-readable">Theater {String(nearDoor.number).padStart(2, '0')}</p>
+            <h2 className="mt-1 break-words font-display text-3xl text-ns-text">{nearDoor.title}</h2>
+            <p className="mt-1 text-sm text-ns-muted">{nearDoor.subtitle}</p>
+            {nearDoor.href
+              ? <Button className="mt-5 w-full" onClick={() => enterDoor(nearDoor)}>Enter theater <kbd className="ml-1 hidden rounded border border-ns-secondary-foreground px-1.5 text-xs sm:inline">E</kbd></Button>
+              : <p className="mt-4 text-sm text-ns-muted">This room is waiting for its next premiere.</p>}
+          </div>
+        </div>
+      )}
 
-    {showtimes && <aside id="theater-showtimes" data-theater-menu className={`${styles.glass} absolute bottom-5 right-5 top-24 z-10 w-[min(440px,calc(100vw-40px))] overflow-y-auto rounded-2xl p-5 sm:right-8 sm:top-28 sm:p-6`} aria-label="Theater showtimes">
-      <div className="flex items-center justify-between"><div><p className={styles.eyebrow}>The marquee</p><h2 className={`${styles.title} mt-2 text-3xl`}>Choose your theater.</h2></div><button className={styles.control} onClick={() => setShowtimes(false)} aria-label="Close showtimes">×</button></div>
-      <p className="mt-3 text-xs leading-6 text-white/45">Walk to a door, or enter a room directly from here.</p>
-      {data?.pendingRatingId && <Link href={`/theater/${data.pendingRatingId}`} className="mt-5 block rounded-lg border border-[#ddbd86]/35 bg-[#ddbd86]/10 p-4 text-xs leading-6 text-[#ddbd86]">Finish your last premiere rating to join another screening →</Link>}
-      <Link href="/theater/preview" className="mt-5 flex items-center justify-between rounded-xl border border-[#ddbd86]/25 bg-[#ddbd86]/5 p-4"><div><p className="text-[9px] uppercase tracking-widest text-[#ddbd86]">Theater 01 · Explore the space</p><p className="mt-2 text-sm">Step inside an empty theater.</p></div><ArrowRightIcon size={15} className="text-[#ddbd86]" /></Link>
-      {promotion && <Link href={`/theater/${promotion.id}`} className="mt-4 block rounded-xl border border-white/10 bg-gradient-to-br from-[#54364b] to-[#211a2c] p-5"><p className="text-[8px] uppercase tracking-widest text-[#ddbd86]">Creator promotion</p><p className={`${styles.title} mt-3 text-2xl`}>{promotion.adCopy}</p><p className="mt-3 text-xs text-white/50">{promotion.title} ↗</p></Link>}
-      <div className="my-5 flex gap-2">{(['all', 'mine'] as const).map(value => <button key={value} onClick={() => setTab(value)} aria-pressed={tab === value} className={`rounded-lg px-4 py-2.5 text-xs ${tab === value ? 'bg-white/10 text-white' : 'text-white/40'}`}>{value === 'all' ? 'Premieres' : 'My premieres'}</button>)}</div>
-      {error ? <div className="rounded-xl border border-white/10 p-5"><p className="text-xs leading-6 text-white/55">{error}</p><div className="mt-4 flex flex-wrap gap-2"><Link href="/login?callbackUrl=/theater" className={styles.button}>Sign in</Link><Link href="/pro/access" className={`${styles.button} ${styles.secondary}`}>Get Pro</Link><button onClick={refresh} className="px-2 text-xs text-white/40">Retry</button></div></div> : !data ? <p role="status" className="py-8 text-xs text-white/50">Loading the marquee…</p> : listed.length === 0 ? <div className="py-6 text-center"><p className={`${styles.title} text-2xl`}>A new story awaits.</p><p className="mt-3 text-xs leading-6 text-white/45">No premieres here yet. Your film could be the first.</p></div> : <div className="space-y-3">{listed.map(p => <Link href={`/theater/${p.id}?enter=1`} key={p.id} className="block rounded-xl border border-white/10 p-4 transition-colors hover:border-[#ddbd86]/40"><div className="flex justify-between gap-3"><p className="text-[9px] uppercase tracking-widest text-[#ddbd86]">{p.kind} · {p.status === 'live' ? 'Now showing' : p.status}</p><span className="text-[9px] text-white/40">{p.reservedSeats}/{p.capacity} seats</span></div><h3 className={`${styles.title} mt-3 text-2xl`}>{p.title}</h3><p className="mt-2 text-[10px] text-white/50">{premiereDate(p.startsAt)} · {durationLabel(p.durationSeconds)}</p><p className="mt-2 text-[10px] text-white/35">By {p.creatorName}{p.isOwner ? ' · Your premiere' : ''}</p></Link>)}</div>}
-      <Link href="/theater/new" className={`${styles.button} mt-5 w-full`}>Host a premiere <ArrowRightIcon size={13} /></Link>
-    </aside>}
+      {showtimes && (
+        <aside
+          id="theater-showtimes"
+          data-theater-menu
+          aria-label="Theater showtimes"
+          className={`${hudSurface} absolute bottom-4 right-4 top-[4.75rem] z-10 w-[min(28rem,calc(100vw-2rem))] overflow-y-auto p-5 sm:bottom-6 sm:right-6 sm:top-24 sm:p-7 ${styles.drawerIn}`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="font-display text-3xl text-ns-text">Choose your theater.</h2>
+            <button className={`${hudControl} -mr-2 -mt-1 flex-shrink-0`} onClick={() => setShowtimes(false)} aria-label="Close showtimes">
+              <CloseIcon size={18} />
+            </button>
+          </div>
+          <p className="mt-2 text-sm leading-relaxed text-ns-muted">Walk to a door, or enter a room directly from here.</p>
 
-    <footer className="pointer-events-none absolute inset-x-5 bottom-5 flex items-end justify-between gap-4 sm:inset-x-8 sm:bottom-7">
-      <div className={`${styles.glass} pointer-events-auto flex items-center gap-2 rounded-xl px-3 py-3 sm:gap-4 sm:px-5 sm:py-4`}><span className="text-xl text-[#ddbd86]" aria-hidden="true">⌑</span><div><p className="text-[8px] uppercase tracking-[.2em] text-white/35">You are here</p><p className="mt-1 text-xs">Main lobby <span className="mx-2 hidden text-white/20 sm:inline">·</span><span className="hidden text-[#ddbd86] sm:inline">First person</span></p></div><button className="ml-2 min-h-8 min-w-6 text-white/40" onClick={() => setHelp(v => !v)} aria-label="Walking controls help">?</button></div>
-      <div className="pointer-events-auto grid grid-cols-3 gap-1" aria-label="Walking controls">{([
-        ['forward', '↑', 'Move forward', 'col-start-2'],
-        ['left', '←', 'Move left', 'col-start-1 row-start-2'],
-        ['backward', '↓', 'Move backward', 'col-start-2 row-start-2'],
-        ['right', '→', 'Move right', 'col-start-3 row-start-2'],
-      ] as Array<[WalkDirection, string, string, string]>).map(([direction, icon, label, position]) => <button key={direction} className={`${styles.glass} ${styles.control} ${position} select-none text-lg active:bg-[#ddbd86]/25`} style={{ touchAction: 'none' }} aria-label={label} onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); movementRef.current?.(direction, true); setHelp(false) }} onPointerUp={() => movementRef.current?.(direction, false)} onPointerCancel={() => movementRef.current?.(direction, false)} onLostPointerCapture={() => movementRef.current?.(direction, false)} onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); movementRef.current?.(direction, true) } }} onKeyUp={() => movementRef.current?.(direction, false)} onBlur={() => movementRef.current?.(direction, false)}>{icon}</button>)}</div>
-    </footer>
-  </div>
+          {data?.pendingRatingId && (
+            <Link href={`/theater/${data.pendingRatingId}`} className="mt-5 flex items-center justify-between gap-3 rounded-xl bg-ns-tile-rose p-4 text-sm font-semibold text-ns-secondary-readable">
+              Finish your last premiere rating to join another screening
+              <ArrowRightIcon size={15} className="flex-shrink-0" />
+            </Link>
+          )}
+
+          <Link href="/theater/preview" className="mt-5 flex items-center justify-between gap-3 rounded-xl bg-ns-surface-2 p-4 transition-colors duration-150 hover:bg-ns-surface-3">
+            <span>
+              <span className="block text-sm font-semibold text-ns-secondary-readable">Theater 01 · Explore the space</span>
+              <span className="mt-1 block text-base text-ns-text">Step inside an empty theater.</span>
+            </span>
+            <ArrowRightIcon size={16} className="flex-shrink-0 text-ns-muted" />
+          </Link>
+
+          {promotion && (
+            <Link href={`/theater/${promotion.id}`} className="mt-3 block rounded-xl bg-ns-tile-rose p-5">
+              <span className="block text-sm font-semibold text-ns-secondary-readable">Creator promotion</span>
+              <span className="mt-2 block break-words font-heading text-2xl font-bold text-ns-text">{promotion.adCopy}</span>
+              <span className="mt-2 block text-sm text-ns-muted">{promotion.title}</span>
+            </Link>
+          )}
+
+          <div className="my-5 flex gap-1 rounded-full bg-ns-surface-2 p-1">
+            {(['all', 'mine'] as const).map(value => (
+              <button
+                key={value}
+                onClick={() => setTab(value)}
+                aria-pressed={tab === value}
+                className={`min-h-10 flex-1 rounded-full px-4 text-sm font-semibold transition-colors duration-150 ${tab === value ? 'bg-ns-text text-ns-bg' : 'text-ns-muted hover:text-ns-text'}`}
+              >
+                {value === 'all' ? 'Premieres' : 'My premieres'}
+              </button>
+            ))}
+          </div>
+
+          {error ? (
+            <div className="rounded-xl bg-ns-surface-2 p-5">
+              <p role="alert" className="text-sm leading-relaxed text-ns-muted">{error}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button href="/login?callbackUrl=/theater" size="sm">Sign in</Button>
+                <Button href="/pro/access" variant="outline" size="sm">Get Pro</Button>
+                <Button onClick={refresh} variant="ghost" size="sm">Retry</Button>
+              </div>
+            </div>
+          ) : !data ? (
+            <div role="status" aria-label="Loading the marquee" className="space-y-3">
+              <Skeleton className="h-28 w-full rounded-xl bg-ns-surface-2" />
+              <Skeleton className="h-28 w-full rounded-xl bg-ns-surface-2" />
+            </div>
+          ) : listed.length === 0 ? (
+            <div className="rounded-xl bg-ns-surface-2 p-6 text-center">
+              <p className="font-heading text-xl font-bold text-ns-text">A new story awaits.</p>
+              <p className="mt-2 text-sm leading-relaxed text-ns-muted">No premieres here yet. Your film could be the first.</p>
+            </div>
+          ) : (
+            <ul key={tab} className="space-y-3">
+              {listed.map((premiere, index) => <ShowtimeRow key={premiere.id} premiere={premiere} index={index} />)}
+            </ul>
+          )}
+
+          <div className="mt-5 sm:hidden">
+            <Button href="/theater/new" className="w-full">Host a premiere <ArrowRightIcon size={14} /></Button>
+          </div>
+        </aside>
+      )}
+
+      <footer className="pointer-events-none absolute inset-x-4 bottom-4 flex items-end justify-between gap-3 sm:inset-x-6 sm:bottom-6">
+        <div className={`${hudSurface} pointer-events-auto flex items-center gap-1 py-1.5 pl-4 pr-1.5`}>
+          <div>
+            <p className="text-xs text-ns-muted">You are here</p>
+            <p className="text-sm font-semibold text-ns-text">Main lobby<span className="hidden text-ns-muted sm:inline"> · First person</span></p>
+          </div>
+          <button className={`${hudControl} text-ns-muted`} onClick={() => setHelp(v => !v)} aria-label="Walking controls help">?</button>
+        </div>
+        <div className="pointer-events-auto grid grid-cols-3 gap-1" aria-label="Walking controls">
+          {WALK_CONTROLS.map(([direction, rotation, label, position]) => (
+            <button
+              key={direction}
+              className={`${position} flex h-12 w-12 select-none items-center justify-center rounded-full bg-ns-surface text-ns-text shadow-2xl transition-colors duration-150 hover:bg-ns-surface-2 active:bg-ns-surface-3`}
+              style={{ touchAction: 'none' }}
+              aria-label={label}
+              onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); movementRef.current?.(direction, true); setHelp(false) }}
+              onPointerUp={() => movementRef.current?.(direction, false)}
+              onPointerCancel={() => movementRef.current?.(direction, false)}
+              onLostPointerCapture={() => movementRef.current?.(direction, false)}
+              onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); movementRef.current?.(direction, true) } }}
+              onKeyUp={() => movementRef.current?.(direction, false)}
+              onBlur={() => movementRef.current?.(direction, false)}
+            >
+              <ArrowRightIcon size={18} className={rotation} />
+            </button>
+          ))}
+        </div>
+      </footer>
+    </div>
+  )
 }

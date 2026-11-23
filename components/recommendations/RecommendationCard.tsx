@@ -1,63 +1,44 @@
-import Image from 'next/image'
 import Link from 'next/link'
-import { tmdbImageUrl, formatYear } from '@/lib/utils'
+import { formatYear } from '@/lib/utils'
 import FeedbackButtons from './FeedbackButtons'
 import AddToCollectionButton from '@/components/collections/AddToCollectionButton'
+import PosterImage from '@/components/discover/PosterImage'
+import GrowBar from '@/components/movie/GrowBar'
 import type { RecommendationItem } from '@/types'
 
 export default function RecommendationCard({ rec }: { rec: RecommendationItem }) {
-  const scoreColor =
-    rec.matchScore >= 85 ? 'text-emerald-400' :
-    rec.matchScore >= 70 ? 'text-ns-secondary-readable' :
-                           'text-ns-muted'
-
   const isDismissed    = rec.feedback === 'dismissed' || rec.feedback === 'not_interested'
 
   if (isDismissed) return null
 
   return (
-    <div className={`group flex flex-col gap-0 rounded-2xl bg-ns-surface border border-ns-border
-                     transition-all duration-200 hover:border-ns-secondary/30
-                     hover:shadow-[0_0_20px_rgb(var(--ns-secondary)/0.08)] overflow-hidden`}>
-      <Link href={`/movie/${rec.tmdbId}`} className="flex gap-4 p-4">
-        {/* Poster */}
-        <div className="relative w-[80px] h-[120px] rounded-lg overflow-hidden flex-shrink-0 bg-ns-border">
-          <Image
-            src={tmdbImageUrl(rec.posterPath, 'w185')}
-            alt={rec.title}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+    <article className="group flex min-w-0 flex-col rounded-2xl bg-ns-surface">
+      <Link href={`/movie/${rec.tmdbId}`} className="flex min-w-0 gap-4 rounded-2xl p-4">
+        <span className="relative block aspect-[2/3] w-20 flex-shrink-0 self-start overflow-hidden rounded-lg bg-ns-surface-2">
+          <PosterImage
+            path={rec.posterPath}
+            size="w185"
             sizes="80px"
+            className="transition-transform duration-500 group-hover:scale-[1.04] motion-reduce:transform-none"
           />
-        </div>
+        </span>
 
-        {/* Info */}
-        <div className="flex flex-col gap-1.5 justify-center min-w-0">
-          <div className={`flex items-center gap-1.5 text-xs font-body font-semibold ${scoreColor}`}>
-            <div className={`w-1.5 h-1.5 rounded-full ${
-              rec.matchScore >= 85 ? 'bg-emerald-400' :
-              rec.matchScore >= 70 ? 'bg-ns-secondary' : 'bg-ns-muted'
-            }`} />
-            {rec.matchScore}% Match
-          </div>
-
-          <h3 className="text-ns-text font-body font-semibold text-sm leading-tight line-clamp-2
-                         group-hover:text-ns-secondary-readable transition-colors">
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="line-clamp-2 font-heading text-base font-semibold leading-tight text-ns-text transition-colors duration-150 group-hover:text-ns-secondary-readable">
             {rec.title}
-          </h3>
-
+          </span>
           {rec.releaseDate && (
-            <p className="text-ns-muted text-xs font-body">{formatYear(rec.releaseDate)}</p>
+            <span className="text-sm tabular-nums text-ns-muted">{formatYear(rec.releaseDate)}</span>
           )}
-
-          <p className="text-ns-muted text-xs font-body leading-relaxed line-clamp-2 mt-0.5">
-            {rec.explanation}
-          </p>
-        </div>
+          <span className="mt-0.5 flex items-center gap-2">
+            <GrowBar value={rec.matchScore / 100} className="flex-1" />
+            <span className="flex-shrink-0 text-sm font-semibold tabular-nums text-ns-text">{rec.matchScore}% match</span>
+          </span>
+          <span className="mt-0.5 line-clamp-2 text-sm leading-snug text-ns-muted">{rec.explanation}</span>
+        </span>
       </Link>
 
-      {/* Actions row */}
-      <div className="px-4 pb-3 border-t border-ns-border/50 pt-2.5 flex items-center justify-between gap-2">
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-ns-border px-4 py-2">
         <FeedbackButtons recommendationId={rec.id} initialFeedback={rec.feedback} />
         <AddToCollectionButton
           movie={{
@@ -68,6 +49,6 @@ export default function RecommendationCard({ rec }: { rec: RecommendationItem })
           }}
         />
       </div>
-    </div>
+    </article>
   )
 }

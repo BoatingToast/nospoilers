@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useTransition, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import Link from 'next/link'
 import NextFavoriteHero from './NextFavoriteHero'
 import CuratedRecCard   from './CuratedRecCard'
 import RecPersonaSection from './RecPersonaSection'
@@ -13,17 +12,19 @@ import FriendRecs from '@/components/friends/FriendRecs'
 import MovieDNACard from '@/components/dashboard/MovieDNACard'
 import type { CuratedRecGroups, EnrichedRec } from '@/services/curated-recs'
 import type { RecPersona, MovieDnaProfile, RecommendationMood } from '@/types'
-import {
-  RecsIcon, FilmIcon, MovieDnaIcon, TrendingIcon, CalendarIcon,
-  type IconProps,
-} from '@/components/icons'
+import PosterRail from '@/components/discover/PosterRail'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
+import EmptyState from '@/components/ui/EmptyState'
+import PageHeader from '@/components/ui/PageHeader'
+import Panel from '@/components/ui/Panel'
+import { MovieCardSkeleton, Skeleton } from '@/components/ui/Skeleton'
 
 // ─── Section config ───────────────────────────────────────────────────────────
 
 interface SectionConfig {
   key:     keyof Omit<CuratedRecGroups, 'nextFavorite' | 'topTraits'>
   title:   string
-  Icon:    React.ComponentType<IconProps>
   tagline: string
   empty:   string
 }
@@ -31,36 +32,31 @@ interface SectionConfig {
 const SECTIONS: SectionConfig[] = [
   {
     key:     'weThinkYoudLike',
-    title:   "We Think You'll Like",
-    Icon:    RecsIcon,
+    title:   "We think you'll like",
     tagline: 'Your highest-confidence personalised picks',
     empty:   'Add more favorite films to unlock personalised picks.',
   },
   {
     key:     'similarToFavorites',
-    title:   'Similar To Your Favorites',
-    Icon:    FilmIcon,
+    title:   'Similar to your favorites',
     tagline: 'Films tied directly to movies you already love',
     empty:   'Complete your taste profile to see films like your favorites.',
   },
   {
     key:     'dnaBasedPicks',
-    title:   'Based On Your DNA',
-    Icon:    MovieDnaIcon,
+    title:   'Based on your DNA',
     tagline: 'Matched to your top cinematic taste dimensions',
     empty:   'Build your taste profile to unlock DNA-based picks.',
   },
   {
     key:     'expandYourTaste',
-    title:   'Expand Your Taste',
-    Icon:    TrendingIcon,
+    title:   'Expand your taste',
     tagline: 'Step outside your comfort zone — you might love these',
     empty:   'Rate more films to discover where your taste can grow.',
   },
   {
     key:     'rediscoverClassics',
-    title:   'Rediscover Classics',
-    Icon:    CalendarIcon,
+    title:   'Rediscover classics',
     tagline: 'Pre-1990 masterpieces that match your DNA',
     empty:   'No classics match your current DNA profile.',
   },
@@ -97,15 +93,13 @@ function isCuratedRecGroups(value: unknown): value is CuratedRecGroups {
 
 function HeroSkeleton() {
   return (
-    <div className="rounded-3xl border border-ns-border bg-ns-surface animate-pulse" style={{ minHeight: 220 }}>
-      <div className="h-full p-8 flex gap-6">
-        <div className="w-40 aspect-[2/3] bg-ns-border rounded-xl" />
-        <div className="flex-1 space-y-3 py-2">
-          <div className="h-2 bg-ns-border rounded w-32" />
-          <div className="h-6 bg-ns-border rounded w-2/3" />
-          <div className="h-3 bg-ns-border rounded w-full" />
-          <div className="h-3 bg-ns-border rounded w-4/5" />
-        </div>
+    <div className="grid gap-7 rounded-3xl bg-ns-surface p-6 sm:grid-cols-[13rem_minmax(0,1fr)] sm:p-10 lg:grid-cols-[16rem_minmax(0,1fr)]">
+      <Skeleton className="mx-auto aspect-[2/3] w-44 rounded-xl !bg-ns-surface-2 sm:w-full" />
+      <div className="space-y-3 py-2">
+        <Skeleton className="h-4 w-32 !bg-ns-surface-2" />
+        <Skeleton className="h-11 w-2/3 !bg-ns-surface-2" />
+        <Skeleton className="h-4 w-full !bg-ns-surface-2" />
+        <Skeleton className="h-4 w-4/5 !bg-ns-surface-2" />
       </div>
     </div>
   )
@@ -114,13 +108,7 @@ function HeroSkeleton() {
 function ShelfSkeleton() {
   return (
     <div className="flex gap-4 overflow-hidden">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="w-[140px] flex-shrink-0 animate-pulse">
-          <div className="w-[140px] h-[210px] rounded-xl bg-ns-border mb-2" />
-          <div className="h-3 bg-ns-border rounded w-4/5 mb-1" />
-          <div className="h-2 bg-ns-border rounded w-2/5" />
-        </div>
-      ))}
+      {Array.from({ length: 6 }).map((_, i) => <MovieCardSkeleton key={i} />)}
     </div>
   )
 }
@@ -135,47 +123,35 @@ interface ShelfProps {
 
 function SectionShelf({ items, section, topTraits }: ShelfProps) {
   const showTraits = section.key === 'dnaBasedPicks' && topTraits.length > 0
-
-  return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
-      {/* Header */}
-      <div className="px-5 py-4 border-b border-ns-border">
-        <div className="flex items-center gap-2 mb-0.5">
-          <section.Icon size={16} className="text-ns-secondary-readable flex-shrink-0" />
-          <h2 className="text-sm font-heading text-white">{section.title}</h2>
-        </div>
-        <p className="text-[11px] font-body text-ns-muted">{section.tagline}</p>
-
-        {/* DNA top traits pills */}
-        {showTraits && (
-          <div className="flex gap-1.5 mt-2 flex-wrap">
-            {topTraits.map(t => (
-              <span
-                key={t.label}
-                className="text-[9px] font-body text-ns-secondary-readable bg-ns-secondary/10 border border-ns-secondary/20 px-2 py-0.5 rounded-full"
-              >
-                {t.label} {t.score.toFixed(1)}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Shelf */}
-      {items.length === 0 ? (
-        <div className="px-5 py-8 text-center">
-          <p className="text-ns-muted font-body text-sm">{section.empty}</p>
-        </div>
-      ) : (
-        <div className="flex gap-3 overflow-x-auto p-4 scrollbar-hide">
-          {items.map(rec => (
-            <div key={rec.tmdbId} className="flex-shrink-0">
-              <CuratedRecCard rec={rec} />
-            </div>
+  const heading = (
+    <>
+      <h2 className="font-display text-3xl text-ns-text sm:text-4xl">{section.title}</h2>
+      <p className="mt-1.5 text-base text-ns-muted">{section.tagline}</p>
+      {showTraits && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {topTraits.map(t => (
+            <Badge key={t.label} size="md">{t.label} <span className="tabular-nums text-ns-text">{t.score.toFixed(1)}</span></Badge>
           ))}
         </div>
       )}
-    </div>
+    </>
+  )
+
+  if (items.length === 0) {
+    return (
+      <section>
+        <div className="mb-4">{heading}</div>
+        <p className="rounded-2xl bg-ns-surface p-6 text-base text-ns-muted">{section.empty}</p>
+      </section>
+    )
+  }
+
+  return (
+    <section>
+      <PosterRail label={`${section.title} picks`} controlsLabel={section.title} heading={heading}>
+        {items.map(rec => <CuratedRecCard key={rec.tmdbId} rec={rec} />)}
+      </PosterRail>
+    </section>
   )
 }
 
@@ -268,37 +244,30 @@ export default function RecommendationCenterClient() {
     : 0
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      {/* Page header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-heading text-white mb-2">
-            Recommendation Center
-          </h1>
-          <p className="text-ns-muted font-body text-sm">
-            {recLoading
-              ? 'Loading your personalised picks…'
-              : recommendations.status === 'error'
-                ? 'Your personalised picks could not be loaded'
-                : totalPicks === 0
-                  ? 'Your recommendation profile is ready for more movie signals'
-                  : `${totalPicks} personalised recommendations powered by your Movie DNA`
-            }
-          </p>
+    <div className="mx-auto max-w-7xl space-y-12 px-4 pb-16 pt-8 sm:px-6 sm:pt-12 lg:space-y-16 lg:pb-24">
+      <div className="space-y-6">
+        <PageHeader
+          title="Recommendation center"
+          description={
+            <span key={recommendations.status} className="inline-block animate-fade-up">
+              {recLoading
+                ? 'Loading your personalised picks…'
+                : recommendations.status === 'error'
+                  ? 'Your personalised picks could not be loaded'
+                  : totalPicks === 0
+                    ? 'Your recommendation profile is ready for more movie signals'
+                    : `${totalPicks} personalised recommendations powered by your Movie DNA`}
+            </span>
+          }
+        />
+
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <MoodControls onApply={handleMoodApply} loading={recLoading} />
+          <RecAccuracyWidget />
         </div>
-        <RecAccuracyWidget />
       </div>
 
-      <MoodControls onApply={handleMoodApply} loading={recLoading} />
-
-      {/* ─── Movie DNA teaser — same reusable card as Dashboard/profiles ───── */}
-      {(dnaLoading || dnaProfile) && (
-        <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
-          <MovieDNACard profile={dnaProfile} loading={dnaLoading} compact />
-        </div>
-      )}
-
-      {/* ─── 🎯 NEXT FAVORITE hero ─────────────────────────────────────────── */}
+      {/* Next favorite */}
       {recLoading ? (
         <HeroSkeleton />
       ) : groups?.nextFavorite ? (
@@ -308,65 +277,50 @@ export default function RecommendationCenterClient() {
         />
       ) : null}
 
-      {/* ─── ⭐ Based On Your Ratings ────────────────────────────────────────── */}
+      {/* Movie DNA teaser, the same card used on the Dashboard and profiles */}
+      {(dnaLoading || dnaProfile) && (
+        <Panel className="rounded-3xl p-6 sm:p-8">
+          <MovieDNACard profile={dnaProfile} loading={dnaLoading} compact />
+        </Panel>
+      )}
+
       <BasedOnRatingsSection />
 
-      {/* ─── 🤝 Because Your Friends Loved It ───────────────────────────────── */}
       <FriendRecs />
 
-      {/* ─── 5 rec sections ────────────────────────────────────────────────── */}
+      {/* Recommendation shelves */}
       {recommendations.status === 'error' ? (
-        <div
-          className="rounded-2xl border border-dashed border-ns-danger/30 bg-ns-surface px-6 py-10 text-center"
-          role="alert"
-        >
-          <p className="mb-1 font-heading text-base text-white">Recommendations couldn&apos;t load</p>
-          <p className="mb-4 font-body text-sm text-ns-muted">
-            We could not reach the recommendation service. Your taste profile and ratings are safe.
-          </p>
-          <button
-            type="button"
-            onClick={() => setRecRequest(request => request + 1)}
-            className="rounded-lg bg-ns-secondary px-4 py-2 font-body text-sm font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-surface"
-          >
-            Try again
-          </button>
+        <div role="alert">
+          <EmptyState
+            title="Recommendations couldn't load"
+            description="We could not reach the recommendation service. Your taste profile and ratings are safe."
+            action={<Button onClick={() => setRecRequest(request => request + 1)}>Try again</Button>}
+          />
         </div>
       ) : recLoading ? (
-        <div className="space-y-6" aria-busy="true" aria-label="Loading recommendation shelves">
+        <div className="space-y-12" aria-busy="true" aria-label="Loading recommendation shelves">
           {SECTIONS.map(s => (
-            <div key={s.key} className="bg-ns-surface border border-ns-border rounded-2xl p-5">
-              <div className="h-3 bg-ns-border rounded w-40 mb-4 animate-pulse" />
+            <div key={s.key}>
+              <Skeleton className="mb-5 h-8 w-64 max-w-full" />
               <ShelfSkeleton />
             </div>
           ))}
         </div>
       ) : totalPicks === 0 ? (
-        <div
-          className="rounded-2xl border border-dashed border-ns-border bg-ns-surface px-6 py-10 text-center"
-          role="status"
-        >
-          <p className="mb-1 font-heading text-lg text-white">Your next picks need a little more signal</p>
-          <p className="mx-auto mb-5 max-w-lg font-body text-sm leading-relaxed text-ns-muted">
-            Nothing matched yet, but the recommendation service loaded successfully. Rate a few films or update your favorites to shape your Movie DNA.
-          </p>
-          <div className="flex flex-col justify-center gap-3 sm:flex-row">
-            <Link
-              href="/ratings"
-              className="rounded-lg bg-ns-secondary px-4 py-2 font-body text-sm font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-surface"
-            >
-              Rate films
-            </Link>
-            <Link
-              href="/onboarding"
-              className="rounded-lg border border-ns-border px-4 py-2 font-body text-sm text-ns-text transition-colors hover:border-ns-muted hover:bg-ns-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-ns-surface"
-            >
-              Update favorites
-            </Link>
-          </div>
+        <div role="status">
+          <EmptyState
+            title="Your next picks need a little more signal"
+            description="Nothing matched yet, but the recommendation service loaded successfully. Rate a few films or update your favorites to shape your Movie DNA."
+            action={(
+              <div className="flex flex-col justify-center gap-3 sm:flex-row">
+                <Button href="/ratings">Rate films</Button>
+                <Button href="/onboarding" variant="outline">Update favorites</Button>
+              </div>
+            )}
+          />
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-12 lg:space-y-16">
           {SECTIONS.map(s => (
             <SectionShelf
               key={s.key}
@@ -378,10 +332,10 @@ export default function RecommendationCenterClient() {
         </div>
       )}
 
-      {/* ─── Personas ──────────────────────────────────────────────────────── */}
+      {/* Personas */}
       {perLoading ? (
-        <div className="bg-ns-surface border border-ns-border rounded-2xl p-5 animate-pulse">
-          <div className="h-3 bg-ns-border rounded w-48 mb-4" />
+        <div aria-busy="true">
+          <Skeleton className="mb-5 h-8 w-72 max-w-full" />
           <ShelfSkeleton />
         </div>
       ) : (

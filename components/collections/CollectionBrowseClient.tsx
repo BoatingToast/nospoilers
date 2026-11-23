@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import Button from '@/components/ui/Button'
+import EmptyState from '@/components/ui/EmptyState'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { PillTabs, posterGridClass, revealDelay } from '@/components/watchlist/LibraryControls'
+import { cn } from '@/lib/utils'
 import EnrichedCollectionCard from './EnrichedCollectionCard'
 import type { EnrichedCollectionData } from '@/types'
-import {
-  TrendingIcon, PopularIcon, WrappedIcon, AchievementsIcon, FilmIcon, FriendsIcon,
-  CollectionsIcon, type IconProps,
-} from '@/components/icons'
 
 // ─── Tab config ───────────────────────────────────────────────────────────────
 
@@ -16,30 +17,29 @@ type TabKey = 'trending' | 'popular' | 'newest' | 'most_upvoted' | 'most_movies'
 interface TabConfig {
   key:           TabKey
   label:         string
-  Icon:          React.ComponentType<IconProps>
   api:           string
   authRequired?: boolean
 }
 
 const TABS: TabConfig[] = [
-  { key: 'trending',     label: 'Trending',     Icon: TrendingIcon,     api: '/api/collections/trending' },
-  { key: 'popular',     label: 'Popular',       Icon: PopularIcon,      api: '/api/collections?tab=popular' },
-  { key: 'newest',      label: 'Newest',        Icon: WrappedIcon,      api: '/api/collections?tab=newest' },
-  { key: 'most_upvoted', label: 'Most Upvoted', Icon: AchievementsIcon, api: '/api/collections?tab=most_upvoted' },
-  { key: 'most_movies', label: 'Most Movies',   Icon: FilmIcon,         api: '/api/collections?tab=most_movies' },
-  { key: 'following',   label: 'Following',     Icon: FriendsIcon,      api: '/api/collections?tab=following', authRequired: true },
+  { key: 'trending', label: 'Trending', api: '/api/collections/trending' },
+  { key: 'popular', label: 'Popular', api: '/api/collections?tab=popular' },
+  { key: 'newest', label: 'Newest', api: '/api/collections?tab=newest' },
+  { key: 'most_upvoted', label: 'Most upvoted', api: '/api/collections?tab=most_upvoted' },
+  { key: 'most_movies', label: 'Most movies', api: '/api/collections?tab=most_movies' },
+  { key: 'following', label: 'Following', api: '/api/collections?tab=following', authRequired: true },
 ]
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
-function Skeleton() {
+function GridSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-      {Array.from({ length: 10 }).map((_, i) => (
-        <div key={i} className="animate-pulse">
-          <div className="aspect-[2/3] rounded-xl bg-ns-border mb-3" />
-          <div className="h-3 bg-ns-border rounded w-4/5 mb-1.5" />
-          <div className="h-2.5 bg-ns-border rounded w-2/5" />
+    <div role="status" aria-label="Loading collections" className={posterGridClass}>
+      {Array.from({ length: 12 }).map((_, i) => (
+        <div key={i}>
+          <Skeleton className="aspect-[2/3] rounded-xl" />
+          <Skeleton className="mt-2.5 h-4 w-4/5" />
+          <Skeleton className="mt-1.5 h-3 w-2/5" />
         </div>
       ))}
     </div>
@@ -85,66 +85,39 @@ export default function CollectionBrowseClient({ initialTab = 'trending' }: Prop
     setCollections([])
   }
 
+  const tabOptions = TABS
+    .filter(tab => !tab.authRequired || status === 'authenticated')
+    .map(tab => ({ value: tab.key, label: tab.label }))
+
   return (
     <div>
-      {/* Tab bar */}
-      <div className="flex gap-0 overflow-x-auto -mx-6 px-6 mb-8 scrollbar-hide">
-        <div className="flex gap-1 border-b border-ns-border w-full pb-0">
-          {TABS.map(tab => {
-            if (tab.authRequired && status !== 'authenticated') return null
-            const isActive = tab.key === activeTab
-            return (
-              <button
-                key={tab.key}
-                onClick={() => switchTab(tab.key)}
-                className={`flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-body whitespace-nowrap
-                            border-b-2 -mb-px transition-all duration-150 flex-shrink-0
-                            ${isActive
-                              ? 'border-ns-secondary text-ns-secondary-readable'
-                              : 'border-transparent text-ns-muted hover:text-ns-text'
-                            }`}
-              >
-                <tab.Icon size={13} />
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
+      <PillTabs label="Browse collections" options={tabOptions} value={activeTab} onChange={switchTab} className="mb-8" />
 
-      {/* Content */}
       {loading ? (
-        <Skeleton />
+        <GridSkeleton />
       ) : error ? (
-        <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-          <p className="text-ns-muted font-body text-sm mb-3">Could not load collections.</p>
-          <button
-            onClick={() => fetchTab(activeConfig)}
-            className="text-ns-secondary-readable text-sm font-body hover:text-amber-400 transition-colors"
-          >
-            Try again
-          </button>
-        </div>
+        <EmptyState
+          title="Could not load collections."
+          description="Check your connection and try again."
+          action={<Button variant="secondary" onClick={() => fetchTab(activeConfig)}>Try again</Button>}
+        />
       ) : collections.length === 0 ? (
-        <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-          <CollectionsIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
-          <p className="text-ns-muted font-body text-sm">
-            {activeTab === 'following'
-              ? 'Follow creators to see their collections here.'
-              : 'No collections yet. Be the first to create one!'
-            }
-          </p>
-        </div>
+        <EmptyState
+          title={activeTab === 'following' ? 'Nothing from creators you follow' : 'No collections yet'}
+          description={activeTab === 'following'
+            ? 'Follow creators to see their collections here.'
+            : 'No collections yet. Be the first to create one!'}
+        />
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div key={activeTab} className={cn(posterGridClass, 'animate-fade-up')}>
           {collections.map((col, i) => (
-            <EnrichedCollectionCard
-              key={col.id}
-              collection={col}
-              rank={activeTab === 'trending' ? i + 1 : undefined}
-              showVotes
-            />
+            <div key={col.id} className={i > 5 ? 'ns-reveal' : undefined} style={i > 5 ? revealDelay(i) : undefined}>
+              <EnrichedCollectionCard
+                collection={col}
+                rank={activeTab === 'trending' ? i + 1 : undefined}
+                showVotes
+              />
+            </div>
           ))}
         </div>
       )}

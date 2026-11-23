@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link                    from 'next/link'
 import { useSession }          from 'next-auth/react'
-import { CheckIcon }           from '@/components/icons'
+import Button                  from '@/components/ui/Button'
+import { CheckIcon, PlusIcon } from '@/components/icons'
 
 interface Props {
   tmdbId:      number
@@ -15,16 +17,13 @@ interface Props {
 }
 
 export default function MemberButton({
-  tmdbId, movieTitle, moviePoster,
-  initialMemberCount, onMembershipChange,
+  tmdbId, movieTitle, moviePoster, onMembershipChange,
 }: Props) {
   const { data: session } = useSession()
   const [isMember,     setIsMember]     = useState(false)
-  const [memberCount,  setMemberCount]  = useState(initialMemberCount)
   const [loading,      setLoading]      = useState(true)
   const [working,      setWorking]      = useState(false)
   const [showLeave,    setShowLeave]    = useState(false)    // hover state on member button
-  const [justJoined,   setJustJoined]  = useState(false)    // triggers animation
 
   // On mount, fetch current membership status
   useEffect(() => {
@@ -35,9 +34,6 @@ export default function MemberButton({
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [tmdbId, session?.user])
-
-  // Sync initialMemberCount when prop changes
-  useEffect(() => { setMemberCount(initialMemberCount) }, [initialMemberCount])
 
   const handleJoin = async () => {
     if (!session?.user) return
@@ -51,10 +47,7 @@ export default function MemberButton({
       if (!res.ok) return
       const data: { memberCount: number } = await res.json()
       setIsMember(true)
-      setMemberCount(data.memberCount)
-      setJustJoined(true)
       onMembershipChange?.(true, data.memberCount)
-      setTimeout(() => setJustJoined(false), 1200)
     } finally {
       setWorking(false)
     }
@@ -69,7 +62,6 @@ export default function MemberButton({
       if (!res.ok) return
       const data: { memberCount: number } = await res.json()
       setIsMember(false)
-      setMemberCount(data.memberCount)
       onMembershipChange?.(false, data.memberCount)
     } finally {
       setWorking(false)
@@ -78,83 +70,41 @@ export default function MemberButton({
 
   if (!session?.user) {
     return (
-      <div className="flex items-center gap-3">
-        <span className="text-xs font-body text-ns-muted/60">
-          <a href="/auth/signin" className="text-ns-secondary-readable hover:text-amber-400 transition-colors underline underline-offset-2">
-            Sign in
-          </a>{' '}to join
-        </span>
-        <MemberCountPill count={memberCount} />
-      </div>
+      <p className="text-sm text-ns-muted">
+        <Link href={`/login?callbackUrl=${encodeURIComponent(`/movie/${tmdbId}`)}`} className="font-semibold text-ns-secondary-readable underline underline-offset-2 transition-colors hover:text-ns-text">
+          Sign in
+        </Link>{' '}to join
+      </p>
     )
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center gap-3">
-        <div className="h-8 w-32 bg-ns-surface rounded-xl animate-pulse" />
-        <MemberCountPill count={memberCount} />
-      </div>
-    )
+    return <div className="h-11 w-40 animate-pulse rounded-full bg-ns-surface-2 sm:h-10" />
   }
 
   if (isMember) {
     return (
-      <div className="flex items-center gap-3">
-        <button
-          onMouseEnter={() => setShowLeave(true)}
-          onMouseLeave={() => setShowLeave(false)}
-          onClick={handleLeave}
-          disabled={working}
-          className={`relative flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-body font-semibold
-                      border transition-all duration-200 overflow-hidden
-                      ${showLeave
-                        ? 'border-red-500/40 text-red-400 bg-red-500/5'
-                        : 'border-ns-secondary/30 text-ns-secondary-readable bg-ns-secondary/5 hover:bg-ns-secondary/10'}
-                      disabled:opacity-50`}
-        >
-          <CheckIcon size={13} strokeWidth={2.5} />
-          <span>{showLeave ? 'Leave' : 'Member'}</span>
-        </button>
-        <MemberCountPill count={memberCount} />
-      </div>
+      <button
+        type="button"
+        onMouseEnter={() => setShowLeave(true)}
+        onMouseLeave={() => setShowLeave(false)}
+        onClick={handleLeave}
+        disabled={working}
+        className={`inline-flex min-h-11 min-w-28 animate-fade-up items-center justify-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors duration-150 disabled:cursor-wait disabled:opacity-50 sm:min-h-10
+          ${showLeave
+            ? 'border-ns-danger bg-ns-danger/10 text-ns-danger'
+            : 'border-ns-border-strong text-ns-text'}`}
+      >
+        <CheckIcon size={14} strokeWidth={2.5} />
+        <span>{showLeave ? 'Leave' : 'Member'}</span>
+      </button>
     )
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <button
-        onClick={handleJoin}
-        disabled={working}
-        className={`relative flex items-center gap-2 px-5 py-1.5 rounded-xl text-xs font-body font-bold
-                    overflow-hidden transition-all duration-300 disabled:opacity-50
-                    ${justJoined
-                      ? 'bg-ns-secondary text-ns-secondary-foreground scale-105 shadow-lg shadow-ns-secondary/20'
-                      : 'bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/40 hover:bg-ns-secondary hover:text-ns-secondary-foreground hover:shadow-md hover:shadow-ns-secondary/20 active:scale-95'
-                    }`}
-      >
-        {working ? (
-          <svg className="animate-spin" width="12" height="12" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-          </svg>
-        ) : (
-          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <line x1="12" y1="5"  x2="12" y2="19" />
-            <line x1="5"  y1="12" x2="19" y2="12" />
-          </svg>
-        )}
-        <span>Join Spoiler Zone</span>
-      </button>
-      <MemberCountPill count={memberCount} />
-    </div>
-  )
-}
-
-function MemberCountPill({ count }: { count: number }) {
-  return (
-    <span className="text-[10px] font-body text-ns-muted/50 tabular-nums">
-      {count.toLocaleString()} {count === 1 ? 'member' : 'members'}
-    </span>
+    <Button size="sm" onClick={handleJoin} loading={working} className="min-h-11 sm:min-h-10">
+      {!working && <PlusIcon size={14} />}
+      Join Spoiler Zone
+    </Button>
   )
 }

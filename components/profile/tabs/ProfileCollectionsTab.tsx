@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { tmdbImageUrl } from '@/lib/utils'
-import { LockIcon, CollectionsIcon } from '@/components/icons'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface CollectionItem {
   id:             string
@@ -34,68 +34,62 @@ export default function ProfileCollectionsTab({ username }: { username: string }
   }, [username])
 
   if (blocked) {
-    return (
-      <div className="py-20 text-center">
-        <LockIcon size={40} className="text-ns-muted/40 mx-auto mb-3" />
-        <p className="text-ns-muted font-body text-sm">This user's collections are private.</p>
-      </div>
-    )
+    return <EmptyState title="This user's collections are private." />
   }
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="animate-pulse bg-ns-surface border border-ns-border rounded-2xl p-4 h-28" />
+          <div key={i} className="h-32 animate-pulse rounded-2xl bg-ns-surface" />
         ))}
       </div>
     )
   }
 
   if (collections.length === 0) {
-    return (
-      <div className="py-20 text-center">
-        <CollectionsIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
-        <p className="text-ns-muted font-body text-sm">No public collections yet.</p>
-      </div>
-    )
+    return <EmptyState title="No public collections yet." />
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {collections.map(c => (
-        <Link key={c.id} href={`/collections/${c.id}`} className="group bg-ns-surface border border-ns-border rounded-2xl p-4 hover:border-ns-secondary/40 transition-colors">
-          <div className="flex items-start gap-3">
-            {/* Preview posters strip */}
-            <div className="flex -space-x-3 flex-shrink-0">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      {collections.map((c, index) => (
+        <div key={c.id} className="ns-reveal" style={{ '--i': Math.min(index, 7) } as React.CSSProperties}>
+          <Link
+            href={`/collections/${c.id}`}
+            className="group flex h-full items-center gap-5 rounded-2xl bg-ns-surface p-5 transition-colors duration-150 hover:bg-ns-surface-2"
+          >
+            <div className="flex flex-shrink-0 -space-x-6">
               {c.previewPosters.slice(0, 3).map((poster, i) => (
-                <div key={i} className="w-10 h-14 rounded-lg overflow-hidden border-2 border-ns-surface bg-ns-border" style={{ zIndex: 3 - i }}>
+                <div
+                  key={i}
+                  className="relative aspect-[2/3] w-14 overflow-hidden rounded-lg bg-ns-surface-3 ring-2 ring-ns-surface transition-colors duration-150 group-hover:ring-ns-surface-2 sm:w-16"
+                  style={{ zIndex: 3 - i }}
+                >
                   {poster && (
                     <Image
                       src={tmdbImageUrl(poster, 'w185')}
                       alt=""
-                      width={40}
-                      height={56}
-                      className="object-cover w-full h-full"
+                      fill
+                      sizes="64px"
+                      className="object-cover"
                     />
                   )}
                 </div>
               ))}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-body text-white group-hover:text-ns-secondary-readable transition-colors line-clamp-1">{c.title}</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-heading text-lg font-bold text-ns-text transition-colors duration-150 group-hover:text-ns-secondary-readable">{c.title}</p>
               {c.description && (
-                <p className="text-xs font-body text-ns-muted line-clamp-2 mt-0.5">{c.description}</p>
+                <p className="mt-0.5 line-clamp-2 text-sm text-ns-muted">{c.description}</p>
               )}
-              <div className="flex items-center gap-3 mt-2">
-                <span className="text-[10px] font-body text-ns-muted">{c.movieCount} films</span>
-                {c.upvotes > 0 && (
-                  <span className="text-[10px] font-body text-ns-secondary-readable">▲ {c.upvotes}</span>
-                )}
-              </div>
+              <p className="mt-2 text-sm tabular-nums text-ns-subtle">
+                {c.movieCount} films
+                {c.upvotes > 0 && <span> · ▲ {c.upvotes}</span>}
+              </p>
             </div>
-          </div>
-        </Link>
+          </Link>
+        </div>
       ))}
     </div>
   )

@@ -1,13 +1,14 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import Link from 'next/link'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
 import {
+  ArrowRightIcon,
   CheckIcon,
   LockIcon,
-  RecsIcon,
-  WatchlistIcon,
 } from '@/components/icons'
 import type {
   CharacterAccessory,
@@ -19,11 +20,8 @@ import type {
 const ProCharacterScene = dynamic(() => import('@/components/pro/ProCharacterScene'), {
   ssr: false,
   loading: () => (
-    <div className="grid h-full min-h-[470px] place-items-center">
-      <div className="flex items-center gap-3 text-[10px] font-heading uppercase tracking-[0.2em] text-ns-muted">
-        <span className="h-2 w-2 animate-pulse rounded-full bg-ns-secondary-readable" />
-        Initializing 3D identity
-      </div>
+    <div className="absolute inset-0 grid place-items-center text-sm text-ns-muted">
+      Loading your character…
     </div>
   ),
 })
@@ -37,10 +35,11 @@ interface ChatMessage {
   content: string
 }
 
+// Character colors are the viewer's saved data and feed WebGL, so they stay as hex.
 const DEFAULT_CHARACTER: CharacterConfig = {
   skin: '#b76e52',
   suit: '#151d46',
-  accent: '#9d7cff',
+  accent: '#f2665f',
   silhouette: 'classic',
   accessory: 'visor',
   energy: 'orbit',
@@ -63,6 +62,7 @@ const SUIT_COLORS = [
 ]
 
 const ACCENT_COLORS = [
+  { label: 'Coral', value: '#f2665f' },
   { label: 'Ultraviolet', value: '#9d7cff' },
   { label: 'Aurora', value: '#26e6cd' },
   { label: 'Solar', value: '#ffbc4b' },
@@ -137,21 +137,23 @@ function ColorRow({
 }) {
   return (
     <fieldset>
-      <legend className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">{label}</legend>
+      <legend className="text-sm font-semibold text-ns-text">{label}</legend>
       <div className="mt-2.5 flex flex-wrap gap-2">
-        {options.map(option => (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => onChange(option.value)}
-            aria-label={`${label}: ${option.label}`}
-            aria-pressed={value === option.value}
-            className={`relative h-8 w-8 rounded-full border p-1 transition-transform hover:scale-110 ${value === option.value ? 'border-white' : 'border-white/10'}`}
-          >
-            <span className="block h-full w-full rounded-full" style={{ backgroundColor: option.value }} />
-            {value === option.value && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-ns-surface-2 bg-ns-success" />}
-          </button>
-        ))}
+        {options.map(option => {
+          const selected = value === option.value
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onChange(option.value)}
+              aria-label={`${label}: ${option.label}`}
+              aria-pressed={selected}
+              className={`grid h-11 w-11 place-items-center rounded-full transition-colors duration-150 ${selected ? 'bg-ns-text' : 'bg-ns-surface-2 hover:bg-ns-surface-3'}`}
+            >
+              <span className="block h-8 w-8 rounded-full" style={{ backgroundColor: option.value }} />
+            </button>
+          )
+        })}
       </div>
     </fieldset>
   )
@@ -170,18 +172,18 @@ function SegmentedRow<T extends string>({
 }) {
   return (
     <fieldset>
-      <legend className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">{label}</legend>
-      <div className="mt-2 grid grid-cols-3 gap-1 rounded-xl border border-ns-border bg-ns-bg/55 p-1">
+      <legend className="text-sm font-semibold text-ns-text">{label}</legend>
+      <div className="mt-2.5 flex flex-wrap gap-1.5">
         {options.map(option => (
           <button
             key={option.value}
             type="button"
             onClick={() => onChange(option.value)}
             aria-pressed={value === option.value}
-            className={`min-h-9 rounded-lg px-2 text-[10px] font-heading font-semibold transition-colors ${
+            className={`min-h-11 rounded-full px-4 text-sm font-semibold transition-colors duration-150 ${
               value === option.value
-                ? 'bg-ns-secondary text-white shadow-lg shadow-ns-secondary/20'
-                : 'text-ns-muted hover:bg-white/5 hover:text-white'
+                ? 'bg-ns-text text-ns-bg'
+                : 'bg-ns-surface-2 text-ns-muted hover:bg-ns-surface-3 hover:text-ns-text'
             }`}
           >
             {option.label}
@@ -202,6 +204,7 @@ export default function ProCommandCenter({ mode, userId }: { mode: ConsoleMode; 
   const [connection, setConnection] = useState<ConnectionMode>('preview')
   const [progress, setProgress] = useState(28)
   const [sessionLoaded, setSessionLoaded] = useState(false)
+  const [scenePaused, setScenePaused] = useState(false)
   const shellRef = useRef<HTMLDivElement>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const messageIdRef = useRef(1)
@@ -350,259 +353,217 @@ export default function ProCommandCenter({ mode, userId }: { mode: ConsoleMode; 
     void sendMessage(chatInput)
   }
 
+  const fullscreenButton = (
+    <Button variant="ghost" size="sm" className="flex-shrink-0" onClick={() => void toggleFullscreen()}>Full screen</Button>
+  )
+
   return (
-    <div ref={shellRef} className="pro-command-shell overflow-hidden rounded-3xl border border-ns-border bg-ns-surface shadow-2xl shadow-black/30">
-      <div className="flex items-center justify-between gap-3 border-b border-ns-border bg-ns-bg/35 px-5 py-3">
-        <p className="text-xs text-ns-muted">{mode === 'forge' ? 'Your identity studio' : mode === 'lumi' ? 'A conversation with Lumi' : 'Interactive boundary preview'}</p>
-        <button type="button" onClick={() => void toggleFullscreen()} className="min-h-10 rounded-lg border border-ns-border px-3 text-xs text-ns-muted transition-colors hover:border-ns-secondary/50 hover:text-white">Full screen</button>
-      </div>
+    <div ref={shellRef} className="overflow-hidden rounded-3xl bg-ns-surface [&:fullscreen]:h-screen [&:fullscreen]:w-screen [&:fullscreen]:overflow-auto [&:fullscreen]:rounded-none [&:fullscreen]:bg-ns-bg">
+      {mode === 'forge' && (
+        <div className="grid lg:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
+          <div className="relative h-[480px] overflow-hidden bg-ns-surface-2 sm:h-[560px] lg:h-auto lg:min-h-[780px]">
+            <ProCharacterScene config={config} paused={scenePaused} />
+            <div className="pointer-events-none absolute left-5 top-5 z-10 max-w-[calc(100%-9rem)] sm:left-7 sm:top-7">
+              <p className="truncate font-display text-3xl text-ns-text sm:text-4xl">{avatarName || 'Unnamed'}</p>
+              <p className="mt-1.5 flex items-center gap-2 text-sm text-ns-muted">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: config.accent }} />
+                Live taste twin
+              </p>
+            </div>
+            <div className="absolute right-3 top-3 z-10 sm:right-5 sm:top-5">{fullscreenButton}</div>
+            <div className="pointer-events-none absolute inset-x-5 bottom-4 z-10 flex items-center justify-between gap-3 sm:inset-x-7 sm:bottom-6">
+              <p className="min-w-0 truncate text-sm text-ns-muted">
+                <span className="hidden sm:inline">{optionLabel(SILHOUETTES, config.silhouette)} · {optionLabel(ENERGIES, config.energy)} · </span>Drag to rotate
+              </p>
+              <button
+                type="button"
+                onClick={() => setScenePaused(value => !value)}
+                className="pointer-events-auto inline-flex min-h-11 flex-shrink-0 items-center rounded-full bg-ns-surface px-4 text-sm font-semibold text-ns-text transition-colors hover:bg-ns-surface-3"
+              >
+                {scenePaused ? 'Play rotation' : 'Pause rotation'}
+              </button>
+            </div>
+          </div>
 
-          {mode === 'forge' && (
-            <div className="grid min-h-[680px] lg:grid-cols-[minmax(0,1.35fr)_minmax(330px,0.65fr)]">
-              <div className="pro-viewport relative min-h-[520px] overflow-hidden border-b border-white/10 lg:border-b-0 lg:border-r">
-                <div aria-hidden="true" className="pro-horizon-grid absolute inset-x-0 bottom-0 h-2/3" />
-                <div className="absolute left-5 top-5 z-10">
-                  <p className="font-display text-2xl tracking-[0.12em] text-white">{avatarName || 'UNNAMED'}</p>
-                  <div className="mt-2 flex items-center gap-2 text-[10px] uppercase tracking-[0.17em] text-ns-muted">
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: config.accent }} />
-                    Live taste twin
-                  </div>
-                </div>
-                <div className="absolute right-5 top-5 z-10 rounded-full border border-white/10 bg-ns-bg/45 px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] text-ns-muted backdrop-blur">
-                  Drag to orbit
-                </div>
-                <ProCharacterScene config={config} />
-                <div className="pointer-events-none absolute inset-x-4 bottom-4 z-10 grid grid-cols-3 gap-2 sm:inset-x-5">
-                  {[
-                    ['Form', optionLabel(SILHOUETTES, config.silhouette)],
-                    ['Motion', optionLabel(ENERGIES, config.energy)],
-                    ['Signal', '98%'],
-                  ].map(([label, value]) => (
-                    <div key={label} className="rounded-xl border border-white/10 bg-ns-bg/55 px-3 py-2.5 backdrop-blur-md">
-                      <p className="text-[10px] uppercase tracking-[0.18em] text-ns-muted">{label}</p>
-                      <p className="mt-1 truncate font-heading text-[10px] font-semibold text-white">{value}</p>
-                    </div>
-                  ))}
-                </div>
+          <aside className="p-6 sm:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <h2 className="font-display text-3xl text-ns-text">Make your Movie DNA visible.</h2>
+              <Button variant="outline" size="sm" className="flex-shrink-0" onClick={randomizeCharacter}>Randomize</Button>
+            </div>
+
+            <div className="mt-7">
+              <Input
+                id="pro-identity-name"
+                label="Identity name"
+                value={avatarName}
+                onChange={event => { setAvatarName(event.target.value.slice(0, 18).toUpperCase()); setSaveLabel('Save identity') }}
+                className="font-heading text-lg font-bold"
+                aria-label="Character name"
+              />
+            </div>
+
+            <div className="mt-7 grid gap-6">
+              <ColorRow label="Skin tone" value={config.skin} options={SKIN_TONES} onChange={value => updateConfig('skin', value)} />
+              <ColorRow label="Cinema suit" value={config.suit} options={SUIT_COLORS} onChange={value => updateConfig('suit', value)} />
+              <ColorRow label="Aura color" value={config.accent} options={ACCENT_COLORS} onChange={value => updateConfig('accent', value)} />
+              <SegmentedRow label="Silhouette" value={config.silhouette} options={SILHOUETTES} onChange={value => updateConfig('silhouette', value)} />
+              <SegmentedRow label="Energy" value={config.energy} options={ENERGIES} onChange={value => updateConfig('energy', value)} />
+              <SegmentedRow label="Headwear" value={config.accessory} options={ACCESSORIES} onChange={value => updateConfig('accessory', value)} />
+            </div>
+
+            <Button size="lg" className="mt-8 w-full" onClick={saveCharacter}>
+              <CheckIcon size={16} /> {saveLabel}
+            </Button>
+            <p className="mt-3 text-center text-sm text-ns-muted">Your identity is saved on this device.</p>
+          </aside>
+        </div>
+      )}
+
+      {mode === 'lumi' && (
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="flex h-[min(720px,calc(100svh-6rem))] min-h-[560px] min-w-0 flex-col">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ns-border px-5 py-4 sm:px-8 sm:py-5">
+              <div className="min-w-0">
+                <h2 className="font-heading text-xl font-bold text-ns-text">Lumi, your cinema companion</h2>
+                <p className="mt-0.5 text-sm text-ns-muted">Taste-aware. Decisive. Plot-blind by design.</p>
               </div>
+              <div className="flex items-center gap-1">
+                <Badge variant={connection === 'live' ? 'success' : connection === 'connecting' ? 'warning' : 'muted'} size="md">
+                  {connection === 'live' ? 'Live AI' : connection === 'connecting' ? 'Connecting' : 'Preview brain'}
+                </Badge>
+                {fullscreenButton}
+              </div>
+            </div>
 
-              <aside className="bg-ns-surface-2/35 p-5 sm:p-7">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[10px] font-heading font-semibold uppercase tracking-[0.2em] text-ns-secondary-readable">Character protocol</p>
-                    <h3 className="mt-1 font-heading text-xl font-semibold text-white">Make your Movie DNA visible.</h3>
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-6 sm:px-8" aria-live="polite">
+              {messages.map(message => (
+                <div key={message.id} className={`flex animate-fade-up ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] whitespace-pre-wrap break-words text-base leading-relaxed text-ns-text sm:max-w-[75%] ${message.role === 'user' ? 'rounded-2xl rounded-br-md bg-ns-surface-3 px-4 py-3' : ''}`}>
+                    {message.content}
                   </div>
-                  <button type="button" onClick={randomizeCharacter} className="rounded-lg border border-ns-border px-3 py-2 text-[10px] font-heading font-semibold text-ns-muted transition-colors hover:border-ns-secondary/50 hover:text-white">
-                    Randomize
+                </div>
+              ))}
+              {sending && (
+                <div className="flex w-fit animate-fade-up items-center gap-1.5 rounded-2xl bg-ns-surface-2 px-4 py-4" role="status" aria-label="Lumi is thinking">
+                  {[0, 1, 2].map(index => <span key={index} className="h-1.5 w-1.5 animate-pulse rounded-full bg-ns-muted" style={{ animationDelay: `${index * 140}ms` }} />)}
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            <div className="border-t border-ns-border p-4 sm:px-8 sm:py-5">
+              <div className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide sm:mx-0 sm:px-0">
+                {QUICK_PROMPTS.map(prompt => (
+                  <button key={prompt} type="button" onClick={() => void sendMessage(prompt)} disabled={sending} className="min-h-11 flex-shrink-0 rounded-full bg-ns-surface-2 px-4 text-sm font-medium text-ns-muted transition-colors hover:bg-ns-surface-3 hover:text-ns-text disabled:cursor-not-allowed disabled:opacity-50">
+                    {prompt}
                   </button>
-                </div>
-
-                <label className="mt-6 block">
-                  <span className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">Identity name</span>
-                  <input
-                    value={avatarName}
-                    onChange={event => { setAvatarName(event.target.value.slice(0, 18).toUpperCase()); setSaveLabel('Save identity') }}
-                    className="mt-2 w-full rounded-xl border border-ns-border bg-ns-bg/55 px-4 py-3 font-display text-xl tracking-[0.14em] text-white outline-none transition-colors placeholder:text-ns-muted focus:border-ns-secondary/60"
-                    aria-label="Character name"
-                  />
-                </label>
-
-                <div className="mt-6 grid gap-6">
-                  <ColorRow label="Skin tone" value={config.skin} options={SKIN_TONES} onChange={value => updateConfig('skin', value)} />
-                  <ColorRow label="Cinema suit" value={config.suit} options={SUIT_COLORS} onChange={value => updateConfig('suit', value)} />
-                  <ColorRow label="Aura color" value={config.accent} options={ACCENT_COLORS} onChange={value => updateConfig('accent', value)} />
-                  <SegmentedRow label="Silhouette" value={config.silhouette} options={SILHOUETTES} onChange={value => updateConfig('silhouette', value)} />
-                  <SegmentedRow label="Energy" value={config.energy} options={ENERGIES} onChange={value => updateConfig('energy', value)} />
-                  <fieldset>
-                    <legend className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">Headwear</legend>
-                    <div className="mt-2 grid grid-cols-2 gap-1.5">
-                      {ACCESSORIES.map(option => (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => updateConfig('accessory', option.value)}
-                          aria-pressed={config.accessory === option.value}
-                          className={`rounded-lg border px-3 py-2.5 text-[10px] font-heading font-semibold transition-colors ${config.accessory === option.value ? 'border-ns-secondary/60 bg-ns-secondary/15 text-white' : 'border-ns-border text-ns-muted hover:text-white'}`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </fieldset>
-                </div>
-
-                <button type="button" onClick={saveCharacter} className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ns-secondary px-5 text-xs font-heading font-semibold text-white transition-transform hover:-translate-y-0.5 hover:bg-ns-secondary/90">
-                  <CheckIcon size={15} /> {saveLabel}
+                ))}
+              </div>
+              <form onSubmit={onChatSubmit} className="flex items-end gap-2 rounded-2xl border border-ns-border-strong bg-ns-bg p-2 transition-colors focus-within:border-ns-text">
+                <label className="sr-only" htmlFor="lumi-message">Message Lumi</label>
+                <textarea
+                  id="lumi-message"
+                  value={chatInput}
+                  onChange={event => setChatInput(event.target.value.slice(0, 900))}
+                  onKeyDown={event => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                      event.preventDefault()
+                      void sendMessage(chatInput)
+                    }
+                  }}
+                  rows={2}
+                  placeholder="Ask for one great decision…"
+                  className="min-h-11 min-w-0 flex-1 resize-none bg-transparent px-3 py-2 text-base leading-6 text-ns-text outline-none placeholder:text-ns-subtle"
+                />
+                <button type="submit" disabled={!chatInput.trim() || sending} className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-full bg-ns-secondary text-ns-secondary-foreground transition-colors hover:bg-ns-secondary-readable disabled:cursor-not-allowed disabled:bg-ns-surface-3 disabled:text-ns-muted" aria-label="Send message">
+                  <ArrowRightIcon size={18} className="-rotate-90" />
                 </button>
-                <p className="mt-3 text-center text-[10px] leading-4 text-ns-muted/70">Your identity is saved on this device.</p>
-              </aside>
+              </form>
+              <p className="mt-2 text-center text-xs leading-5 text-ns-muted">Lumi may use preview replies when live AI is unavailable. Your conversation stays spoiler-free.</p>
             </div>
-          )}
+          </div>
 
-          {mode === 'lumi' && (
-            <div className="grid lg:grid-cols-[0.72fr_1.28fr]">
-              <div className="relative hidden overflow-hidden border-r border-white/10 bg-ns-bg/45 lg:block">
-                <div aria-hidden="true" className="pro-horizon-grid absolute inset-0" />
-                <div className="absolute inset-0 grid place-items-center">
-                  <div className="pro-ai-orbit relative grid h-72 w-72 place-items-center rounded-full border border-ns-secondary-readable/15">
-                    <div className="absolute inset-8 rounded-full border border-dashed border-ns-secondary-readable/25" />
-                    <div className="absolute inset-[5.5rem] rounded-full border border-ns-secondary-readable/20 bg-ns-secondary/10 blur-sm" />
-                    <div className="pro-ai-core relative grid h-24 w-24 place-items-center rounded-full border border-ns-secondary-readable/50 bg-ns-surface-2 shadow-2xl shadow-ns-secondary/50">
-                      <RecsIcon size={32} className="text-ns-secondary-readable" strokeWidth={1.25} />
-                    </div>
-                    <span className="pro-orbit-dot absolute left-1/2 top-0 h-3 w-3 rounded-full bg-ns-success shadow-lg shadow-ns-success" />
-                  </div>
-                </div>
-                <div className="absolute inset-x-6 bottom-7 grid grid-cols-2 gap-2">
-                  <div className="pro-floating-card rounded-xl border border-white/10 bg-ns-surface/70 p-3 backdrop-blur">
-                    <p className="text-[10px] uppercase tracking-[0.16em] text-ns-muted">Context read</p>
-                    <p className="mt-1 font-heading text-[10px] text-white">Movie DNA + Passport</p>
-                  </div>
-                  <div className="pro-floating-card pro-floating-card-delay rounded-xl border border-white/10 bg-ns-surface/70 p-3 backdrop-blur">
-                    <p className="text-[10px] uppercase tracking-[0.16em] text-ns-muted">Plot details</p>
-                    <p className="mt-1 font-heading text-[10px] text-ns-success">Blocked by default</p>
-                  </div>
-                </div>
+          <aside className="hidden border-l border-ns-border p-8 lg:block">
+            <h3 className="font-heading text-lg font-bold text-ns-text">What Lumi works from</h3>
+            <dl className="mt-4 divide-y divide-ns-border">
+              <div className="py-4">
+                <dt className="text-sm text-ns-muted">Context read</dt>
+                <dd className="mt-1 font-semibold text-ns-text">Movie DNA + Passport</dd>
               </div>
+              <div className="py-4">
+                <dt className="text-sm text-ns-muted">Plot details</dt>
+                <dd className="mt-1 inline-flex items-center gap-2 font-semibold text-ns-success"><LockIcon size={15} /> Blocked by default</dd>
+              </div>
+            </dl>
+          </aside>
+        </div>
+      )}
 
-              <div className="flex h-[min(680px,80svh)] min-h-[560px] min-w-0 flex-col bg-ns-surface-2/25">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4 sm:px-7">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-heading text-base font-semibold text-white">Lumi, your cinema companion</h3>
+      {mode === 'shield' && (
+        <div className="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+          <div className="flex flex-col justify-between gap-10 bg-ns-surface-2 p-6 sm:p-10">
+            <div>
+              <div className="flex items-start justify-between gap-3">
+                <h2 className="font-display text-3xl text-ns-text">See how your boundaries open up.</h2>
+                {fullscreenButton}
+              </div>
+              <p className="mt-3 max-w-md text-base leading-relaxed text-ns-muted">Try the preview slider to explore each layer. Manage progress for your actual movies in Plot Passport.</p>
+            </div>
 
-                    </div>
-                    <p className="mt-1 text-[10px] text-ns-muted">Taste-aware. Decisive. Plot-blind by design.</p>
-                  </div>
-                  <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] ${connection === 'live' ? 'border-ns-success/25 bg-ns-success/10 text-ns-success' : connection === 'connecting' ? 'border-ns-warning/25 bg-ns-warning/10 text-ns-warning' : 'border-ns-border text-ns-muted'}`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${connection === 'live' ? 'bg-ns-success' : connection === 'connecting' ? 'animate-pulse bg-ns-warning' : 'bg-ns-muted'}`} />
-                    {connection === 'live' ? 'Live AI' : connection === 'connecting' ? 'Connecting' : 'Preview brain'}
+            <div>
+              <p className="font-display text-[clamp(5rem,14vw,9rem)] leading-none tabular-nums text-ns-text">{progress}%</p>
+              <p className="mt-2 text-sm font-semibold text-ns-muted">Story progress</p>
+              <div className="relative mt-5 h-11">
+                <div aria-hidden="true" className="absolute inset-x-3 top-1/2 h-2 -translate-y-1/2 overflow-hidden rounded-full bg-ns-surface-3">
+                  <div className="h-full origin-left bg-ns-secondary" style={{ transform: `scaleX(${progress / 100})` }} />
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={progress}
+                  onChange={event => setProgress(Number(event.target.value))}
+                  aria-label="Movie progress percentage"
+                  className="absolute inset-0 h-11 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-ns-text [&::-moz-range-track]:bg-transparent [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-ns-text"
+                />
+              </div>
+              <p className="flex justify-between text-sm text-ns-muted"><span>Just started</span><span>Finished</span></p>
+            </div>
+          </div>
+
+          <div className="p-6 sm:p-10">
+            <h2 className="font-display text-3xl text-ns-text sm:text-4xl">What is safe at {progress}%</h2>
+
+            <ul className="mt-6 divide-y divide-ns-border">
+              {activeLayers.map(layer => (
+                <li key={layer.name} className="flex items-center gap-4 py-5">
+                  <span className={`flex-shrink-0 transition-colors duration-300 ${layer.open ? 'text-ns-success' : 'text-ns-subtle'}`}>
+                    {layer.open ? <CheckIcon size={20} /> : <LockIcon size={20} />}
                   </span>
-                </div>
-
-                <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-7" aria-live="polite">
-                  {messages.map(message => (
-                    <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      {message.role === 'assistant' && (
-                        <span className="mt-1 grid h-8 w-8 flex-shrink-0 place-items-center rounded-full border border-ns-secondary/35 bg-ns-secondary/15 text-ns-secondary-readable">
-                          <RecsIcon size={14} />
-                        </span>
-                      )}
-                      <div className={`max-w-[82%] rounded-2xl px-4 py-3 text-xs leading-6 ${message.role === 'user' ? 'rounded-br-md bg-ns-secondary text-white' : 'rounded-bl-md border border-ns-border bg-ns-bg/50 text-ns-text'}`}>
-                        {message.content}
-                      </div>
-                    </div>
-                  ))}
-                  {sending && (
-                    <div className="flex gap-3">
-                      <span className="grid h-8 w-8 place-items-center rounded-full border border-ns-secondary/35 bg-ns-secondary/15 text-ns-secondary-readable"><RecsIcon size={14} /></span>
-                      <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-md border border-ns-border bg-ns-bg/50 px-4 py-4">
-                        {[0, 1, 2].map(index => <span key={index} className="h-1.5 w-1.5 animate-pulse rounded-full bg-ns-secondary-readable" style={{ animationDelay: `${index * 140}ms` }} />)}
-                      </div>
-                    </div>
-                  )}
-                  <div ref={chatEndRef} />
-                </div>
-
-                <div className="border-t border-white/10 p-4 sm:p-5">
-                  <div className="mb-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                    {QUICK_PROMPTS.map(prompt => (
-                      <button key={prompt} type="button" onClick={() => void sendMessage(prompt)} disabled={sending} className="flex-shrink-0 rounded-full border border-ns-border px-3 py-2 text-[10px] font-heading text-ns-muted transition-colors hover:border-ns-secondary/50 hover:text-white disabled:opacity-50">
-                        {prompt}
-                      </button>
-                    ))}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-heading text-lg font-bold text-ns-text">{layer.name}</p>
+                    <p className="mt-1 text-sm leading-6 text-ns-muted">
+                      <span aria-hidden={!layer.open || undefined} data-open={layer.open} className="ns-redact">{layer.detail}</span>
+                      {!layer.open && <span className="sr-only">Hidden until {layer.threshold}%</span>}
+                    </p>
                   </div>
-                  <form onSubmit={onChatSubmit} className="flex items-end gap-2 rounded-2xl border border-ns-border bg-ns-bg/60 p-2 focus-within:border-ns-secondary/50">
-                    <label className="sr-only" htmlFor="lumi-message">Message Lumi</label>
-                    <textarea
-                      id="lumi-message"
-                      value={chatInput}
-                      onChange={event => setChatInput(event.target.value.slice(0, 900))}
-                      onKeyDown={event => {
-                        if (event.key === 'Enter' && !event.shiftKey) {
-                          event.preventDefault()
-                          void sendMessage(chatInput)
-                        }
-                      }}
-                      rows={2}
-                      placeholder="Ask for one great decision…"
-                      className="min-h-11 min-w-0 flex-1 resize-none bg-transparent px-3 py-2 text-xs leading-5 text-white outline-none placeholder:text-ns-muted/60"
-                    />
-                    <button type="submit" disabled={!chatInput.trim() || sending} className="grid h-11 w-11 flex-shrink-0 place-items-center rounded-xl bg-ns-secondary text-white transition-colors hover:bg-ns-secondary/90 disabled:cursor-not-allowed disabled:bg-ns-secondary-dim disabled:text-ns-muted" aria-label="Send message">
-                      <span aria-hidden="true" className="translate-x-px text-base">↗</span>
-                    </button>
-                  </form>
-                  <p className="mt-2 text-center text-[10px] leading-4 text-ns-muted/65">Lumi may use preview replies when live AI is unavailable. Your conversation stays spoiler-free.</p>
-                </div>
+                  <Badge variant={layer.open ? 'success' : 'muted'} size="md" className="flex-shrink-0">
+                    {layer.open ? 'Open' : `At ${layer.threshold}%`}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-6 flex flex-col gap-4 border-t border-ns-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="font-heading text-lg font-bold text-ns-text">Your real movie progress</h3>
+                <p className="mt-1 max-w-md text-sm leading-6 text-ns-muted">This preview does not update your movies. Set each title’s progress in Plot Passport to manage your spoiler boundaries.</p>
               </div>
+              <Button href="/plot-passport" variant="outline" className="flex-shrink-0">Open Plot Passport <ArrowRightIcon size={15} /></Button>
             </div>
-          )}
-
-          {mode === 'shield' && (
-            <div className="grid min-h-[680px] lg:grid-cols-[0.78fr_1.22fr]">
-              <div className="relative flex min-h-[460px] flex-col justify-between overflow-hidden border-b border-white/10 bg-ns-bg/50 p-6 lg:border-b-0 lg:border-r sm:p-9">
-                <div aria-hidden="true" className="pro-horizon-grid absolute inset-0 opacity-60" />
-                <div className="relative z-10">
-                  <p className="text-[10px] font-heading font-semibold uppercase tracking-[0.2em] text-ns-secondary-readable">Adaptive Spoiler Field</p>
-                  <h3 className="mt-2 max-w-md font-heading text-2xl font-semibold text-white sm:text-3xl">See how your boundaries open up.</h3>
-                  <p className="mt-3 max-w-md text-xs leading-6 text-ns-muted">Try the preview slider to explore each layer. Manage progress for your actual movies in Plot Passport.</p>
-                </div>
-
-                <div className="relative z-10 my-8 grid place-items-center">
-                  <div className="pro-shield-sphere relative grid h-60 w-60 place-items-center rounded-full border border-ns-secondary-readable/25 sm:h-72 sm:w-72">
-                    <div className="absolute inset-5 rounded-full border border-dashed border-ns-secondary-readable/20" />
-                    <div className="absolute inset-12 rounded-full border border-ns-secondary-readable/15 bg-ns-secondary/10 shadow-[inset_0_0_60px_rgb(var(--ns-secondary)/0.22)]" />
-                    <div className="relative text-center">
-                      <p className="font-display text-7xl tracking-wide text-white">{progress}%</p>
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-ns-secondary-readable">Story progress</p>
-                    </div>
-                  </div>
-                </div>
-
-                <label className="relative z-10 block">
-                  <span className="flex justify-between text-[10px] uppercase tracking-[0.16em] text-ns-muted"><span>Just started</span><span>Finished</span></span>
-                  <input type="range" min="0" max="100" value={progress} onChange={event => setProgress(Number(event.target.value))} className="pro-range mt-3 w-full" aria-label="Movie progress percentage" />
-                </label>
-              </div>
-
-              <div className="bg-ns-surface-2/25 p-5 sm:p-8 lg:p-10">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-muted">Live boundary map</p>
-                    <h3 className="mt-1 font-heading text-xl font-semibold text-white">What is safe at {progress}%</h3>
-                  </div>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-ns-success/25 bg-ns-success/10 px-3 py-2 text-[10px] font-heading uppercase tracking-[0.12em] text-ns-success">
-                    <LockIcon size={11} /> Boundary preview
-                  </span>
-                </div>
-
-                <div className="mt-7 space-y-3">
-                  {activeLayers.map((layer, index) => (
-                    <div key={layer.name} className={`group grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-2xl border p-4 transition-all ${layer.open ? 'border-ns-success/20 bg-ns-success/[0.045]' : 'border-ns-border bg-ns-bg/35'}`}>
-                      <span className={`grid h-10 w-10 place-items-center rounded-xl border font-display text-lg ${layer.open ? 'border-ns-success/25 bg-ns-success/10 text-ns-success' : 'border-ns-border bg-ns-surface text-ns-muted'}`}>{String(index + 1).padStart(2, '0')}</span>
-                      <div>
-                        <p className={`font-heading text-xs font-semibold ${layer.open ? 'text-white' : 'text-ns-muted'}`}>{layer.name}</p>
-                        <p className="mt-1 text-[10px] leading-4 text-ns-muted/75">{layer.detail}</p>
-                      </div>
-                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-heading uppercase tracking-[0.13em] ${layer.open ? 'bg-ns-success/10 text-ns-success' : 'bg-ns-surface text-ns-muted'}`}>{layer.open ? 'Open' : `At ${layer.threshold}%`}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-5 rounded-2xl border border-ns-secondary/25 bg-ns-secondary/10 p-5">
-                  <div className="flex gap-3">
-                    <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-ns-secondary/15 text-ns-secondary-readable"><WatchlistIcon size={17} /></span>
-                    <div>
-                      <p className="text-[10px] font-heading uppercase tracking-[0.17em] text-ns-secondary-readable">Your real movie progress</p>
-                      <p className="mt-2 text-xs leading-6 text-ns-text">This preview does not update your movies. Set each title’s progress in Plot Passport to manage your spoiler boundaries.</p>
-                      <Link href="/plot-passport" className="mt-3 inline-flex min-h-10 items-center text-sm font-semibold text-ns-secondary-readable hover:text-white">Open Plot Passport →</Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
+          </div>
+        </div>
+      )}
     </div>
   )
 }

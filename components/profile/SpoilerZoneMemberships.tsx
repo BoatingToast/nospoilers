@@ -27,46 +27,42 @@ export default async function SpoilerZoneMemberships({ userId }: Props) {
   const countMap = new Map(memberCounts.map(r => [r.tmdbId, r._count.id]))
 
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <SpoilerZoneIcon size={14} className="text-ns-secondary-readable/70" />
-        <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Spoiler Zones</p>
-        <span className="ml-auto text-[10px] font-body text-ns-muted/50">{memberships.length}</span>
-      </div>
+    <div>
+      <h3 className="ns-reveal font-heading text-xl font-bold text-ns-text">
+        Spoiler Zones <span className="ml-1 font-body text-base font-medium tabular-nums text-ns-muted">{memberships.length}</span>
+      </h3>
 
-      <div className="grid grid-cols-2 gap-2">
-        {memberships.map(m => {
+      <div className="mt-4 grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-4 lg:grid-cols-8">
+        {memberships.map((m, index) => {
           const memberCount = countMap.get(m.tmdbId) ?? 0
           return (
             <Link
               key={m.id}
               href={`/movie/${m.tmdbId}`}
-              className="group relative overflow-hidden rounded-xl border border-ns-border
-                         hover:border-ns-secondary/30 transition-all duration-200 hover:scale-[1.02]"
+              className="ns-reveal group block min-w-0 rounded-xl"
+              style={{ '--i': Math.min(index, 7) } as React.CSSProperties}
             >
-              {/* Poster background */}
-              {m.moviePoster ? (
-                <div className="absolute inset-0">
+              <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface">
+                {m.moviePoster ? (
                   <Image
-                    src={`https://image.tmdb.org/t/p/w200${m.moviePoster}`}
+                    src={`https://image.tmdb.org/t/p/w342${m.moviePoster}`}
                     alt=""
                     fill
-                    className="object-cover opacity-15 group-hover:opacity-25 transition-opacity"
+                    sizes="(min-width: 1024px) 150px, (min-width: 640px) 24vw, 30vw"
+                    className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04] motion-reduce:transform-none"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ns-bg via-ns-bg/80 to-ns-bg/50" />
-                </div>
-              ) : (
-                <div className="absolute inset-0 bg-ns-bg/50" />
-              )}
-
-              <div className="relative p-3 min-h-[72px] flex flex-col justify-between">
-                <p className="text-[11px] font-body font-semibold text-ns-text leading-tight line-clamp-2">
-                  {m.movieTitle}
-                </p>
-                <p className="text-[9px] font-body text-ns-muted/50 mt-1">
-                  {memberCount.toLocaleString()} member{memberCount !== 1 ? 's' : ''}
-                </p>
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <SpoilerZoneIcon size={24} className="text-ns-muted" />
+                  </div>
+                )}
               </div>
+              <p className="mt-2 truncate text-sm font-semibold text-ns-text transition-colors duration-150 group-hover:text-ns-secondary-readable">
+                {m.movieTitle}
+              </p>
+              <p className="truncate text-xs tabular-nums text-ns-muted">
+                {memberCount.toLocaleString()} member{memberCount !== 1 ? 's' : ''}
+              </p>
             </Link>
           )
         })}

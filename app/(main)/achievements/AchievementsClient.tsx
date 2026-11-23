@@ -3,29 +3,22 @@
 import { useState, useMemo } from 'react'
 import AchievementCard from '@/components/achievements/AchievementCard'
 import XPBar from '@/components/achievements/XPBar'
+import Button from '@/components/ui/Button'
+import EmptyState from '@/components/ui/EmptyState'
+import PageHeader from '@/components/ui/PageHeader'
+import { PillTabs, revealDelay } from '@/components/watchlist/LibraryControls'
 import type { UserAchievementData, XPLevel, AchievementCategory } from '@/types'
-import {
-  AchievementsIcon, FilmIcon, CompassIcon, MovieDnaIcon,
-  CollectionsIcon, FriendsIcon, RecsIcon,
-  type IconProps,
-} from '@/components/icons'
 
 type StatusFilter = 'all' | 'earned' | 'in-progress' | 'locked'
+type CategoryFilter = AchievementCategory | 'all'
 
-const CATEGORIES: { value: AchievementCategory | 'all'; label: string; Icon: React.ComponentType<IconProps> }[] = [
-  { value: 'all',         label: 'All',         Icon: AchievementsIcon },
-  { value: 'watching',    label: 'Watching',    Icon: FilmIcon          },
-  { value: 'genres',      label: 'Genres',      Icon: CompassIcon       },
-  { value: 'discovery',   label: 'Discovery',   Icon: MovieDnaIcon      },
-  { value: 'collections', label: 'Collections', Icon: CollectionsIcon   },
-  { value: 'social',      label: 'Social',      Icon: FriendsIcon       },
-]
-
-const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
-  { value: 'all',         label: 'All'        },
-  { value: 'earned',      label: 'Completed'  },
-  { value: 'in-progress', label: 'In Progress'},
-  { value: 'locked',      label: 'Locked'     },
+const CATEGORIES: { value: CategoryFilter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'watching', label: 'Watching' },
+  { value: 'genres', label: 'Genres' },
+  { value: 'discovery', label: 'Discovery' },
+  { value: 'collections', label: 'Collections' },
+  { value: 'social', label: 'Social' },
 ]
 
 interface Props {
@@ -34,7 +27,7 @@ interface Props {
 }
 
 export default function AchievementsClient({ achievements, xp }: Props) {
-  const [category, setCategory] = useState<AchievementCategory | 'all'>('all')
+  const [category, setCategory] = useState<CategoryFilter>('all')
   const [status,   setStatus]   = useState<StatusFilter>('all')
 
   const earned     = achievements.filter(a => a.earned)
@@ -65,83 +58,38 @@ export default function AchievementsClient({ achievements, xp }: Props) {
     })
   }, [achievements, category, status])
 
+  const statusOptions: { value: StatusFilter; label: string; count: number }[] = [
+    { value: 'all', label: 'All', count: achievements.length },
+    { value: 'earned', label: 'Completed', count: earned.length },
+    { value: 'in-progress', label: 'In progress', count: inProgress.length },
+    { value: 'locked', label: 'Locked', count: locked.length },
+  ]
+
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-20">
+    <div className="mx-auto min-h-dvh max-w-5xl px-4 pb-20 pt-10 sm:px-6 lg:pt-16">
+      <PageHeader className="mb-8" title="Achievements." />
 
-      {/* Page header */}
-      <div className="mb-8">
-        <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-2">Your Progress</p>
-        <h1 className="font-display text-5xl sm:text-6xl tracking-wider text-ns-text mb-6">
-          ACHIEVEMENTS
-        </h1>
+      <section aria-label="Your level" className="mb-10 rounded-3xl bg-ns-surface p-7 sm:p-10">
+        <XPBar level={xp} size="lg" />
+      </section>
 
-        {/* XP bar */}
-        <div className="bg-ns-surface border border-ns-border rounded-2xl p-5 mb-6">
-          <XPBar level={xp} />
-        </div>
-
-        {/* Summary stats */}
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: 'Completed',   value: earned.length,     color: 'text-ns-secondary-readable'    },
-            { label: 'In Progress', value: inProgress.length, color: 'text-blue-400'   },
-            { label: 'Locked',      value: locked.length,     color: 'text-ns-muted'   },
-          ].map(s => (
-            <div key={s.label}
-                 className="bg-ns-surface border border-ns-border rounded-xl p-3 text-center">
-              <p className={`font-display text-3xl tracking-wider ${s.color}`}>{s.value}</p>
-              <p className="text-ns-muted text-[10px] font-body tracking-widest uppercase mt-0.5">{s.label}</p>
-            </div>
-          ))}
-        </div>
+      <div className="mb-6 flex flex-col gap-3">
+        <PillTabs label="Filter by status" options={statusOptions} value={status} onChange={setStatus} />
+        <PillTabs label="Filter by category" options={CATEGORIES} value={category} onChange={setCategory} />
       </div>
 
-      {/* Category tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1 mb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat.value}
-            onClick={() => setCategory(cat.value as AchievementCategory | 'all')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-body
-                        whitespace-nowrap transition-all duration-200 flex-shrink-0
-                        ${category === cat.value
-                          ? 'bg-ns-secondary text-ns-secondary-foreground font-medium'
-                          : 'bg-ns-surface border border-ns-border text-ns-muted hover:border-ns-secondary/30 hover:text-ns-text'
-                        }`}
-          >
-            <cat.Icon size={12} />
-            {cat.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Status filter pills */}
-      <div className="flex gap-2 mb-6">
-        {STATUS_FILTERS.map(s => (
-          <button
-            key={s.value}
-            onClick={() => setStatus(s.value)}
-            className={`px-3 py-1 rounded-lg text-xs font-body transition-all duration-200
-                        ${status === s.value
-                          ? 'bg-ns-surface border border-ns-secondary/40 text-ns-secondary-readable'
-                          : 'text-ns-muted hover:text-ns-text'
-                        }`}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Achievement list */}
       {filtered.length === 0 ? (
-        <div className="border border-dashed border-ns-border rounded-2xl p-16 text-center">
-          <RecsIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
-          <p className="text-ns-muted font-body text-sm">No achievements in this filter.</p>
-        </div>
+        <EmptyState
+          title="No achievements in this filter."
+          description="Try a different status or category."
+          action={<Button variant="secondary" onClick={() => { setCategory('all'); setStatus('all') }}>Show all achievements</Button>}
+        />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {filtered.map(a => (
-            <AchievementCard key={a.slug} achievement={a} />
+        <div key={`${category}-${status}`} className="grid animate-fade-up gap-3 md:grid-cols-2">
+          {filtered.map((a, index) => (
+            <div key={a.slug} className={index > 5 ? 'ns-reveal' : undefined} style={index > 5 ? revealDelay(index) : undefined}>
+              <AchievementCard achievement={a} />
+            </div>
           ))}
         </div>
       )}

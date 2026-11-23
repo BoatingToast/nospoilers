@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import Link  from 'next/link'
 import Image from 'next/image'
+import EmptyState from '@/components/ui/EmptyState'
+import PageHeader from '@/components/ui/PageHeader'
 import { SpoilerZoneIcon } from '@/components/icons'
-import type { Metadata } from 'next'
 
 interface PopularZone {
   tmdbId:         number
@@ -32,16 +33,14 @@ function fmt(n: number): string {
   return n.toLocaleString()
 }
 
+const GRID = 'grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'
+
 function ZoneSkeleton() {
   return (
-    <div className="rounded-2xl border border-ns-border/50 bg-ns-surface/40 overflow-hidden animate-pulse">
-      <div className="h-40 bg-ns-surface" />
-      <div className="p-4 space-y-2">
-        <div className="h-4 bg-ns-border rounded w-3/4" />
-        <div className="h-3 bg-ns-border rounded w-1/2" />
-        <div className="h-3 bg-ns-border rounded w-1/3" />
-        <div className="h-8 bg-ns-border rounded-xl mt-2" />
-      </div>
+    <div className="animate-pulse">
+      <div className="aspect-[2/3] rounded-xl bg-ns-surface" />
+      <div className="mt-3 h-4 w-3/4 rounded-sm bg-ns-surface" />
+      <div className="mt-2 h-3.5 w-1/2 rounded-sm bg-ns-surface" />
     </div>
   )
 }
@@ -59,36 +58,23 @@ export default function PopularSpoilerZonesPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-ns-bg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-16">
+      <PageHeader
+        title="Spoiler Zones"
+        description="The most active discussions happening right now. Spoilers welcome."
+      />
 
-        {/* Header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-3 mb-2">
-            <SpoilerZoneIcon size={28} className="text-ns-secondary-readable" />
-            <h1 className="font-display text-3xl tracking-widest text-ns-secondary-readable">SPOILER ZONES</h1>
-          </div>
-          <p className="text-ns-muted/60 font-body text-base ml-11">
-            The most active discussions happening right now. Spoilers welcome.
-          </p>
-        </div>
-
-        {/* Grid */}
+      <div className="mt-8 lg:mt-10">
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+          <div className={GRID}>
             {Array.from({ length: 12 }).map((_, i) => <ZoneSkeleton key={i} />)}
           </div>
         ) : zones.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <SpoilerZoneIcon size={48} className="text-ns-muted/20 mb-4" />
-            <p className="text-ns-muted/50 font-body">
-              No active discussions yet. Join a movie&apos;s Spoiler Zone to get started!
-            </p>
-          </div>
+          <EmptyState title="No active discussions yet." description="Join a movie's Spoiler Zone to get started!" />
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            {zones.map(zone => (
-              <PopularCard key={zone.tmdbId} zone={zone} />
+          <div className={GRID}>
+            {zones.map((zone, index) => (
+              <PopularCard key={zone.tmdbId} zone={zone} index={index} />
             ))}
           </div>
         )}
@@ -97,74 +83,51 @@ export default function PopularSpoilerZonesPage() {
   )
 }
 
-function PopularCard({ zone }: { zone: PopularZone }) {
+function PopularCard({ zone, index }: { zone: PopularZone; index: number }) {
   return (
     <Link
       href={`/movie/${zone.tmdbId}`}
-      className="group relative overflow-hidden rounded-2xl border border-ns-border/50
-                 bg-ns-surface/40 hover:border-ns-secondary/30 transition-all duration-300
-                 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30"
+      className="ns-reveal group block min-w-0 rounded-xl"
+      style={{ '--i': Math.min(index, 7) } as React.CSSProperties}
     >
-      {/* Poster */}
-      <div className="relative h-40 overflow-hidden">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface">
         {zone.moviePoster ? (
           <>
             <Image
               src={`https://image.tmdb.org/t/p/w342${zone.moviePoster}`}
-              alt={zone.movieTitle}
+              alt=""
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 640px) 50vw, 25vw"
+              className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04] motion-reduce:transform-none"
+              sizes="(min-width: 1280px) 16vw, (min-width: 1024px) 24vw, (min-width: 640px) 32vw, 46vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-ns-bg via-ns-bg/20 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent" />
           </>
         ) : (
-          <div className="absolute inset-0 bg-ns-surface flex items-center justify-center">
-            <SpoilerZoneIcon size={32} className="text-ns-muted/20" />
+          <div className="flex h-full items-center justify-center">
+            <SpoilerZoneIcon size={32} className="text-ns-muted" />
           </div>
         )}
 
-        {/* Active badge */}
         {zone.isActive && (
-          <div className="absolute top-2 left-2 flex items-center gap-1">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ns-secondary opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-ns-secondary" />
-            </span>
-            <span className="text-[9px] font-body text-ns-secondary-readable font-medium bg-black/40 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
-              Active
-            </span>
-          </div>
+          <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-black/75 px-2.5 py-1 text-xs font-semibold text-white">
+            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-ns-accent" />
+            Active
+          </span>
         )}
 
-        {/* Weekly messages badge */}
         {zone.weeklyMessages > 0 && (
-          <div className="absolute top-2 right-2">
-            <span className="text-[9px] font-body text-ns-muted/80 bg-black/50 backdrop-blur-sm
-                             px-1.5 py-0.5 rounded-full">
-              {fmt(zone.weeklyMessages)} this week
-            </span>
-          </div>
+          <span className="absolute bottom-2 left-2 text-xs font-semibold tabular-nums text-white">
+            {fmt(zone.weeklyMessages)} this week
+          </span>
         )}
       </div>
 
-      {/* Body */}
-      <div className="p-3">
-        <h3 className="text-xs font-body font-semibold text-ns-text leading-tight mb-2 line-clamp-2">
-          {zone.movieTitle}
-        </h3>
-        <div className="flex items-center gap-2 text-[10px] font-body text-ns-muted/60 mb-2">
-          <span>{fmt(zone.memberCount)} members</span>
-          <span className="text-ns-border">·</span>
-          <span>{timeAgo(zone.lastActivity)}</span>
-        </div>
-        <div className="w-full text-center py-1.5 rounded-lg text-[11px] font-body font-semibold
-                        bg-ns-secondary/10 text-ns-secondary-readable border border-ns-secondary/20
-                        group-hover:bg-ns-secondary group-hover:text-ns-secondary-foreground group-hover:border-ns-secondary
-                        transition-all duration-200">
-          Open Zone
-        </div>
-      </div>
+      <h2 className="mt-3 line-clamp-2 font-heading text-base font-semibold leading-snug text-ns-text transition-colors duration-150 group-hover:text-ns-secondary-readable">
+        {zone.movieTitle}
+      </h2>
+      <p className="mt-1 text-sm tabular-nums text-ns-muted">
+        {fmt(zone.memberCount)} members · {timeAgo(zone.lastActivity)}
+      </p>
     </Link>
   )
 }

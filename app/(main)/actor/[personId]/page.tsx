@@ -1,11 +1,15 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getPersonById, getPersonMovieCredits } from '@/services/tmdb'
 import { formatYear, tmdbImageUrl } from '@/lib/utils'
+import PosterImage from '@/components/discover/PosterImage'
 import type { TMDbPersonMovieCredit } from '@/types'
 import { parseCatalogId, publicPageMetadata } from '@/lib/seo'
+import PosterTile from '@/components/discover/PosterTile'
+import ExpandableText from '@/components/movie/ExpandableText'
+import Button from '@/components/ui/Button'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Props {
   params: Promise<{ personId: string }>
@@ -63,103 +67,78 @@ export default async function ActorPage({ params }: Props) {
   ].filter(Boolean).join('–')
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+    <div className="mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6 sm:pt-6 lg:pb-24">
       <Link
         href="/search"
-        className="inline-flex items-center gap-2 text-xs font-body text-ns-muted hover:text-ns-secondary-readable transition-colors mb-8"
+        className="mb-4 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-ns-muted transition-colors hover:text-ns-text"
       >
-        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="m15 18-6-6 6-6" />
         </svg>
         Find another actor
       </Link>
 
-      <section className="flex flex-col sm:flex-row gap-7 sm:gap-9 items-center sm:items-start mb-12">
-        <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex-shrink-0 overflow-hidden rounded-full bg-ns-surface border border-ns-border shadow-2xl shadow-black/40">
-          <Image
-            src={tmdbImageUrl(person.profile_path, 'w342')}
+      <section className="grid gap-7 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-start lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-14">
+        <div className="relative aspect-[2/3] w-44 overflow-hidden rounded-xl bg-ns-surface shadow-2xl ring-1 ring-inset ring-white/5 sm:w-full">
+          <PosterImage
+            path={person.profile_path}
             alt={person.name}
-            fill
-            priority
-            sizes="(max-width: 640px) 144px, 176px"
-            className="object-cover"
+            preload
+            fallback="person"
+            sizes="(min-width: 1024px) 272px, 192px"
           />
         </div>
 
-        <div className="text-center sm:text-left pt-1">
-          <p className="text-ns-secondary-readable text-xs tracking-[0.22em] uppercase font-body mb-2">
+        <div className="min-w-0 lg:pt-2">
+          <p className="text-base font-medium text-ns-secondary-readable">
             {person.known_for_department || 'Actor'}
           </p>
-          <h1 className="font-display text-5xl sm:text-6xl tracking-wider text-ns-text leading-none">
-            {person.name.toUpperCase()}
+          <h1 className="mt-2 break-words font-display text-5xl text-ns-text sm:text-6xl lg:text-7xl">
+            {person.name}
           </h1>
 
           {(lifespan || person.place_of_birth) && (
-            <p className="text-ns-muted text-sm font-body mt-3">
+            <p className="mt-4 text-base tabular-nums text-ns-muted">
               {[lifespan, person.place_of_birth].filter(Boolean).join(' · ')}
             </p>
           )}
 
           {person.biography && (
-            <p className="max-w-3xl text-ns-muted text-sm font-body leading-relaxed mt-5">
-              {person.biography}
-            </p>
+            <ExpandableText text={person.biography} className="mt-5 max-w-2xl" />
           )}
         </div>
       </section>
 
-      <section aria-labelledby="filmography-heading">
-        <div className="flex items-end justify-between gap-4 mb-5">
-          <div>
-            <p className="text-ns-secondary-readable text-xs tracking-[0.22em] uppercase font-body mb-1">Filmography</p>
-            <h2 id="filmography-heading" className="font-heading text-2xl sm:text-3xl font-semibold text-ns-text">
-              Movies featuring {person.name}
-            </h2>
-          </div>
-          <p className="text-ns-muted text-sm font-body flex-shrink-0">
+      <section aria-labelledby="filmography-heading" className="mt-14 lg:mt-20">
+        <div className="mb-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <h2 id="filmography-heading" className="min-w-0 break-words font-display text-3xl text-ns-text sm:text-4xl">
+            Movies featuring {person.name}
+          </h2>
+          <p className="flex-shrink-0 text-base tabular-nums text-ns-muted">
             {movies.length} {movies.length === 1 ? 'movie' : 'movies'}
           </p>
         </div>
 
         {movies.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-7">
-            {movies.map(movie => (
-              <Link
-                key={movie.id}
-                href={`/movie/${movie.id}`}
-                aria-label={`View ${movie.title}`}
-                className="group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary
-                           focus-visible:ring-offset-4 focus-visible:ring-offset-ns-bg"
-              >
-                <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface border border-ns-border
-                                transition-all duration-300 group-hover:border-ns-secondary/40 group-hover:-translate-y-1">
-                  <Image
-                    src={tmdbImageUrl(movie.poster_path, 'w342')}
-                    alt={movie.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                  />
-                  {movie.vote_average > 0 && (
-                    <span className="absolute top-2 right-2 rounded-md border border-ns-secondary/20 bg-ns-bg/85 px-1.5 py-0.5
-                                     text-[10px] font-body font-semibold text-ns-secondary-readable backdrop-blur-sm">
-                      {movie.vote_average.toFixed(1)}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-2 truncate text-sm font-body font-medium text-ns-text transition-colors group-hover:text-ns-secondary-readable">
-                  {movie.title}
-                </p>
-                <p className="truncate text-xs font-body text-ns-muted">
-                  {formatYear(movie.release_date)}{movie.character ? ` · ${movie.character}` : ''}
-                </p>
-              </Link>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {movies.map((movie, index) => (
+              <div key={movie.id} className="ns-reveal min-w-0" style={{ '--i': index % 6 } as React.CSSProperties}>
+                <PosterTile
+                  href={`/movie/${movie.id}`}
+                  title={movie.title}
+                  posterPath={movie.poster_path}
+                  meta={`${formatYear(movie.release_date)}${movie.character ? ` · ${movie.character}` : ''}`}
+                  rating={movie.vote_average}
+                />
+              </div>
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-ns-border bg-ns-surface px-6 py-12 text-center">
-            <p className="text-sm font-body text-ns-muted">No movie credits are available for this actor yet.</p>
-          </div>
+          <EmptyState
+            title="No credits yet"
+            description="No movie credits are available for this actor yet."
+            action={<Button variant="outline" href="/search">Find another actor</Button>}
+          />
         )}
       </section>
     </div>

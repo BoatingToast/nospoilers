@@ -18,27 +18,27 @@
 
 /** Full literal mirror of the :root custom properties in app/globals.css. */
 export const THEME = {
-  bg:        '#050814',
-  surface:   '#0B0F24',
-  surface2:  '#10152E',
-  border:    '#1B2242',
+  bg:        '#121214',
+  surface:   '#1C1C20',
+  surface2:  '#26262B',
+  border:    '#2E2E34',
 
-  primary:            '#0F1B42',
-  primaryForeground:  '#EDE9E1',
+  primary:            '#26262B',
+  primaryForeground:  '#F5F3F0',
 
-  secondary:           '#680DD1',
-  secondaryDim:        '#46098D',
-  secondaryForeground: '#FFFFFF',
+  secondary:           '#F2665F',
+  secondaryDim:        '#963E3A',
+  secondaryForeground: '#1A0D0B',
 
-  text:  '#EDE9E1',
-  muted: '#9498BD',
+  text:  '#F5F3F0',
+  muted: '#B0AFB6',
 
-  success: '#34D399',
-  danger:  '#F87171',
-  warning: '#FBBF24',
-  info:    '#60A5FA',
+  success: '#5CD198',
+  danger:  '#FF849E',
+  warning: '#F5C04E',
+  info:    '#7DBAFF',
 
-  tierEpic: '#2DD4BF',
+  tierEpic: '#5FD4C4',
 } as const
 
 export const BRAND = {
@@ -46,15 +46,15 @@ export const BRAND = {
   secondary: THEME.secondary,
 } as const
 
-/** Mirrors --ns-chart-1..7 in app/globals.css. */
+/** Named categorical hues, tuned to stay readable on the dark surfaces. */
 export const CHART_COLORS = {
-  violet:  '#7C3AED',
-  red:     '#DC2626',
-  emerald: '#059669',
-  amber:   '#D97706',
-  orange:  '#EA580C',
-  slate:   '#475569',
-  sky:     '#0284C7',
+  violet:  '#B294F5',
+  red:     '#F2665F',
+  emerald: '#5CD198',
+  amber:   '#F5C04E',
+  orange:  '#F59E5B',
+  slate:   '#94939C',
+  sky:     '#7DBAFF',
 } as const
 
 /**

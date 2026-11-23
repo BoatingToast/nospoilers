@@ -7,6 +7,7 @@ import OnboardingProgress from '@/components/onboarding/OnboardingProgress'
 import StepMovies, { type SelectedMovie } from '@/components/onboarding/StepMovies'
 import StepGenres from '@/components/onboarding/StepGenres'
 import StepPreferences, { type PreferenceAnswers } from '@/components/onboarding/StepPreferences'
+import { WarningIcon } from '@/components/icons'
 
 export default function OnboardingPage() {
   const router       = useRouter()
@@ -67,41 +68,54 @@ export default function OnboardingPage() {
     }
   }
 
+  // Fills the current step's segment as the viewer completes it.
+  const stepProgress = step === 1
+    ? movies.length / 5
+    : step === 2
+      ? (genres.length > 0 ? 1 : 0.1)
+      : 1
+
   return (
-    <div className="w-full max-w-2xl">
-      <OnboardingProgress currentStep={step} />
+    <div className="w-full">
+      <OnboardingProgress currentStep={step} stepProgress={stepProgress} />
 
       {error && (
-        <div className="mb-6 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-body text-center">
-          {error}
+        <div
+          role="alert"
+          className="mt-6 flex items-start gap-2.5 rounded-xl bg-ns-danger/10 p-4 text-sm leading-relaxed text-ns-danger motion-safe:animate-fade-up"
+        >
+          <WarningIcon size={16} className="mt-0.5 flex-shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
-      {step === 1 && (
-        <StepMovies
-          selected={movies}
-          setSelected={setMovies}
-          onNext={handleMoviesNext}
-          loading={loading}
-        />
-      )}
+      <div key={step} className="mt-10 motion-safe:animate-[fadeUp_420ms_cubic-bezier(0.23,1,0.32,1)_backwards] sm:mt-12">
+        {step === 1 && (
+          <StepMovies
+            selected={movies}
+            setSelected={setMovies}
+            onNext={handleMoviesNext}
+            loading={loading}
+          />
+        )}
 
-      {step === 2 && (
-        <StepGenres
-          selected={genres}
-          setSelected={setGenres}
-          onNext={() => setStep(3)}
-          onBack={() => setStep(1)}
-        />
-      )}
+        {step === 2 && (
+          <StepGenres
+            selected={genres}
+            setSelected={setGenres}
+            onNext={() => setStep(3)}
+            onBack={() => setStep(1)}
+          />
+        )}
 
-      {step === 3 && (
-        <StepPreferences
-          onSubmit={handleComplete}
-          onBack={() => setStep(2)}
-          loading={loading}
-        />
-      )}
+        {step === 3 && (
+          <StepPreferences
+            onSubmit={handleComplete}
+            onBack={() => setStep(2)}
+            loading={loading}
+          />
+        )}
+      </div>
     </div>
   )
 }

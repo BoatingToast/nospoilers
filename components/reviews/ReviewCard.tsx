@@ -7,6 +7,12 @@ import type { ReplyWithUser } from '@/services/reviews'
 import { WarningIcon } from '@/components/icons'
 import { passportLevelLabel } from '@/lib/plot-passport'
 import Avatar from '@/components/ui/Avatar'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import { Skeleton } from '@/components/ui/Skeleton'
+import GrowBar from '@/components/movie/GrowBar'
+import WipeText from '@/components/movie/WipeText'
 
 interface Props {
   review:      ReviewWithMeta
@@ -25,11 +31,15 @@ function formatDate(iso: string): string {
 }
 
 function RatingBadge({ rating }: { rating: number }) {
-  const color = rating >= 80 ? 'text-emerald-400' : rating >= 60 ? 'text-ns-secondary-readable' : 'text-rose-400'
   return (
-    <span className={`font-heading font-semibold text-sm ${color}`}>{rating}/100</span>
+    <span className="flex-shrink-0 font-heading text-lg font-bold tabular-nums text-ns-text">
+      {rating}<span className="text-sm font-medium text-ns-muted">/100</span>
+    </span>
   )
 }
+
+const VOTE_BASE = 'inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors duration-150 disabled:cursor-default disabled:text-ns-subtle disabled:hover:bg-transparent'
+const VOTE_IDLE = 'text-ns-muted hover:bg-ns-surface-2 hover:text-ns-text'
 
 // ─── Reply thread ─────────────────────────────────────────────────────────────
 
@@ -82,65 +92,61 @@ function ReplyThread({
   }
 
   return (
-    <div className="mt-3">
+    <div className="mt-1">
       <button
+        type="button"
         onClick={load}
-        className="text-xs font-body text-ns-muted hover:text-white transition-colors flex items-center gap-1.5"
+        aria-expanded={open}
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-ns-muted transition-colors duration-150 hover:bg-ns-surface-2 hover:text-ns-text"
       >
-        <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg aria-hidden="true" width="15" height="15" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
         </svg>
         {replyCount > 0 ? `${replyCount} ${replyCount === 1 ? 'reply' : 'replies'}` : 'Reply'}
       </button>
 
       {loading && (
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 space-y-2" aria-hidden="true">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="animate-pulse h-8 bg-ns-border rounded-lg" />
+            <Skeleton key={i} className="h-10 !bg-ns-surface-2" />
           ))}
         </div>
       )}
 
       {open && !loading && (
-        <div className="mt-3 pl-4 border-l border-ns-border space-y-3">
+        <div className="mt-3 animate-fade-up space-y-4 border-l-2 border-ns-border pl-4">
           {replies.map(reply => (
             <div key={reply.id} className="flex gap-2.5">
               <Avatar src={reply.avatarUrl} username={reply.username} size="xs" href />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-baseline gap-x-2">
                   <Link href={`/profile/${reply.username}`}
-                    className="text-xs font-heading font-medium text-white hover:text-ns-secondary-readable transition-colors">
+                    className="break-all font-heading text-sm font-semibold text-ns-text transition-colors hover:text-ns-secondary-readable">
                     @{reply.username}
                   </Link>
-                  <span className="text-[10px] font-body text-ns-muted">{formatDate(reply.createdAt)}</span>
+                  <span className="text-xs text-ns-muted">{formatDate(reply.createdAt)}</span>
                 </div>
-                <p className="text-sm font-body text-ns-text/85 leading-relaxed mt-0.5">{reply.body}</p>
+                <p className="mt-0.5 break-words text-base leading-relaxed text-ns-text">{reply.body}</p>
               </div>
             </div>
           ))}
 
           {/* Reply input */}
           {sessionId && (
-            <div className="flex gap-2 items-start pt-1">
+            <div className="flex items-center gap-2 pt-1">
               <Avatar src={sessionAvatarUrl} username={sessionUsername} size="xs" />
-              <div className="flex-1 flex gap-2">
-                <input
+              <div className="min-w-0 flex-1">
+                <Input
                   value={draft}
                   onChange={e => setDraft(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && !e.shiftKey && postReply()}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) void postReply() }}
                   placeholder="Write a reply..."
-                  className="flex-1 bg-ns-bg border border-ns-border rounded-lg px-3 py-1.5 text-sm font-body
-                             text-ns-text placeholder-ns-muted/40 focus:outline-none focus:border-ns-secondary/50 transition-colors"
+                  aria-label="Write a reply"
                 />
-                <button
-                  onClick={postReply}
-                  disabled={posting || !draft.trim()}
-                  className="px-3 py-1.5 rounded-lg bg-ns-secondary/15 text-ns-secondary-readable text-xs font-heading font-medium
-                             hover:bg-ns-secondary/25 disabled:opacity-40 transition-colors whitespace-nowrap"
-                >
-                  {posting ? '…' : 'Post'}
-                </button>
               </div>
+              <Button variant="secondary" size="sm" onClick={postReply} disabled={posting || !draft.trim()} className="!bg-ns-surface-2 hover:!bg-ns-surface-3">
+                {posting ? '…' : 'Post'}
+              </Button>
             </div>
           )}
         </div>
@@ -238,193 +244,169 @@ export default function ReviewCard({
     onDeleted?.(review.id)
   }
 
+  // Text the viewer just chose to reveal wipes open. Text that was already
+  // readable when the card loaded is not animated.
+  const justRevealed = revealedReview !== null && !review.viewerUnlocked && !isOwn
+
   const bodyContent = (
-    <div className="prose prose-sm prose-invert max-w-none">
+    <div className="max-w-none break-words">
       {visibleBody.split('\n').map((line, i) => (
-        <p key={i} className="text-sm font-body text-ns-text/85 leading-relaxed mb-2 last:mb-0">
-          {line}
+        <p key={i} className="mb-2 text-base leading-relaxed text-ns-text last:mb-0">
+          {justRevealed ? <WipeText animate>{line}</WipeText> : line}
         </p>
       ))}
     </div>
   )
 
   return (
-    <article className={`rounded-2xl border p-5 transition-all duration-200 ${
-      review.isFriend
-        ? 'bg-ns-secondary/4 border-ns-secondary/20'
-        : 'bg-ns-surface border-ns-border'
-    }`}>
-
+    <article className="rounded-2xl bg-ns-surface p-5 sm:p-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div className="flex items-center gap-3 min-w-0">
-          {/* Avatar */}
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <Avatar src={review.avatarUrl} username={review.username} size="sm" href />
 
           <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Link href={`/profile/${review.username}`}
-                className="font-heading font-semibold text-sm text-white hover:text-ns-secondary-readable transition-colors">
+                className="break-all font-heading text-base font-semibold text-ns-text transition-colors hover:text-ns-secondary-readable">
                 @{review.username}
               </Link>
-              {review.isFriend && (
-                <span className="px-2 py-0.5 rounded-full bg-ns-secondary/15 text-ns-secondary-readable text-[10px] font-body">
-                  Friend
-                </span>
-              )}
-              {isOwn && (
-                <span className="px-2 py-0.5 rounded-full bg-white/8 text-ns-muted text-[10px] font-body">
-                  You
-                </span>
+              {review.isFriend && <Badge variant="secondary">Friend</Badge>}
+              {isOwn && <Badge>You</Badge>}
+              {review.spoilerLevel !== 'safe' && (
+                <Badge variant="warning">
+                  <WarningIcon size={12} />{passportLevelLabel(review.spoilerLevel)}
+                </Badge>
               )}
             </div>
-            <p className="text-ns-muted text-[11px] font-body">{formatDate(review.createdAt)}</p>
+            <p className="mt-0.5 text-sm text-ns-muted">{formatDate(review.createdAt)}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {review.rating !== null && <RatingBadge rating={review.rating} />}
-
-          {/* Spoiler badge */}
-          {review.spoilerLevel !== 'safe' && (
-            <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-400 text-[10px] font-body whitespace-nowrap">
-              <WarningIcon size={10} className="inline-block mr-1" />{passportLevelLabel(review.spoilerLevel)}
-            </span>
-          )}
-
-          {/* Own review actions */}
-          {isOwn && (
-            <div className="flex items-center gap-1">
-              <button onClick={onEdit}
-                className="text-ns-muted hover:text-white text-xs font-body transition-colors px-2 py-1 rounded hover:bg-white/5">
-                Edit
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className={`text-xs font-body px-2 py-1 rounded transition-colors ${
-                  confirmDel
-                    ? 'text-rose-400 hover:text-rose-300 bg-rose-500/10'
-                    : 'text-ns-muted hover:text-rose-400 hover:bg-white/5'
-                }`}
-              >
-                {deleting ? '…' : confirmDel ? 'Confirm?' : 'Delete'}
-              </button>
-            </div>
-          )}
-        </div>
+        {review.rating !== null && <RatingBadge rating={review.rating} />}
       </div>
 
       {/* Headline */}
       {visibleTitle && (
-        <p className="font-heading font-semibold text-white mb-2">{visibleTitle}</p>
+        <p className="mb-2 break-words font-heading text-lg font-bold text-ns-text">
+          {justRevealed ? <WipeText animate>{visibleTitle}</WipeText> : visibleTitle}
+        </p>
       )}
 
       {/* Body — spoiler gate */}
       {passportLocked ? (
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 mb-3">
-          <div className="flex flex-col items-center gap-3 py-2">
-            <p className="text-amber-400 text-sm font-heading font-medium flex items-center gap-1.5">
-              <WarningIcon size={14} />Locked by your Plot Passport
-            </p>
-            <p className="text-ns-muted text-xs font-body text-center max-w-xs">
-              You are at {review.viewerProgress}%. This review unlocks automatically at {review.unlockAtProgress}%.
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {sessionId && (
-                <Link
-                  href="/plot-passport"
-                  className="px-4 py-2 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-xs font-heading font-semibold hover:bg-ns-secondary/90 transition-colors"
-                >
-                  Update progress
-                </Link>
-              )}
-              <button
-                onClick={revealSpoiler}
-                disabled={revealLoading}
-                className="px-4 py-2 rounded-xl border border-amber-500/40 text-amber-400 text-xs font-heading font-medium hover:bg-amber-500/15 transition-colors disabled:opacity-50"
-              >
-                {revealLoading ? 'Revealing…' : 'Reveal anyway'}
-              </button>
-            </div>
-            {revealError && (
-              <p className="text-rose-400 text-xs font-body">Could not reveal this review. Try again.</p>
-            )}
+        <div className="mb-3 rounded-xl bg-ns-surface-2 p-4 sm:p-5">
+          {/* Fixed-size bars: nothing here is derived from the hidden review. */}
+          <div aria-hidden="true" className="mb-4 space-y-2">
+            <span className="block h-4 w-full rounded bg-ns-secondary" />
+            <span className="block h-4 w-2/3 rounded bg-ns-secondary" />
           </div>
+          <p className="flex items-center gap-2 font-heading text-base font-semibold text-ns-text">
+            <WarningIcon size={16} className="flex-shrink-0 text-ns-warning" />Locked by your Plot Passport
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-ns-muted">
+            You are at {review.viewerProgress}%. This review unlocks automatically at {review.unlockAtProgress}%.
+          </p>
+          <div className="relative mt-3">
+            <GrowBar value={review.viewerProgress / 100} fillClassName="bg-ns-text" />
+            <span
+              aria-hidden="true"
+              className="absolute -top-1 h-4 w-0.5 -translate-x-1/2 rounded-full bg-ns-warning"
+              style={{ left: `${Math.min(100, Math.max(0, review.unlockAtProgress))}%` }}
+            />
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {sessionId && (
+              <Button href="/plot-passport" variant="secondary" size="sm" className="!bg-ns-surface-3 hover:!bg-ns-border">
+                Update progress
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={revealSpoiler} loading={revealLoading} className="hover:!bg-ns-surface-3">
+              {revealLoading ? 'Revealing…' : 'Reveal anyway'}
+            </Button>
+          </div>
+          {revealError && (
+            <p role="alert" className="mt-2 text-sm text-ns-danger">Could not reveal this review. Try again.</p>
+          )}
         </div>
       ) : (
         <div className="mb-3">{bodyContent}</div>
       )}
 
       {/* Interaction bar */}
-      <div className="flex items-center gap-1 pt-3 border-t border-ns-border/60">
-
-        {/* Helpful */}
+      <div className="-mx-2 flex flex-wrap items-center gap-1 border-t border-ns-border pt-2">
         <button
+          type="button"
           onClick={() => vote('helpful')}
           disabled={!sessionId}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-body transition-colors ${
-            viewerVotes.includes('helpful')
-              ? 'bg-ns-secondary/15 text-ns-secondary-readable'
-              : 'text-ns-muted hover:text-white hover:bg-white/5'
-          } disabled:opacity-50 disabled:cursor-default`}
+          aria-pressed={viewerVotes.includes('helpful')}
+          className={`${VOTE_BASE} ${viewerVotes.includes('helpful') ? 'bg-ns-surface-3 text-ns-text' : VOTE_IDLE}`}
         >
-          <svg width="12" height="12" fill={viewerVotes.includes('helpful') ? 'currentColor' : 'none'}
+          <svg aria-hidden="true" width="15" height="15" fill={viewerVotes.includes('helpful') ? 'currentColor' : 'none'}
             stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round"
               d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
           </svg>
-          Helpful {votes.helpfulCount > 0 && <span className="font-medium">{votes.helpfulCount}</span>}
+          Helpful {votes.helpfulCount > 0 && <span key={votes.helpfulCount} className="inline-block animate-fade-up font-semibold tabular-nums">{votes.helpfulCount}</span>}
         </button>
 
-        {/* Upvote */}
         <button
+          type="button"
           onClick={() => vote('upvote')}
           disabled={!sessionId}
-          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-body transition-colors ${
-            viewerVotes.includes('upvote')
-              ? 'bg-emerald-500/15 text-emerald-400'
-              : 'text-ns-muted hover:text-white hover:bg-white/5'
-          } disabled:opacity-50 disabled:cursor-default`}
+          aria-pressed={viewerVotes.includes('upvote')}
+          aria-label={`Upvote, ${votes.upvotes}`}
+          className={`${VOTE_BASE} min-w-11 justify-center ${viewerVotes.includes('upvote') ? 'bg-ns-success/10 text-ns-success' : VOTE_IDLE}`}
         >
-          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <svg aria-hidden="true" width="15" height="15" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
           </svg>
-          {votes.upvotes > 0 && votes.upvotes}
+          {votes.upvotes > 0 && <span key={votes.upvotes} className="inline-block animate-fade-up tabular-nums">{votes.upvotes}</span>}
         </button>
 
-        {/* Downvote */}
         <button
+          type="button"
           onClick={() => vote('downvote')}
           disabled={!sessionId}
-          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-body transition-colors ${
-            viewerVotes.includes('downvote')
-              ? 'bg-rose-500/15 text-rose-400'
-              : 'text-ns-muted hover:text-white hover:bg-white/5'
-          } disabled:opacity-50 disabled:cursor-default`}
+          aria-pressed={viewerVotes.includes('downvote')}
+          aria-label={`Downvote, ${votes.downvotes}`}
+          className={`${VOTE_BASE} min-w-11 justify-center ${viewerVotes.includes('downvote') ? 'bg-ns-danger/10 text-ns-danger' : VOTE_IDLE}`}
         >
-          <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <svg aria-hidden="true" width="15" height="15" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
-          {votes.downvotes > 0 && votes.downvotes}
+          {votes.downvotes > 0 && <span key={votes.downvotes} className="inline-block animate-fade-up tabular-nums">{votes.downvotes}</span>}
         </button>
 
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Reply toggle (handled by ReplyThread below) */}
+        {isOwn && (
+          <div className="ml-auto flex items-center gap-1">
+            <button type="button" onClick={onEdit} className={`${VOTE_BASE} ${VOTE_IDLE}`}>
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting}
+              className={`${VOTE_BASE} ${confirmDel ? 'bg-ns-danger/10 text-ns-danger' : 'text-ns-muted hover:bg-ns-surface-2 hover:text-ns-danger'}`}
+            >
+              {deleting ? '…' : confirmDel ? 'Confirm?' : 'Delete'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Reply thread */}
       {!passportLocked && (
-        <ReplyThread
-          reviewId={review.id}
-          replyCount={review.replyCount}
-          sessionId={sessionId}
-          sessionAvatarUrl={sessionAvatarUrl}
-          sessionUsername={sessionUsername}
-          explicitlyRevealed={revealedReview !== null}
-        />
+        <div className="-mx-2">
+          <ReplyThread
+            reviewId={review.id}
+            replyCount={review.replyCount}
+            sessionId={sessionId}
+            sessionAvatarUrl={sessionAvatarUrl}
+            sessionUsername={sessionUsername}
+            explicitlyRevealed={revealedReview !== null}
+          />
+        </div>
       )}
     </article>
   )

@@ -3,8 +3,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getWatchlist, getWatchlistStats } from '@/services/watchlist'
 import WatchlistGrid from '@/components/watchlist/WatchlistGrid'
+import Button from '@/components/ui/Button'
+import PageHeader from '@/components/ui/PageHeader'
 import type { Metadata } from 'next'
-import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'My Watchlist — NoSpoilers' }
 
@@ -26,40 +27,13 @@ export default async function WatchlistPage({ searchParams }: Props) {
   ])
 
   return (
-    <div className="min-h-screen pb-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="mb-8">
-          <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-2">Personal</p>
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h1 className="font-display text-5xl sm:text-6xl tracking-wider text-ns-text mb-2">
-              MY WATCHLIST
-            </h1>
-            <Link
-              href="/plot-passport"
-              className="mb-2 rounded-xl border border-ns-secondary/35 bg-ns-secondary/10 px-4 py-2 text-xs font-heading font-semibold text-ns-secondary-readable transition-colors hover:bg-ns-secondary hover:text-ns-secondary-foreground"
-            >
-              Open Plot Passport
-            </Link>
-          </div>
-
-          {/* Stats row */}
-          <div className="flex gap-6 mt-4">
-            {[
-              { label: 'Total',         value: stats.total,       color: 'text-ns-text' },
-              { label: 'Want to Watch', value: stats.wantToWatch, color: 'text-ns-muted' },
-              { label: 'Watching',      value: stats.watching,    color: 'text-ns-secondary-readable' },
-              { label: 'Watched',       value: stats.watched,     color: 'text-emerald-400' },
-            ].map(s => (
-              <div key={s.label}>
-                <p className={`font-display text-3xl tracking-wider ${s.color}`}>{s.value}</p>
-                <p className="text-ns-muted text-xs font-body">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <WatchlistGrid initialItems={items} initialStatus={status ?? 'all'} initialSortBy={sortBy} />
-      </div>
+    <div className="mx-auto min-h-dvh max-w-7xl px-4 pb-20 pt-10 sm:px-6 lg:pt-16">
+      <PageHeader
+        className="mb-10"
+        title="My watchlist."
+        actions={<Button href="/plot-passport" variant="outline">Open Plot Passport</Button>}
+      />
+      <WatchlistGrid initialItems={items} initialStatus={status ?? 'all'} initialSortBy={sortBy} stats={stats} />
     </div>
   )
 }

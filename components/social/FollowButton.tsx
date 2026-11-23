@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import Badge from '@/components/ui/Badge'
+import { CheckIcon, FriendsIcon, PlusIcon } from '@/components/icons'
 
 interface Props {
   username:            string
@@ -16,29 +19,17 @@ interface Props {
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 
+// Portaled so a transformed ancestor (a reveal wrapper, the header) cannot re-anchor it.
 function Toast({ message, type }: { message: string; type: 'error' | 'success' }) {
-  return (
+  return createPortal(
     <div
-      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] px-4 py-2.5 rounded-xl
-                  text-sm font-body shadow-2xl pointer-events-none
-                  ${type === 'error'
-                    ? 'bg-red-900/90 border border-red-500/40 text-red-200'
-                    : 'bg-ns-surface border border-ns-secondary/40 text-ns-secondary-readable'
-                  }`}
-      style={{ animation: 'szFadeIn 0.2s ease-out' }}
+      role={type === 'error' ? 'alert' : 'status'}
+      className={`pointer-events-none fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-[90] mx-auto w-fit max-w-md animate-fade-up rounded-2xl bg-ns-surface-3 px-5 py-3 text-center text-sm font-semibold shadow-2xl
+        ${type === 'error' ? 'text-ns-danger' : 'text-ns-text'}`}
     >
       {message}
-    </div>
-  )
-}
-
-// ── Friends icon ──────────────────────────────────────────────────────────────
-
-function FriendsStarIcon() {
-  return (
-    <svg width={11} height={11} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-    </svg>
+    </div>,
+    document.body,
   )
 }
 
@@ -109,7 +100,7 @@ export default function FollowButton({
         setJustFollow(true)
         setTimeout(() => setJustFollow(false), 1200)
         if (data.isFriend) {
-          showToast(`You and @${username} are now friends! 🎬`, 'success')
+          showToast(`You and @${username} are now friends!`, 'success')
         }
       }
 
@@ -130,12 +121,13 @@ export default function FollowButton({
 
   // ── Not authed ────────────────────────────────────────────────────────────
 
+  const compact = size === 'sm'
+  const sizing = compact ? 'min-h-11 px-4 text-sm sm:min-h-10' : 'min-h-11 px-6 text-sm'
+
   if (status === 'loading') {
     // Skeleton while session loads
     return (
-      <div className={`rounded-lg bg-ns-border/40 animate-pulse ${
-        size === 'sm' ? 'w-16 h-7' : size === 'lg' ? 'w-24 h-10' : 'w-20 h-9'
-      }`} />
+      <div className={`animate-pulse rounded-full bg-ns-surface-2 ${compact ? 'h-11 w-24 sm:h-10' : 'h-11 w-28'}`} />
     )
   }
 
@@ -144,11 +136,13 @@ export default function FollowButton({
     return (
       <Link
         href="/login"
-        className={`font-body font-semibold border transition-all duration-200
-          ${size === 'sm' ? 'px-3 py-1.5 text-xs rounded-lg' : 'px-4 py-2 text-sm rounded-xl'}
-          bg-ns-secondary/10 text-ns-secondary-readable border-ns-secondary/40 hover:bg-ns-secondary hover:text-ns-secondary-foreground hover:border-ns-secondary`}
+        className={`inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-colors duration-150 ${sizing}
+          ${compact
+            ? 'border border-ns-border-strong text-ns-text hover:bg-ns-surface-2'
+            : 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-readable'}`}
       >
-        + Follow
+        <PlusIcon size={14} />
+        Follow
       </Link>
     )
   }
@@ -157,68 +151,71 @@ export default function FollowButton({
 
   if (session.user.name === username) return null
 
-  const sizes = {
-    sm: 'px-3 py-1.5 text-xs rounded-lg',
-    md: 'px-4 py-2 text-sm rounded-xl',
-    lg: 'px-6 py-2.5 text-sm rounded-xl',
-  }
-  const cls = sizes[size]
-
   // ── Friend badge (shown when mutually followed) ───────────────────────────
 
   const friendBadge = isFriend && (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-body
-                     bg-ns-secondary/10 border border-ns-secondary/30 text-ns-secondary-readable">
-      <FriendsStarIcon />
+    <Badge variant="secondary" size="md" className="animate-fade-up">
+      <FriendsIcon size={14} />
       Friends
-    </span>
+    </Badge>
   )
 
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} />}
 
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex flex-wrap items-center gap-2">
         {friendBadge}
 
         {following ? (
           <button
+            type="button"
             onClick={toggle}
             disabled={loading}
+            aria-busy={loading || undefined}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            className={`${cls} font-body font-medium border transition-all duration-200 disabled:opacity-40
+            className={`inline-flex items-center justify-center gap-1.5 rounded-full border font-semibold transition-colors duration-150 disabled:cursor-wait ${sizing} ${compact ? 'min-w-28' : 'min-w-32'}
               ${hovered
-                ? 'border-red-500/50 text-red-400 bg-red-500/8'
-                : 'border-ns-border/60 text-ns-muted bg-transparent hover:border-ns-border'
+                ? 'border-ns-danger bg-ns-danger/10 text-ns-danger'
+                : 'border-ns-border-strong text-ns-text'
               }`}
           >
             {loading ? (
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                …
+              <Spinner />
+            ) : hovered ? 'Unfollow' : (
+              <span key="following" className={`inline-flex items-center gap-1.5 ${justFollow ? 'animate-fade-up' : ''}`}>
+                <CheckIcon size={14} />
+                Following
               </span>
-            ) : hovered ? 'Unfollow' : '✓ Following'}
+            )}
           </button>
         ) : (
           <button
+            type="button"
             onClick={toggle}
             disabled={loading}
-            className={`${cls} font-body font-semibold border transition-all duration-200 disabled:opacity-40
-              ${justFollow
-                ? 'bg-ns-secondary text-ns-secondary-foreground border-ns-secondary scale-105 shadow-lg shadow-ns-secondary/25'
-                : 'bg-ns-secondary/10 text-ns-secondary-readable border-ns-secondary/40 hover:bg-ns-secondary hover:text-ns-secondary-foreground hover:border-ns-secondary hover:shadow-md hover:shadow-ns-secondary/20 active:scale-[0.97]'
-              }`}
+            aria-busy={loading || undefined}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-full font-semibold transition-colors duration-150 disabled:cursor-wait ${sizing} ${compact ? 'min-w-28 border border-ns-border-strong text-ns-text hover:bg-ns-surface-2' : 'min-w-32 bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-readable'}`}
           >
-            {loading ? (
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                …
-              </span>
-            ) : '+ Follow'}
+            {loading ? <Spinner /> : (
+              <>
+                <PlusIcon size={14} />
+                Follow
+              </>
+            )}
           </button>
         )}
       </div>
+    </>
+  )
+}
+
+function Spinner() {
+  return (
+    <>
+      <span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+      <span className="sr-only">Updating</span>
     </>
   )
 }

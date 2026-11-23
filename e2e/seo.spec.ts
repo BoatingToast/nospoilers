@@ -13,8 +13,10 @@ test('homepage exposes canonical metadata, brand data, and public content withou
   expect(canonical && new URL(canonical).href).toBe(`${origin}/`)
   expect(html.match(/rel="canonical"/g)).toHaveLength(1)
   expect(html).toContain('name="twitter:card" content="summary_large_image"')
-  expect(html).toContain('DISCOVER MOVIES')
-  expect(html).toContain('SPOILER-FREE MOVIE RECOMMENDATIONS')
+  // The hero animates word by word, so compare the text without its markup.
+  const visibleText = html.replace(/<[^>]+>/g, '')
+  expect(visibleText).toContain('Discover movies. Without spoilers.')
+  expect(visibleText).toContain('Spoiler-free movie recommendations.')
   expect(html).toContain('href="/movie-recommendations"')
   const data = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(match => JSON.parse(match[1]))
   expect(data[0]['@graph']).toEqual(expect.arrayContaining([

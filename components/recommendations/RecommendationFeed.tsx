@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import RecommendationCard from './RecommendationCard'
 import { RecommendationCardSkeleton } from '@/components/ui/Skeleton'
 import Button from '@/components/ui/Button'
+import EmptyState from '@/components/ui/EmptyState'
 import type { RecommendationItem } from '@/types'
 
 export default function RecommendationFeed() {
@@ -50,44 +51,45 @@ export default function RecommendationFeed() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="font-display text-2xl tracking-wider text-ns-text">RECOMMENDED FOR YOU</h2>
-          <p className="text-ns-muted text-xs font-body mt-1">Based on your Movie DNA</p>
+    <section aria-labelledby="recommended-for-you">
+      <div className="mb-6 flex items-end justify-between gap-4">
+        <div className="min-w-0">
+          <h2 id="recommended-for-you" className="font-display text-3xl text-ns-text sm:text-4xl">Recommended for you</h2>
+          <p className="mt-1.5 text-base text-ns-muted">Based on your Movie DNA</p>
         </div>
-        <Button variant="ghost" size="sm" onClick={handleRefresh} loading={refreshing}>
+        <Button variant="ghost" size="sm" onClick={handleRefresh} loading={refreshing} className="flex-shrink-0">
           Refresh
         </Button>
       </div>
 
       {error && (
-        <p className="text-red-400 text-sm font-body mb-4">{error}</p>
+        <p role="alert" className="mb-4 text-sm text-ns-danger">{error}</p>
       )}
 
       {loading ? (
-        <div className="grid sm:grid-cols-2 gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {Array.from({ length: 6 }).map((_, i) => <RecommendationCardSkeleton key={i} />)}
         </div>
       ) : items.length === 0 ? (
-        <div className="border border-dashed border-ns-border rounded-2xl p-10 text-center">
-          <p className="text-ns-muted font-body text-sm">No recommendations yet. Add your TMDb API key to get started.</p>
-        </div>
+        <EmptyState
+          title="No recommendations yet"
+          description="Add your TMDb API key to get started."
+        />
       ) : (
         <>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             {items.map(rec => <RecommendationCard key={rec.id} rec={rec} />)}
           </div>
 
           {hasMore && (
-            <div className="text-center mt-6">
+            <div className="mt-6 text-center">
               <Button variant="secondary" size="md" onClick={handleLoadMore} loading={loadMore}>
-                Load More
+                Load more
               </Button>
             </div>
           )}
         </>
       )}
-    </div>
+    </section>
   )
 }

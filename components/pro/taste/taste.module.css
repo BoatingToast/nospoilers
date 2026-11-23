@@ -1,49 +1,32 @@
 /* "Why Did I Love That?" in Taste Lab. Colors come from the tokens in
-   app/globals.css; layout is mostly Tailwind in the components. This file holds
-   what utilities express poorly: the ledger bars and the few transitions. */
-
-.title {
-  font-family: var(--font-bebas), Impact, sans-serif;
-  font-size: clamp(38px, 8vw, 72px);
-  line-height: .92;
-  letter-spacing: .01em;
-}
-
-.title > span {
-  color: rgb(var(--ns-secondary-readable));
-}
-
-.numeral {
-  font-family: var(--font-bebas), Impact, sans-serif;
-  line-height: 1;
-  letter-spacing: .02em;
-}
+   app/globals.css; layout is Tailwind in the components. This file holds what
+   utilities express poorly: touch-safe hover, ledger bars, and the pick marker. */
 
 /* Content that replaces other content settles in rather than snapping. */
 .settle {
-  animation: tasteSettle .22s ease-out;
+  animation: tasteSettle 320ms var(--ns-ease-out);
 }
 
 @keyframes tasteSettle {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Answer buttons on the warm question panel. Hover is limited to devices that
-   really hover: on a touch screen a tap leaves hover behind, and the next
-   question would open with an option already looking chosen. */
+/* Answer buttons. Hover is limited to devices that really hover: on a touch
+   screen a tap leaves hover behind, and the next question would open with an
+   option already looking chosen. */
 .option,
 .optionQuiet {
-  border-radius: 8px;
-  font-family: var(--font-space), system-ui, sans-serif;
+  background: rgb(var(--ns-surface-2));
+  color: rgb(var(--ns-text));
   font-weight: 600;
-  transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
 .option {
-  min-height: 56px;
-  padding: 12px 16px;
-  border: 2px solid rgb(var(--ns-bg) / .8);
+  min-height: 64px;
+  padding: 14px 20px;
+  border-radius: 16px;
   font-size: 16px;
   line-height: 1.35;
   text-align: left;
@@ -52,33 +35,28 @@
 .optionQuiet {
   min-height: 48px;
   padding: 0 8px;
-  border: 1px solid rgb(var(--ns-bg) / .35);
+  border-radius: 9999px;
+  color: rgb(var(--ns-muted));
   font-size: 14px;
 }
 
-.option:active {
-  background: rgb(var(--ns-bg));
-  color: rgb(var(--ns-text));
-}
-
+.option:active,
 .optionQuiet:active {
-  background: rgb(var(--ns-bg) / .12);
+  background: rgb(var(--ns-text));
+  color: rgb(var(--ns-bg));
 }
 
 .option:disabled,
 .optionQuiet:disabled {
-  opacity: .5;
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .option:hover:not(:disabled) {
-    background: rgb(var(--ns-bg));
-    color: rgb(var(--ns-text));
-  }
-
+  .option:hover:not(:disabled),
   .optionQuiet:hover:not(:disabled) {
-    border-color: rgb(var(--ns-bg));
-    background: rgb(var(--ns-bg) / .1);
+    background: rgb(var(--ns-surface-3));
+    color: rgb(var(--ns-text));
   }
 }
 
@@ -86,18 +64,19 @@
 .track {
   position: relative;
   height: 10px;
-  border-radius: 2px;
-  background: rgb(var(--ns-border) / .7);
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgb(var(--ns-surface-3));
 }
 
 .track::after {
   position: absolute;
-  top: -3px;
-  bottom: -3px;
+  top: 0;
+  bottom: 0;
   left: 50%;
   width: 1px;
   content: '';
-  background: rgb(var(--ns-muted) / .7);
+  background: rgb(var(--ns-muted));
 }
 
 .band,
@@ -106,18 +85,23 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  transition: left .35s ease, width .35s ease, background-color .35s ease;
+  transition: transform 500ms var(--ns-ease-out);
 }
 
 /* How far the estimate could plausibly be off. */
 .band {
-  border-radius: 2px;
-  background: rgb(var(--ns-muted) / .22);
+  left: 0;
+  width: 100%;
+  transform-origin: left;
+  background: rgb(var(--ns-muted) / 0.28);
 }
 
+/* Anchored at neutral: a negative scale grows to the left. */
 .fill {
-  border-radius: 2px;
-  background: rgb(var(--ns-secondary-readable));
+  left: 50%;
+  width: 50%;
+  transform-origin: left;
+  background: rgb(var(--ns-secondary));
 }
 
 .fill[data-lean='against'] {
@@ -126,57 +110,41 @@
 
 /* Where ratings alone would have put it, so a correction is visibly a move. */
 .ratingsMark {
-  top: -3px;
-  bottom: -3px;
+  left: 0;
+  width: 100%;
+}
+
+.ratingsMark::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
   width: 2px;
-  background: rgb(var(--ns-text) / .55);
+  content: '';
+  background: rgb(var(--ns-text));
 }
 
 /* A pick that just changed is marked for a moment, then settles. */
 .pick {
-  border-top: 2px solid rgb(var(--ns-border));
-  transition: border-color 1.4s ease, background-color 1.4s ease;
-}
-
-.pick[data-fresh='true'] {
-  border-top-color: rgb(var(--ns-success));
-  background-color: rgb(var(--ns-success) / .05);
-  transition-duration: .15s;
-}
-
-.poster {
   position: relative;
-  overflow: hidden;
-  aspect-ratio: 2 / 3;
-  border-radius: 6px;
-  background: rgb(var(--ns-surface-2));
 }
 
-/* Typographic stand-in when a film has no poster (always, in fixture mode). */
-.posterType {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 10px;
-  border: 1px solid rgb(var(--ns-border));
-  border-radius: 6px;
-  background: rgb(var(--tile) / .16);
+.pick::before {
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  left: -12px;
+  width: 3px;
+  border-radius: 9999px;
+  content: '';
+  background: rgb(var(--ns-success));
+  transform: scaleY(0);
+  transition: transform 700ms var(--ns-ease-out);
 }
 
-.posterType strong {
-  font-family: var(--font-bebas), Impact, sans-serif;
-  font-size: clamp(15px, 4.4vw, 21px);
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: .02em;
-  overflow-wrap: anywhere;
-}
-
-.posterType span {
-  font-size: 10px;
-  letter-spacing: .12em;
-  color: rgb(var(--ns-muted));
+.pick[data-fresh='true']::before {
+  transform: scaleY(1);
+  transition-duration: 220ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -185,14 +153,11 @@
   }
 
   .option,
-  .optionQuiet {
-    transition: none;
-  }
-
+  .optionQuiet,
   .band,
   .fill,
   .ratingsMark,
-  .pick {
+  .pick::before {
     transition: none;
   }
 }

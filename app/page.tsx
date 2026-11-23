@@ -1,5 +1,7 @@
 import Navbar from '@/components/landing/Navbar'
 import Hero from '@/components/landing/Hero'
+import HeroPosters from '@/components/landing/HeroPosters'
+import SpoilerDemo from '@/components/landing/SpoilerDemo'
 import FeaturedMovies from '@/components/landing/FeaturedMovies'
 import ShieldFeature from '@/components/landing/ShieldFeature'
 import Footer from '@/components/landing/Footer'
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <main className="bg-ns-bg min-h-screen">
+    <main className="bg-ns-bg min-h-dvh">
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@graph': [
@@ -44,7 +46,8 @@ export default function HomePage() {
         ],
       }} />
       <Navbar />
-      <Hero />
+      <Hero posters={<HeroPosters />} />
+      <SpoilerDemo />
       <MovieDiscoveryIntro />
       <ShieldFeature />
       <FeaturedMovies />

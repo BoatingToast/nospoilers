@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type * as Three from 'three'
+import { sceneFont, scenePalette } from './scene-palette'
 
 export interface TheaterDoor {
   number: number
@@ -37,6 +38,8 @@ export default function TheaterMultiplexScene({ doors, paused = false, onNearDoo
     async function initialize() {
       const THREE = await import('three')
       const { RoundedBoxGeometry } = await import('three/addons/geometries/RoundedBoxGeometry.js')
+      const palette = scenePalette()
+      const displayFont = await sceneFont()
       if (disposed || !mount) return
       let renderer: Three.WebGLRenderer
       try { renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }) }
@@ -53,8 +56,8 @@ export default function TheaterMultiplexScene({ doors, paused = false, onNearDoo
       canvas.setAttribute('role', 'img')
       mount.appendChild(canvas)
       const scene = new THREE.Scene()
-      scene.background = new THREE.Color('#100d13')
-      scene.fog = new THREE.Fog('#17111c', 28, 58)
+      scene.background = new THREE.Color(palette.bg)
+      scene.fog = new THREE.Fog(palette.bg, 28, 58)
       const camera = new THREE.PerspectiveCamera(66, 1, 0.1, 100)
       const geometries = new Set<Three.BufferGeometry>()
       const materials = new Set<Three.Material>()
@@ -65,45 +68,45 @@ export default function TheaterMultiplexScene({ doors, paused = false, onNearDoo
       const glow = (color: string, strength = 1.3) => mat(new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: strength }))
       const unit = geo(new THREE.BoxGeometry(1, 1, 1))
       const rounded = geo(new RoundedBoxGeometry(1, 1, 1, 3, 0.08))
-      const floor = standard('#24202a', 0.25, 0.3)
-      const floorAlt = standard('#29252d', 0.15, 0.38)
-      const wall = standard('#39303c')
-      const dark = standard('#17131f')
-      const gold = standard('#b49663', 0.7, 0.25)
-      const light = glow('#ffe0a1', 1.6)
-      const violet = glow('#af86c2', 0.8)
-      const velvet = standard('#673e50', 0, 0.9)
+      const floor = standard(palette.surface, 0.25, 0.3)
+      const floorAlt = standard(palette.surface2, 0.15, 0.38)
+      const wall = standard(palette.surface3)
+      const dark = standard(palette.bg)
+      const trim = standard(palette.subtle, 0.7, 0.25)
+      const light = glow(palette.warmLight, 0.55)
+      const coralLight = glow(palette.coral, 1.2)
+      const velvet = standard(palette.velvet, 0, 0.9)
       const obstacles: Array<{ x: number; z: number; w: number; d: number }> = []
       function box(w: number, h: number, d: number, x: number, y: number, z: number, material: Three.Material, round = false) {
         const mesh = new THREE.Mesh(round ? rounded : unit, material)
         mesh.scale.set(w, h, d); mesh.position.set(x, y, z); scene.add(mesh); return mesh
       }
-      scene.add(new THREE.HemisphereLight('#ecd7ec', '#322234', 1.7))
-      const sun = new THREE.DirectionalLight('#f7dfc3', 1.3)
+      scene.add(new THREE.HemisphereLight(palette.text, palette.surface, 2.8))
+      const sun = new THREE.DirectionalLight(palette.warmLight, 1.3)
       sun.position.set(0, 8, 15); scene.add(sun)
-      // Stone tiles, brass inlays and a carpet runner lead from the entrance to the halls.
+      // Floor tiles, metal inlays and a carpet runner lead from the entrance to the halls.
       for (let x = -11; x <= 11; x += 2) for (let z = -19; z <= 23; z += 2) {
         box(1.98, 0.1, 1.98, x, -0.08, z, (x + z) % 4 === 0 ? floor : floorAlt)
       }
-      box(5.8, 0.015, 39, 0, 0, 2, standard('#37222f'))
-      for (const x of [-2.93, 2.93]) box(0.025, 0.02, 39, x, 0.01, 2, gold)
+      box(5.8, 0.015, 39, 0, 0, 2, standard(palette.runner))
+      for (const x of [-2.93, 2.93]) box(0.025, 0.02, 39, x, 0.01, 2, trim)
       box(0.35, 7, 44, -12, 3.5, 2, wall)
       box(0.35, 7, 44, 12, 3.5, 2, wall)
       box(24, 7, 0.4, 0, 3.5, -20, wall)
       box(24, 7, 0.4, 0, 3.5, 24, dark)
       box(24, 0.3, 44, 0, 7, 2, dark)
       for (const side of [-1, 1]) {
-        box(0.12, 0.12, 43.5, side * 11.7, 0.2, 2, gold)
+        box(0.12, 0.12, 43.5, side * 11.7, 0.2, 2, trim)
         box(0.14, 0.06, 43.5, side * 11.7, 6.5, 2, light)
       }
       for (let z = -16; z <= 20; z += 8) {
         // Floating rectangular luminaires make the lobby feel like an actual multiplex.
         box(9, 0.14, 2.8, 0, 6.65, z, dark)
-        box(8.7, 0.025, 2.5, 0, 6.56, z, glow('#e6c3a0', 0.7))
-        const lamp = new THREE.PointLight('#ffe2bb', 22, 13, 2)
+        box(8.7, 0.025, 2.5, 0, 6.56, z, glow(palette.muted, 0.1))
+        const lamp = new THREE.PointLight(palette.warmLight, 5, 13, 2)
         lamp.position.set(0, 5.7, z); scene.add(lamp)
         for (const x of [-11.6, 11.6]) {
-          box(0.22, 6.2, 0.2, x, 3.1, z + 3, gold)
+          box(0.22, 6.2, 0.2, x, 3.1, z + 3, trim)
           box(0.25, 2.3, 0.06, x + (x < 0 ? 0.1 : -0.1), 3.8, z + 3, light)
         }
       }
@@ -121,33 +124,32 @@ export default function TheaterMultiplexScene({ doors, paused = false, onNearDoo
         mesh.position.set(x, y, z); mesh.rotation.y = rotation; scene.add(mesh); return mesh
       }
       const brand = label(1600, 600, ctx => {
-        ctx.fillStyle = '#29212e'; ctx.fillRect(0, 0, 1600, 600)
-        ctx.textAlign = 'center'; ctx.fillStyle = '#dabe87'; ctx.font = '28px sans-serif'; ctx.fillText('N O S P O I L E R S   P R O', 800, 132)
-        ctx.font = '170px Georgia, serif'; ctx.fillStyle = '#fff2db'; ctx.fillText('Theater', 800, 340)
-        ctx.font = '30px sans-serif'; ctx.fillStyle = '#b6a4b8'; ctx.fillText('Every story deserves an opening night.', 800, 439)
-        ctx.strokeStyle = '#dabe8777'; ctx.strokeRect(60, 50, 1480, 500)
+        ctx.fillStyle = palette.surface; ctx.fillRect(0, 0, 1600, 600)
+        ctx.textAlign = 'center'; ctx.fillStyle = palette.coralText; ctx.font = `600 40px ${displayFont}`; ctx.fillText('NoSpoilers Pro', 800, 150)
+        ctx.font = `700 190px ${displayFont}`; ctx.fillStyle = palette.text; ctx.fillText('Theater', 800, 350)
+        ctx.font = `500 42px ${displayFont}`; ctx.fillStyle = palette.muted; ctx.fillText('Every story deserves an opening night.', 800, 460)
       })
       plane(11, 4.12, 0, 4.4, -19.7, brand.texture)
 
       // A reception desk and seating islands leave wide, collision-aware walkways.
       box(8, 1.3, 1.3, 0, 0.65, -16.7, dark, true)
-      box(8.2, 0.13, 1.5, 0, 1.34, -16.7, gold, true)
+      box(8.2, 0.13, 1.5, 0, 1.34, -16.7, trim, true)
       box(7.4, 0.025, 0.04, 0, 0.4, -15.99, light)
       obstacles.push({ x: 0, z: -16.7, w: 8.2, d: 1.5 })
-      const welcome = label(800, 180, ctx => { ctx.fillStyle = '#17131f'; ctx.fillRect(0, 0, 800, 180); ctx.textAlign = 'center'; ctx.fillStyle = '#e6cea4'; ctx.font = '34px sans-serif'; ctx.fillText('W E L C O M E   T O   T H E   C I N E M A', 400, 106) })
+      const welcome = label(800, 180, ctx => { ctx.fillStyle = palette.bg; ctx.fillRect(0, 0, 800, 180); ctx.textAlign = 'center'; ctx.fillStyle = palette.text; ctx.font = `600 46px ${displayFont}`; ctx.fillText('Welcome to the cinema', 400, 108) })
       plane(5.4, 1.2, 0, 0.73, -16.03, welcome.texture)
       for (const x of [-5.7, 5.7]) for (const z of [-3, 11]) {
         box(1.5, 0.5, 3.2, x, 0.45, z, velvet, true)
         box(0.22, 0.8, 3.2, x, 0.95, z, velvet, true)
-        box(1.2, 0.18, 2.7, x, 0.15, z, gold, true)
+        box(1.2, 0.18, 2.7, x, 0.15, z, trim, true)
         obstacles.push({ x, z, w: 1.5, d: 3.2 })
       }
       // Round planters and sculptural leaves soften the entrance.
       const potGeometry = geo(new THREE.CylinderGeometry(0.62, 0.47, 0.9, 20))
       const leafGeometry = geo(new THREE.SphereGeometry(1, 12, 8))
-      const leafMat = standard('#395244')
+      const leafMat = standard(palette.leaf)
       for (const x of [-8, 8]) for (const z of [-17, 21]) {
-        const pot = new THREE.Mesh(potGeometry, gold); pot.position.set(x, 0.45, z); scene.add(pot)
+        const pot = new THREE.Mesh(potGeometry, trim); pot.position.set(x, 0.45, z); scene.add(pot)
         obstacles.push({ x, z, w: 1.3, d: 1.3 })
         for (let i = 0; i < 7; i++) {
           const leaf = new THREE.Mesh(leafGeometry, leafMat)
@@ -160,45 +162,43 @@ export default function TheaterMultiplexScene({ doors, paused = false, onNearDoo
       const doorPositions = Array.from({ length: 8 }, (_, i) => ({ x: i % 2 === 0 ? -11.75 : 11.75, z: 16 - Math.floor(i / 2) * 8, rotation: i % 2 === 0 ? Math.PI / 2 : -Math.PI / 2 }))
       const posters = doorPositions.map((p, i) => {
         const side = p.x < 0 ? 1 : -1
-        box(0.2, 4.3, 3.2, p.x, 2.15, p.z, gold)
+        box(0.2, 4.3, 3.2, p.x, 2.15, p.z, trim)
         box(0.22, 4.03, 2.93, p.x + side * 0.12, 2.01, p.z, dark)
         for (const dz of [-0.72, 0.72]) {
-          box(0.12, 3.85, 1.41, p.x + side * 0.26, 1.94, p.z + dz, standard('#332a3e'))
-          box(0.2, 0.6, 0.045, p.x + side * 0.36, 1.35, p.z + dz * 0.22, gold)
+          box(0.12, 3.85, 1.41, p.x + side * 0.26, 1.94, p.z + dz, standard(palette.surface2))
+          box(0.2, 0.6, 0.045, p.x + side * 0.36, 1.35, p.z + dz * 0.22, trim)
         }
         box(0.06, 0.035, 3.05, p.x + side * 0.4, 0.03, p.z, light)
         const number = label(700, 180, ctx => {
-          ctx.fillStyle = '#17131f'; ctx.fillRect(0, 0, 700, 180); ctx.textAlign = 'center'
-          ctx.fillStyle = '#dfc694'; ctx.font = '29px sans-serif'; ctx.fillText('T H E A T E R', 260, 107)
-          ctx.font = '80px Georgia, serif'; ctx.fillText(String(i + 1).padStart(2, '0'), 535, 119)
+          ctx.fillStyle = palette.bg; ctx.fillRect(0, 0, 700, 180); ctx.textAlign = 'center'
+          ctx.fillStyle = palette.muted; ctx.font = `600 46px ${displayFont}`; ctx.fillText('Theater', 250, 108)
+          ctx.fillStyle = palette.coralText; ctx.font = `700 92px ${displayFont}`; ctx.fillText(String(i + 1).padStart(2, '0'), 535, 122)
         })
         plane(3.4, 0.88, p.x + side * 0.4, 4.96, p.z, number.texture, p.rotation)
         const poster = label(540, 780, () => {})
-        box(0.13, 3.12, 2.22, p.x + side * 0.08, 2.1, p.z - 3.04, gold)
+        box(0.13, 3.12, 2.22, p.x + side * 0.08, 2.1, p.z - 3.04, trim)
         plane(2.1, 3.03, p.x + side * 0.19, 2.1, p.z - 3.04, poster.texture, p.rotation)
-        box(0.25, 0.12, 2.2, p.x + side * 0.17, 3.8, p.z - 3.04, violet)
+        box(0.25, 0.12, 2.2, p.x + side * 0.17, 3.8, p.z - 3.04, coralLight)
         return poster
       })
       let nearIndex = -1
       const updatePosters = () => {
         posters.forEach(({ ctx, texture }, i) => {
           const door = dataRef.current.doors[i]
-          const gradient = ctx.createLinearGradient(0, 0, 540, 780)
-          gradient.addColorStop(0, i % 2 === 0 ? '#614453' : '#40405f'); gradient.addColorStop(1, '#17121f')
-          ctx.fillStyle = gradient; ctx.fillRect(0, 0, 540, 780)
-          ctx.strokeStyle = '#dabe8755'; ctx.lineWidth = 1; ctx.strokeRect(25, 25, 490, 730)
-          ctx.textAlign = 'left'; ctx.fillStyle = '#dfc694'; ctx.font = '19px sans-serif'; ctx.fillText((door?.badge || 'COMING SOON').toUpperCase(), 52, 90)
-          ctx.font = '160px Georgia, serif'; ctx.fillStyle = '#dabe871a'; ctx.fillText(String(i + 1).padStart(2, '0'), 240, 315)
+          ctx.fillStyle = palette.surface2; ctx.fillRect(0, 0, 540, 780)
+          ctx.fillStyle = door?.badge === 'Now showing' ? palette.coral : palette.surface3; ctx.fillRect(0, 0, 540, 14)
+          ctx.textAlign = 'left'; ctx.fillStyle = palette.coralText; ctx.font = `600 26px ${displayFont}`; ctx.fillText(door?.badge || 'Coming soon', 44, 92)
+          ctx.font = `700 150px ${displayFont}`; ctx.fillStyle = palette.surface3; ctx.fillText(String(i + 1).padStart(2, '0'), 44, 300)
           const words = (door?.title || 'A new story awaits.').split(/\s+/)
-          ctx.font = '52px Georgia, serif'; ctx.fillStyle = '#f9eeda'
+          ctx.font = `700 54px ${displayFont}`; ctx.fillStyle = palette.text
           let line = ''; let y = 425
           for (const word of words) {
-            if (ctx.measureText(`${line} ${word}`).width > 430 && line) { ctx.fillText(line, 52, y); y += 61; line = ''; if (y > 608) break }
+            if (ctx.measureText(`${line} ${word}`).width > 430 && line) { ctx.fillText(line, 44, y); y += 61; line = ''; if (y > 608) break }
             line += `${line ? ' ' : ''}${word}`
           }
-          ctx.fillText(line, 52, y)
-          ctx.font = '20px sans-serif'; ctx.fillStyle = '#bcaebc'
-          ctx.fillText((door?.subtitle || 'The next premiere is on its way.').slice(0, 37), 52, 692)
+          ctx.fillText(line, 44, y)
+          ctx.font = `500 26px ${displayFont}`; ctx.fillStyle = palette.muted
+          ctx.fillText((door?.subtitle || 'The next premiere is on its way.').slice(0, 34), 44, 700)
           texture.needsUpdate = true
         })
         if (nearIndex >= 0) dataRef.current.onNearDoor(dataRef.current.doors[nearIndex] ?? null)
@@ -274,5 +274,5 @@ export default function TheaterMultiplexScene({ doors, paused = false, onNearDoo
     initialize().catch(() => { if (!disposed) setFailed(true) })
     return () => { disposed = true; cleanup() }
   }, [])
-  return <div ref={mountRef} className="absolute inset-0 bg-[#100d13]">{failed && <div role="status" className="absolute inset-0 grid place-items-center p-10"><p className="max-w-sm text-center text-sm leading-7 text-white/60">The 3D lobby is unavailable on this device. Open Showtimes to choose and enter a theater.</p></div>}</div>
+  return <div ref={mountRef} className="absolute inset-0 bg-ns-bg">{failed && <div role="status" className="absolute inset-0 grid place-items-center p-10"><p className="max-w-sm text-center text-base leading-relaxed text-ns-muted">The 3D lobby is unavailable on this device. Open Showtimes to choose and enter a theater.</p></div>}</div>
 }

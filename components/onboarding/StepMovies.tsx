@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { tmdbImageUrl, formatYear } from '@/lib/utils'
-import Button from '@/components/ui/Button'
+import { CheckIcon, ChevronIcon, CloseIcon, PlusIcon, SearchIcon, WarningIcon } from '@/components/icons'
+import StepActions from './StepActions'
 import type { TMDbMovie } from '@/types'
 import TasteImport from '@/components/settings/TasteImport'
 
@@ -96,29 +97,140 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
   }
 
   const canProceed = selected.length >= MIN
+  const emptySlots = Math.max(0, MIN - selected.length)
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-ns-text mb-2">
-          FAVORITE FILMS
-        </h2>
-        <p className="text-ns-muted font-body text-sm">
-          Search for and select {MIN}–{MAX} movies you love. These shape your entire Movie DNA.
-        </p>
+    <div>
+      <h1 className="font-display text-4xl text-ns-text sm:text-5xl">Favorite films</h1>
+      <p className="mt-3 max-w-xl text-lg leading-relaxed text-ns-muted">
+        Search for and select {MIN}–{MAX} movies you love. These shape your entire Movie DNA.
+      </p>
+
+      <div className="relative mt-8">
+        <div className="flex min-h-14 items-center gap-3 rounded-xl border border-ns-border-strong bg-ns-bg px-4 transition-colors duration-150 focus-within:border-ns-text">
+          {searching ? (
+            <svg aria-hidden="true" className="h-5 w-5 flex-shrink-0 animate-spin text-ns-muted" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+            </svg>
+          ) : (
+            <SearchIcon size={20} className="flex-shrink-0 text-ns-muted" />
+          )}
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onFocus={() => results.length > 0 && setOpen(true)}
+            placeholder="Search for a movie..."
+            aria-label="Search for a movie"
+            disabled={selected.length >= MAX}
+            className="min-w-0 flex-1 bg-transparent py-3 text-base text-ns-text placeholder:text-ns-subtle focus:outline-none disabled:cursor-not-allowed"
+          />
+          <span className={`flex-shrink-0 text-sm font-semibold tabular-nums transition-colors duration-200 ${canProceed ? 'text-ns-secondary-readable' : 'text-ns-muted'}`}>
+            {selected.length}/{MAX}
+          </span>
+        </div>
+
+        {searchErr && (
+          <div role="alert" className="mt-2 flex items-start gap-2.5 rounded-xl bg-ns-danger/10 px-4 py-3 text-sm leading-relaxed text-ns-danger motion-safe:animate-fade-up">
+            <WarningIcon size={16} className="mt-0.5 flex-shrink-0" />
+            <p>{searchErr}</p>
+          </div>
+        )}
+
+        {open && results.length > 0 && (
+          <div
+            ref={dropdownRef}
+            className="absolute inset-x-0 top-full z-50 mt-2 max-h-[26rem] origin-top overflow-y-auto rounded-2xl bg-ns-surface-2 p-2 shadow-2xl motion-safe:animate-[fadeUp_200ms_cubic-bezier(0.23,1,0.32,1)_backwards]"
+          >
+            {results.map(movie => {
+              const isSelected = !!selected.find(m => m.tmdbId === movie.id)
+              const isDisabled = !isSelected && selected.length >= MAX
+              return (
+                <button
+                  key={movie.id}
+                  type="button"
+                  onClick={() => toggleMovie(movie)}
+                  disabled={isDisabled}
+                  aria-pressed={isSelected}
+                  className={`flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors duration-150 ${
+                    isDisabled ? 'cursor-not-allowed opacity-50' : isSelected ? 'bg-ns-surface-3' : 'hover:bg-ns-surface-3'
+                  }`}
+                >
+                  <span className="relative h-16 w-11 flex-shrink-0 overflow-hidden rounded-lg bg-ns-surface-3">
+                    <Image
+                      src={tmdbImageUrl(movie.poster_path, 'w185')}
+                      alt=""
+                      fill
+                      sizes="44px"
+                      className="object-cover"
+                    />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-heading text-base font-semibold text-ns-text">{movie.title}</span>
+                    <span className="block text-sm tabular-nums text-ns-muted">{formatYear(movie.release_date)}</span>
+                  </span>
+                  {isSelected && <CheckIcon size={18} className="mr-2 flex-shrink-0 text-ns-secondary-readable" />}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
-      <div className="mb-6">
+      <ul className="mt-6 grid grid-cols-5 gap-2 sm:gap-3">
+        {selected.map(movie => (
+          <li key={movie.tmdbId} className="min-w-0 motion-safe:animate-[fadeUp_320ms_cubic-bezier(0.23,1,0.32,1)_backwards]">
+            <button
+              type="button"
+              onClick={() => setSelected(selected.filter(m => m.tmdbId !== movie.tmdbId))}
+              aria-label={`Remove ${movie.title}`}
+              className="group relative block aspect-[2/3] w-full overflow-hidden rounded-xl bg-ns-surface-2"
+            >
+              <Image
+                src={tmdbImageUrl(movie.posterPath, 'w185')}
+                alt=""
+                fill
+                sizes="(min-width: 640px) 130px, 18vw"
+                className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04] motion-reduce:transform-none"
+              />
+              <span className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/75 text-white transition-colors duration-150 group-hover:bg-ns-danger group-hover:text-ns-bg sm:right-1.5 sm:top-1.5">
+                <CloseIcon size={12} />
+              </span>
+            </button>
+            <p className="mt-1.5 truncate text-xs text-ns-muted sm:text-sm">{movie.title}</p>
+          </li>
+        ))}
+        {Array.from({ length: emptySlots }).map((_, index) => (
+          <li key={`empty-${index}`} aria-hidden="true">
+            <div className={`flex aspect-[2/3] items-center justify-center rounded-xl transition-colors duration-300 ${index === 0 ? 'bg-ns-surface-2 text-ns-text' : 'bg-ns-surface text-ns-subtle'}`}>
+              <PlusIcon size={18} />
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-6 rounded-2xl bg-ns-surface">
         <button
           type="button"
           onClick={() => setShowImport(value => !value)}
-          className="w-full rounded-2xl border border-ns-secondary/25 bg-ns-secondary/5 px-5 py-4 text-left transition-colors hover:border-ns-secondary/45 hover:bg-ns-secondary/10"
+          aria-expanded={showImport}
+          aria-controls="onboarding-import"
+          className="flex min-h-16 w-full items-center justify-between gap-4 rounded-2xl px-5 py-4 text-left transition-colors duration-150 hover:bg-ns-surface-2"
         >
-          <span className="block text-sm font-body font-semibold text-ns-secondary-readable">Already use Letterboxd or IMDb?</span>
-          <span className="mt-1 block text-xs font-body text-ns-muted">Import your history and we&apos;ll suggest favorites from your highest ratings.</span>
+          <span className="min-w-0">
+            <span className="block font-heading text-base font-semibold text-ns-text">Already use Letterboxd or IMDb?</span>
+            <span className="mt-0.5 block text-sm leading-relaxed text-ns-muted">Import your history and we&apos;ll suggest favorites from your highest ratings.</span>
+          </span>
+          <ChevronIcon
+            size={20}
+            direction="down"
+            className={`flex-shrink-0 text-ns-muted transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${showImport ? 'rotate-180' : ''}`}
+          />
         </button>
         {showImport && (
-          <div className="mt-3">
+          <div id="onboarding-import" className="px-5 pb-5 motion-safe:animate-[fadeUp_260ms_cubic-bezier(0.23,1,0.32,1)_backwards]">
             <TasteImport
               compact
               onImported={favorites => {
@@ -129,150 +241,15 @@ export default function StepMovies({ selected, setSelected, onNext, loading }: S
         )}
       </div>
 
-      {/* Search input */}
-      <div className="relative mb-8">
-        <div className="flex items-center gap-3 bg-ns-surface border border-ns-border rounded-xl px-4 py-3
-                        focus-within:border-ns-secondary/40 transition-colors">
-          {searching ? (
-            <svg className="animate-spin w-4 h-4 text-ns-muted flex-shrink-0" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-            </svg>
-          ) : (
-            <svg className="w-4 h-4 text-ns-muted flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
-          )}
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onFocus={() => results.length > 0 && setOpen(true)}
-            placeholder="Search for a movie..."
-            disabled={selected.length >= MAX}
-            className="flex-1 bg-transparent text-ns-text placeholder:text-ns-muted/40 text-sm font-body focus:outline-none"
-          />
-          <span className={`text-xs font-body flex-shrink-0 ${selected.length >= MIN ? 'text-ns-secondary-readable' : 'text-ns-muted/50'}`}>
-            {selected.length}/{MAX}
-          </span>
-        </div>
-
-        {/* Search error */}
-        {searchErr && (
-          <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-ns-surface border border-red-500/30
-                          rounded-xl px-4 py-3 flex items-start gap-2.5">
-            <svg className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
-            </svg>
-            <p className="text-red-400 text-xs font-body leading-relaxed">{searchErr}</p>
-          </div>
-        )}
-
-        {/* Dropdown results */}
-        {open && results.length > 0 && (
-          <div
-            ref={dropdownRef}
-            className="absolute left-0 right-0 top-full mt-2 z-50 bg-ns-surface border border-ns-border
-                       rounded-xl overflow-hidden shadow-2xl shadow-black/60"
-          >
-            {results.map(movie => {
-              const isSelected = !!selected.find(m => m.tmdbId === movie.id)
-              const isDisabled = !isSelected && selected.length >= MAX
-              return (
-                <button
-                  key={movie.id}
-                  onClick={() => toggleMovie(movie)}
-                  disabled={isDisabled}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors
-                              ${isDisabled ? 'opacity-40 cursor-not-allowed' :
-                                isSelected ? 'bg-ns-secondary/10' :
-                                             'hover:bg-ns-surface-2'}`}
-                >
-                  <div className="w-8 h-12 rounded flex-shrink-0 overflow-hidden bg-ns-border">
-                    <Image
-                      src={tmdbImageUrl(movie.poster_path, 'w185')}
-                      alt={movie.title}
-                      width={32} height={48}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-ns-text text-sm font-body font-medium truncate">{movie.title}</p>
-                    <p className="text-ns-muted text-xs font-body">{formatYear(movie.release_date)}</p>
-                  </div>
-                  {isSelected && (
-                    <svg className="w-4 h-4 text-ns-secondary-readable flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-                    </svg>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Selected grid */}
-      {selected.length > 0 ? (
-        <div className="grid grid-cols-5 sm:grid-cols-5 gap-3 mb-8">
-          {selected.map(movie => (
-            <div key={movie.tmdbId} className="relative group">
-              <div className="aspect-[2/3] rounded-lg overflow-hidden bg-ns-surface border border-ns-border">
-                <Image
-                  src={tmdbImageUrl(movie.posterPath, 'w185')}
-                  alt={movie.title}
-                  width={100} height={150}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <button
-                onClick={() => setSelected(selected.filter(m => m.tmdbId !== movie.tmdbId))}
-                className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full
-                           flex items-center justify-center opacity-0 group-hover:opacity-100
-                           transition-opacity"
-              >
-                <svg width="8" height="8" fill="none" stroke="white" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path d="M18 6 6 18M6 6l12 12"/>
-                </svg>
-              </button>
-              <p className="text-ns-muted text-[10px] font-body mt-1 text-center truncate leading-tight">
-                {movie.title}
-              </p>
-            </div>
-          ))}
-          {/* Empty slots */}
-          {selected.length < MIN && Array.from({ length: MIN - selected.length }).map((_, i) => (
-            <div key={`empty-${i}`} className="aspect-[2/3] rounded-lg border border-dashed border-ns-border/50 flex items-center justify-center">
-              <span className="text-ns-muted/30 text-lg">+</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="border border-dashed border-ns-border rounded-2xl p-10 text-center mb-8">
-          <p className="text-ns-muted/50 text-sm font-body">
-            Search above and select at least {MIN} films you love
-          </p>
-        </div>
-      )}
-
-      {/* Status + CTA */}
-      <div className="flex items-center justify-between">
-        <p className="text-ns-muted text-sm font-body">
-          {selected.length < MIN
-            ? `${MIN - selected.length} more to go`
-            : `${selected.length} selected — looking great`}
-        </p>
-        <Button
-          variant="primary"
-          size="lg"
-          onClick={onNext}
-          disabled={!canProceed}
-          loading={loading}
-        >
-          Continue →
-        </Button>
-      </div>
+      <StepActions
+        status={selected.length < MIN
+          ? `${MIN - selected.length} more to go`
+          : `${selected.length} selected — looking great`}
+        nextLabel="Continue"
+        onNext={onNext}
+        nextDisabled={!canProceed}
+        loading={loading}
+      />
     </div>
   )
 }

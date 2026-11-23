@@ -1,5 +1,7 @@
 'use client'
 
+import Badge from '@/components/ui/Badge'
+import { SelectControl } from './FormControls'
 import type { TasteImportPreviewItem } from '@/services/imports/types'
 
 interface Props {
@@ -20,8 +22,8 @@ function itemDetails(item: TasteImportPreviewItem): string {
 export default function ImportPreview({ items, choices, onChoice }: Props) {
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-body text-ns-muted">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="min-w-0 flex-1 basis-56 text-sm text-ns-muted">
           Confirm exact matches and resolve possible matches before importing.
         </p>
         <button
@@ -34,18 +36,18 @@ export default function ImportPreview({ items, choices, onChoice }: Props) {
               }
             }
           }}
-          className="flex-shrink-0 text-xs font-body text-ns-secondary-readable hover:text-amber-300 transition-colors"
+          className="min-h-11 flex-shrink-0 rounded-full px-4 text-sm font-semibold text-ns-text transition-colors hover:bg-ns-surface-2 sm:min-h-10"
         >
           Select all
         </button>
       </div>
 
-      <div className="max-h-[34rem] overflow-y-auto rounded-2xl border border-ns-border divide-y divide-ns-border/50 bg-ns-bg/40">
+      <div className="max-h-[34rem] divide-y divide-ns-border overflow-y-auto rounded-2xl bg-ns-bg">
         {items.map(item => {
           const choice = choices[item.rowKey] ?? null
           const disabled = item.candidates.length === 0
           return (
-            <div key={item.rowKey} className={`p-3 sm:p-4 ${disabled ? 'opacity-55' : ''}`}>
+            <div key={item.rowKey} className="p-4">
               <div className="flex gap-3">
                 <input
                   type="checkbox"
@@ -55,43 +57,38 @@ export default function ImportPreview({ items, choices, onChoice }: Props) {
                     item.rowKey,
                     event.target.checked ? item.selectedTmdbId ?? item.candidates[0]?.tmdbId ?? null : null,
                   )}
-                  className="mt-1 h-4 w-4 rounded border-ns-border accent-amber-400"
+                  className="mt-0.5 h-5 w-5 flex-shrink-0 cursor-pointer rounded accent-ns-secondary disabled:cursor-not-allowed"
                   aria-label={`Import ${item.title}`}
                 />
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-body font-medium text-ns-text truncate">
-                      {item.title}{item.year ? ` (${item.year})` : ''}
-                    </p>
-                    {item.status === 'matched' && (
-                      <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-body text-emerald-300">Exact match</span>
-                    )}
-                    {item.status === 'conflict' && (
-                      <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-body text-amber-300">Review match</span>
-                    )}
-                    {item.status === 'unmatched' && (
-                      <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-body text-rose-300">No match</span>
-                    )}
-                    {(item.existing.rating || item.existing.watchlist) && (
-                      <span className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-body text-sky-300">Updates existing</span>
-                    )}
+                  <p className={`break-words text-base font-semibold ${disabled ? 'text-ns-muted' : 'text-ns-text'}`}>
+                    {item.title}{item.year ? ` (${item.year})` : ''}
+                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    {item.status === 'matched' && <Badge variant="success">Exact match</Badge>}
+                    {item.status === 'conflict' && <Badge variant="warning">Review match</Badge>}
+                    {item.status === 'unmatched' && <Badge variant="danger">No match</Badge>}
+                    {(item.existing.rating || item.existing.watchlist) && <Badge variant="info">Updates existing</Badge>}
+                    <span className="text-sm text-ns-muted">{itemDetails(item)}</span>
                   </div>
-                  <p className="mt-0.5 text-[11px] font-body text-ns-muted/70">{itemDetails(item)}</p>
 
                   {item.candidates.length > 0 && (
-                    <select
-                      value={choice ?? ''}
-                      onChange={event => onChoice(item.rowKey, event.target.value ? Number(event.target.value) : null)}
-                      className="mt-2 w-full rounded-lg border border-ns-border bg-ns-surface px-3 py-2 text-xs font-body text-ns-text focus:border-ns-secondary/50 focus:outline-none"
-                    >
-                      <option value="">Skip this movie</option>
-                      {item.candidates.map(candidate => (
-                        <option key={candidate.tmdbId} value={candidate.tmdbId}>
-                          {candidate.title}{candidate.year ? ` (${candidate.year})` : ''}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="mt-3">
+                      <SelectControl
+                        aria-label={`Match for ${item.title}`}
+                        value={choice ?? ''}
+                        onChange={event => onChoice(item.rowKey, event.target.value ? Number(event.target.value) : null)}
+                        className="!bg-ns-surface"
+                      >
+                        <option value="">Skip this movie</option>
+                        {item.candidates.map(candidate => (
+                          <option key={candidate.tmdbId} value={candidate.tmdbId}>
+                            {candidate.title}{candidate.year ? ` (${candidate.year})` : ''}
+                          </option>
+                        ))}
+                      </SelectControl>
+                    </div>
                   )}
                 </div>
               </div>

@@ -44,11 +44,11 @@ export async function GET(
   const tp = user.tasteProfile
   const topTraits: { label: string; value: number }[] = tp
     ? [
-        { label: 'Complexity',       value: tp.complexityScore },
-        { label: 'Emotional Depth',  value: tp.emotionalImpactScore },
-        { label: 'Suspense',         value: tp.suspenseScore },
-        { label: 'Darkness',         value: tp.darknessScore },
-        { label: 'Action',           value: tp.actionScore },
+        { label: 'Complexity', value: tp.complexityScore },
+        { label: 'Emotional Depth', value: tp.emotionalImpactScore },
+        { label: 'Suspense', value: tp.suspenseScore },
+        { label: 'Darkness', value: tp.darknessScore },
+        { label: 'Action', value: tp.actionScore },
       ].sort((a, b) => b.value - a.value).slice(0, 3)
     : []
 
@@ -60,30 +60,21 @@ export async function GET(
           height: '630px',
           display: 'flex',
           flexDirection: 'column',
-          background: `linear-gradient(135deg, ${THEME.bg} 0%, ${THEME.surface} 50%, ${THEME.surface2} 100%)`,
+          background: THEME.bg,
+          color: THEME.text,
           fontFamily: 'system-ui, sans-serif',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        {/* Background accent */}
-        <div style={{
-          position: 'absolute',
-          top: '-100px', right: '-100px',
-          width: '400px', height: '400px',
-          borderRadius: '50%',
-          background: personality?.accentHex
-            ? `radial-gradient(circle, ${personality.accentHex}30 0%, transparent 70%)`
-            : `radial-gradient(circle, ${THEME.secondary}30 0%, transparent 70%)`,
-        }} />
-
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '48px 64px 0' }}>
-          <span style={{ fontSize: '22px', letterSpacing: '0.3em', color: THEME.secondary, fontWeight: 700 }}>
-            NOSPOILERS
-          </span>
-          <span style={{ fontSize: '14px', color: THEME.muted, letterSpacing: '0.1em' }}>
-            MOVIE TASTE CARD
+          <div style={{ display: 'flex', alignItems: 'center', fontSize: '28px', fontWeight: 700 }}>
+            <span>No</span>
+            <span style={{ marginLeft: '5px', padding: '2px 9px', borderRadius: '8px', background: THEME.secondary, color: THEME.secondaryForeground }}>Spoilers</span>
+          </div>
+          <span style={{ fontSize: '18px', color: THEME.muted }}>
+            Movie taste card
           </span>
         </div>
 
@@ -91,16 +82,13 @@ export async function GET(
         <div style={{ display: 'flex', flex: 1, padding: '40px 64px 48px', gap: '64px', alignItems: 'center' }}>
           {/* Left: identity */}
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-            <div style={{ fontSize: '64px', marginBottom: '8px', color: personality?.accentHex ?? THEME.secondary, fontWeight: 900, letterSpacing: '0.05em' }}>
-              {(personality?.name ?? 'Film').charAt(0).toUpperCase()}
+            <div style={{ fontSize: '24px', color: THEME.muted, marginBottom: '10px' }}>
+              {`@${user.username}`}
             </div>
-            <div style={{ fontSize: '20px', color: THEME.muted, letterSpacing: '0.2em', marginBottom: '8px', textTransform: 'uppercase' }}>
-              @{user.username}
-            </div>
-            <div style={{ fontSize: '48px', fontWeight: 900, color: THEME.text, lineHeight: 1.1, marginBottom: '16px' }}>
+            <div style={{ fontSize: '68px', fontWeight: 800, letterSpacing: '-2px', color: THEME.text, lineHeight: 1.04, marginBottom: '18px' }}>
               {personality?.name ?? 'Film Lover'}
             </div>
-            <div style={{ fontSize: '16px', color: THEME.muted, lineHeight: 1.5, maxWidth: '380px' }}>
+            <div style={{ fontSize: '20px', color: THEME.muted, lineHeight: 1.5, maxWidth: '460px' }}>
               {personality?.description ?? 'A true lover of cinema.'}
             </div>
 
@@ -109,12 +97,11 @@ export async function GET(
               <div style={{ display: 'flex', gap: '10px', marginTop: '24px', flexWrap: 'wrap' }}>
                 {personality.traits.map(trait => (
                   <span key={trait} style={{
-                    background: THEME.border,
-                    border: `1px solid ${personality.accentHex}40`,
+                    background: THEME.surface2,
                     color: personality.accentHex,
-                    padding: '6px 14px',
-                    borderRadius: '20px',
-                    fontSize: '13px',
+                    padding: '7px 15px',
+                    borderRadius: '999px',
+                    fontSize: '15px',
                     fontWeight: 600,
                   }}>
                     {trait}
@@ -128,14 +115,14 @@ export async function GET(
           <div style={{ display: 'flex', flexDirection: 'column', width: '320px', gap: '20px' }}>
             {/* Top movies */}
             {favoriteMovies.length > 0 && (
-              <div style={{ background: THEME.surface, border: `1px solid ${THEME.border}`, borderRadius: '16px', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: THEME.muted, letterSpacing: '0.2em', marginBottom: '12px' }}>
-                  FAVORITE FILMS
+              <div style={{ display: 'flex', flexDirection: 'column', background: THEME.surface, borderRadius: '24px', padding: '22px' }}>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: THEME.text, marginBottom: '12px' }}>
+                  Favorite films
                 </div>
                 {favoriteMovies.map((m, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <span style={{ color: THEME.secondary, fontSize: '12px', width: '14px' }}>{i + 1}</span>
-                    <span style={{ color: THEME.text, fontSize: '14px' }}>{m.title}</span>
+                    <span style={{ color: THEME.secondary, fontSize: '15px', width: '16px' }}>{i + 1}</span>
+                    <span style={{ color: THEME.text, fontSize: '16px' }}>{m.title}</span>
                   </div>
                 ))}
               </div>
@@ -143,24 +130,24 @@ export async function GET(
 
             {/* DNA highlights */}
             {topTraits.length > 0 && (
-              <div style={{ background: THEME.surface, border: `1px solid ${THEME.border}`, borderRadius: '16px', padding: '20px' }}>
-                <div style={{ fontSize: '11px', color: THEME.muted, letterSpacing: '0.2em', marginBottom: '12px' }}>
-                  MOVIE DNA
+              <div style={{ display: 'flex', flexDirection: 'column', background: THEME.surface, borderRadius: '24px', padding: '22px' }}>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: THEME.text, marginBottom: '12px' }}>
+                  Movie DNA
                 </div>
                 {topTraits.map(trait => (
-                  <div key={trait.label} style={{ marginBottom: '10px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ color: THEME.text, fontSize: '12px' }}>{trait.label}</span>
-                      <span style={{ color: THEME.secondary, fontSize: '12px', fontWeight: 700 }}>
-                        {Math.round(trait.value * 10)}%
+                  <div key={trait.label} style={{ display: 'flex', flexDirection: 'column', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                      <span style={{ color: THEME.text, fontSize: '15px' }}>{trait.label}</span>
+                      <span style={{ color: THEME.secondary, fontSize: '15px', fontWeight: 700 }}>
+                        {`${Math.round(trait.value * 10)}%`}
                       </span>
                     </div>
-                    <div style={{ height: '4px', background: THEME.border, borderRadius: '2px' }}>
+                    <div style={{ display: 'flex', height: '6px', background: THEME.surface2, borderRadius: '3px' }}>
                       <div style={{
-                        height: '4px',
+                        height: '6px',
                         width: `${trait.value * 10}%`,
                         background: personality?.accentHex ?? THEME.secondary,
-                        borderRadius: '2px',
+                        borderRadius: '3px',
                       }} />
                     </div>
                   </div>
@@ -172,8 +159,8 @@ export async function GET(
 
         {/* Footer */}
         <div style={{ padding: '0 64px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '13px', color: THEME.muted }}>nospoilers.app</span>
-          <span style={{ fontSize: '13px', color: THEME.muted }}>Discover your Movie DNA</span>
+          <span style={{ fontSize: '16px', color: THEME.muted }}>nospoilers.xyz</span>
+          <span style={{ fontSize: '16px', color: THEME.muted }}>Discover your Movie DNA</span>
         </div>
       </div>
     ),

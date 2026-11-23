@@ -5,7 +5,11 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { tmdbImageUrl, formatYear } from '@/lib/utils'
 import Top5Editor from '@/components/top-five/Top5Editor'
-import { FilmIcon } from '@/components/icons'
+import { EditIcon, FilmIcon, PlusIcon } from '@/components/icons'
+import Button from '@/components/ui/Button'
+import EmptyState from '@/components/ui/EmptyState'
+import { Skeleton } from '@/components/ui/Skeleton'
+import SectionHeading from './SectionHeading'
 import type { TopFiveEntry } from '@/services/top-five'
 
 // Props kept minimal — no longer needs favorites passed from server
@@ -33,105 +37,80 @@ export default function FavoriteMovies() {
 
   return (
     <>
-      <div>
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="font-display text-2xl tracking-wider text-ns-text">TOP 5 FILMS</h2>
-          <button
-            onClick={() => setEditing(true)}
-            className="text-xs font-heading font-medium text-ns-secondary-readable hover:text-amber-400 transition-colors flex items-center gap-1.5"
-          >
-            <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            Edit Top 5
-          </button>
-        </div>
+      <section aria-labelledby="top-five-title">
+        <SectionHeading
+          id="top-five-title"
+          title="Top 5 films"
+          action={<Button variant="ghost" size="sm" onClick={() => setEditing(true)}><EditIcon size={14} /> Edit Top 5</Button>}
+        />
 
         {loading ? (
-          <div className="flex gap-3">
+          <div aria-hidden="true" className="grid grid-cols-5 gap-2 sm:gap-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex-1 aspect-[2/3] animate-pulse rounded-xl bg-ns-surface border border-ns-border" />
+              <Skeleton key={i} className="aspect-[2/3] rounded-xl" />
             ))}
           </div>
         ) : movies.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-ns-border p-10 text-center">
-            <FilmIcon size={40} className="text-ns-secondary-readable/40 mx-auto mb-3" />
-            <p className="font-heading font-medium text-white mb-1">No Top 5 set yet</p>
-            <p className="text-ns-muted text-sm font-body mb-5">
-              Your Top 5 films are the strongest influence on your Movie DNA and recommendations.
-            </p>
-            <button
-              onClick={() => setEditing(true)}
-              className="px-5 py-2 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold hover:bg-amber-400 hover:text-ns-bg transition-colors"
-            >
-              Choose Your Top 5
-            </button>
-          </div>
+          <EmptyState
+            title="No Top 5 set yet"
+            description="Your Top 5 films are the strongest influence on your Movie DNA and recommendations."
+            action={<Button onClick={() => setEditing(true)}>Choose Your Top 5</Button>}
+          />
         ) : (
-          <div className="flex gap-2 sm:gap-3">
-            {movies.map(m => (
-              <Link key={m.tmdbId} href={`/movie/${m.tmdbId}`} className="relative flex-1 group">
-                {/* Rank badge */}
-                <div className="absolute -top-2 -left-1 z-10 w-7 h-7 rounded-full bg-ns-bg border-2 border-ns-secondary
-                                flex items-center justify-center shadow-lg">
-                  <span className="text-ns-secondary-readable font-display text-[9px] leading-none">{m.position}</span>
-                </div>
-
-                {/* Poster */}
-                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-ns-surface border border-ns-border
-                                shadow-lg group-hover:border-ns-secondary/50 transition-all duration-200 relative">
-                  {m.posterPath ? (
-                    <Image
-                      src={tmdbImageUrl(m.posterPath, 'w342')}
-                      alt={m.title}
-                      fill sizes="(max-width: 640px) 18vw, 160px"
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <FilmIcon size={28} className="text-ns-muted/40" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent
-                                  opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-2">
-                    <div>
-                      <p className="text-white text-[10px] font-heading font-semibold leading-tight line-clamp-2">{m.title}</p>
-                      {m.releaseDate && <p className="text-white/60 text-[9px] font-body">{formatYear(m.releaseDate)}</p>}
-                    </div>
+          <ol className="grid grid-cols-5 gap-2 sm:gap-4">
+            {movies.map((m, index) => (
+              <li key={m.tmdbId} className="ns-reveal min-w-0" style={{ '--i': index } as React.CSSProperties}>
+                <Link href={`/movie/${m.tmdbId}`} className="group block">
+                  <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface">
+                    {m.posterPath ? (
+                      <Image
+                        src={tmdbImageUrl(m.posterPath, 'w342')}
+                        alt=""
+                        fill
+                        sizes="(min-width: 1280px) 240px, 19vw"
+                        className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04] motion-reduce:transform-none"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <FilmIcon size={28} className="text-ns-muted" />
+                      </div>
+                    )}
+                    <span className="absolute left-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/80 font-display text-xs text-white sm:left-2 sm:top-2 sm:h-8 sm:w-8 sm:text-sm">
+                      {m.position}
+                    </span>
                   </div>
-                </div>
-                <p className="text-[10px] font-body text-ns-muted mt-1.5 line-clamp-1 text-center group-hover:text-white transition-colors">
-                  {m.title}
-                </p>
-              </Link>
+                  <p className="mt-2 truncate text-xs font-semibold text-ns-text transition-colors duration-150 group-hover:text-ns-secondary-readable sm:text-sm">
+                    {m.title}
+                  </p>
+                  {m.releaseDate && <p className="hidden text-sm tabular-nums text-ns-muted sm:block">{formatYear(m.releaseDate)}</p>}
+                </Link>
+              </li>
             ))}
 
-            {/* Empty slot prompts */}
             {Array.from({ length: 5 - movies.length }).map((_, i) => (
-              <div key={`empty-${i}`} className="flex-1">
+              <li key={`empty-${i}`}>
                 <button
+                  type="button"
                   onClick={() => setEditing(true)}
-                  className="w-full aspect-[2/3] rounded-xl border-2 border-dashed border-ns-border
-                             hover:border-ns-secondary/40 hover:bg-ns-secondary/5 flex items-center justify-center
-                             transition-all cursor-pointer group"
+                  aria-label="Add a film to your Top 5"
+                  className="flex aspect-[2/3] w-full items-center justify-center rounded-xl bg-ns-surface text-ns-muted transition-colors duration-150 hover:bg-ns-surface-2 hover:text-ns-text"
                 >
-                  <span className="text-ns-muted text-xl group-hover:text-ns-secondary-readable transition-colors">+</span>
+                  <PlusIcon size={20} />
                 </button>
-              </div>
+              </li>
             ))}
-          </div>
+          </ol>
         )}
 
         {movies.length > 0 && (
-          <p className="text-[10px] font-body text-ns-muted text-center mt-3">
-            Your Top 5 contributes <span className="text-ns-secondary-readable">35%</span> of your Movie DNA ·{' '}
-            <button onClick={() => setEditing(true)} className="text-ns-secondary-readable hover:text-amber-400 transition-colors">
+          <p className="mt-4 flex flex-wrap items-center gap-x-2 text-sm text-ns-muted">
+            <span>Your Top 5 contributes <span className="font-semibold text-ns-text">35%</span> of your Movie DNA</span>
+            <button type="button" onClick={() => setEditing(true)} className="min-h-10 font-semibold text-ns-text underline underline-offset-4 transition-colors hover:text-ns-secondary-readable">
               Edit order
             </button>
           </p>
         )}
-      </div>
+      </section>
 
       {editing && (
         <Top5Editor

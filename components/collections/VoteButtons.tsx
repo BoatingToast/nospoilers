@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useSession } from 'next-auth/react'
+import { cn } from '@/lib/utils'
 import type { VoteType, VoteResult } from '@/types'
 
 interface Props {
@@ -79,105 +80,68 @@ export default function VoteButtons({
     })
   }
 
+  const disabled = !isAuthed || isOwner || pending
+  const hint = isOwner
+    ? 'Cannot vote on your own collection'
+    : status === 'unauthenticated'
+      ? 'Sign in to vote'
+      : undefined
+
+  const voteButton = (type: VoteType) => {
+    const up = type === 'upvote'
+    const active = userVote === type
+    const count = up ? votes.upvotes : votes.downvotes
+    return (
+      <button
+        type="button"
+        onClick={() => handleVote(type)}
+        disabled={disabled}
+        title={hint ?? (up ? 'Upvote' : 'Downvote')}
+        aria-label={`${up ? 'Upvote' : 'Downvote'}, ${count}`}
+        aria-pressed={active}
+        className={cn(
+          'inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full text-sm font-semibold tabular-nums transition-colors duration-150 disabled:cursor-not-allowed',
+          compact ? 'min-w-11 flex-1 px-2.5' : 'min-w-[4.5rem] px-4',
+          active
+            ? up ? 'bg-ns-success/15 text-ns-success' : 'bg-ns-danger/15 text-ns-danger'
+            : cn(
+                'text-ns-muted enabled:hover:bg-ns-surface-2',
+                up ? 'enabled:hover:text-ns-success' : 'enabled:hover:text-ns-danger',
+              ),
+        )}
+      >
+        <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" strokeWidth={active ? 3 : 2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+          <path d={up ? 'M12 19V5M5 12l7-7 7 7' : 'M12 5v14M5 12l7 7 7-7'} />
+        </svg>
+        <span key={count} className="inline-block animate-fade-up">{count}</span>
+      </button>
+    )
+  }
+
   if (compact) {
     return (
-      <div className="flex items-center gap-1.5">
-        <button
-          onClick={() => handleVote('upvote')}
-          disabled={!isAuthed || isOwner || pending}
-          title={isOwner ? 'Cannot vote on your own collection' : 'Upvote'}
-          className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-xs font-body transition-all
-            ${userVote === 'upvote'
-              ? 'bg-ns-success/15 border-ns-success/40 text-ns-success'
-              : 'border-ns-border text-ns-muted hover:border-ns-success/30 hover:text-ns-success'
-            } disabled:cursor-not-allowed disabled:opacity-40`}
-        >
-          <UpIcon active={userVote === 'upvote'} />
-          <span>{votes.upvotes}</span>
-        </button>
-
-        <button
-          onClick={() => handleVote('downvote')}
-          disabled={!isAuthed || isOwner || pending}
-          title={isOwner ? 'Cannot vote on your own collection' : 'Downvote'}
-          className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-xs font-body transition-all
-            ${userVote === 'downvote'
-              ? 'bg-ns-danger/15 border-ns-danger/40 text-ns-danger'
-              : 'border-ns-border text-ns-muted hover:border-ns-danger/30 hover:text-ns-danger'
-            } disabled:cursor-not-allowed disabled:opacity-40`}
-        >
-          <DownIcon active={userVote === 'downvote'} />
-          <span>{votes.downvotes}</span>
-        </button>
+      <div className="flex items-center gap-0.5 rounded-full bg-ns-surface p-0.5">
+        {voteButton('upvote')}
+        {voteButton('downvote')}
       </div>
     )
   }
 
   // Full-size version (collection detail page)
   return (
-    <div className="flex flex-col items-center gap-2">
-      {/* Upvote */}
-      <button
-        onClick={() => handleVote('upvote')}
-        disabled={!isAuthed || isOwner || pending}
-        title={isOwner ? 'Cannot vote on your own collection' : undefined}
-        className={`group w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5
-          border transition-all duration-200
-          ${userVote === 'upvote'
-            ? 'bg-ns-success/15 border-ns-success/50 text-ns-success shadow-[0_0_12px_rgb(var(--ns-success)/0.15)]'
-            : 'border-ns-border text-ns-muted hover:border-ns-success/40 hover:text-ns-success hover:bg-ns-success/5'
-          } disabled:cursor-not-allowed disabled:opacity-40`}
+    <div role="group" aria-label="Vote on this collection" className="inline-flex items-center gap-1 rounded-full bg-ns-surface p-1">
+      {voteButton('upvote')}
+      <span
+        key={votes.score}
+        aria-label={`Net score ${votes.score}`}
+        className={cn(
+          'inline-block min-w-[2.75rem] animate-fade-up px-1 text-center font-heading text-lg font-bold tabular-nums',
+          votes.score > 0 ? 'text-ns-success' : votes.score < 0 ? 'text-ns-danger' : 'text-ns-muted',
+        )}
       >
-        <UpIcon active={userVote === 'upvote'} size={18} />
-        <span className="text-[11px] font-body font-semibold leading-none">{votes.upvotes}</span>
-      </button>
-
-      {/* Net score pill */}
-      <div className={`px-2.5 py-1 rounded-full border text-xs font-body font-semibold text-center min-w-[40px]
-        ${votes.score > 0
-          ? 'bg-ns-success/10 border-ns-success/20 text-ns-success'
-          : votes.score < 0
-          ? 'bg-ns-danger/10 border-ns-danger/20 text-ns-danger'
-          : 'bg-ns-surface border-ns-border text-ns-muted'
-        }`}>
         {votes.score > 0 ? '+' : ''}{votes.score}
-      </div>
-
-      {/* Downvote */}
-      <button
-        onClick={() => handleVote('downvote')}
-        disabled={!isAuthed || isOwner || pending}
-        title={isOwner ? 'Cannot vote on your own collection' : undefined}
-        className={`group w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5
-          border transition-all duration-200
-          ${userVote === 'downvote'
-            ? 'bg-ns-danger/15 border-ns-danger/50 text-ns-danger shadow-[0_0_12px_rgb(var(--ns-danger)/0.15)]'
-            : 'border-ns-border text-ns-muted hover:border-ns-danger/40 hover:text-ns-danger hover:bg-ns-danger/5'
-          } disabled:cursor-not-allowed disabled:opacity-40`}
-      >
-        <span className="text-[11px] font-body font-semibold leading-none">{votes.downvotes}</span>
-        <DownIcon active={userVote === 'downvote'} size={18} />
-      </button>
+      </span>
+      {voteButton('downvote')}
     </div>
-  )
-}
-
-// ─── Icons ────────────────────────────────────────────────────────────────────
-
-function UpIcon({ active, size = 14 }: { active: boolean; size?: number }) {
-  return (
-    <svg width={size} height={size} fill={active ? 'currentColor' : 'none'}
-      stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-      <path d="M12 19V5M5 12l7-7 7 7"/>
-    </svg>
-  )
-}
-
-function DownIcon({ active, size = 14 }: { active: boolean; size?: number }) {
-  return (
-    <svg width={size} height={size} fill={active ? 'currentColor' : 'none'}
-      stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-      <path d="M12 5v14M5 12l7 7 7-7"/>
-    </svg>
   )
 }

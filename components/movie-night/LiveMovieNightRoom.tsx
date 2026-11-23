@@ -1,34 +1,49 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { formatYear, tmdbImageUrl } from '@/lib/utils'
 import {
   ArrowRightIcon,
   CheckIcon,
-  ClapperboardIcon,
-  CloseIcon,
   FilmIcon,
-  FriendsIcon,
   HeartIcon,
   LockIcon,
   ShareIcon,
   ThumbDownIcon,
 } from '@/components/icons'
 import type { MovieNightLiveCandidate, MovieNightLiveState, MovieNightVoteValue } from '@/types'
+import styles from './movie-night.module.css'
 
 const MOOD_LABELS: Record<string, string> = {
-  crowd: 'Crowd Pleaser',
+  crowd: 'Crowd pleaser',
   tense: 'Tense',
   chill: 'Chill',
-  deep: 'Deep Cut',
+  deep: 'Deep cut',
   wildcard: 'Wildcard',
 }
+
+const ROOM_CAPACITY = 12
+
+const VOTE_OPTIONS: Array<{
+  value: MovieNightVoteValue
+  label: string
+  Icon: typeof HeartIcon
+  tone: string
+  fly: string
+}> = [
+  { value: 'pass', label: 'Pass', Icon: ThumbDownIcon, tone: 'bg-ns-surface-2 text-ns-text hover:bg-ns-surface-3', fly: styles.flyPass },
+  { value: 'maybe', label: 'Maybe', Icon: FilmIcon, tone: 'bg-ns-surface-2 text-ns-text hover:bg-ns-surface-3', fly: styles.flyMaybe },
+  { value: 'watch', label: 'Watch', Icon: HeartIcon, tone: 'bg-ns-secondary text-ns-secondary-foreground hover:bg-ns-secondary-readable', fly: styles.flyWatch },
+]
+
+const stagger = (index: number) => ({ '--i': Math.min(index, 7) }) as CSSProperties
 
 function storageKey(code: string) {
   return `nospoilers:movie-night:${code}`
@@ -36,10 +51,65 @@ function storageKey(code: string) {
 
 function CandidateMeta({ candidate }: { candidate: MovieNightLiveCandidate }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-body text-ns-muted">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ns-muted">
       <span>{formatYear(candidate.releaseDate)}</span>
       <span>{candidate.runtime ? `${candidate.runtime} min` : 'Runtime open'}</span>
-      <span className="text-ns-secondary-readable font-semibold">{candidate.groupFit}% group fit</span>
+      <span className="font-semibold text-ns-secondary-readable">{candidate.groupFit}% group fit</span>
+    </div>
+  )
+}
+
+function LiveDot() {
+  return (
+    <span aria-hidden="true" className={`relative block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-ns-accent text-ns-accent ${styles.ping}`} />
+  )
+}
+
+function RoomContext({ room }: { room: MovieNightLiveState }) {
+  return (
+    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+      <LiveDot />
+      <p className="min-w-0 break-words font-heading text-lg font-semibold text-ns-text">{room.name}</p>
+      <Badge variant="muted">{MOOD_LABELS[room.mood] ?? room.mood}</Badge>
+    </div>
+  )
+}
+
+function RoomCodeButton({ room, shared, onShare }: { room: MovieNightLiveState; shared: boolean; onShare: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onShare}
+      className="flex min-h-14 flex-shrink-0 items-center gap-4 self-start rounded-full bg-ns-surface-2 px-6 py-2 text-left transition-colors duration-150 hover:bg-ns-surface-3 sm:self-auto"
+    >
+      <span>
+        <span className="block text-xs text-ns-muted">Room code</span>
+        <span className="block font-display text-lg tabular-nums text-ns-text">{room.code}</span>
+      </span>
+      {shared
+        ? <CheckIcon size={18} className="animate-fade-up text-ns-success motion-reduce:animate-none" />
+        : <ShareIcon size={18} className="text-ns-secondary-readable" />}
+    </button>
+  )
+}
+
+function RoomCodeTiles({ code }: { code: string }) {
+  return (
+    <div className="mt-8 sm:mt-10">
+      <p className="text-sm font-semibold text-ns-muted">Room code</p>
+      <p className="mt-3 flex max-w-lg gap-1.5 sm:gap-2">
+        <span className="sr-only">{code}</span>
+        {code.split('').map((character, index) => (
+          <span
+            key={`${character}-${index}`}
+            aria-hidden="true"
+            style={stagger(index)}
+            className={`flex h-16 min-w-0 flex-1 items-center justify-center rounded-xl bg-ns-bg font-display text-3xl text-ns-text sm:h-24 sm:text-5xl ${styles.codeTile}`}
+          >
+            {character}
+          </span>
+        ))}
+      </p>
     </div>
   )
 }
@@ -49,76 +119,99 @@ function MatchReveal({ room, onShare }: { room: MovieNightLiveState; onShare: ()
   if (!match) return null
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <section className="relative overflow-hidden rounded-3xl border border-ns-success/30 bg-ns-surface shadow-2xl shadow-ns-success/10">
-        <div className="absolute inset-0 bg-gradient-to-br from-ns-success/10 via-transparent to-ns-secondary/10 pointer-events-none" />
-        <div className="relative px-6 pt-10 pb-6 text-center border-b border-ns-border">
-          <div className="w-16 h-16 rounded-full bg-ns-success/10 border border-ns-success/30 flex items-center justify-center mx-auto mb-4">
-            <CheckIcon size={30} className="text-ns-success" />
+    <section className="relative mx-auto max-w-6xl overflow-hidden rounded-3xl bg-ns-surface">
+      <div aria-hidden="true" className={styles.curtain}>
+        <span className={`text-center font-display text-5xl sm:text-7xl lg:text-8xl ${styles.curtainWord}`}>It&apos;s a match</span>
+      </div>
+
+      <div className="grid grid-cols-1 items-center gap-8 p-6 sm:p-10 md:grid-cols-[minmax(0,320px)_minmax(0,1fr)] lg:gap-14 lg:p-14">
+        <Link
+          href={`/movie/${match.tmdbId}`}
+          className={`group relative mx-auto block aspect-[2/3] w-40 overflow-hidden rounded-xl bg-ns-surface-2 shadow-2xl sm:w-64 md:w-full ${styles.matchPoster}`}
+        >
+          <Image
+            src={tmdbImageUrl(match.posterPath, 'w500')}
+            alt={match.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 768px) 256px, 320px"
+            priority
+          />
+        </Link>
+
+        <div className="min-w-0">
+          <div className={styles.matchRise} style={stagger(0)}>
+            <Badge variant="success" size="md">
+              {room.matchKind === 'unanimous' ? 'Everyone said watch' : 'Best group consensus'}
+            </Badge>
+            <h1 className="mt-4 font-display text-5xl text-ns-text sm:text-6xl lg:text-7xl">It&apos;s a match.</h1>
+            <p className="mt-3 text-lg text-ns-muted">{room.participantCount} voters found tonight&apos;s pick.</p>
           </div>
-          <Badge variant="success" size="md">
-            {room.matchKind === 'unanimous' ? 'Everyone said watch' : 'Best group consensus'}
-          </Badge>
-          <h1 className="font-display text-4xl sm:text-6xl tracking-wider text-white mt-4">IT&apos;S A MATCH</h1>
-          <p className="text-sm font-body text-ns-muted mt-2">
-            {room.participantCount} voters found tonight&apos;s pick.
-          </p>
-        </div>
 
-        <div className="relative grid md:grid-cols-[240px_minmax(0,1fr)] gap-7 p-6 sm:p-8">
-          <Link href={`/movie/${match.tmdbId}`} className="relative w-full max-w-[240px] mx-auto aspect-[2/3] rounded-2xl overflow-hidden bg-ns-border shadow-xl">
-            <Image
-              src={tmdbImageUrl(match.posterPath, 'w500')}
-              alt={match.title}
-              fill
-              className="object-cover"
-              sizes="240px"
-              priority
-            />
-          </Link>
-
-          <div className="flex flex-col justify-center min-w-0">
-            <p className="text-xs uppercase tracking-[0.2em] text-ns-secondary-readable font-body mb-2">Tonight&apos;s movie</p>
-            <h2 className="text-3xl sm:text-4xl font-heading text-white leading-tight">{match.title}</h2>
+          <div className={`mt-8 border-t border-ns-border pt-6 ${styles.matchRise}`} style={stagger(1)}>
+            <p className="text-sm font-semibold text-ns-secondary-readable">Tonight&apos;s movie</p>
+            <h2 className="mt-1 break-words font-display text-3xl text-ns-text sm:text-4xl">{match.title}</h2>
             <div className="mt-3"><CandidateMeta candidate={match} /></div>
-            <p className="text-sm font-body text-ns-muted leading-relaxed mt-5">{match.explanation}</p>
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-ns-muted">{match.explanation}</p>
+          </div>
 
-            <div className="flex flex-wrap gap-3 mt-7">
-              <Button href={`/movie/${match.tmdbId}`} variant="primary">
-                <FilmIcon size={16} />
-                Open movie
-              </Button>
-              <Button onClick={onShare} variant="secondary">
-                <ShareIcon size={16} />
-                Share result
-              </Button>
-              <Button href="/movie-night" variant="outline">New room</Button>
-            </div>
+          <ul className="mt-6 flex flex-wrap gap-1.5" aria-label="Voters">
+            {room.participants.map((participant, index) => (
+              <li key={participant.id} className={styles.matchVoter} style={stagger(index)}>
+                <Avatar src={participant.avatarUrl} username={participant.displayName} size="sm" />
+              </li>
+            ))}
+          </ul>
+
+          <div className={`mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap ${styles.matchRise}`} style={stagger(3)}>
+            <Button href={`/movie/${match.tmdbId}`} variant="primary" size="lg">
+              <FilmIcon size={17} />
+              Open movie
+            </Button>
+            <Button onClick={onShare} variant="outline" size="lg">
+              <ShareIcon size={17} />
+              Share result
+            </Button>
+            <Button href="/movie-night" variant="ghost" size="lg">New room</Button>
           </div>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   )
 }
 
 function NoMatchReveal({ room }: { room: MovieNightLiveState }) {
   return (
-    <div className="max-w-2xl mx-auto">
-      <section className="rounded-3xl border border-ns-border bg-ns-surface px-6 py-10 sm:px-10 text-center">
-        <div className="w-16 h-16 rounded-full bg-ns-warning/10 border border-ns-warning/30 flex items-center justify-center mx-auto mb-5">
-          <CloseIcon size={29} className="text-ns-warning" />
+    <section className={`mx-auto max-w-3xl rounded-3xl bg-ns-surface px-6 py-12 text-center sm:px-12 sm:py-16 ${styles.stage}`}>
+      {room.candidates.length > 0 && (
+        <div aria-hidden="true" className="mx-auto mb-8 flex max-w-md justify-center gap-2">
+          {room.candidates.slice(0, 5).map((candidate, index) => (
+            <div
+              key={candidate.id}
+              style={stagger(index)}
+              className={`relative aspect-[2/3] min-w-0 flex-1 overflow-hidden rounded-xl bg-ns-surface-2 ${styles.arrive}`}
+            >
+              <Image
+                src={tmdbImageUrl(candidate.posterPath, 'w185')}
+                alt=""
+                fill
+                className="object-cover opacity-40 grayscale"
+                sizes="96px"
+              />
+            </div>
+          ))}
         </div>
-        <Badge variant="warning" size="md">No group match</Badge>
-        <h1 className="font-display text-4xl sm:text-5xl tracking-wider text-white mt-4">KEEP LOOKING</h1>
-        <p className="text-sm sm:text-base font-body text-ns-muted leading-relaxed mt-3 max-w-lg mx-auto">
-          Everyone passed on every pick in {room.name}. NoSpoilers won&apos;t force a winner the group rejected.
-        </p>
-        <div className="flex flex-wrap justify-center gap-3 mt-7">
-          <Button href="/movie-night" variant="primary">Adjust picks and try again</Button>
-          <Button href="/search" variant="outline">Explore movies</Button>
-        </div>
-      </section>
-    </div>
+      )}
+      <Badge variant="warning" size="md">No group match</Badge>
+      <h1 className="mt-4 font-display text-4xl text-ns-text sm:text-5xl">Keep looking.</h1>
+      <p className="mx-auto mt-3 max-w-lg text-lg leading-relaxed text-ns-muted">
+        Everyone passed on every pick in {room.name}. NoSpoilers won&apos;t force a winner the group rejected.
+      </p>
+      <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
+        <Button href="/movie-night" variant="primary" size="lg">Adjust picks and try again</Button>
+        <Button href="/search" variant="outline" size="lg">Explore movies</Button>
+      </div>
+    </section>
   )
 }
 
@@ -126,60 +219,221 @@ function MovieNightLobby({
   room,
   isHost,
   starting,
+  shared,
   onShare,
   onStart,
 }: {
   room: MovieNightLiveState
   isHost: boolean
   starting: boolean
+  shared: boolean
   onShare: () => void
   onStart: () => void
 }) {
   const readyToStart = room.participantCount >= 2
 
   return (
-    <section className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
-      <div className="relative overflow-hidden rounded-3xl border border-ns-secondary/30 bg-ns-surface px-6 py-9 sm:px-10 sm:py-12">
-        <div className="absolute inset-0 bg-gradient-to-br from-ns-secondary/12 via-transparent to-ns-success/5 pointer-events-none" />
-        <div className="relative max-w-2xl">
-          <Badge variant="secondary" size="md">Lobby open</Badge>
-          <div className="w-16 h-16 rounded-2xl border border-ns-secondary/30 bg-ns-secondary/10 flex items-center justify-center mt-6">
-            <FriendsIcon size={30} className="text-ns-secondary-readable" />
-          </div>
-          <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-white mt-5">GET EVERYONE IN</h2>
-          <p className="text-sm sm:text-base font-body text-ns-muted leading-relaxed mt-3 max-w-xl">
-            The roster locks when voting starts. Share the room code, make sure everyone is here, then let the host begin the ballot for the whole group.
-          </p>
+    <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <section className="rounded-3xl bg-ns-surface p-7 sm:p-10 lg:p-14">
+        <RoomContext room={room} />
+        <h1 className="mt-5 font-display text-5xl text-ns-text sm:text-6xl lg:text-7xl">Get everyone in.</h1>
+        <p className="mt-4 max-w-xl text-lg leading-relaxed text-ns-muted">
+          The roster locks when voting starts. Share the room code, make sure everyone is here, then let the host begin the ballot for the whole group.
+        </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Button onClick={onShare} variant="secondary" size="lg">
-              <ShareIcon size={17} /> Share lobby
+        <RoomCodeTiles code={room.code} />
+
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          {isHost ? (
+            <Button onClick={onStart} loading={starting} disabled={!readyToStart} size="lg">
+              Start voting
+              <ArrowRightIcon size={17} />
             </Button>
-            {isHost ? (
-              <Button
-                onClick={onStart}
-                loading={starting}
-                disabled={!readyToStart}
-                size="lg"
-              >
-                <ArrowRightIcon size={17} /> Start voting
-              </Button>
-            ) : (
-              <div className="inline-flex items-center gap-2 rounded-xl border border-ns-border bg-ns-surface-2 px-4 py-3 text-sm font-body text-ns-muted" aria-live="polite">
-                <span className="w-2 h-2 rounded-full bg-ns-secondary animate-pulse" />
-                Waiting for the host to start
-              </div>
-            )}
-          </div>
+          ) : (
+            <div className="inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-ns-surface-2 px-7 text-base font-semibold text-ns-text" aria-live="polite">
+              <LiveDot />
+              Waiting for the host to start
+            </div>
+          )}
+          <Button onClick={onShare} variant="outline" size="lg">
+            {shared ? <CheckIcon size={17} /> : <ShareIcon size={17} />}
+            Share lobby
+          </Button>
+        </div>
 
-          {isHost && !readyToStart && (
-            <p className="text-xs font-body text-ns-muted mt-3">Invite at least one other voter to enable Start voting.</p>
+        {isHost && !readyToStart && (
+          <p className="mt-4 text-sm text-ns-muted">Invite at least one other voter to enable Start voting.</p>
+        )}
+      </section>
+
+      <ParticipantPanel room={room} />
+    </div>
+  )
+}
+
+function BallotWaiting({ room, onShare }: { room: MovieNightLiveState; onShare: () => void }) {
+  const finished = room.participants.filter(participant => participant.finished).length
+  const total = Math.max(room.participants.length, 1)
+
+  return (
+    <div className="flex min-h-[28rem] flex-col items-center justify-center px-6 py-14 text-center">
+      <p className="font-display text-7xl tabular-nums text-ns-text sm:text-8xl">
+        <span key={finished} className="inline-block animate-fade-up motion-reduce:animate-none">{finished}</span>
+        <span className="text-ns-subtle"> of {room.participants.length}</span>
+      </p>
+      <p className="mt-2 text-base text-ns-muted">ballots in</p>
+      <div aria-hidden="true" className="mt-6 h-2 w-full max-w-xs overflow-hidden rounded-full bg-ns-surface-2">
+        <div
+          className={`h-full rounded-full bg-ns-secondary ${styles.meter}`}
+          style={{ transform: `scaleX(${finished / total})` }}
+        />
+      </div>
+      <h2 className="mt-8 font-heading text-2xl font-bold text-ns-text">Ballot complete</h2>
+      <p className="mt-2 max-w-sm text-base leading-relaxed text-ns-muted">
+        Waiting for the rest of the room. This page will reveal the match automatically.
+      </p>
+      <Button onClick={onShare} variant="outline" className="mt-6">
+        <ShareIcon size={15} /> Share room
+      </Button>
+    </div>
+  )
+}
+
+const BALLOT_GRID = 'grid grid-cols-1 gap-6 p-5 sm:gap-8 sm:p-8 md:grid-cols-[minmax(0,300px)_minmax(0,1fr)] lg:gap-12 lg:p-10'
+const BALLOT_POSTER = 'relative mx-auto aspect-[2/3] w-44 overflow-hidden rounded-xl bg-ns-surface-2 sm:w-56 md:w-full'
+
+function VotingBooth({
+  room,
+  voting,
+  shared,
+  onVote,
+  onShare,
+}: {
+  room: MovieNightLiveState
+  voting: boolean
+  shared: boolean
+  onVote: (candidateId: string, value: MovieNightVoteValue) => void
+  onShare: () => void
+}) {
+  const votedCount = room.candidates.filter(candidate => candidate.myVote).length
+  const currentCandidate = room.candidates.find(candidate => !candidate.myVote) ?? null
+  const [choice, setChoice] = useState<{ id: string; value: MovieNightVoteValue } | null>(null)
+  const [previous, setPrevious] = useState(currentCandidate)
+  const [leaving, setLeaving] = useState<{ candidate: MovieNightLiveCandidate; value: MovieNightVoteValue } | null>(null)
+
+  // The card only flies away once the server has accepted the vote and moved on.
+  if ((currentCandidate?.id ?? null) !== (previous?.id ?? null)) {
+    setLeaving(previous && choice?.id === previous.id ? { candidate: previous, value: choice.value } : null)
+    setPrevious(currentCandidate)
+  }
+
+  const leavingOption = leaving ? VOTE_OPTIONS.find(option => option.value === leaving.value) : null
+
+  return (
+    <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="min-w-0">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="break-words font-display text-3xl text-ns-text sm:text-4xl">{room.name}</h1>
+            <p className="mt-2 text-base text-ns-muted">Votes stay private. The first unanimous pick wins.</p>
+          </div>
+          <RoomCodeButton room={room} shared={shared} onShare={onShare} />
+        </div>
+
+        <div className="mt-6 flex items-center justify-between gap-4">
+          <p className="text-sm font-semibold text-ns-text">Your ballot</p>
+          <p className="text-sm tabular-nums text-ns-muted">
+            <span key={votedCount} className="inline-block animate-fade-up motion-reduce:animate-none">{votedCount}</span> of {room.candidates.length}
+          </p>
+        </div>
+        <div aria-hidden="true" className="mb-5 mt-2 flex gap-1.5">
+          {room.candidates.map(candidate => (
+            <span key={candidate.id} className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-ns-surface-2">
+              <span
+                className={`block h-full rounded-full bg-ns-secondary ${styles.meter}`}
+                style={{ transform: `scaleX(${candidate.myVote ? 1 : 0})` }}
+              />
+            </span>
+          ))}
+        </div>
+
+        <div className="relative isolate overflow-hidden rounded-3xl bg-ns-surface">
+          {currentCandidate ? (
+            <article key={currentCandidate.id} className={`${BALLOT_GRID} ${styles.cardIn}`}>
+              <div className={BALLOT_POSTER}>
+                <Image
+                  src={tmdbImageUrl(currentCandidate.posterPath, 'w500')}
+                  alt={currentCandidate.title}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 176px, (max-width: 768px) 224px, 300px"
+                  priority
+                />
+              </div>
+
+              <div className="flex min-w-0 flex-col justify-center">
+                <p className="text-sm font-semibold text-ns-secondary-readable">Pick {votedCount + 1}</p>
+                <h2 className="mt-2 break-words font-display text-3xl text-ns-text sm:text-5xl">{currentCandidate.title}</h2>
+                <div className="mt-3"><CandidateMeta candidate={currentCandidate} /></div>
+                <p className="mt-5 max-w-xl text-base leading-relaxed text-ns-muted">{currentCandidate.explanation}</p>
+
+                <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-3">
+                  {VOTE_OPTIONS.map(({ value, label, Icon, tone }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      disabled={voting}
+                      onClick={() => {
+                        setChoice({ id: currentCandidate.id, value })
+                        onVote(currentCandidate.id, value)
+                      }}
+                      className={[
+                        'inline-flex min-h-14 min-w-0 items-center justify-center gap-1.5 rounded-full px-2 text-sm font-semibold transition-[background-color,transform] duration-150 active:scale-[0.97] disabled:cursor-wait sm:gap-2 sm:text-base',
+                        tone,
+                        voting && choice?.id === currentCandidate.id && choice.value === value ? 'ring-2 ring-ns-text' : '',
+                      ].join(' ')}
+                    >
+                      <Icon size={18} />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="mt-4 flex items-center justify-center gap-1.5 text-sm text-ns-muted md:justify-start">
+                  <LockIcon size={13} /> Only your progress is visible to the group.
+                </p>
+              </div>
+            </article>
+          ) : (
+            <div key="waiting" className={styles.cardIn}>
+              <BallotWaiting room={room} onShare={onShare} />
+            </div>
+          )}
+
+          {leaving && leavingOption && (
+            <div aria-hidden="true" className={`pointer-events-none absolute inset-0 z-10 ${BALLOT_GRID}`}>
+              <div
+                className={`${BALLOT_POSTER} shadow-2xl ${styles.ghost} ${leavingOption.fly}`}
+                onAnimationEnd={() => setLeaving(null)}
+              >
+                <Image
+                  src={tmdbImageUrl(leaving.candidate.posterPath, 'w500')}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 176px, (max-width: 768px) 224px, 300px"
+                />
+                <span className="absolute left-3 top-3 rounded-full bg-ns-text px-3 py-1 text-sm font-bold text-ns-bg">
+                  {leavingOption.label}
+                </span>
+              </div>
+            </div>
           )}
         </div>
       </div>
 
       <ParticipantPanel room={room} />
-    </section>
+    </div>
   )
 }
 
@@ -345,10 +599,22 @@ export default function LiveMovieNightRoom({
 
   if (loading) {
     return (
-      <div className="min-h-[65vh] flex items-center justify-center px-6">
-        <div className="text-center">
-          <div className="w-10 h-10 rounded-full border-2 border-ns-border border-t-ns-secondary animate-spin mx-auto" />
-          <p className="text-sm font-body text-ns-muted mt-4">Opening the room...</p>
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-16">
+        <p role="status" className="sr-only">Opening the room...</p>
+        <div aria-hidden="true" className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="rounded-3xl bg-ns-surface p-7 sm:p-10 lg:p-14">
+            <Skeleton className="h-5 w-48 bg-ns-surface-2" />
+            <Skeleton className="mt-6 h-14 w-full max-w-md bg-ns-surface-2" />
+            <Skeleton className="mt-5 h-5 w-full max-w-xl bg-ns-surface-2" />
+            <Skeleton className="mt-2 h-5 w-2/3 max-w-sm bg-ns-surface-2" />
+            <div className="mt-10 flex max-w-lg gap-2">
+              {Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-16 flex-1 rounded-xl bg-ns-surface-2 sm:h-24" />)}
+            </div>
+          </div>
+          <div className="space-y-4 rounded-2xl bg-ns-surface p-6">
+            <Skeleton className="h-5 w-28 bg-ns-surface-2" />
+            {Array.from({ length: 3 }, (_, index) => <Skeleton key={index} className="h-12 w-full bg-ns-surface-2" />)}
+          </div>
         </div>
       </div>
     )
@@ -356,20 +622,19 @@ export default function LiveMovieNightRoom({
 
   if (!room) {
     return (
-      <div className="min-h-[65vh] flex items-center justify-center px-6">
-        <div className="max-w-md w-full bg-ns-surface border border-ns-border rounded-2xl p-8 text-center">
-          <CloseIcon size={34} className="text-ns-danger mx-auto mb-4" />
-          <h1 className="text-2xl font-heading text-white">Room unavailable</h1>
-          <p className="text-sm font-body text-ns-muted mt-2">{error || 'This room does not exist or has expired.'}</p>
-          <Button href="/movie-night" variant="primary" className="mt-6">Create a room</Button>
-        </div>
+      <div className="flex min-h-[65vh] items-center justify-center px-4 py-10 sm:px-6">
+        <section className={`w-full max-w-lg rounded-3xl bg-ns-surface p-8 text-center sm:p-12 ${styles.stage}`}>
+          <h1 className="font-display text-4xl text-ns-text">Room unavailable</h1>
+          <p role="alert" className="mt-3 text-lg leading-relaxed text-ns-muted">{error || 'This room does not exist or has expired.'}</p>
+          <Button href="/movie-night" variant="primary" size="lg" className="mt-7">Create a room</Button>
+        </section>
       </div>
     )
   }
 
   if (room.status === 'matched') {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-16">
         <MatchReveal room={room} onShare={() => void shareRoom(true)} />
       </div>
     )
@@ -377,7 +642,7 @@ export default function LiveMovieNightRoom({
 
   if (room.status === 'no_match') {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-16">
         <NoMatchReveal room={room} />
       </div>
     )
@@ -385,88 +650,60 @@ export default function LiveMovieNightRoom({
 
   if (room.status === 'closed') {
     return (
-      <div className="min-h-[65vh] flex items-center justify-center px-6">
-        <div className="max-w-md w-full bg-ns-surface border border-ns-border rounded-2xl p-8 text-center">
-          <ClapperboardIcon size={36} className="text-ns-muted mx-auto mb-4" />
-          <Badge variant="muted">Room closed</Badge>
-          <h1 className="text-2xl font-heading text-white mt-4">This vote has ended</h1>
-          <p className="text-sm font-body text-ns-muted mt-2">Start a fresh room to build a new group ballot.</p>
-          <Button href="/movie-night" variant="primary" className="mt-6">Create a new room</Button>
-        </div>
+      <div className="flex min-h-[65vh] items-center justify-center px-4 py-10 sm:px-6">
+        <section className={`w-full max-w-lg rounded-3xl bg-ns-surface p-8 text-center sm:p-12 ${styles.stage}`}>
+          <Badge variant="muted" size="md">Room closed</Badge>
+          <h1 className="mt-4 font-display text-4xl text-ns-text">This vote has ended</h1>
+          <p className="mt-3 text-lg leading-relaxed text-ns-muted">Start a fresh room to build a new group ballot.</p>
+          <Button href="/movie-night" variant="primary" size="lg" className="mt-7">Create a new room</Button>
+        </section>
       </div>
     )
   }
 
-  const votedCount = room.candidates.filter(candidate => candidate.myVote).length
-  const currentCandidate = room.candidates.find(candidate => !candidate.myVote) ?? null
   const joined = Boolean(room.participantId)
   const currentParticipant = room.participants.find(participant => participant.id === room.participantId) ?? null
   const isHost = currentParticipant?.isHost === true
+  const stage = room.status === 'lobby' ? (joined ? 'lobby' : 'invite') : joined ? 'ballot' : 'locked'
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-7">
-        <div>
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <ClapperboardIcon size={20} className="text-ns-secondary-readable" />
-            <Badge variant="secondary">Movie Night Live</Badge>
-            <Badge variant="outline">{MOOD_LABELS[room.mood] ?? room.mood}</Badge>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-heading text-white">{room.name}</h1>
-          <p className="text-sm font-body text-ns-muted mt-2">
-            {room.status === 'lobby'
-              ? 'Gather the whole group. The host starts the ballot when everyone is ready.'
-              : 'Votes stay private. The first unanimous pick wins.'}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => void shareRoom()}
-            className="flex items-center gap-3 rounded-xl border border-ns-border bg-ns-surface px-4 py-2.5 hover:border-ns-secondary/40 transition-colors"
-          >
-            <span className="text-left">
-              <span className="block text-[10px] uppercase tracking-widest font-body text-ns-muted">Room code</span>
-              <span className="block font-display tracking-[0.18em] text-lg text-white">{room.code}</span>
-            </span>
-            {shared ? <CheckIcon size={17} className="text-ns-success" /> : <ShareIcon size={17} className="text-ns-secondary-readable" />}
-          </button>
-        </div>
-      </header>
-
-      {error && (
-        <div className="mb-5 rounded-xl border border-ns-danger/30 bg-ns-danger/10 px-4 py-3 text-sm font-body text-ns-danger">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-12">
+      {error && stage !== 'invite' && (
+        <div role="alert" className="mb-5 animate-fade-up rounded-xl bg-ns-danger/10 px-4 py-3 text-sm text-ns-danger motion-reduce:animate-none">
           {error}
         </div>
       )}
 
-      {room.status === 'lobby' && joined ? (
-        <MovieNightLobby
-          room={room}
-          isHost={isHost}
-          starting={starting}
-          onShare={() => void shareRoom()}
-          onStart={() => void startVoting()}
-        />
-      ) : room.status === 'lobby' ? (
-        <section className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
-          <div className="relative overflow-hidden bg-ns-surface border border-ns-secondary/25 rounded-3xl p-7 sm:p-10">
-            <div className="absolute inset-0 bg-gradient-to-br from-ns-secondary/10 via-transparent to-transparent pointer-events-none" />
-            <div className="relative max-w-xl">
-              <Badge variant="secondary" size="md">You&apos;re invited</Badge>
-              <h2 className="font-display text-4xl sm:text-5xl tracking-wider text-white mt-5">PICK TOGETHER</h2>
-              <p className="text-sm sm:text-base font-body text-ns-muted leading-relaxed mt-3">
+      <div key={stage} className={styles.stage}>
+        {stage === 'lobby' ? (
+          <MovieNightLobby
+            room={room}
+            isHost={isHost}
+            starting={starting}
+            shared={shared}
+            onShare={() => void shareRoom()}
+            onStart={() => void startVoting()}
+          />
+        ) : stage === 'invite' ? (
+          <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+            <section className="rounded-3xl bg-ns-surface p-7 sm:p-10 lg:p-14">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <RoomContext room={room} />
+                <RoomCodeButton room={room} shared={shared} onShare={() => void shareRoom()} />
+              </div>
+              <h1 className="mt-6 font-display text-5xl text-ns-text sm:text-6xl lg:text-7xl">Pick together.</h1>
+              <p className="mt-4 max-w-xl text-lg leading-relaxed text-ns-muted">
                 Join the lobby now. Once everyone is in, the host will start {room.candidates.length} private, spoiler-free picks for the whole group.
               </p>
 
-              <div className="max-w-sm mt-8 space-y-3">
+              <div className="mt-8 max-w-sm space-y-3">
                 <Input
                   id="movie-night-display-name"
                   label="Your name"
                   value={displayName}
                   maxLength={40}
                   autoFocus
+                  error={error || undefined}
                   onChange={event => setDisplayName(event.target.value)}
                   onKeyDown={event => { if (event.key === 'Enter') void joinRoom() }}
                   placeholder="How friends will see you"
@@ -477,127 +714,38 @@ export default function LiveMovieNightRoom({
                 </Button>
               </div>
 
-              <div className="flex items-center gap-2 text-xs font-body text-ns-muted mt-5">
-                <LockIcon size={14} className="text-ns-secondary-readable" />
+              <p className="mt-5 flex items-center gap-2 text-sm text-ns-muted">
+                <LockIcon size={14} className="flex-shrink-0 text-ns-secondary-readable" />
                 No account required. Your ballot is private.
-              </div>
-            </div>
-          </div>
+              </p>
+            </section>
 
-          <ParticipantPanel room={room} />
-        </section>
-      ) : !joined ? (
-        <section className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
-          <div className="min-h-[360px] rounded-3xl border border-ns-border bg-ns-surface flex items-center justify-center px-7 py-10 text-center">
-            <div className="max-w-md">
-              <div className="w-16 h-16 rounded-full border border-ns-warning/30 bg-ns-warning/10 flex items-center justify-center mx-auto mb-5">
-                <LockIcon size={27} className="text-ns-warning" />
-              </div>
-              <Badge variant="warning">Roster locked</Badge>
-              <h2 className="text-2xl sm:text-3xl font-heading text-white mt-4">Voting is already underway</h2>
-              <p className="text-sm font-body text-ns-muted leading-relaxed mt-3">
+            <ParticipantPanel room={room} />
+          </div>
+        ) : stage === 'locked' ? (
+          <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+            <section className="flex min-h-[26rem] flex-col justify-center rounded-3xl bg-ns-surface p-7 sm:p-10 lg:p-14">
+              <div><Badge variant="warning" size="md">Roster locked</Badge></div>
+              <h1 className="mt-4 font-display text-4xl text-ns-text sm:text-5xl">Voting is already underway</h1>
+              <p className="mt-4 max-w-xl text-lg leading-relaxed text-ns-muted">
                 This room stopped accepting new voters when the host started the ballot. Ask the host to create a new room if you were missed.
               </p>
-              <Button href="/movie-night" variant="primary" className="mt-6">Create or join another room</Button>
-            </div>
-          </div>
-          <ParticipantPanel room={room} />
-        </section>
-      ) : (
-        <section className="grid lg:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
-          <main>
-            <div className="flex items-center justify-between gap-4 mb-3">
-              <p className="text-xs font-body text-ns-muted">Your ballot</p>
-              <p className="text-xs font-body text-ns-muted">{votedCount} of {room.candidates.length}</p>
-            </div>
-            <div className="h-1.5 rounded-full bg-ns-surface-2 overflow-hidden mb-5">
-              <div
-                className="h-full rounded-full bg-ns-secondary transition-all duration-300"
-                style={{ width: `${room.candidates.length ? (votedCount / room.candidates.length) * 100 : 0}%` }}
-              />
-            </div>
-
-            {currentCandidate ? (
-              <article className="bg-ns-surface border border-ns-border rounded-3xl overflow-hidden">
-                <div className="grid md:grid-cols-[260px_minmax(0,1fr)]">
-                  <div className="relative min-h-[390px] md:min-h-[470px] bg-ns-border">
-                    <Image
-                      src={tmdbImageUrl(currentCandidate.posterPath, 'w500')}
-                      alt={currentCandidate.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 260px"
-                      priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent md:hidden" />
-                  </div>
-
-                  <div className="p-6 sm:p-8 flex flex-col justify-center min-w-0">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="secondary">Pick {votedCount + 1}</Badge>
-                      <Badge variant="success">{currentCandidate.groupFit}% fit</Badge>
-                    </div>
-                    <h2 className="text-3xl sm:text-4xl font-heading text-white leading-tight">{currentCandidate.title}</h2>
-                    <div className="mt-3"><CandidateMeta candidate={currentCandidate} /></div>
-                    <p className="text-sm font-body text-ns-muted leading-relaxed mt-6">{currentCandidate.explanation}</p>
-
-                    <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-9">
-                      <button
-                        type="button"
-                        disabled={voting}
-                        onClick={() => void castVote(currentCandidate.id, 'pass')}
-                        className="rounded-2xl border border-ns-danger/25 bg-ns-danger/5 px-3 py-4 text-ns-danger hover:bg-ns-danger/15 transition-colors disabled:opacity-50"
-                      >
-                        <ThumbDownIcon size={20} className="mx-auto mb-2" />
-                        <span className="text-xs font-body font-semibold">Pass</span>
-                      </button>
-                      <button
-                        type="button"
-                        disabled={voting}
-                        onClick={() => void castVote(currentCandidate.id, 'maybe')}
-                        className="rounded-2xl border border-ns-warning/25 bg-ns-warning/5 px-3 py-4 text-ns-warning hover:bg-ns-warning/15 transition-colors disabled:opacity-50"
-                      >
-                        <FilmIcon size={20} className="mx-auto mb-2" />
-                        <span className="text-xs font-body font-semibold">Maybe</span>
-                      </button>
-                      <button
-                        type="button"
-                        disabled={voting}
-                        onClick={() => void castVote(currentCandidate.id, 'watch')}
-                        className="rounded-2xl border border-ns-success/25 bg-ns-success/5 px-3 py-4 text-ns-success hover:bg-ns-success/15 transition-colors disabled:opacity-50"
-                      >
-                        <HeartIcon size={20} className="mx-auto mb-2" />
-                        <span className="text-xs font-body font-semibold">Watch</span>
-                      </button>
-                    </div>
-
-                    <p className="flex items-center justify-center gap-1.5 text-[11px] font-body text-ns-muted mt-4">
-                      <LockIcon size={12} /> Only your progress is visible to the group.
-                    </p>
-                  </div>
-                </div>
-              </article>
-            ) : (
-              <div className="min-h-[470px] bg-ns-surface border border-ns-border rounded-3xl flex items-center justify-center p-8 text-center">
-                <div>
-                  <div className="w-16 h-16 rounded-full border border-ns-secondary/30 bg-ns-secondary/10 flex items-center justify-center mx-auto mb-5">
-                    <CheckIcon size={28} className="text-ns-secondary-readable" />
-                  </div>
-                  <h2 className="text-2xl font-heading text-white">Ballot complete</h2>
-                  <p className="text-sm font-body text-ns-muted mt-2 max-w-sm">
-                    Waiting for the rest of the room. This page will reveal the match automatically.
-                  </p>
-                  <Button onClick={() => void shareRoom()} variant="secondary" className="mt-6">
-                    <ShareIcon size={15} /> Share room
-                  </Button>
-                </div>
+              <div className="mt-7">
+                <Button href="/movie-night" variant="primary" size="lg">Create or join another room</Button>
               </div>
-            )}
-          </main>
-
-          <ParticipantPanel room={room} />
-        </section>
-      )}
+            </section>
+            <ParticipantPanel room={room} />
+          </div>
+        ) : (
+          <VotingBooth
+            room={room}
+            voting={voting}
+            shared={shared}
+            onVote={(candidateId, value) => void castVote(candidateId, value)}
+            onShare={() => void shareRoom()}
+          />
+        )}
+      </div>
     </div>
   )
 }
@@ -606,48 +754,61 @@ function ParticipantPanel({ room }: { room: MovieNightLiveState }) {
   const inLobby = room.status === 'lobby'
 
   return (
-    <aside className="bg-ns-surface border border-ns-border rounded-2xl p-5 lg:sticky lg:top-24">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-heading text-white">In the room</h2>
-        <span className="text-xs font-body text-ns-muted">{room.participantCount}/12</span>
+    <aside aria-labelledby="movie-night-roster-title" className="rounded-2xl bg-ns-surface p-6 lg:sticky lg:top-24">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 id="movie-night-roster-title" className="font-heading text-xl font-bold text-ns-text">In the room</h2>
+        <span className="text-base font-semibold tabular-nums text-ns-muted">
+          <span key={room.participantCount} className="inline-block animate-fade-up text-ns-text motion-reduce:animate-none">{room.participantCount}</span>/{ROOM_CAPACITY}
+        </span>
       </div>
 
-      <div className="space-y-2">
-        {room.participants.map(participant => {
+      <div aria-hidden="true" className="mt-3 flex gap-1">
+        {Array.from({ length: ROOM_CAPACITY }, (_, seat) => (
+          <span key={seat} className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-ns-surface-3">
+            <span
+              className={`block h-full rounded-full bg-ns-accent ${styles.meter}`}
+              style={{ transform: `scaleX(${seat < room.participantCount ? 1 : 0})` }}
+            />
+          </span>
+        ))}
+      </div>
+
+      <ul className="mt-3 divide-y divide-ns-border">
+        {room.participants.map((participant, index) => {
           const progress = room.candidates.length
-            ? Math.min(100, (participant.voteCount / room.candidates.length) * 100)
+            ? Math.min(1, participant.voteCount / room.candidates.length)
             : 0
           return (
-            <div key={participant.id} className="rounded-xl border border-ns-border bg-ns-surface-2 px-3 py-3">
+            <li key={participant.id} style={stagger(index)} className={`py-3 ${styles.arrive}`}>
               <div className="flex items-center gap-3">
                 <Avatar src={participant.avatarUrl} username={participant.displayName} size="sm" />
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-body text-white truncate">{participant.displayName}</p>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <p className="truncate text-base font-semibold text-ns-text">{participant.displayName}</p>
                     {participant.isHost && <Badge variant="secondary">Host</Badge>}
                   </div>
-                  <p className="text-[11px] font-body text-ns-muted mt-0.5">
+                  <p className="text-sm text-ns-muted">
                     {inLobby ? 'Ready in lobby' : participant.finished ? 'Ballot complete' : `${participant.voteCount} of ${room.candidates.length}`}
                   </p>
                 </div>
-                {(inLobby || participant.finished) && <CheckIcon size={16} className="text-ns-success flex-shrink-0" />}
+                {(inLobby || participant.finished) && <CheckIcon size={17} className="flex-shrink-0 text-ns-success" />}
               </div>
               {!inLobby && (
-                <div className="h-1 rounded-full bg-ns-border/70 overflow-hidden mt-2.5">
-                  <div className="h-full rounded-full bg-ns-secondary transition-all" style={{ width: `${progress}%` }} />
+                <div aria-hidden="true" className="mt-2.5 h-1 overflow-hidden rounded-full bg-ns-surface-3">
+                  <div className={`h-full rounded-full bg-ns-secondary ${styles.meter}`} style={{ transform: `scaleX(${progress})` }} />
                 </div>
               )}
-            </div>
+            </li>
           )
         })}
-      </div>
+      </ul>
 
-      <div className="mt-5 pt-4 border-t border-ns-border flex items-start gap-2 text-[11px] font-body text-ns-muted leading-relaxed">
-        <LockIcon size={13} className="text-ns-secondary-readable flex-shrink-0 mt-0.5" />
+      <p className="mt-3 flex items-start gap-2 border-t border-ns-border pt-4 text-sm leading-relaxed text-ns-muted">
+        <LockIcon size={14} className="mt-0.5 flex-shrink-0 text-ns-secondary-readable" />
         {inLobby
           ? 'The roster locks when the host starts voting.'
-          : 'Ballot choices stay hidden—even from the host.'}
-      </div>
+          : 'Ballot choices stay hidden, even from the host.'}
+      </p>
     </aside>
   )
 }

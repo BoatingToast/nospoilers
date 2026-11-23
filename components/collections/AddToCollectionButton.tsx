@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
+import { CollectionsIcon } from '@/components/icons'
 
 // Lazy-load the heavy modal — it's not needed until the user clicks
 const CollectionPickerModal = dynamic(() => import('./CollectionPickerModal'), { ssr: false })
@@ -19,18 +21,6 @@ interface Props {
   compact?: boolean   // icon-only button for tight spaces (cards, grids)
 }
 
-const CollectionIcon = ({ size }: { size: number }) => (
-  <svg
-    width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8"
-    viewBox="0 0 24 24"
-    className="text-ns-muted group-hover:text-ns-secondary-readable transition-colors flex-shrink-0"
-  >
-    <rect x="3" y="3" width="7" height="18" rx="1"/>
-    <rect x="13" y="3" width="8" height="11" rx="1"/>
-    <path d="M13 17h8M17 13v8"/>
-  </svg>
-)
-
 export default function AddToCollectionButton({ movie, compact = false }: Props) {
   const { status } = useSession()
   const [open, setOpen] = useState(false)
@@ -46,30 +36,28 @@ export default function AddToCollectionButton({ movie, compact = false }: Props)
           onClick={() => setOpen(true)}
           title="Add to Collection"
           aria-label={`Add ${movie.title} to a collection`}
-          className="flex h-11 w-11 items-center justify-center rounded-lg border border-ns-border
-                     text-ns-muted hover:border-ns-secondary/40 hover:text-ns-secondary-readable
-                     transition-all duration-200 group flex-shrink-0"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-ns-surface-2 text-ns-text transition-colors duration-150 hover:bg-ns-surface-3"
         >
-          <CollectionIcon size={13} />
+          <CollectionsIcon size={16} />
         </button>
       ) : (
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-ns-border
-                     text-ns-muted text-sm font-body hover:border-ns-secondary/40 hover:text-ns-secondary-readable
-                     transition-all duration-200 group"
+          className="inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full bg-ns-surface-2 px-5 text-sm font-semibold text-ns-text transition-colors duration-150 hover:bg-ns-surface-3"
         >
-          <CollectionIcon size={15} />
+          <CollectionsIcon size={16} />
           Add to Collection
         </button>
       )}
 
-      {open && (
+      {/* Portaled so the dialog is never trapped by an animated card. */}
+      {open && createPortal(
         <CollectionPickerModal
           movie={movie}
           onClose={() => setOpen(false)}
-        />
+        />,
+        document.body,
       )}
     </>
   )

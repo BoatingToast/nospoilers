@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import MessageItem       from './MessageItem'
 import MessageInput      from './MessageInput'
@@ -11,11 +12,8 @@ import MemberButton      from './MemberButton'
 import SpoilerLevelTabs  from './SpoilerLevelTabs'
 import { getSupabasePublicClient } from '@/lib/supabase-client'
 import type { SZMessageData, SZRoomStats, SpoilerLevel } from '@/types'
-import {
-  PulseIcon, TimelineIcon, CalendarWeekIcon, TodayIcon,
-  TheoryIcon, EmptyDiscussionIcon, CloseIcon, SearchIcon,
-  type IconProps,
-} from '@/components/icons'
+import Button from '@/components/ui/Button'
+import { CloseIcon, SearchIcon } from '@/components/icons'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -33,17 +31,33 @@ function TypingIndicator({ users }: { users: string[] }) {
       : `${users[0]} and ${users.length - 1} others are typing…`
 
   return (
-    <div className="flex items-center gap-2 px-4 py-1.5">
-      <div className="flex gap-0.5">
+    <div role="status" className="flex flex-shrink-0 animate-fade-up items-center gap-2 px-4 pb-1 pt-2 sm:px-6">
+      <div aria-hidden="true" className="flex gap-1">
         {[0, 1, 2].map(i => (
           <span
             key={i}
-            className="w-1 h-1 rounded-full bg-ns-muted/40 animate-bounce"
+            className="h-1.5 w-1.5 animate-pulse rounded-full bg-ns-muted motion-reduce:animate-none"
             style={{ animationDelay: `${i * 0.15}s` }}
           />
         ))}
       </div>
-      <span className="text-[10px] font-body text-ns-muted/50 italic">{label}</span>
+      <span className="text-sm text-ns-muted">{label}</span>
+    </div>
+  )
+}
+
+function FeedSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Loading messages" className="space-y-5 px-4 py-3 sm:px-6">
+      {['w-3/4', 'w-1/2', 'w-5/6', 'w-2/5'].map(width => (
+        <div key={width} className="flex animate-pulse items-start gap-3">
+          <div className="h-8 w-8 flex-shrink-0 rounded-full bg-ns-surface-2" />
+          <div className="flex-1 space-y-2 pt-0.5">
+            <div className="h-3.5 w-24 rounded-sm bg-ns-surface-2" />
+            <div className={`h-3.5 rounded-sm bg-ns-surface-2 ${width}`} />
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
@@ -79,6 +93,9 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
   const [highlightId,   setHighlightId]   = useState<string | null>(null)
   const [typingUsers,   setTypingUsers]   = useState<string[]>([])
   const [stats,         setStats]         = useState<SZRoomStats>({ memberCount: 0, messageCount: 0, onlineCount: 0 })
+  const [searchOpen,    setSearchOpen]    = useState(false)
+  // The feed query currently on screen. Live refetches keep it visible instead of flashing a loader.
+  const [loadedUrl,     setLoadedUrl]     = useState<string | null>(null)
 
   // ── Membership state ───────────────────────────────────────────────────────
   const [isMember,      setIsMember]      = useState(false)
@@ -105,7 +122,8 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
   const fetchMessages = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(buildUrl())
+      const url = buildUrl()
+      const res = await fetch(url)
       if (!res.ok) return
       const data = await res.json() as {
         messages: SZMessageData[]
@@ -117,6 +135,7 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
       setPinned(data.pinned)
       setCursor(data.nextCursor)
       setHasMore(data.hasMore)
+      setLoadedUrl(url)
     } finally {
       setLoading(false)
     }
@@ -360,37 +379,49 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
 
   const knownUsernames = Array.from(new Set(messages.map(m => m.username)))
 
+  // A conversation starter fills the composer. The nonce lets the same one be picked twice.
+  const [promptDraft, setPromptDraft] = useState<{ text: string; nonce: number } | null>(null)
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
-  const FILTERS: { key: FilterMode; label: string; Icon: React.ComponentType<IconProps> }[] = [
-    { key: 'live',      label: 'Live',      Icon: PulseIcon        },
-    { key: 'top',       label: 'All Time',  Icon: TimelineIcon     },
-    { key: 'top_week',  label: 'This Week', Icon: CalendarWeekIcon },
-    { key: 'top_today', label: 'Today',     Icon: TodayIcon        },
-    { key: 'theories',  label: 'Theories',  Icon: TheoryIcon       },
+  const FILTERS: { key: FilterMode; label: string }[] = [
+    { key: 'live', label: 'Live' },
+    { key: 'top', label: 'All time' },
+    { key: 'top_week', label: 'This week' },
+    { key: 'top_today', label: 'Today' },
+    { key: 'theories', label: 'Theories' },
   ]
 
+  const showFeedSkeleton = loading && loadedUrl !== buildUrl()
+  const showSearch = searchOpen || !!searchQuery
+
+  const loadMoreButton = (label: string) => (
+    <div className="flex justify-center py-2">
+      <Button variant="ghost" size="sm" onClick={loadMore} loading={loadingMore}>
+        {loadingMore ? 'Loading…' : label}
+      </Button>
+    </div>
+  )
+
   return (
-    <div className="flex flex-col h-full min-h-0 bg-ns-bg rounded-2xl border border-ns-border overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-3xl bg-ns-surface">
 
-      {/* ── Header ── */}
-      <div className="flex-shrink-0 px-5 pt-5 pb-3 border-b border-ns-border">
-
-        {/* Title + stats + member button row */}
-        <div className="flex items-start justify-between gap-4 mb-3">
-          <div>
-            <h2 className="font-display text-xl tracking-widest text-ns-secondary-readable leading-none mb-1">
-              SPOILER ZONE
-            </h2>
-            <p className="text-ns-muted text-xs font-body truncate max-w-[240px]">{movieTitle}</p>
+      {/* Room header */}
+      <div className="flex-shrink-0 space-y-2 px-4 pb-2 pt-3 sm:space-y-3 sm:px-6 sm:pb-3 sm:pt-5">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <div className="min-w-0 flex-1">
+            <h2 className="font-display text-2xl text-ns-text sm:text-3xl">Spoiler Zone</h2>
+            <p className="mt-0.5 hidden truncate text-sm text-ns-muted sm:block">{movieTitle}</p>
           </div>
-          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+          <div className="order-last w-full sm:order-none sm:w-auto">
             <RoomStats
               memberCount={stats.memberCount}
               messageCount={stats.messageCount}
               onlineCount={stats.onlineCount}
               movieTitle={movieTitle}
             />
+          </div>
+          <div data-member-button>
             <MemberButton
               tmdbId={tmdbId}
               movieTitle={movieTitle}
@@ -405,100 +436,100 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
           </div>
         </div>
 
-        {/* Filter tabs */}
-        <div className="flex gap-1 overflow-x-auto scrollbar-hide">
-          {FILTERS.map(f => {
-            const active = filter === f.key && !searchQuery
-            return (
-              <button
-                key={f.key}
-                onClick={() => { setFilter(f.key); setSearchQuery(''); setSearchInput('') }}
-                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-body transition-all
-                  ${active
-                    ? 'bg-ns-secondary/15 text-ns-secondary-readable border border-ns-secondary/30'
-                    : 'text-ns-muted hover:text-ns-text hover:bg-ns-surface/40'}`}
-              >
-                <f.Icon size={12} strokeWidth={active ? 2.5 : 2} />
-                <span>{f.label}</span>
-              </button>
-            )
-          })}
-        </div>
+        <SpoilerLevelTabs
+          active={spoilerLevel}
+          onChange={level => { setSpoilerLevel(level); setCursor(null) }}
+        />
 
-        {/* Search */}
-        <form onSubmit={handleSearchSubmit} className="mt-2 flex gap-1 items-center">
-          <div className="relative flex-1">
-            <SearchIcon size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ns-muted/40 pointer-events-none" />
-            <input
-              value={searchInput}
-              onChange={e => setSearchInput(e.target.value)}
-              placeholder="Search messages…"
-              className="w-full bg-ns-surface border border-ns-border rounded-lg pl-8 pr-3 py-1.5 text-xs font-body
-                         text-ns-text placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-secondary/40 transition-colors"
-            />
+        {/* Sort and search */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+          <div role="group" aria-label="Sort messages" className="flex min-w-0 flex-1 gap-1 overflow-x-auto scrollbar-hide">
+            {FILTERS.map(f => {
+              const active = filter === f.key && !searchQuery
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => { setFilter(f.key); setSearchQuery(''); setSearchInput('') }}
+                  className={`inline-flex min-h-11 flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-sm font-semibold transition-colors duration-150 sm:min-h-10
+                    ${active
+                      ? 'bg-ns-surface-3 text-ns-text'
+                      : 'text-ns-muted hover:bg-ns-surface-2 hover:text-ns-text'}`}
+                >
+                  {f.key === 'live' && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-ns-success" />}
+                  {f.label}
+                </button>
+              )
+            })}
           </div>
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => { setSearchQuery(''); setSearchInput('') }}
-              className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-ns-muted/50 hover:text-ns-muted hover:bg-ns-surface/60 transition-colors"
-              aria-label="Clear search"
-            >
-              <CloseIcon size={12} />
-            </button>
-          )}
-        </form>
+
+          <button
+            type="button"
+            aria-label="Search messages"
+            aria-expanded={showSearch}
+            onClick={() => setSearchOpen(open => !open)}
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-ns-text transition-colors hover:bg-ns-surface-2 sm:hidden"
+          >
+            <SearchIcon size={16} />
+          </button>
+
+          <form
+            onSubmit={handleSearchSubmit}
+            className={`${showSearch ? 'flex animate-fade-up' : 'hidden'} w-full items-center gap-1 sm:flex sm:w-56 sm:animate-none`}
+          >
+            <div className="relative min-w-0 flex-1">
+              <SearchIcon size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ns-muted" />
+              <input
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
+                placeholder="Search messages…"
+                aria-label="Search messages"
+                className="min-h-11 w-full rounded-full border border-ns-border-strong bg-ns-bg pl-10 pr-3 text-base text-ns-text transition-colors placeholder:text-ns-subtle focus:border-ns-text focus:outline-none focus:ring-1 focus:ring-ns-text sm:min-h-10 sm:text-sm"
+              />
+            </div>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => { setSearchQuery(''); setSearchInput('') }}
+                className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-ns-muted transition-colors hover:bg-ns-surface-2 hover:text-ns-text sm:h-10 sm:w-10"
+                aria-label="Clear search"
+              >
+                <CloseIcon size={14} />
+              </button>
+            )}
+          </form>
+        </div>
       </div>
 
-      {/* ── Spoiler level tabs ── */}
-      <SpoilerLevelTabs
-        active={spoilerLevel}
-        onChange={level => { setSpoilerLevel(level); setCursor(null) }}
-      />
-
-      {/* ── Pinned messages ── */}
+      {/* Pinned messages */}
       <PinnedMessages pinned={pinned} onJump={jumpTo} />
 
-      {/* ── Discussion prompts ── */}
-      <div className="flex-shrink-0 px-4 pt-3 pb-2">
-        <DiscussionPrompts
-          movieTitle={movieTitle}
-          onPrompt={text => {
-            /* handled by setting the input — we expose via ref in future; for now, show it */
-          }}
-        />
-      </div>
-
-      {/* ── Message feed ── */}
+      {/* Message feed */}
       <div
         ref={feedRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto py-2 space-y-0.5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-ns-border"
+        aria-label="Spoiler Zone messages"
+        className="min-h-0 flex-1 overflow-y-auto border-t border-ns-border py-2"
       >
-        {/* Load more button (for non-live modes, messages load oldest-first or at top) */}
-        {hasMore && filter !== 'live' && (
-          <div className="flex justify-center py-2">
-            <button
-              onClick={loadMore}
-              disabled={loadingMore}
-              className="text-xs font-body text-ns-muted hover:text-ns-text transition-colors"
-            >
-              {loadingMore ? 'Loading…' : 'Load more'}
-            </button>
+        {/* Conversation starters scroll away with the feed so messages keep the room. */}
+        {session && isMember && (
+          <div className="px-4 pb-2 pt-1 sm:px-6">
+            <DiscussionPrompts
+              movieTitle={movieTitle}
+              onPrompt={text => setPromptDraft({ text, nonce: Date.now() })}
+            />
           </div>
         )}
 
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <svg className="animate-spin text-ns-secondary-readable/40" width="20" height="20" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-            </svg>
-          </div>
+        {/* Live mode prepends older messages, so its control sits at the top. */}
+        {hasMore && filter === 'live' && !showFeedSkeleton && loadMoreButton('Load earlier messages')}
+
+        {showFeedSkeleton ? (
+          <FeedSkeleton />
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-            <EmptyDiscussionIcon size={52} className="text-ns-secondary-readable/30 mb-4" strokeWidth={1.5} />
-            <p className="text-ns-muted font-body text-sm">
+          <div className="flex animate-fade-up items-center justify-center px-6 py-12 text-center">
+            <p className="max-w-xs font-heading text-lg font-bold text-ns-text">
               {searchQuery ? 'No messages found.' : 'Be the first to spark discussion!'}
             </p>
           </div>
@@ -519,24 +550,14 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
           ))
         )}
 
-        {/* Live load more */}
-        {hasMore && filter === 'live' && (
-          <div className="flex justify-center py-2">
-            <button
-              onClick={loadMore}
-              disabled={loadingMore}
-              className="text-xs font-body text-ns-muted hover:text-ns-text transition-colors"
-            >
-              {loadingMore ? 'Loading…' : 'Load earlier messages'}
-            </button>
-          </div>
-        )}
+        {/* Ranked filters append, so their control sits at the end. */}
+        {hasMore && filter !== 'live' && !showFeedSkeleton && loadMoreButton('Load more')}
       </div>
 
-      {/* ── Typing indicator ── */}
+      {/* Typing indicator */}
       <TypingIndicator users={typingUsers} />
 
-      {/* ── Input ── */}
+      {/* Input */}
       {session ? (
         <MessageInput
           replyTo={replyTo}
@@ -547,19 +568,18 @@ export default function SpoilerZoneRoom({ tmdbId, movieTitle, moviePoster, frien
           onCancelEdit={() => setEditTarget(null)}
           onTyping={broadcastTyping}
           knownUsernames={knownUsernames}
+          draft={promptDraft}
           isMember={isMember}
           onJoinClick={() => {
-            // Scroll the MemberButton into view — it's in the header
-            document.querySelector('[data-member-button]')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            // The header's MemberButton owns the join request.
+            document.querySelector<HTMLButtonElement>('[data-member-button] button')?.click()
           }}
         />
       ) : (
-        <div className="flex-shrink-0 px-4 py-4 border-t border-ns-border text-center">
-          <p className="text-xs font-body text-ns-muted">
-            <a href="/auth/signin" className="text-ns-secondary-readable hover:text-amber-400 transition-colors">Sign in</a>
-            {' '}to join the discussion
-          </p>
-        </div>
+        <p className="flex-shrink-0 border-t border-ns-border px-4 py-4 text-center text-sm text-ns-muted">
+          <Link href={`/login?callbackUrl=${encodeURIComponent(`/movie/${tmdbId}`)}`} className="font-semibold text-ns-secondary-readable underline underline-offset-2 transition-colors hover:text-ns-text">Sign in</Link>
+          {' '}to join the discussion
+        </p>
       )}
     </div>
   )

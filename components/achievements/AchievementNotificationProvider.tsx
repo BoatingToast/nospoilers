@@ -15,16 +15,17 @@ import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import type { UserAchievementData, AchievementRarity } from '@/types'
+import { CloseIcon, getAchievementIcon } from '@/components/icons'
 
 const AchievementDetailModal = dynamic(() => import('./AchievementDetailModal'), { ssr: false })
 
 const STORAGE_KEY = 'ns-earned-achievements'
 
-const RARITY_ACCENT: Record<AchievementRarity, string> = {
-  common:    'border-ns-border',
-  rare:      'border-ns-info/50',
-  epic:      'border-ns-tier-epic/50',
-  legendary: 'border-ns-secondary/60',
+const RARITY_TILE: Record<AchievementRarity, string> = {
+  common:    'bg-ns-surface-3',
+  rare:      'bg-ns-tile-blue',
+  epic:      'bg-ns-tile-lilac',
+  legendary: 'bg-ns-tile-rose',
 }
 
 interface Notification {
@@ -91,67 +92,50 @@ export default function AchievementNotificationProvider() {
   // a movie watched then navigates away — the next route change triggers the diff).
   }, [status, pathname, dismiss])
 
-  if (queue.length === 0) return null
+  if (queue.length === 0 && !modalItem) return null
 
   return (
     <>
       {/* Toast stack — bottom-right */}
-      <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
-        {queue.map(notif => (
-          <div
-            key={notif.id}
-            className={`
-              pointer-events-auto
-              flex items-center gap-3 px-4 py-3 rounded-2xl
-              bg-ns-bg border shadow-2xl shadow-black/60
-              transition-all duration-400
-              ${RARITY_ACCENT[notif.achievement.rarity]}
-              ${notif.exiting
-                ? 'opacity-0 translate-x-4 scale-95'
-                : 'opacity-100 translate-x-0 scale-100'
-              }
-            `}
-            style={{ maxWidth: 320 }}
-          >
-            {/* Icon */}
-            <div className="w-10 h-10 rounded-full bg-ns-surface border border-ns-secondary/30
-                            flex items-center justify-center text-xl flex-shrink-0
-                            shadow-[0_0_12px_rgb(var(--ns-secondary)/0.3)]">
-              {notif.achievement.icon}
-            </div>
+      <div className="pointer-events-none fixed inset-x-4 bottom-4 z-[100] flex flex-col items-end gap-3 sm:inset-x-auto sm:bottom-6 sm:right-6">
+        {queue.map(notif => {
+          const AchIcon = getAchievementIcon(notif.achievement.slug)
+          return (
+            <div
+              key={notif.id}
+              role="status"
+              className={`pointer-events-auto flex w-full items-center gap-3 rounded-2xl bg-ns-surface-2 py-2 pl-3 pr-2 shadow-2xl transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] sm:w-80 ${
+                notif.exiting ? 'translate-x-4 opacity-0' : 'animate-fade-up'
+              }`}
+            >
+              <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${RARITY_TILE[notif.achievement.rarity]}`}>
+                <AchIcon size={20} className="text-ns-text" />
+              </div>
 
-            {/* Text */}
-            <div className="flex-1 min-w-0">
-              <p className="text-ns-secondary-readable text-[10px] font-body tracking-widest uppercase mb-0.5">
-                Achievement Unlocked!
-              </p>
-              <p className="text-ns-text text-sm font-body font-medium truncate">
-                {notif.achievement.name}
-              </p>
-              <p className="text-ns-muted text-[11px] font-body">
-                +{notif.achievement.xpReward} XP
-              </p>
-            </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-ns-secondary-readable">Achievement Unlocked!</p>
+                <p className="truncate font-heading text-sm font-semibold text-ns-text">{notif.achievement.name}</p>
+                <p className="text-xs tabular-nums text-ns-muted">+{notif.achievement.xpReward} XP</p>
+              </div>
 
-            {/* Actions */}
-            <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
               <button
-                onClick={() => dismiss(notif.id)}
-                className="text-ns-muted hover:text-ns-text transition-colors"
-              >
-                <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path d="M18 6L6 18M6 6l12 12"/>
-                </svg>
-              </button>
-              <button
+                type="button"
                 onClick={() => { setModalItem(notif.achievement); dismiss(notif.id) }}
-                className="text-ns-secondary-readable text-[10px] font-body hover:text-ns-secondary-readable/70 transition-colors whitespace-nowrap"
+                className="min-h-11 flex-shrink-0 whitespace-nowrap rounded-full px-3 text-sm font-semibold text-ns-text transition-colors duration-150 hover:bg-ns-surface-3"
               >
-                View →
+                View
+              </button>
+              <button
+                type="button"
+                aria-label="Dismiss notification"
+                onClick={() => dismiss(notif.id)}
+                className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-ns-muted transition-colors duration-150 hover:bg-ns-surface-3 hover:text-ns-text"
+              >
+                <CloseIcon size={14} />
               </button>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Detail modal triggered from "View →" */}

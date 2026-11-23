@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import Button from '@/components/ui/Button'
+import Modal from '@/components/ui/Modal'
 import ScoreDial from './ScoreDial'
 import SubRatingSlider from './SubRatingSlider'
 import type { MovieRatingData } from '@/types'
@@ -36,12 +38,12 @@ interface Props {
 }
 
 const SUB_DIMENSIONS: { key: string; label: string; Icon: React.ComponentType<IconProps> }[] = [
-  { key: 'storytelling',  label: 'Storytelling',  Icon: ReviewsIcon    },
-  { key: 'characters',    label: 'Characters',    Icon: FriendsIcon    },
+  { key: 'storytelling', label: 'Storytelling',  Icon: ReviewsIcon    },
+  { key: 'characters', label: 'Characters',    Icon: FriendsIcon    },
   { key: 'entertainment', label: 'Entertainment', Icon: FilmIcon       },
-  { key: 'emotion',       label: 'Emotion',       Icon: EmotionIcon    },
-  { key: 'complexity',    label: 'Complexity',    Icon: ComplexityIcon },
-  { key: 'suspense',      label: 'Suspense',      Icon: SuspenseIcon   },
+  { key: 'emotion', label: 'Emotion',       Icon: EmotionIcon    },
+  { key: 'complexity', label: 'Complexity',    Icon: ComplexityIcon },
+  { key: 'suspense', label: 'Suspense',      Icon: SuspenseIcon   },
 ]
 
 type SubKey = string
@@ -127,122 +129,73 @@ export default function DetailedRatingModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+    <Modal onClose={onClose} ariaLabelledBy="detailed-rating-title" maxWidth="max-w-lg">
+      <div className="space-y-8 p-6 sm:p-8">
+        <div className="pr-12">
+          <h2 id="detailed-rating-title" className="break-words font-display text-3xl text-ns-text">{movie.title}</h2>
+          <p className="mt-1 text-sm text-ns-muted">Detailed rating</p>
+        </div>
 
-      <div className="relative z-10 w-full max-w-lg bg-ns-bg border border-ns-border rounded-2xl
-                      shadow-2xl shadow-black/80 overflow-hidden max-h-[92vh] flex flex-col">
-        {/* Gold strip */}
-        <div className="h-0.5 w-full bg-gradient-to-r from-ns-secondary/0 via-ns-secondary to-ns-secondary/0 flex-shrink-0" />
-
-        {/* Scrollable body */}
-        <div className="overflow-y-auto flex-1 p-6 space-y-7">
-
-          {/* Header */}
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-ns-secondary-readable text-[10px] tracking-widest uppercase font-body mb-1">
-                Detailed Rating
-              </p>
-              <h2 className="font-display text-2xl tracking-wider text-ns-text leading-tight">
-                {movie.title.toUpperCase()}
-              </h2>
-            </div>
-            <button onClick={onClose} className="text-ns-muted hover:text-ns-text transition-colors mt-1">
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M18 6L6 18M6 6l12 12"/>
-              </svg>
-            </button>
+        <section aria-labelledby="detailed-overall">
+          <h3 id="detailed-overall" className="sr-only">Overall rating</h3>
+          <div className="flex flex-col items-center gap-1">
+            <ScoreDial value={score} onChange={setScore} size={160} />
+            <p className="mt-2 text-center text-sm text-ns-muted">Your final verdict, 1 to 100</p>
           </div>
+        </section>
 
-          {/* ── Section 1: Overall Rating ── */}
-          <div>
-            <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-4">
-              Overall Rating
-            </p>
-            <div className="flex flex-col items-center gap-1">
-              <ScoreDial value={score} onChange={setScore} size={160} />
-              <p className="text-ns-muted/60 text-[11px] font-body text-center mt-1">
-                Your final verdict — 1 to 100
-              </p>
-            </div>
+        <section aria-labelledby="detailed-preferences">
+          <div className="flex items-baseline justify-between gap-3">
+            <h3 id="detailed-preferences" className="font-heading text-lg font-bold text-ns-text">Advanced preferences</h3>
+            <span className="text-sm text-ns-muted">Optional</span>
           </div>
-
-          {/* ── Section 2: Advanced Preferences ── */}
-          <div>
-            <div className="flex items-baseline justify-between mb-1">
-              <p className="text-ns-muted text-xs tracking-widest uppercase font-body">
-                Advanced Preferences
-              </p>
-              <span className="text-ns-muted/50 text-[10px] font-body normal-case">Optional</span>
-            </div>
-            <p className="text-ns-muted/70 text-[11px] font-body mb-4 leading-relaxed">
-              These dimensions help us understand <em>why</em> you liked a movie.
-              They do not affect your overall rating.
-            </p>
-            <div className="space-y-4">
-              {SUB_DIMENSIONS.map(dim => (
+          <p className="mb-3 mt-1 text-sm leading-relaxed text-ns-muted">
+            These dimensions help us understand <em>why</em> you liked a movie.
+            They do not affect your overall rating.
+          </p>
+          <div className="divide-y divide-ns-border">
+            {SUB_DIMENSIONS.map(dim => (
+              <div key={dim.key} className="py-1">
                 <SubRatingSlider
-                  key={dim.key}
                   label={dim.label}
                   Icon={dim.Icon}
                   value={subs[dim.key]}
                   onChange={v => setSub(dim.key, v)}
                 />
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
+        </section>
 
-          {/* ── Notes ── */}
-          <div className="space-y-2">
-            <p className="text-ns-muted text-xs tracking-widest uppercase font-body">
-              Notes <span className="normal-case text-[10px]">(optional)</span>
-            </p>
-            <textarea
-              value={review}
-              onChange={e => setReview(e.target.value)}
-              rows={3}
-              placeholder="What stood out? What didn't work?"
-              maxLength={500}
-              className="w-full bg-ns-surface border border-ns-border rounded-xl px-3 py-2.5
-                         text-ns-text text-sm font-body placeholder:text-ns-muted/40 resize-none
-                         focus:outline-none focus:border-ns-secondary/40 transition-colors"
-            />
-            <p className="text-ns-muted/40 text-[10px] font-body text-right">
-              {review.length}/500
-            </p>
-          </div>
-
-          {error && <p className="text-red-400 text-xs font-body text-center">{error}</p>}
+        <div>
+          <label htmlFor="rating-notes" className="flex items-baseline justify-between gap-3 text-sm font-semibold text-ns-text">
+            Notes <span className="font-normal text-ns-muted">Optional</span>
+          </label>
+          <textarea
+            id="rating-notes"
+            value={review}
+            onChange={e => setReview(e.target.value)}
+            rows={3}
+            placeholder="What stood out? What didn't work?"
+            maxLength={500}
+            className="mt-2 w-full resize-none rounded-xl border border-ns-border-strong bg-ns-bg px-4 py-3 text-base text-ns-text transition-colors duration-150 placeholder:text-ns-subtle focus:border-ns-text focus:outline-none focus:ring-1 focus:ring-ns-text"
+          />
+          <p className="mt-1 text-right text-xs tabular-nums text-ns-muted">{review.length}/500</p>
         </div>
 
-        {/* Sticky footer */}
-        <div className="flex-shrink-0 p-4 pt-0 border-t border-ns-border bg-ns-bg">
-          <div className="flex gap-3">
-            {existing && (
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="px-4 py-3 rounded-xl border border-red-500/30 text-red-400/70
-                           font-body text-sm hover:text-red-400 hover:border-red-500/50
-                           transition-colors disabled:opacity-50"
-              >
-                {deleting ? '…' : 'Remove'}
-              </button>
-            )}
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex-1 py-3 rounded-xl bg-ns-secondary text-ns-secondary-foreground font-body font-semibold
-                         text-sm tracking-wide hover:bg-amber-400 disabled:opacity-50
-                         transition-colors"
-            >
-              {saving ? 'Saving…' : existing ? 'Update Rating' : 'Save Rating'}
-            </button>
-          </div>
-        </div>
+        {error && <p role="alert" className="rounded-xl bg-ns-danger/10 px-3 py-2 text-center text-sm text-ns-danger">{error}</p>}
       </div>
-    </div>
+
+      <div className="sticky bottom-0 z-10 flex gap-2 border-t border-ns-border bg-ns-surface p-4">
+        {existing && (
+          <Button variant="danger" onClick={handleDelete} loading={deleting}>
+            {deleting ? 'Removing…' : 'Remove'}
+          </Button>
+        )}
+        <Button onClick={handleSave} loading={saving} className="flex-1">
+          {saving ? 'Saving…' : existing ? 'Update Rating' : 'Save Rating'}
+        </Button>
+      </div>
+    </Modal>
   )
 }

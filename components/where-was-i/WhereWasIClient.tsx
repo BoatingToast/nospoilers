@@ -1,43 +1,184 @@
 'use client'
 
-import { useMemo, useRef, useState, type FormEvent } from 'react'
-import Link from 'next/link'
-import type { GroundedAnswer } from '@/lib/where-was-i'
-import type { WhereWasISession } from '@/services/where-was-i'
-import { ArrowRightIcon, EyeIcon, LockIcon, SearchIcon } from '@/components/icons'
+import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from 'react'
+import type { EvidenceReference, GroundedAnswer } from '@/lib/where-was-i'
+import type { WhereWasICheckpoint, WhereWasISession } from '@/services/where-was-i'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
+import { ArrowRightIcon, ChevronIcon, EyeIcon, EyeOffIcon, LockIcon, SearchIcon } from '@/components/icons'
+import { PillTabs } from '@/components/watchlist/LibraryControls'
+import { cn } from '@/lib/utils'
 
 type SupportedClaim = WhereWasISession['shortRecap'][number]
 
-function EvidenceDetails({ claim }: { claim: SupportedClaim }) {
+/**
+ * Source excerpts stay out of the DOM until the viewer asks for them. Once
+ * opened, each excerpt mounts under a redaction bar and wipes into view.
+ */
+function EvidenceReferences({
+  references,
+  label,
+  availabilityPrefix,
+}: {
+  references: EvidenceReference[]
+  label: string
+  availabilityPrefix: string
+}) {
+  const panelId = useId()
+  const [open, setOpen] = useState(false)
+  const [uncovered, setUncovered] = useState(false)
+
+  useEffect(() => {
+    if (!open) {
+      setUncovered(false)
+      return
+    }
+    let inner = 0
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setUncovered(true))
+    })
+    return () => {
+      cancelAnimationFrame(outer)
+      cancelAnimationFrame(inner)
+    }
+  }, [open])
+
   return (
-    <details className="mt-3 group">
-      <summary className="cursor-pointer list-none text-[10px] font-heading font-semibold uppercase tracking-[0.15em] text-ns-secondary-readable hover:text-white">
-        {claim.references.length} evidence {claim.references.length === 1 ? 'reference' : 'references'} <span className="group-open:hidden">＋</span><span className="hidden group-open:inline">−</span>
-      </summary>
-      <div className="mt-2 space-y-2 border-l border-ns-secondary/30 pl-3">
-        {claim.references.map(reference => (
-          <div key={reference.id} className="text-xs leading-5 text-ns-muted">
-            <p className="font-semibold text-ns-text">{reference.sourceRef}</p>
-            <p>“{reference.excerpt}”</p>
-            <p className="mt-1 text-[10px] uppercase tracking-wider text-ns-muted/75">
-              Earliest valid: {reference.earliestCheckpoint}
-            </p>
-          </div>
-        ))}
-      </div>
-    </details>
+    <div className="mt-1">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={open ? panelId : undefined}
+        onClick={() => setOpen(value => !value)}
+        className="-ml-1 inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-sm font-semibold text-ns-secondary-readable transition-colors duration-150 hover:text-ns-text"
+      >
+        {open ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />}
+        {label}
+        <ChevronIcon
+          direction="down"
+          size={14}
+          className={cn('transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]', open && 'rotate-180')}
+        />
+      </button>
+
+      {open && (
+        <div id={panelId} className="mt-1 space-y-3 border-l-2 border-ns-border-strong pb-1 pl-3">
+          {references.map(reference => (
+            <div key={reference.id} className="text-sm leading-relaxed text-ns-muted">
+              <p className="font-semibold text-ns-text">{reference.sourceRef}</p>
+              <p>
+                <span className="ns-redact" data-open={uncovered ? 'true' : 'false'}>
+                  &ldquo;{reference.excerpt}&rdquo;
+                </span>
+              </p>
+              <p className="mt-0.5 text-xs">{availabilityPrefix} {reference.earliestCheckpoint}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
-function ClaimList({ claims }: { claims: SupportedClaim[] }) {
+function ClaimList({ claims, dense = false }: { claims: SupportedClaim[]; dense?: boolean }) {
   return (
-    <div className="space-y-3">
+    <ul className="divide-y divide-ns-border">
       {claims.map((claim, index) => (
-        <article key={`${claim.text}-${index}`} className="rounded-xl border border-white/[0.06] bg-black/15 px-4 py-3">
-          <p className="text-sm leading-6 text-ns-text">{claim.text}</p>
-          <EvidenceDetails claim={claim} />
-        </article>
+        <li key={`${claim.text}-${index}`} className={cn('first:pt-0 last:pb-0', dense ? 'py-3' : 'py-4')}>
+          <p className={cn('leading-relaxed text-ns-text', dense ? 'text-sm' : 'text-base')}>{claim.text}</p>
+          <EvidenceReferences
+            references={claim.references}
+            label={`${claim.references.length} evidence ${claim.references.length === 1 ? 'reference' : 'references'}`}
+            availabilityPrefix="Earliest valid:"
+          />
+        </li>
       ))}
+    </ul>
+  )
+}
+
+function shortCheckpointLabel(checkpoint: WhereWasICheckpoint) {
+  if (checkpoint.season !== null && checkpoint.episode !== null) {
+    return checkpoint.season === 1 ? `Ep ${checkpoint.episode}` : `S${checkpoint.season} E${checkpoint.episode}`
+  }
+  if (checkpoint.filmProgressPercent !== null) return `${checkpoint.filmProgressPercent}%`
+  return String(checkpoint.ordinal)
+}
+
+/**
+ * The story as a row of redaction bars, one per checkpoint. Confirmed episodes
+ * are uncovered, a draft shows amber, and everything later stays coral.
+ */
+function CheckpointRail({
+  checkpoints,
+  draftId,
+  authorizedId,
+  onSelect,
+}: {
+  checkpoints: WhereWasICheckpoint[]
+  draftId: string
+  authorizedId: string | null
+  onSelect: (id: string) => void
+}) {
+  const draftIndex = checkpoints.findIndex(checkpoint => checkpoint.id === draftId)
+  const authorizedIndex = checkpoints.findIndex(checkpoint => checkpoint.id === authorizedId)
+  const count = Math.max(1, checkpoints.length)
+  const markerOffset = draftIndex >= 0 ? ((draftIndex + 1) / count) * 100 : 0
+
+  return (
+    <div className="overflow-x-auto scrollbar-hide">
+      <div className="relative px-3.5 pt-3" style={{ minWidth: `${count * 3.25 + 1.75}rem` }}>
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-3 z-10 h-7 overflow-hidden px-3.5">
+          <div
+            style={{ transform: `translateX(${markerOffset}%)` }}
+            className={cn(
+              'h-full w-full transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
+              draftIndex < 0 && 'opacity-0',
+            )}
+          >
+            <span className="absolute left-0 top-1/2 block h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-[5px] border-ns-text bg-ns-bg shadow-2xl" />
+          </div>
+        </div>
+
+        <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${count}, minmax(0, 1fr))` }}>
+          {checkpoints.map((checkpoint, index) => {
+            const confirmed = authorizedIndex >= 0 && index <= authorizedIndex
+            const drafted = !confirmed && draftIndex >= 0 && index <= draftIndex
+            const selected = checkpoint.id === draftId
+            return (
+              <label key={checkpoint.id} className="group flex cursor-pointer flex-col items-center">
+                <input
+                  type="radio"
+                  name="resume-checkpoint"
+                  value={checkpoint.id}
+                  checked={selected}
+                  onChange={() => onSelect(checkpoint.id)}
+                  aria-label={checkpoint.label}
+                  className="peer sr-only"
+                />
+                <span className="flex h-7 w-full items-center">
+                  <span className="relative block h-3 w-full overflow-hidden rounded-full bg-ns-secondary">
+                    <span
+                      style={{ transitionDelay: `${index * 30}ms` }}
+                      className={cn(
+                        'absolute inset-0 origin-left transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]',
+                        confirmed ? 'bg-ns-text' : 'bg-ns-warning',
+                        confirmed || drafted ? 'scale-x-100' : 'scale-x-0',
+                      )}
+                    />
+                  </span>
+                </span>
+                <span className={cn(
+                  'mt-1 flex min-h-11 w-full items-center justify-center rounded-full text-sm font-semibold tabular-nums transition-colors duration-150 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-ns-text',
+                  selected ? 'text-ns-text' : 'text-ns-muted group-hover:text-ns-text',
+                )}>
+                  {shortCheckpointLabel(checkpoint)}
+                </span>
+              </label>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }
@@ -126,120 +267,122 @@ export default function WhereWasIClient({ initialData }: { initialData: WhereWas
   }
 
   return (
-    <main className="min-h-screen overflow-hidden pb-24">
-      <section className="relative border-b border-ns-border">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(104,13,209,0.28),transparent_35%),radial-gradient(circle_at_78%_5%,rgba(96,165,250,0.12),transparent_27%),linear-gradient(180deg,rgba(5,8,20,0.2),rgb(5,8,20))]" />
-        <div className="absolute left-[12%] top-10 h-64 w-px bg-gradient-to-b from-transparent via-violet-400/30 to-transparent" />
-        <div className="absolute right-[20%] top-0 h-80 w-px rotate-12 bg-gradient-to-b from-transparent via-blue-300/20 to-transparent" />
-        <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-          <div>
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-ns-secondary/35 bg-ns-secondary/10 px-3 py-1.5 text-[11px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-secondary-readable">
-              <EyeIcon size={13} /> Where Was I?
-            </div>
-            <h1 className="max-w-3xl font-display text-5xl leading-[0.92] tracking-wide text-white sm:text-7xl">
-              REMEMBER THE STORY.<br /><span className="text-ns-secondary-readable">NOT THE FUTURE.</span>
-            </h1>
-            <p className="mt-6 max-w-2xl text-sm leading-7 text-ns-muted sm:text-base">
-              A source-backed memory refresh that stops exactly at the episode you confirm. Opening this page never advances your Plot Passport.
-            </p>
-          </div>
-          <aside className="rounded-2xl border border-white/10 bg-ns-surface/80 p-5 shadow-2xl shadow-violet-950/30 backdrop-blur-xl">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-secondary-readable">Original demo mystery</p>
-                <h2 className="mt-2 font-heading text-xl font-semibold text-white">{data.title.name}</h2>
-              </div>
-              <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-300">Source v{data.title.sourceVersion}</span>
-            </div>
-            <p className="mt-3 text-xs leading-6 text-ns-muted">{data.title.premise}</p>
-            <p className="mt-4 border-t border-white/[0.07] pt-4 text-[10px] leading-5 text-ns-muted/80">{data.title.rightsNote}</p>
-          </aside>
+    <div className="mx-auto min-h-dvh max-w-7xl px-4 pb-24 pt-10 sm:px-6 lg:pt-16">
+      <header className="grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:items-end lg:gap-16">
+        <div>
+          <h1 className="font-display text-5xl text-ns-text lg:text-7xl">
+            Remember the story. <span className="ns-unredact" style={{ animationDelay: '420ms' }}>Not the future.</span>
+          </h1>
+          <p className="ns-rise mt-5 max-w-2xl text-lg leading-relaxed text-ns-muted" style={{ animationDelay: '80ms' }}>
+            A source-backed memory refresh that stops exactly at the episode you confirm. Opening this page never advances your Plot Passport.
+          </p>
         </div>
-      </section>
+        <aside className="ns-rise rounded-2xl bg-ns-surface p-6" style={{ animationDelay: '160ms' }}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-heading text-xl font-bold text-ns-text">{data.title.name}</h2>
+            <Badge variant="success">Source v{data.title.sourceVersion}</Badge>
+          </div>
+          <p className="mt-1 text-sm text-ns-muted">Original demo mystery</p>
+          <p className="mt-3 text-sm leading-relaxed text-ns-muted">{data.title.premise}</p>
+          <p className="mt-3 border-t border-ns-border pt-3 text-xs leading-relaxed text-ns-muted">{data.title.rightsNote}</p>
+        </aside>
+      </header>
 
-      <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
-        <section className="grid gap-5 rounded-2xl border border-ns-secondary/25 bg-gradient-to-br from-violet-950/35 to-ns-surface p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div>
-            <p className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-secondary-readable">1 · Confirm your boundary</p>
-            <label htmlFor="resume-checkpoint" className="mt-3 block font-heading text-lg font-semibold text-white">
+      <div className="mt-10 space-y-6 lg:mt-14">
+        <section aria-labelledby="resume-checkpoint-label" className="rounded-3xl bg-ns-surface p-6 sm:p-10">
+          <fieldset>
+            <legend id="resume-checkpoint-label" className="font-display text-3xl text-ns-text sm:text-4xl">
               Where did you stop?
-            </label>
-            <p className="mt-1 text-xs leading-5 text-ns-muted">
+            </legend>
+            <p className="mt-2 max-w-2xl text-base leading-relaxed text-ns-muted">
               {data.title.format === 'series'
                 ? 'Choose the last episode you completely finished. This is an episode boundary, not a guessed scene timestamp.'
                 : 'Choose a supported film checkpoint. NoSpoilers will not imply scene-level precision it does not have.'}
             </p>
-            <select
-              id="resume-checkpoint"
-              value={draftCheckpointId}
-              onChange={event => setDraftCheckpointId(event.target.value)}
-              className="mt-4 w-full max-w-md rounded-xl border border-ns-border bg-ns-bg px-4 py-3 text-sm text-white"
+            <div className="mt-6">
+              <CheckpointRail
+                checkpoints={data.checkpoints}
+                draftId={draftCheckpointId}
+                authorizedId={data.authorizedCheckpoint?.id ?? null}
+                onSelect={setDraftCheckpointId}
+              />
+            </div>
+          </fieldset>
+
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p key={`${draftCheckpointId}-${boundaryChanged}`} className={cn('min-w-0 animate-fade-up text-sm leading-relaxed', boundaryChanged && data.authorizedCheckpoint ? 'text-ns-warning' : 'text-ns-muted')}>
+              {boundaryChanged && data.authorizedCheckpoint
+                ? `This is only a draft. Your authorized boundary remains ${data.authorizedCheckpoint.label.toLowerCase()} until you confirm.`
+                : data.authorizedCheckpoint
+                  ? `Everything below stops at ${data.authorizedCheckpoint.label.toLowerCase()}.`
+                  : draftCheckpoint?.label}
+            </p>
+            <Button
+              size="lg"
+              onClick={() => void confirmProgress()}
+              disabled={!draftCheckpoint || !boundaryChanged}
+              loading={saving}
+              className="flex-shrink-0"
             >
-              {data.checkpoints.map(checkpoint => (
-                <option key={checkpoint.id} value={checkpoint.id}>{checkpoint.label}</option>
-              ))}
-            </select>
+              {!saving && <LockIcon size={18} />}
+              {saving ? 'Confirming…' : boundaryChanged ? `Confirm ${draftCheckpoint?.label.toLowerCase()}` : 'Boundary confirmed'}
+            </Button>
           </div>
-          <button
-            type="button"
-            onClick={() => void confirmProgress()}
-            disabled={!draftCheckpoint || saving || !boundaryChanged}
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ns-secondary px-5 text-sm font-heading font-semibold text-white transition hover:bg-ns-secondary/85 disabled:cursor-not-allowed disabled:opacity-45"
-          >
-            <LockIcon size={16} />
-            {saving ? 'Confirming…' : boundaryChanged ? `Confirm ${draftCheckpoint?.label.toLowerCase()}` : 'Boundary confirmed'}
-          </button>
-          {boundaryChanged && data.authorizedCheckpoint ? (
-            <p className="lg:col-span-2 text-xs text-amber-300">This is only a draft. Your authorized boundary remains {data.authorizedCheckpoint.label.toLowerCase()} until you confirm.</p>
-          ) : null}
         </section>
 
         {error ? (
-          <div role="alert" className="rounded-xl border border-red-400/25 bg-red-400/10 px-4 py-3 text-sm text-red-200">{error}</div>
+          <div role="alert" className="rounded-xl bg-ns-danger/10 px-4 py-3 text-sm text-ns-danger">{error}</div>
         ) : null}
 
         {!data.authorizedCheckpoint ? (
-          <section className="rounded-2xl border border-dashed border-ns-border px-6 py-14 text-center">
-            <LockIcon size={38} className="mx-auto text-ns-secondary-readable/50" />
-            <h2 className="mt-4 font-heading text-xl font-semibold text-white">No story material has been authorized</h2>
-            <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-ns-muted">Confirm a completed episode above. Until then, no recap, character facts, or question evidence is retrieved.</p>
+          <section className="rounded-2xl bg-ns-surface px-6 py-14 text-center">
+            <h2 className="font-heading text-2xl font-bold text-ns-text">No story material has been authorized</h2>
+            <p className="mx-auto mt-2 max-w-lg text-base leading-relaxed text-ns-muted">
+              Confirm a completed episode above. Until then, no recap, character facts, or question evidence is retrieved.
+            </p>
           </section>
         ) : (
-          <>
-            <section className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
-              <div className="rounded-2xl border border-ns-border bg-ns-surface/70 p-5 sm:p-6">
+          <div key={data.authorizedCheckpoint.id} className="animate-fade-up space-y-6">
+            <section className="grid gap-6 lg:grid-cols-2">
+              <div className="rounded-3xl bg-ns-surface p-6 sm:p-8">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-secondary-readable">2 · Memory refresh</p>
-                    <h2 className="mt-2 font-heading text-xl font-semibold text-white">Up through {data.authorizedCheckpoint.label.toLowerCase()}</h2>
-                  </div>
-                  <div className="flex rounded-xl border border-ns-border bg-ns-bg p-1 text-xs">
-                    <button type="button" onClick={() => setRecapLength('short')} className={`rounded-lg px-3 py-2 ${recapLength === 'short' ? 'bg-ns-secondary text-white' : 'text-ns-muted hover:text-white'}`}>30 seconds</button>
-                    <button type="button" onClick={() => setRecapLength('long')} className={`rounded-lg px-3 py-2 ${recapLength === 'long' ? 'bg-ns-secondary text-white' : 'text-ns-muted hover:text-white'}`}>2 minutes</button>
-                  </div>
+                  <h2 className="font-heading text-2xl font-bold text-ns-text">
+                    Up through {data.authorizedCheckpoint.label.toLowerCase()}
+                  </h2>
+                  <PillTabs
+                    label="Recap length"
+                    value={recapLength}
+                    onChange={setRecapLength}
+                    options={[
+                      { value: 'short', label: '30 seconds' },
+                      { value: 'long', label: '2 minutes' },
+                    ]}
+                  />
                 </div>
-                <div className="mt-5"><ClaimList claims={recap} /></div>
+                <div key={recapLength} className="mt-5 animate-fade-up"><ClaimList claims={recap} /></div>
               </div>
 
-              <div className="rounded-2xl border border-ns-border bg-[linear-gradient(145deg,rgba(16,21,46,0.95),rgba(11,15,36,0.7))] p-5 sm:p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-secondary-readable">3 · Ask within the boundary</p>
-                    <h2 className="mt-2 font-heading text-xl font-semibold text-white">What are you trying to remember?</h2>
-                  </div>
-                  <span className="rounded-full border border-blue-400/20 bg-blue-400/10 px-2.5 py-1 text-[10px] text-blue-200">{data.modelConfigured ? 'AI evidence selection on' : 'Extractive mode'}</span>
+              <div className="rounded-3xl bg-ns-surface p-6 sm:p-8">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <h2 className="font-heading text-2xl font-bold text-ns-text">What are you trying to remember?</h2>
+                  <Badge variant="info">{data.modelConfigured ? 'AI evidence selection on' : 'Extractive mode'}</Badge>
                 </div>
                 <form onSubmit={submitQuestion} className="mt-5 space-y-3">
-                  <div className="flex rounded-xl border border-ns-border bg-ns-bg focus-within:border-ns-secondary-readable/60">
-                    <SearchIcon size={18} className="ml-4 mt-3.5 flex-shrink-0 text-ns-muted" />
+                  <div className="relative">
+                    <SearchIcon size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ns-muted" />
                     <input
                       value={question}
                       maxLength={500}
+                      aria-label="Ask about the story so far"
                       onChange={event => { setQuestion(event.target.value); setCharacterId('') }}
                       placeholder="Who is this person? What do they know?"
-                      className="min-w-0 flex-1 bg-transparent px-3 py-3 text-sm text-white outline-none placeholder:text-ns-muted/60"
+                      className="min-h-14 w-full rounded-xl border border-ns-border-strong bg-ns-bg py-2 pl-11 pr-28 text-base text-ns-text transition-colors duration-150 placeholder:text-ns-subtle focus:border-ns-text focus:outline-none focus:ring-1 focus:ring-ns-text"
                     />
-                    <button disabled={asking || !question.trim()} className="m-1 rounded-lg bg-ns-secondary px-4 text-xs font-heading font-semibold text-white disabled:opacity-50">
+                    <button
+                      type="submit"
+                      disabled={asking || !question.trim()}
+                      className="absolute right-1.5 top-1/2 min-h-11 -translate-y-1/2 rounded-full bg-ns-text px-5 text-sm font-semibold text-ns-bg transition-colors duration-150 hover:bg-ns-muted disabled:cursor-not-allowed disabled:bg-ns-surface-3 disabled:text-ns-muted"
+                    >
                       {asking ? 'Checking…' : 'Ask'}
                     </button>
                   </div>
@@ -249,7 +392,7 @@ export default function WhereWasIClient({ initialData }: { initialData: WhereWas
                         key={`${suggestion.question}-${suggestion.characterId}`}
                         type="button"
                         onClick={() => void askQuestion(suggestion.question, suggestion.characterId)}
-                        className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] text-ns-muted hover:border-ns-secondary/35 hover:text-white"
+                        className="min-h-11 rounded-full bg-ns-surface-2 px-4 text-sm font-semibold text-ns-muted transition-colors duration-150 hover:bg-ns-surface-3 hover:text-ns-text"
                       >
                         {suggestion.label}
                       </button>
@@ -258,23 +401,25 @@ export default function WhereWasIClient({ initialData }: { initialData: WhereWas
                 </form>
 
                 {answer ? (
-                  <div aria-live="polite" className={`mt-5 rounded-xl border p-4 ${answer.status === 'supported' ? 'border-emerald-400/20 bg-emerald-400/[0.06]' : 'border-amber-400/20 bg-amber-400/[0.06]'}`}>
-                    <p className="text-sm leading-6 text-white">{answer.text}</p>
+                  <div
+                    key={`${answer.text}-${answer.evidenceIds.join('|')}`}
+                    aria-live="polite"
+                    className={cn(
+                      'mt-5 animate-fade-up rounded-xl p-4',
+                      answer.status === 'supported' ? 'bg-ns-success/10' : 'bg-ns-warning/10',
+                    )}
+                  >
+                    <p className="text-base leading-relaxed text-ns-text">{answer.text}</p>
                     {answer.references.length ? (
-                      <details className="mt-4 group">
-                        <summary className="cursor-pointer list-none text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-300">Why this answer is allowed ＋</summary>
-                        <div className="mt-3 space-y-3 border-l border-emerald-400/25 pl-3">
-                          {answer.references.map(reference => (
-                            <div key={reference.id} className="text-xs leading-5 text-ns-muted">
-                              <p className="font-semibold text-ns-text">{reference.sourceRef}</p>
-                              <p>“{reference.excerpt}”</p>
-                              <p className="text-[10px] uppercase tracking-wider">Available from {reference.earliestCheckpoint}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </details>
+                      <div className="mt-2">
+                        <EvidenceReferences
+                          references={answer.references}
+                          label="Why this answer is allowed"
+                          availabilityPrefix="Available from"
+                        />
+                      </div>
                     ) : null}
-                    <p className="mt-4 text-[10px] uppercase tracking-[0.14em] text-ns-muted/70">
+                    <p className="mt-3 text-xs leading-relaxed text-ns-muted">
                       {answer.cached ? 'Cached for your account · ' : ''}{answer.method === 'model-selected' ? `Model selected evidence${answer.model ? ` · ${answer.model}` : ''}` : 'Deterministic extractive fallback'}
                       {answer.latencyMs !== undefined ? ` · ${answer.latencyMs} ms` : ''}
                       {answer.estimatedCostMicros !== undefined ? ` · $${(answer.estimatedCostMicros / 1_000_000).toFixed(6)}` : ''}
@@ -284,49 +429,56 @@ export default function WhereWasIClient({ initialData }: { initialData: WhereWas
               </div>
             </section>
 
-            <section>
+            <section className="pt-6">
               <div className="flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <p className="text-[10px] font-heading font-semibold uppercase tracking-[0.18em] text-ns-secondary-readable">4 · Character state</p>
-                  <h2 className="mt-2 font-heading text-2xl font-semibold text-white">Who everyone is — and what they know</h2>
-                </div>
-                <p className="max-w-md text-xs leading-5 text-ns-muted">Viewer-established context is kept separate from each character’s knowledge. Every line below is checkpoint-specific.</p>
+                <h2 className="font-display text-3xl text-ns-text sm:text-4xl">Who everyone is and what they know</h2>
+                <p className="max-w-md text-sm leading-relaxed text-ns-muted">
+                  Viewer-established context is kept separate from each character&rsquo;s knowledge. Every line below is checkpoint-specific.
+                </p>
               </div>
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                {data.characters.map(character => (
-                  <article key={character.id} className="rounded-2xl border border-ns-border bg-ns-surface/65 p-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <h3 className="font-heading text-lg font-semibold text-white">{character.displayName}</h3>
-                      <button type="button" onClick={() => void askQuestion('Who is this person?', character.id)} className="text-[10px] font-semibold uppercase tracking-wider text-ns-secondary-readable hover:text-white">Ask who this is →</button>
+              <div className="mt-6 grid items-start gap-4 lg:grid-cols-2">
+                {data.characters.map((character, index) => (
+                  <article key={character.id} className={cn('rounded-2xl bg-ns-surface p-6', index > 1 && 'ns-reveal')}>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="font-heading text-xl font-bold text-ns-text">{character.displayName}</h3>
+                      <button
+                        type="button"
+                        onClick={() => void askQuestion('Who is this person?', character.id)}
+                        className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-ns-secondary-readable transition-colors duration-150 hover:text-ns-text"
+                      >
+                        Ask who this is <ArrowRightIcon size={14} />
+                      </button>
                     </div>
-                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div className="mt-3 grid gap-5 sm:grid-cols-2">
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-blue-200">Viewer-established</p>
-                        <div className="mt-2"><ClaimList claims={[...character.viewerContext, ...character.relationships]} /></div>
+                        <p className="mb-2 text-sm font-semibold text-ns-info">Viewer-established</p>
+                        <ClaimList dense claims={[...character.viewerContext, ...character.relationships]} />
                       </div>
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-300">What this character knows</p>
-                        <div className="mt-2"><ClaimList claims={character.characterKnowledge} /></div>
+                        <p className="mb-2 text-sm font-semibold text-ns-success">What this character knows</p>
+                        <ClaimList dense claims={character.characterKnowledge} />
                       </div>
                     </div>
                   </article>
                 ))}
               </div>
             </section>
-          </>
+          </div>
         )}
 
-        <section className="flex flex-col gap-4 rounded-2xl border border-ns-border bg-ns-surface/45 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <section className="ns-reveal flex flex-col gap-4 rounded-2xl bg-ns-surface p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex gap-3">
-            <LockIcon size={20} className="mt-0.5 flex-shrink-0 text-ns-secondary-readable" />
+            <LockIcon size={20} className="mt-0.5 flex-shrink-0 text-ns-muted" />
             <div>
-              <h2 className="font-heading text-sm font-semibold text-white">One Passport, two privacy boundaries</h2>
-              <p className="mt-1 max-w-2xl text-xs leading-5 text-ns-muted">Where Was I? reads your authenticated server record. NoSpoilers Shield keeps its existing on-device promise: only protected title names are sent when you explicitly sync, never recap evidence, questions, or character data.</p>
+              <h2 className="font-heading text-lg font-bold text-ns-text">One Passport, two privacy boundaries</h2>
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ns-muted">
+                Where Was I? reads your authenticated server record. NoSpoilers Shield keeps its existing on-device promise: only protected title names are sent when you explicitly sync, never recap evidence, questions, or character data.
+              </p>
             </div>
           </div>
-          <Link href="/plot-passport" className="inline-flex flex-shrink-0 items-center gap-1 text-xs font-semibold text-ns-secondary-readable hover:text-white">Open Plot Passport <ArrowRightIcon size={13} /></Link>
+          <Button href="/plot-passport" variant="outline" className="flex-shrink-0">Open Plot Passport</Button>
         </section>
       </div>
-    </main>
+    </div>
   )
 }

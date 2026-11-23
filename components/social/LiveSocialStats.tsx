@@ -66,28 +66,22 @@ export default function LiveSocialStats({
     }
   }, [refresh])
 
-  const Stat = ({
-    value,
-    label,
-    href,
-  }: {
-    value: number
-    label: string
-    href:  string
-  }) => (
-    <Link href={href} className="group">
-      <p className="font-display text-3xl tracking-wider text-ns-secondary-readable group-hover:text-amber-400 transition-colors">
-        {value.toLocaleString()}
-      </p>
-      <p className="text-ns-muted text-xs font-body mt-0.5">{label}</p>
-    </Link>
-  )
-
   return (
     <>
       <Stat value={counts.followers} label="Followers" href="/friends/followers" />
       <Stat value={counts.following} label="Following" href="/friends/following" />
       <Stat value={counts.friends}   label="Friends"   href="/friends" />
     </>
+  )
+}
+
+function Stat({ value, label, href }: { value: number; label: string; href: string }) {
+  return (
+    <Link href={href} className="group block min-h-11">
+      <p key={value} className="animate-fade-up font-display text-3xl tabular-nums text-ns-text transition-colors duration-150 group-hover:text-ns-secondary-readable">
+        {value.toLocaleString()}
+      </p>
+      <p className="mt-0.5 text-sm text-ns-muted">{label}</p>
+    </Link>
   )
 }

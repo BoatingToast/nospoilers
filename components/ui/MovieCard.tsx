@@ -1,8 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { tmdbImageUrl, formatYear, formatRating } from '@/lib/utils'
-import Card from '@/components/ui/Card'
-import Badge from '@/components/ui/Badge'
 import type { TMDbMovie } from '@/types'
 
 interface MovieCardProps {
@@ -11,61 +9,40 @@ interface MovieCardProps {
   showRating?: boolean
 }
 
+const WIDTHS = { sm: 120, md: 185, lg: 280 }
+
 export default function MovieCard({ movie, size = 'md', showRating = true }: MovieCardProps) {
-  const widths  = { sm: 120, md: 185, lg: 280 }
-  const heights = { sm: 180, md: 278, lg: 420 }
+  const width = WIDTHS[size]
+  const year = formatYear(movie.release_date)
+  const rating = showRating && movie.vote_average > 0 ? formatRating(movie.vote_average) : null
 
   return (
     <Link
       href={`/movie/${movie.id}`}
       aria-label={`View ${movie.title}`}
-      className="group relative block flex-shrink-0 snap-start rounded-xl
-                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary
-                 focus-visible:ring-offset-4 focus-visible:ring-offset-ns-bg"
-      style={{ width: widths[size] }}
+      className="group block flex-shrink-0 snap-start rounded-xl"
+      style={{ width }}
     >
-
-      <Card
-        interactive
-        className="relative overflow-hidden rounded-xl group-hover:scale-[1.02] group-focus-visible:scale-[1.02]"
-        style={{ width: widths[size], height: heights[size] }}
-      >
+      <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-ns-surface ring-1 ring-inset ring-white/5">
         <Image
           src={tmdbImageUrl(movie.poster_path, 'w342')}
-          alt={movie.title}
+          alt=""
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes={`${widths[size]}px`}
+          className="object-cover transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.04] motion-reduce:transform-none"
+          sizes={`${width}px`}
         />
+      </div>
 
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-ns-bg via-ns-bg/40 to-transparent
-                        opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100
-                        transition-opacity duration-300 p-3 flex flex-col justify-end">
-          <p className="text-ns-text text-xs font-semibold font-body line-clamp-2 leading-tight">
-            {movie.title}
-          </p>
-          <p className="text-ns-muted text-xs font-body mt-0.5">
-            {formatYear(movie.release_date)}
-          </p>
-        </div>
-      </Card>
-
-      {showRating && movie.vote_average > 0 && (
-        <Badge
-          variant="secondary"
-          className="absolute top-2 right-2 bg-ns-bg/80 backdrop-blur-sm rounded-md"
-        >
-          {formatRating(movie.vote_average)}
-        </Badge>
-      )}
-
-      <div className="mt-2 min-w-0">
-        <p className="truncate text-sm font-heading font-semibold text-ns-text transition-colors group-hover:text-white">
-          {movie.title}
-        </p>
-        <p className="mt-0.5 text-xs font-body text-ns-muted">
-          {formatYear(movie.release_date)}
+      <div className="mt-2.5 min-w-0">
+        <p className="truncate font-heading text-base font-semibold text-ns-text transition-colors duration-150 group-hover:text-ns-secondary-readable">{movie.title}</p>
+        <p className="mt-0.5 flex items-center gap-1.5 text-sm tabular-nums text-ns-muted">
+          <span>{year}</span>
+          {rating && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>{rating}</span>
+            </>
+          )}
         </p>
       </div>
     </Link>

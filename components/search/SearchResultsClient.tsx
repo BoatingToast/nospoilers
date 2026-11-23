@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
-import { FilmIcon, PersonIcon, SearchIcon, StarIcon } from '@/components/icons'
+import PosterTile from '@/components/discover/PosterTile'
+import { PersonIcon } from '@/components/icons'
+import Button from '@/components/ui/Button'
+import Card from '@/components/ui/Card'
+import EmptyState from '@/components/ui/EmptyState'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { formatYear, tmdbImageUrl } from '@/lib/utils'
 import type { SearchApiResponse } from '@/types'
 
@@ -56,10 +60,10 @@ export default function SearchResultsClient({ query }: { query: string }) {
 
   if (status === 'idle') {
     return (
-      <div className="rounded-2xl border border-dashed border-ns-border py-16 text-center">
-        <SearchIcon size={48} className="mx-auto mb-4 text-ns-secondary-readable/40" />
-        <p className="text-sm font-body text-ns-muted">Search for a movie, actor, or director to get started.</p>
-      </div>
+      <EmptyState
+        title="Find your next film"
+        description="Search for a movie, actor, or director to get started."
+      />
     )
   }
 
@@ -67,16 +71,12 @@ export default function SearchResultsClient({ query }: { query: string }) {
 
   if (status === 'error') {
     return (
-      <div className="rounded-2xl border border-red-500/20 bg-ns-surface p-8 text-center" role="alert">
-        <p className="font-heading font-semibold text-ns-text">We couldn&apos;t complete that search.</p>
-        <p className="mt-2 text-sm font-body text-red-400">{error}</p>
-        <button
-          type="button"
-          onClick={() => setRetryKey(value => value + 1)}
-          className="mt-5 min-h-11 rounded-xl bg-ns-secondary px-5 py-2 text-sm font-body font-semibold text-ns-secondary-foreground transition-colors hover:bg-ns-secondary/90"
-        >
-          Try again
-        </button>
+      <div role="alert">
+        <EmptyState
+          title="We couldn't complete that search."
+          description={error}
+          action={<Button onClick={() => setRetryKey(value => value + 1)}>Try again</Button>}
+        />
       </div>
     )
   }
@@ -86,82 +86,70 @@ export default function SearchResultsClient({ query }: { query: string }) {
 
   if (!hasMovies && !hasPeople) {
     return (
-      <div className="rounded-2xl border border-dashed border-ns-border py-16 text-center" aria-live="polite">
-        <FilmIcon size={44} className="mx-auto mb-4 text-ns-secondary-readable/40" />
-        <p className="font-heading font-semibold text-ns-text">No results for &ldquo;{query}&rdquo;</p>
-        <p className="mt-1 text-sm font-body text-ns-muted">Check the spelling or try another title or name.</p>
+      <div aria-live="polite">
+        <EmptyState
+          title={`No results for “${query}”`}
+          description="Check the spelling or try another title or name."
+        />
       </div>
     )
   }
 
+  const total = results.movies.length + results.people.length
+
   return (
-    <div aria-live="polite">
-      <div className="mb-7">
-        <p className="text-xs font-body uppercase tracking-widest text-ns-muted">Results for</p>
-        <h2 className="mt-1 font-display text-3xl tracking-wider text-ns-text sm:text-4xl">
+    <div aria-live="polite" className="animate-fade-up">
+      <div className="mb-8">
+        <p className="text-base text-ns-muted">Results for</p>
+        <h2 className="mt-1 break-words font-display text-4xl text-ns-text sm:text-5xl">
           &ldquo;{query}&rdquo;
         </h2>
-        <p className="mt-1 text-sm font-body text-ns-muted">
-          Showing {(results.movies.length + results.people.length).toLocaleString()} match{results.movies.length + results.people.length === 1 ? '' : 'es'}
+        <p className="mt-2 text-base tabular-nums text-ns-muted">
+          Showing {total.toLocaleString()} match{total === 1 ? '' : 'es'}
         </p>
       </div>
 
       {hasMovies && (
         <section aria-labelledby="movie-search-results">
-          <div className="mb-4 flex items-center gap-2">
-            <FilmIcon size={18} className="text-ns-secondary-readable" />
-            <h3 id="movie-search-results" className="font-display text-2xl tracking-wider text-ns-text">MOVIES</h3>
-            <span className="text-xs font-body text-ns-muted">{results.movies.length}</span>
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {results.movies.map(movie => (
-              <Link
+          <h3 id="movie-search-results" className="mb-5 flex items-baseline gap-2.5 font-display text-2xl text-ns-text sm:text-3xl">
+            Movies
+            <span className="font-body text-base font-medium tabular-nums text-ns-muted">{results.movies.length}</span>
+          </h3>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {results.movies.map((movie, index) => (
+              <div
                 key={movie.id}
-                href={`/movie/${movie.id}`}
-                aria-label={`View ${movie.title}`}
-                className="group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary focus-visible:ring-offset-4 focus-visible:ring-offset-ns-bg"
+                className={index >= 6 ? 'ns-reveal min-w-0' : 'min-w-0'}
+                style={index >= 6 ? { '--i': index % 6 } as React.CSSProperties : undefined}
               >
-                <div className="relative aspect-[2/3] overflow-hidden rounded-xl border border-ns-border bg-ns-surface">
-                  <Image
-                    src={tmdbImageUrl(movie.poster_path, 'w342')}
-                    alt=""
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 200px"
-                  />
-                  {movie.vote_average > 0 && (
-                    <div className="absolute right-2 top-2 rounded-full bg-ns-bg/80 px-2 py-0.5 backdrop-blur-sm">
-                      <span className="text-[10px] font-body font-bold text-ns-secondary-readable">
-                        <StarIcon size={9} className="mr-0.5 inline-block" />{movie.vote_average.toFixed(1)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <p className="mt-2 truncate text-xs font-body font-medium text-ns-text transition-colors group-hover:text-ns-secondary-readable">
-                  {movie.title}
-                </p>
-                <p className="text-[11px] font-body text-ns-muted/60">{formatYear(movie.release_date)}</p>
-              </Link>
+                <PosterTile
+                  href={`/movie/${movie.id}`}
+                  title={movie.title}
+                  posterPath={movie.poster_path}
+                  meta={formatYear(movie.release_date)}
+                  rating={movie.vote_average}
+                />
+              </div>
             ))}
           </div>
         </section>
       )}
 
       {hasPeople && (
-        <section aria-labelledby="people-search-results" className={hasMovies ? 'mt-12 border-t border-ns-border pt-10' : ''}>
-          <div className="mb-4 flex items-center gap-2">
-            <PersonIcon size={18} className="text-ns-secondary-readable" />
-            <h3 id="people-search-results" className="font-display text-2xl tracking-wider text-ns-text">PEOPLE</h3>
-            <span className="text-xs font-body text-ns-muted">{results.people.length}</span>
-          </div>
+        <section aria-labelledby="people-search-results" className={hasMovies ? 'ns-reveal mt-12 lg:mt-16' : ''}>
+          <h3 id="people-search-results" className="mb-5 flex items-baseline gap-2.5 font-display text-2xl text-ns-text sm:text-3xl">
+            People
+            <span className="font-body text-base font-medium tabular-nums text-ns-muted">{results.people.length}</span>
+          </h3>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {results.people.map(person => (
-              <Link
+              <Card
                 key={person.id}
                 href={`/actor/${person.id}`}
-                className="group flex min-h-20 items-center gap-4 rounded-2xl border border-ns-border bg-ns-surface p-3 transition-colors hover:border-ns-secondary/30 hover:bg-ns-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ns-secondary"
+                interactive
+                className="group flex min-h-20 min-w-0 items-center gap-4 p-3"
               >
-                <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-ns-surface-2">
+                <span className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-ns-surface-2">
                   {person.profile_path ? (
                     <Image
                       src={tmdbImageUrl(person.profile_path, 'w185')}
@@ -171,14 +159,14 @@ export default function SearchResultsClient({ query }: { query: string }) {
                       sizes="56px"
                     />
                   ) : (
-                    <PersonIcon size={24} className="text-ns-muted/40" />
+                    <PersonIcon size={24} className="text-ns-muted" />
                   )}
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-body font-semibold text-ns-text transition-colors group-hover:text-ns-secondary-readable">{person.name}</p>
-                  <p className="mt-0.5 text-xs font-body text-ns-muted">{person.known_for_department || 'Film and television'}</p>
-                </div>
-              </Link>
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate font-heading text-base font-semibold text-ns-text">{person.name}</span>
+                  <span className="mt-0.5 block truncate text-sm text-ns-muted">{person.known_for_department || 'Film and television'}</span>
+                </span>
+              </Card>
             ))}
           </div>
         </section>
@@ -191,16 +179,16 @@ function SearchLoading({ query }: { query: string }) {
   return (
     <div role="status" aria-live="polite">
       <span className="sr-only">Searching for {query}</span>
-      <div className="mb-7 space-y-2 animate-pulse" aria-hidden="true">
-        <div className="h-3 w-20 rounded bg-ns-border" />
-        <div className="h-9 w-52 max-w-full rounded bg-ns-border" />
+      <div className="mb-8 space-y-2" aria-hidden="true">
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-11 w-64 max-w-full" />
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5" aria-hidden="true">
-        {Array.from({ length: 10 }).map((_, index) => (
-          <div key={index} className="animate-pulse">
-            <div className="aspect-[2/3] rounded-xl bg-ns-border" />
-            <div className="mt-2 h-3 w-3/4 rounded bg-ns-border" />
-            <div className="mt-1 h-2.5 w-1/3 rounded bg-ns-border" />
+      <div className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" aria-hidden="true">
+        {Array.from({ length: 12 }).map((_, index) => (
+          <div key={index}>
+            <Skeleton className="aspect-[2/3] rounded-xl" />
+            <Skeleton className="mt-2.5 h-4 w-3/4" />
+            <Skeleton className="mt-1.5 h-3.5 w-1/3" />
           </div>
         ))}
       </div>

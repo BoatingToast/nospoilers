@@ -4,7 +4,12 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Avatar from '@/components/ui/Avatar'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import PageHeader from '@/components/ui/PageHeader'
+import { Skeleton } from '@/components/ui/Skeleton'
 import AvatarUploadModal from '@/components/profile/AvatarUploadModal'
+import { Field, SelectControl, SettingsSection, controlClass } from '@/components/settings/FormControls'
 
 // ── Genre list ────────────────────────────────────────────────────────────────
 
@@ -19,47 +24,69 @@ const DECADES = [
   '1980s', '1990s', '2000s', '2010s', '2020s',
 ]
 
-// ── Field component helpers ───────────────────────────────────────────────────
+// ── Field helpers ─────────────────────────────────────────────────────────────
 
-function Field({
+function TextField({
+  id,
   label,
   hint,
-  children,
-}: {
-  label: string
-  hint?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="space-y-1.5">
-      <label className="block text-xs font-body text-ns-muted tracking-wide uppercase">{label}</label>
-      {children}
-      {hint && <p className="text-[11px] font-body text-ns-muted/50">{hint}</p>}
-    </div>
-  )
-}
-
-function TextInput({
   value,
   onChange,
   placeholder,
   maxLength,
 }: {
+  id: string
+  label: string
+  hint?: string
   value: string
   onChange: (v: string) => void
   placeholder?: string
   maxLength?: number
 }) {
   return (
-    <input
-      type="text"
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      placeholder={placeholder}
-      maxLength={maxLength}
-      className="w-full bg-ns-surface border border-ns-border rounded-xl px-4 py-2.5 text-sm font-body
-                 text-ns-text placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-secondary/40 transition-colors"
-    />
+    <div>
+      <Input
+        id={id}
+        label={label}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        maxLength={maxLength}
+        aria-describedby={hint ? `${id}-hint` : undefined}
+      />
+      {hint && <p id={`${id}-hint`} className="mt-1.5 text-sm text-ns-muted">{hint}</p>}
+    </div>
+  )
+}
+
+function HandleField({
+  id,
+  label,
+  prefix,
+  value,
+  onChange,
+}: {
+  id: string
+  label: string
+  prefix: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <Field id={id} label={label}>
+      <div className="flex min-h-12 items-center rounded-xl border border-ns-border-strong bg-ns-bg transition-colors duration-150 focus-within:border-ns-text focus-within:ring-1 focus-within:ring-ns-text">
+        <span aria-hidden="true" className="flex-shrink-0 whitespace-nowrap pl-4 text-base text-ns-muted">{prefix}</span>
+        <input
+          id={id}
+          type="text"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder="username"
+          maxLength={80}
+          className="min-w-0 flex-1 bg-transparent py-2 pl-0.5 pr-4 text-base text-ns-text placeholder:text-ns-subtle focus:outline-none"
+        />
+      </div>
+    </Field>
   )
 }
 
@@ -196,10 +223,26 @@ export default function EditProfilePage() {
 
   // ─────────────────────────────────────────────────────────────────────────
 
+  async function handleRemovePhoto() {
+    setError('')
+    try {
+      const res = await fetch('/api/profile/avatar', { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null) as { error?: string } | null
+        throw new Error(data?.error ?? 'Failed to remove photo')
+      }
+      await handleAvatarSuccess('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove photo')
+    }
+  }
+
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-ns-secondary/20 border-t-ns-secondary rounded-full animate-spin" />
+      <div aria-busy="true" aria-label="Loading profile">
+        <Skeleton className="h-12 w-64 rounded-xl" />
+        <Skeleton className="mt-8 h-52 rounded-2xl" />
+        <Skeleton className="mt-4 h-96 rounded-2xl" />
       </div>
     )
   }
@@ -207,19 +250,12 @@ export default function EditProfilePage() {
   if (!session) return null
 
   return (
-    <div className="min-h-screen pb-24">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6">
+    <>
+      <PageHeader title="Edit profile" />
 
-        {/* Header */}
-        <div className="pt-2 pb-8 border-b border-ns-border mb-10">
-          <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-2">Settings</p>
-          <h1 className="font-display text-5xl tracking-wider text-ns-text">EDIT PROFILE</h1>
-        </div>
-
-        {/* ── Avatar section ───────────────────────────────────────────── */}
-        <section className="mb-10">
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body mb-5">Profile Photo</p>
-          <div className="flex items-center gap-6">
+      <div className="mt-8 space-y-4">
+        <SettingsSection title="Profile photo">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6">
             <Avatar
               src={profile.avatarUrl}
               username={profile.username}
@@ -228,217 +264,155 @@ export default function EditProfilePage() {
               onEditClick={() => setShowCropModal(true)}
             />
             <div>
-              <button
-                onClick={() => setShowCropModal(true)}
-                className="px-4 py-2 rounded-xl border border-ns-secondary/30 text-ns-secondary-readable text-sm font-body
-                           hover:border-ns-secondary/60 hover:bg-ns-secondary/5 transition-all"
-              >
-                Change Photo
-              </button>
-              {profile.avatarUrl && (
-                <button
-                  onClick={async () => {
-                    setError('')
-                    try {
-                      const res = await fetch('/api/profile/avatar', { method: 'DELETE' })
-                      if (!res.ok) {
-                        const data = await res.json().catch(() => null) as { error?: string } | null
-                        throw new Error(data?.error ?? 'Failed to remove photo')
-                      }
-                      await handleAvatarSuccess('')
-                    } catch (err) {
-                      setError(err instanceof Error ? err.message : 'Failed to remove photo')
-                    }
-                  }}
-                  className="block mt-2 text-xs font-body text-ns-muted/60 hover:text-red-400 transition-colors"
-                >
-                  Remove photo
-                </button>
-              )}
-              <p className="text-[11px] font-body text-ns-muted/50 mt-2">
-                JPG, PNG or WEBP · Max 5 MB
-              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" onClick={() => setShowCropModal(true)}>
+                  Change photo
+                </Button>
+                {profile.avatarUrl && (
+                  <Button variant="ghost" onClick={handleRemovePhoto}>
+                    Remove photo
+                  </Button>
+                )}
+              </div>
+              <p className="mt-3 text-sm text-ns-muted">JPG, PNG or WEBP · Max 5 MB</p>
             </div>
           </div>
-        </section>
+        </SettingsSection>
 
-        {/* ── Basic info ───────────────────────────────────────────────── */}
-        <section className="mb-10 space-y-5">
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Basic Info</p>
+        <SettingsSection title="Basic info" reveal={1}>
+          <div className="space-y-5">
+            <div>
+              <Input
+                id="profile-username"
+                label="Username"
+                value={profile.username}
+                readOnly
+                aria-describedby="profile-username-hint"
+                className="cursor-not-allowed !text-ns-muted"
+              />
+              <p id="profile-username-hint" className="mt-1.5 text-sm text-ns-muted">Your username cannot be changed.</p>
+            </div>
 
-          <Field label="Username" hint="Your username cannot be changed.">
-            <TextInput
-              value={profile.username}
-              onChange={() => {}}
-              placeholder="username"
-            />
-          </Field>
-
-          <Field label="Display Name" hint="Shown on your profile alongside your username.">
-            <TextInput
+            <TextField
+              id="profile-display-name"
+              label="Display name"
+              hint="Shown on your profile alongside your username."
               value={profile.displayName}
               onChange={v => set('displayName', v)}
               placeholder="Your name"
               maxLength={60}
             />
-          </Field>
 
-          <Field label="Bio">
-            <div className="relative">
-              <textarea
-                value={profile.bio}
-                onChange={e => set('bio', e.target.value)}
-                placeholder="Tell other film lovers about yourself…"
-                maxLength={500}
-                rows={3}
-                className="w-full bg-ns-surface border border-ns-border rounded-xl px-4 py-3 text-sm font-body
-                           text-ns-text placeholder:text-ns-muted/40 focus:outline-none focus:border-ns-secondary/40
-                           transition-colors resize-none"
-              />
-              <span className="absolute bottom-2.5 right-3 text-[10px] font-body text-ns-muted/40">
-                {profile.bio.length}/500
-              </span>
-            </div>
-          </Field>
+            <Field id="profile-bio" label="Bio">
+              <div className="relative">
+                <textarea
+                  id="profile-bio"
+                  value={profile.bio}
+                  onChange={e => set('bio', e.target.value)}
+                  placeholder="Tell other film lovers about yourself…"
+                  maxLength={500}
+                  rows={4}
+                  className={`${controlClass} block resize-none py-3 pb-8`}
+                />
+                <span className="pointer-events-none absolute bottom-2.5 right-4 text-xs tabular-nums text-ns-muted">
+                  {profile.bio.length}/500
+                </span>
+              </div>
+            </Field>
 
-          <Field label="Location">
-            <TextInput
+            <TextField
+              id="profile-location"
+              label="Location"
               value={profile.location}
               onChange={v => set('location', v)}
               placeholder="City, Country"
               maxLength={80}
             />
-          </Field>
-        </section>
+          </div>
+        </SettingsSection>
 
-        {/* ── Film taste ───────────────────────────────────────────────── */}
-        <section className="mb-10 space-y-5">
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Film Taste</p>
+        <SettingsSection title="Film taste" reveal={1}>
+          <div className="space-y-5">
+            <fieldset>
+              <legend className="text-sm font-semibold text-ns-text">Favorite genres</legend>
+              <p className="mt-0.5 text-sm text-ns-muted">Select as many as you like.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {ALL_GENRES.map(genre => {
+                  const selected = profile.favoriteGenres.includes(genre)
+                  return (
+                    <button
+                      key={genre}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => toggleGenre(genre)}
+                      className={`min-h-11 rounded-full px-4 text-sm font-semibold capitalize transition-colors duration-150 sm:min-h-10 ${
+                        selected
+                          ? 'bg-ns-text text-ns-bg'
+                          : 'bg-ns-surface-2 text-ns-muted hover:bg-ns-surface-3 hover:text-ns-text'
+                      }`}
+                    >
+                      {genre}
+                    </button>
+                  )
+                })}
+              </div>
+            </fieldset>
 
-          <Field label="Favorite Genres" hint="Select as many as you like.">
-            <div className="flex flex-wrap gap-2 mt-1">
-              {ALL_GENRES.map(genre => {
-                const selected = profile.favoriteGenres.includes(genre)
-                return (
-                  <button
-                    key={genre}
-                    type="button"
-                    onClick={() => toggleGenre(genre)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-body capitalize transition-all border ${
-                      selected
-                        ? 'bg-ns-secondary text-ns-secondary-foreground border-ns-secondary font-medium'
-                        : 'border-ns-border text-ns-muted hover:border-ns-muted/40'
-                    }`}
-                  >
-                    {genre}
-                  </button>
-                )
-              })}
-            </div>
-          </Field>
-
-          <Field label="Favorite Decade">
-            <select
-              value={profile.favoriteDecade}
-              onChange={e => set('favoriteDecade', e.target.value)}
-              className="w-full bg-ns-surface border border-ns-border rounded-xl px-4 py-2.5 text-sm font-body
-                         text-ns-text focus:outline-none focus:border-ns-secondary/40 transition-colors"
-            >
-              <option value="">— Select a decade —</option>
-              {DECADES.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </Field>
-
-          <Field label="Favorite Director">
-            <TextInput
-              value={profile.favoriteDirector}
-              onChange={v => set('favoriteDirector', v)}
-              placeholder="e.g. Stanley Kubrick"
-              maxLength={80}
-            />
-          </Field>
-
-          <Field label="Favorite Actor">
-            <TextInput
-              value={profile.favoriteActor}
-              onChange={v => set('favoriteActor', v)}
-              placeholder="e.g. Cate Blanchett"
-              maxLength={80}
-            />
-          </Field>
-        </section>
-
-        {/* ── Social links ─────────────────────────────────────────────── */}
-        <section className="mb-12 space-y-5">
-          <p className="text-ns-muted text-[10px] tracking-widest uppercase font-body">Social Links</p>
-
-          <Field label="Letterboxd">
-            <div className="flex items-center gap-2">
-              <span className="text-ns-muted/50 text-sm font-body whitespace-nowrap">letterboxd.com/</span>
-              <TextInput
-                value={profile.letterboxdUrl}
-                onChange={v => set('letterboxdUrl', v)}
-                placeholder="username"
-                maxLength={80}
-              />
-            </div>
-          </Field>
-
-          <Field label="X / Twitter">
-            <div className="flex items-center gap-2">
-              <span className="text-ns-muted/50 text-sm font-body">x.com/</span>
-              <TextInput
-                value={profile.twitterUrl}
-                onChange={v => set('twitterUrl', v)}
-                placeholder="username"
-                maxLength={80}
-              />
-            </div>
-          </Field>
-
-          <Field label="Instagram">
-            <div className="flex items-center gap-2">
-              <span className="text-ns-muted/50 text-sm font-body whitespace-nowrap">instagram.com/</span>
-              <TextInput
-                value={profile.instagramUrl}
-                onChange={v => set('instagramUrl', v)}
-                placeholder="username"
-                maxLength={80}
-              />
-            </div>
-          </Field>
-        </section>
-
-        {/* ── Save bar ─────────────────────────────────────────────────── */}
-        <div className="fixed bottom-0 left-0 right-0 bg-ns-bg/95 backdrop-blur-md border-t border-ns-border px-4 py-4 z-10">
-          <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
-            {error && (
-              <p className="text-red-400 text-xs font-body flex-1 truncate">{error}</p>
-            )}
-            {saved && !error && (
-              <p className="text-emerald-400 text-xs font-body flex-1">Saved!</p>
-            )}
-            {!error && !saved && <span className="flex-1" />}
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => router.push(`/profile/${profile.username}`)}
-                className="px-4 py-2.5 rounded-xl border border-ns-border text-ns-muted text-sm font-body hover:text-ns-text transition-colors"
+            <Field id="profile-decade" label="Favorite decade">
+              <SelectControl
+                id="profile-decade"
+                value={profile.favoriteDecade}
+                onChange={e => set('favoriteDecade', e.target.value)}
               >
-                View Profile
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="px-6 py-2.5 bg-ns-secondary text-ns-secondary-foreground rounded-xl text-sm font-body font-medium
-                           hover:bg-ns-secondary/90 transition-colors disabled:opacity-60"
-              >
-                {saving ? 'Saving…' : 'Save Changes'}
-              </button>
+                <option value="">Select a decade</option>
+                {DECADES.map(d => <option key={d} value={d}>{d}</option>)}
+              </SelectControl>
+            </Field>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              <TextField
+                id="profile-director"
+                label="Favorite director"
+                value={profile.favoriteDirector}
+                onChange={v => set('favoriteDirector', v)}
+                placeholder="e.g. Stanley Kubrick"
+                maxLength={80}
+              />
+              <TextField
+                id="profile-actor"
+                label="Favorite actor"
+                value={profile.favoriteActor}
+                onChange={v => set('favoriteActor', v)}
+                placeholder="e.g. Cate Blanchett"
+                maxLength={80}
+              />
             </div>
           </div>
-        </div>
+        </SettingsSection>
 
+        <SettingsSection title="Social links" reveal={1}>
+          <div className="space-y-5">
+            <HandleField id="profile-letterboxd" label="Letterboxd" prefix="letterboxd.com/" value={profile.letterboxdUrl} onChange={v => set('letterboxdUrl', v)} />
+            <HandleField id="profile-twitter" label="X / Twitter" prefix="x.com/" value={profile.twitterUrl} onChange={v => set('twitterUrl', v)} />
+            <HandleField id="profile-instagram" label="Instagram" prefix="instagram.com/" value={profile.instagramUrl} onChange={v => set('instagramUrl', v)} />
+          </div>
+        </SettingsSection>
+      </div>
+
+      {/* Save bar */}
+      <div className="sticky bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-ns-surface-3 p-3 shadow-2xl sm:pl-5">
+        <p aria-live="polite" className="min-w-0 flex-1 basis-40 text-sm font-semibold">
+          {error && <span className="block animate-fade-up text-ns-danger">{error}</span>}
+          {saved && !error && <span className="block animate-fade-up text-ns-success">Saved!</span>}
+        </p>
+        <div className="flex flex-1 items-center justify-end gap-2 sm:flex-none">
+          <Button variant="ghost" className="flex-1 sm:flex-none" onClick={() => router.push(`/profile/${profile.username}`)}>
+            View profile
+          </Button>
+          <Button className="flex-1 whitespace-nowrap sm:flex-none" onClick={handleSave} loading={saving}>
+            {saving ? 'Saving…' : 'Save changes'}
+          </Button>
+        </div>
       </div>
 
       {/* Avatar upload modal */}
@@ -449,6 +423,6 @@ export default function EditProfilePage() {
           onSuccess={handleAvatarSuccess}
         />
       )}
-    </div>
+    </>
   )
 }

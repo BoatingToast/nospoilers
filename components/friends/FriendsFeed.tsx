@@ -9,6 +9,8 @@ import {
   type IconProps,
 } from '@/components/icons'
 import Avatar from '@/components/ui/Avatar'
+import Button from '@/components/ui/Button'
+import EmptyState from '@/components/ui/EmptyState'
 
 const EVENT_ICONS: Record<string, React.ComponentType<IconProps>> = {
   rated_movie:              RatingsIcon,
@@ -60,13 +62,13 @@ function timeAgo(iso: string): string {
 
 function Skeleton() {
   return (
-    <div className="space-y-3">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="flex items-start gap-3 p-4 bg-ns-surface border border-ns-border rounded-2xl animate-pulse">
-          <div className="w-8 h-8 bg-ns-border rounded-full flex-shrink-0" />
+    <div className="divide-y divide-ns-border overflow-hidden rounded-2xl bg-ns-surface">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="flex animate-pulse items-start gap-3 p-4">
+          <div className="h-8 w-8 flex-shrink-0 rounded-full bg-ns-surface-2" />
           <div className="flex-1 space-y-2">
-            <div className="h-3 bg-ns-border rounded w-3/4" />
-            <div className="h-2 bg-ns-border rounded w-1/3" />
+            <div className="h-3.5 w-3/4 rounded-sm bg-ns-surface-2" />
+            <div className="h-3 w-1/3 rounded-sm bg-ns-surface-2" />
           </div>
         </div>
       ))}
@@ -90,58 +92,59 @@ export default function FriendsFeed() {
 
   if (feed.length === 0) {
     return (
-      <div className="py-16 text-center">
-        <FriendsIcon size={44} className="text-ns-secondary-readable/40 mx-auto mb-4" />
-        <p className="text-white font-body mb-2">Your friends feed is empty</p>
-        <p className="text-ns-muted text-sm font-body mb-6">
-          Add friends to see what they&apos;re watching and rating.
-        </p>
-        <Link
-          href="/friends/find"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-body font-medium hover:bg-ns-secondary/90 transition-colors"
-        >
-          Find Friends <ArrowRightIcon size={13} />
-        </Link>
-      </div>
+      <EmptyState
+        title="Your friends feed is empty"
+        description="Add friends to see what they're watching and rating."
+        action={
+          <Button variant="outline" href="/friends/find">
+            Find friends <ArrowRightIcon size={14} />
+          </Button>
+        }
+      />
     )
   }
 
   return (
-    <div className="space-y-3">
-      {feed.map(event => (
-        <div key={event.id} className="flex items-start gap-3 p-4 bg-ns-surface border border-ns-border rounded-2xl hover:border-ns-border/80 transition-colors">
-          <Avatar
-            src={event.authorAvatarUrl}
-            username={event.authorUsername}
-            size="sm"
-            href
-          />
+    <div className="divide-y divide-ns-border overflow-hidden rounded-2xl bg-ns-surface">
+      {feed.map((event, index) => {
+        const EventIcon = EVENT_ICONS[event.type] ?? FilmIcon
+        return (
+          <div
+            key={event.id}
+            className="ns-reveal flex items-start gap-3 p-4"
+            style={{ '--i': Math.min(index, 7) } as React.CSSProperties}
+          >
+            <Avatar src={event.authorAvatarUrl} username={event.authorUsername} size="sm" href />
 
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-body text-white leading-snug">
-              <Link href={`/profile/${event.authorUsername}`} className="text-ns-secondary-readable hover:text-amber-400 transition-colors font-medium">
-                @{event.authorUsername}
-              </Link>
-              {' '}
-              <span className="text-ns-muted">{eventLabel(event)}</span>
-            </p>
-            <div className="flex items-center gap-2 mt-1">
-              {(() => { const Ico = EVENT_ICONS[event.type] ?? FilmIcon; return <Ico size={12} className="text-ns-secondary-readable/60 flex-shrink-0" /> })()}
-              <span className="text-[10px] font-body text-ns-muted/60">{timeAgo(event.createdAt)}</span>
+            <div className="min-w-0 flex-1">
+              <p className="break-words text-sm leading-snug text-ns-muted">
+                <Link
+                  href={`/profile/${event.authorUsername}`}
+                  className="font-semibold text-ns-text transition-colors hover:text-ns-secondary-readable"
+                >
+                  @{event.authorUsername}
+                </Link>
+                {' '}
+                {eventLabel(event)}
+              </p>
+              <p className="mt-1 flex items-center gap-1.5 text-xs text-ns-subtle">
+                <EventIcon size={12} className="flex-shrink-0" />
+                {timeAgo(event.createdAt)}
+              </p>
             </div>
-          </div>
 
-          {/* Link to movie if applicable */}
-          {event.type === 'rated_movie' && typeof event.data.tmdbId === 'number' && (
-            <Link
-              href={`/movie/${event.data.tmdbId}`}
-              className="text-[10px] font-body text-ns-muted hover:text-ns-secondary-readable transition-colors flex-shrink-0 flex items-center gap-0.5"
-            >
-              View <ArrowRightIcon size={9} />
-            </Link>
-          )}
-        </div>
-      ))}
+            {/* Link to movie if applicable */}
+            {event.type === 'rated_movie' && typeof event.data.tmdbId === 'number' && (
+              <Link
+                href={`/movie/${event.data.tmdbId}`}
+                className="-my-1 flex min-h-11 flex-shrink-0 items-center gap-1 rounded-full px-3 text-sm font-semibold text-ns-text transition-colors hover:bg-ns-surface-2 sm:min-h-10"
+              >
+                View <ArrowRightIcon size={12} />
+              </Link>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }

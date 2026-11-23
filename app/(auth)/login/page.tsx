@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Input from '@/components/ui/Input'
 import PasswordInput from '@/components/ui/PasswordInput'
 import Button from '@/components/ui/Button'
+import { WarningIcon } from '@/components/icons'
 
 export default function LoginPage() {
   const [email, setEmail]       = useState('')
@@ -52,21 +53,20 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-md">
-      <div className="mb-8">
-        <h1 className="font-display text-4xl tracking-wider text-ns-text mb-2">WELCOME BACK</h1>
-        <p className="text-ns-muted font-body text-sm">Sign in to your NoSpoilers account.</p>
-      </div>
+      <h1 className="font-display text-4xl text-ns-text sm:text-5xl">Welcome back.</h1>
+      <p className="mt-3 text-lg leading-relaxed text-ns-muted">Sign in to your NoSpoilers account.</p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4" aria-describedby={error ? 'login-error' : undefined}>
+      <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5" aria-describedby={error ? 'login-error' : undefined}>
         {error && (
           <div
             id="login-error"
             role="alert"
             aria-live="assertive"
             aria-atomic="true"
-            className="p-3 rounded-xl bg-ns-danger/10 border border-ns-danger/20 text-ns-danger text-sm font-body"
+            className="flex items-start gap-2.5 rounded-xl bg-ns-danger/10 p-4 text-sm leading-relaxed text-ns-danger motion-safe:animate-fade-up"
           >
-            {error}
+            <WarningIcon size={16} className="mt-0.5 flex-shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -101,14 +101,14 @@ export default function LoginPage() {
           aria-describedby={error ? 'login-error' : undefined}
         />
 
-        <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full mt-2">
+        <Button type="submit" variant="primary" size="lg" loading={loading} className="mt-1 w-full">
           Sign In
         </Button>
       </form>
 
-      <p className="text-center text-ns-muted text-sm font-body mt-6">
-        Don&apos;t have an account?{' '}
-        <Link href="/register" className="text-ns-secondary-readable hover:underline">
+      <p className="mt-6 flex flex-wrap items-center justify-center gap-x-1.5 text-base text-ns-muted">
+        Don&apos;t have an account?
+        <Link href="/register" className="inline-flex min-h-11 items-center font-semibold text-ns-text underline underline-offset-4 transition-colors hover:text-ns-secondary-readable">
           Create one
         </Link>
       </p>

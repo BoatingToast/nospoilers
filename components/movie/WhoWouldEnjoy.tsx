@@ -1,3 +1,6 @@
+import Panel from '@/components/ui/Panel'
+import { CheckIcon } from '@/components/icons'
+
 interface WhoWouldEnjoyProps {
   wouldEnjoy: string[]
   mightNotEnjoy: string[]
@@ -5,18 +8,16 @@ interface WhoWouldEnjoyProps {
 
 export default function WhoWouldEnjoy({ wouldEnjoy, mightNotEnjoy }: WhoWouldEnjoyProps) {
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-6">
-      <p className="text-ns-muted text-xs tracking-widest uppercase font-body mb-4">Who would enjoy this</p>
-      <div className="grid sm:grid-cols-2 gap-6">
+    <Panel className="rounded-3xl p-7 sm:p-10">
+      <h2 className="font-display text-3xl text-ns-text sm:text-4xl">Who would enjoy this</h2>
+      <div className="mt-7 space-y-7">
         {wouldEnjoy.length > 0 && (
           <div>
-            <p className="text-ns-secondary-readable text-xs font-body font-semibold mb-2 uppercase tracking-wider">
-              Recommended for
-            </p>
-            <ul className="flex flex-col gap-2">
-              {wouldEnjoy.map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-ns-text text-sm font-body">
-                  <span className="text-ns-secondary-readable mt-0.5 flex-shrink-0">✓</span>
+            <h3 className="font-heading text-lg font-semibold text-ns-text">Recommended for</h3>
+            <ul className="mt-3 space-y-2.5">
+              {wouldEnjoy.map((item, index) => (
+                <li key={index} className="flex items-start gap-3 text-base leading-snug text-ns-text">
+                  <CheckIcon size={16} className="mt-0.5 flex-shrink-0 text-ns-success" />
                   {item}
                 </li>
               ))}
@@ -24,14 +25,12 @@ export default function WhoWouldEnjoy({ wouldEnjoy, mightNotEnjoy }: WhoWouldEnj
           </div>
         )}
         {mightNotEnjoy.length > 0 && (
-          <div>
-            <p className="text-ns-muted text-xs font-body font-semibold mb-2 uppercase tracking-wider">
-              May not appeal to
-            </p>
-            <ul className="flex flex-col gap-2">
-              {mightNotEnjoy.map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-ns-muted text-sm font-body">
-                  <span className="mt-0.5 flex-shrink-0">–</span>
+          <div className="border-t border-ns-border pt-6">
+            <h3 className="font-heading text-lg font-semibold text-ns-text">May not appeal to</h3>
+            <ul className="mt-3 space-y-2.5">
+              {mightNotEnjoy.map((item, index) => (
+                <li key={index} className="flex items-start gap-3 text-base leading-snug text-ns-muted">
+                  <span aria-hidden="true" className="mt-2.5 h-0.5 w-3 flex-shrink-0 rounded-full bg-ns-subtle" />
                   {item}
                 </li>
               ))}
@@ -39,6 +38,6 @@ export default function WhoWouldEnjoy({ wouldEnjoy, mightNotEnjoy }: WhoWouldEnj
           </div>
         )}
       </div>
-    </div>
+    </Panel>
   )
 }

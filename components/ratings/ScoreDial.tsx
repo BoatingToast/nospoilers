@@ -28,6 +28,8 @@ function scoreLabel(v: number): string {
   return 'Terrible'
 }
 
+const stepButtonClass = 'flex h-11 w-11 items-center justify-center rounded-full bg-ns-surface-2 text-lg font-semibold text-ns-text transition-colors duration-150 hover:bg-ns-surface-3'
+
 export default function ScoreDial({ value, onChange, size = 160, readOnly = false }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
 
@@ -41,7 +43,6 @@ export default function ScoreDial({ value, onChange, size = 160, readOnly = fals
   const SWEEP_DEG  = 270
   const pct        = (value - 1) / 99
   const angleDeg   = START_DEG + pct * SWEEP_DEG
-  const arcLen     = 2 * Math.PI * R
 
   function polarToXY(deg: number) {
     const rad = (deg - 90) * (Math.PI / 180)
@@ -78,66 +79,76 @@ export default function ScoreDial({ value, onChange, size = 160, readOnly = fals
   }, [readOnly, cx, onChange])
 
   return (
-    <div className="flex flex-col items-center gap-2 select-none">
+    <div className="flex select-none flex-col items-center gap-2">
       <svg
         ref={svgRef}
         width={size} height={size}
         viewBox={`0 0 ${size} ${size}`}
-        className={readOnly ? '' : 'cursor-pointer'}
+        role={readOnly ? 'img' : undefined}
+        aria-label={readOnly ? `Score ${value} out of 100` : undefined}
+        aria-hidden={readOnly ? undefined : true}
+        className={readOnly ? '' : 'cursor-pointer touch-none'}
         onPointerMove={handlePointerMove}
         onPointerDown={handlePointerMove}
       >
-        {/* Track */}
-        <path d={trackPath} fill="none" stroke="rgb(var(--ns-border))" strokeWidth={strokeW} strokeLinecap="round" />
-        {/* Fill */}
+        <path d={trackPath} fill="none" stroke="rgb(var(--ns-surface-3))" strokeWidth={strokeW} strokeLinecap="round" />
         {fillPath && (
-          <path d={fillPath} fill="none" stroke={color} strokeWidth={strokeW} strokeLinecap="round"
-            style={{ transition: readOnly ? 'none' : 'd 0.05s ease' }} />
+          <path d={fillPath} fill="none" stroke={color} strokeWidth={strokeW} strokeLinecap="round" />
         )}
-        {/* Thumb */}
         {!readOnly && (
-          <circle cx={thumb.x} cy={thumb.y} r={7} fill={color}
-            className="drop-shadow-md" />
+          <circle cx={thumb.x} cy={thumb.y} r={9} fill="rgb(var(--ns-text))" stroke={color} strokeWidth={3} />
         )}
-        {/* Score text */}
-        <text x={cx} y={cy - 6} textAnchor="middle" fill={color}
-          fontSize={size * 0.22} fontWeight="700" fontFamily="var(--font-bebas), sans-serif"
-          letterSpacing="1">
+        <text
+          x={cx} y={cy + size * 0.04}
+          textAnchor="middle"
+          fill="rgb(var(--ns-text))"
+          fontSize={size * 0.27}
+          className="font-display tabular-nums"
+        >
           {value}
         </text>
-        <text x={cx} y={cy + size * 0.12} textAnchor="middle" fill="rgb(var(--ns-muted))"
-          fontSize={size * 0.075} fontFamily="var(--font-inter), sans-serif">
+        <text
+          x={cx} y={cy + size * 0.17}
+          textAnchor="middle"
+          fill="rgb(var(--ns-muted))"
+          fontSize={Math.max(12, size * 0.08)}
+          className="font-body"
+        >
           /100
         </text>
       </svg>
 
-      {/* Label below */}
-      <span className="text-xs font-body tracking-widest uppercase" style={{ color }}>
+      <span key={scoreLabel(value)} className="animate-fade-up text-sm font-semibold" style={{ color }}>
         {scoreLabel(value)}
       </span>
 
-      {/* +/- buttons */}
       {!readOnly && (
-        <div className="flex items-center gap-3 mt-1">
+        <div className="mt-1 flex items-center gap-2">
           <button
-            onClick={() => onChange(Math.max(1,   value - 1))}
-            className="w-7 h-7 rounded-full bg-ns-surface border border-ns-border text-ns-muted
-                       hover:text-ns-text hover:border-ns-secondary/40 transition-colors text-sm font-body"
-          >−</button>
+            type="button"
+            aria-label="Decrease score"
+            onClick={() => onChange(Math.max(1, value - 1))}
+            className={stepButtonClass}
+          >
+            <span aria-hidden="true">−</span>
+          </button>
           <input
             type="number" min={1} max={100} value={value}
+            aria-label="Score from 1 to 100"
             onChange={e => {
               const v = parseInt(e.target.value, 10)
               if (!isNaN(v)) onChange(Math.min(100, Math.max(1, v)))
             }}
-            className="w-14 text-center bg-ns-surface border border-ns-border rounded-lg
-                       text-ns-text text-sm font-body py-1 focus:outline-none focus:border-ns-secondary/50"
+            className="min-h-11 w-20 rounded-xl border border-ns-border-strong bg-ns-bg text-center text-base tabular-nums text-ns-text transition-colors duration-150 focus:border-ns-text focus:outline-none focus:ring-1 focus:ring-ns-text"
           />
           <button
+            type="button"
+            aria-label="Increase score"
             onClick={() => onChange(Math.min(100, value + 1))}
-            className="w-7 h-7 rounded-full bg-ns-surface border border-ns-border text-ns-muted
-                       hover:text-ns-text hover:border-ns-secondary/40 transition-colors text-sm font-body"
-          >+</button>
+            className={stepButtonClass}
+          >
+            <span aria-hidden="true">+</span>
+          </button>
         </div>
       )}
     </div>

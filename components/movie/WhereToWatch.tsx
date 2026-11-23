@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Image from 'next/image'
+import Button from '@/components/ui/Button'
 import Modal from '@/components/ui/Modal'
 import { ArrowRightIcon, WhereToWatchIcon } from '@/components/icons'
 import type { MovieWatchProvider } from '@/lib/movie-uploads'
@@ -51,22 +52,13 @@ export default function WhereToWatch({ movieTitle, providers, region = 'US' }: P
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        className="inline-flex items-center gap-2 rounded-xl bg-ns-secondary px-4 py-2.5
-                   text-sm font-body font-semibold text-ns-secondary-foreground shadow-lg
-                   shadow-ns-secondary/10 transition-all duration-200 hover:bg-ns-secondary/90
-                   hover:shadow-ns-secondary/20 active:scale-[0.98]"
-      >
+      <Button onClick={() => setOpen(true)} aria-expanded={open} aria-haspopup="dialog">
         <WhereToWatchIcon size={16} />
-        Where to Watch
-        <span className="rounded-full bg-black/15 px-1.5 py-0.5 text-[10px] leading-none">
+        Where to watch
+        <span className="rounded-full bg-black/15 px-1.5 py-0.5 text-xs leading-none tabular-nums">
           {availableProviders.length}
         </span>
-      </button>
+      </Button>
 
       {open && (
         <Modal
@@ -76,29 +68,24 @@ export default function WhereToWatch({ movieTitle, providers, region = 'US' }: P
           maxWidth="max-w-lg"
         >
           <div>
-            <div className="border-b border-ns-border bg-gradient-to-r from-ns-secondary/10 to-transparent px-5 py-5 pr-14 sm:px-6 sm:py-6">
-              <div className="mb-2 flex items-center gap-2 text-ns-secondary-readable">
-                <WhereToWatchIcon size={18} />
-                <span className="text-[10px] font-body uppercase tracking-[0.2em]">Where to watch</span>
-              </div>
-              <h2 id="where-to-watch-title" className="font-display text-2xl tracking-wider text-ns-text sm:text-3xl">
-                {movieTitle.toUpperCase()}
+            <div className="px-6 pb-4 pr-16 pt-6">
+              <p className="text-sm font-medium text-ns-muted">Where to watch</p>
+              <h2 id="where-to-watch-title" className="mt-1 break-words font-display text-3xl text-ns-text">
+                {movieTitle}
               </h2>
-              <p id="where-to-watch-region" className="mt-1 text-xs font-body text-ns-muted">
+              <p id="where-to-watch-region" className="mt-1.5 text-sm text-ns-muted">
                 Available in {regionName}
               </p>
             </div>
 
-            <div className="max-h-[55vh] overflow-y-auto px-5 py-5 sm:px-6">
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {availableProviders.map(provider => (
+            <ul className="max-h-[55vh] divide-y divide-ns-border overflow-y-auto px-3">
+              {availableProviders.map(provider => (
+                <li key={`${provider.name}-${provider.url}`}>
                   <a
-                    key={`${provider.name}-${provider.url}`}
                     href={provider.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex min-w-0 items-center gap-3 rounded-xl border border-ns-border
-                               bg-ns-surface p-3 transition-colors hover:border-ns-secondary/40"
+                    className="group flex min-h-16 min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-150 hover:bg-ns-surface-2"
                   >
                     {provider.logoPath ? (
                       <Image
@@ -109,27 +96,27 @@ export default function WhereToWatch({ movieTitle, providers, region = 'US' }: P
                         className="h-10 w-10 flex-shrink-0 rounded-xl object-cover"
                       />
                     ) : (
-                      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-ns-secondary/10 font-display text-sm text-ns-secondary-readable">
+                      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-ns-surface-3 font-heading text-sm font-bold text-ns-text">
                         {provider.name.charAt(0).toUpperCase()}
                       </span>
                     )}
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-body font-semibold text-ns-text">
+                      <span className="block truncate text-base font-semibold text-ns-text">
                         {provider.name}
                       </span>
-                      <span className="block truncate text-[10px] font-body text-ns-muted">
+                      <span className="block truncate text-sm text-ns-muted">
                         {provider.source === 'tmdb' && provider.accessTypes?.length
                           ? provider.accessTypes.map(type => ACCESS_LABELS[type]).join(' · ')
                           : 'Open direct watch link'}
                       </span>
                     </span>
-                    <ArrowRightIcon size={14} className="flex-shrink-0 text-ns-muted transition-transform group-hover:translate-x-0.5 group-hover:text-ns-secondary-readable" />
+                    <ArrowRightIcon size={16} className="flex-shrink-0 text-ns-muted transition-[transform,color] duration-150 group-hover:translate-x-0.5 group-hover:text-ns-text motion-reduce:transform-none" />
                   </a>
-                ))}
-              </div>
-            </div>
+                </li>
+              ))}
+            </ul>
 
-            <div className="border-t border-ns-border bg-ns-surface/40 px-5 py-3 text-center text-[10px] font-body leading-relaxed text-ns-muted/70 sm:px-6">
+            <div className="px-6 pb-6 pt-4 text-xs leading-relaxed text-ns-muted">
               <p>Availability can change and may vary by region.</p>
               {hasAutomaticProviders && (
                 <p className="mt-1">
@@ -138,7 +125,7 @@ export default function WhereToWatch({ movieTitle, providers, region = 'US' }: P
                     href="https://www.justwatch.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-ns-muted underline decoration-ns-border underline-offset-2 hover:text-ns-text"
+                    className="text-ns-text underline decoration-ns-border-strong underline-offset-2 hover:decoration-ns-text"
                   >
                     JustWatch
                   </a>

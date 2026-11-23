@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { FriendsIcon } from '@/components/icons'
 import Avatar from '@/components/ui/Avatar'
+import Button from '@/components/ui/Button'
+import { SectionLink } from './SectionHeading'
 
 interface FriendRow {
   id:           string
@@ -17,52 +17,37 @@ interface FriendRow {
 function FriendItem({ f }: { f: FriendRow }) {
   const displayName = f.displayName ?? f.username
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-ns-bg/30 transition-colors group">
-      {/* Avatar */}
-      <Avatar
-        src={f.avatarUrl}
-        username={f.username}
-        size="sm"
-        href
-        className="ring-2 ring-ns-border/40 group-hover:ring-ns-secondary/30 transition-all"
-      />
+    <div className="flex items-center gap-3 py-3">
+      <Avatar src={f.avatarUrl} username={f.username} size="sm" href />
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-body font-semibold text-ns-text truncate leading-tight">
-          {displayName}
-        </p>
-        {f.personality ? (
-          <p className="text-[10px] font-body text-ns-secondary-readable/60 truncate mt-0.5">{f.personality}</p>
-        ) : (
-          <p className="text-[10px] font-body text-ns-muted/40 truncate mt-0.5">@{f.username}</p>
-        )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-base font-semibold leading-tight text-ns-text">{displayName}</p>
+        <p className="mt-0.5 truncate text-sm text-ns-muted">{f.personality ?? `@${f.username}`}</p>
       </div>
 
-      {/* View Profile button */}
-      <Link
+      <Button
+        variant="ghost"
+        size="sm"
         href={`/profile/${f.username}`}
-        className="flex-shrink-0 text-[10px] font-body text-ns-muted/50 hover:text-ns-secondary-readable
-                   border border-ns-border/50 hover:border-ns-secondary/40
-                   px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap"
+        aria-label={`View ${displayName}'s profile`}
+        className="flex-shrink-0 whitespace-nowrap hover:bg-ns-surface-2"
       >
         View Profile
-      </Link>
+      </Button>
     </div>
   )
 }
 
-function Skeleton() {
+function ListSkeleton() {
   return (
-    <div className="divide-y divide-ns-border/20">
+    <div aria-hidden="true" className="divide-y divide-ns-border">
       {[1, 2, 3].map(i => (
-        <div key={i} className="flex items-center gap-3 px-4 py-3 animate-pulse">
-          <div className="w-9 h-9 rounded-full bg-ns-border flex-shrink-0" />
-          <div className="flex-1 space-y-1.5">
-            <div className="h-3 bg-ns-border rounded w-1/3" />
-            <div className="h-2.5 bg-ns-border/50 rounded w-1/2" />
+        <div key={i} className="flex animate-pulse items-center gap-3 py-3">
+          <div className="h-8 w-8 flex-shrink-0 rounded-full bg-ns-surface-2" />
+          <div className="flex-1 space-y-2">
+            <div className="h-3.5 w-1/3 rounded bg-ns-surface-2" />
+            <div className="h-3 w-1/2 rounded bg-ns-surface-2" />
           </div>
-          <div className="h-6 w-20 bg-ns-border/40 rounded-lg" />
         </div>
       ))}
     </div>
@@ -94,61 +79,32 @@ export default function DashboardFriendsCard() {
   }, [])
 
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3.5 border-b border-ns-border/50">
-        <div className="flex items-center gap-2">
-          <FriendsIcon size={15} className="text-ns-secondary-readable/70" />
-          <span className="text-xs font-body font-semibold text-ns-text uppercase tracking-wide">
-            Friends
-          </span>
-        </div>
-        <Link
-          href="/friends/find"
-          className="text-[10px] font-body text-ns-muted/50 hover:text-ns-secondary-readable transition-colors"
-        >
-          Find more →
-        </Link>
+    <section aria-labelledby="dashboard-friends-title" className="flex flex-col rounded-2xl bg-ns-surface p-6">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 id="dashboard-friends-title" className="font-heading text-xl font-bold text-ns-text">Friends</h2>
+        <SectionLink href="/friends/find">Find more</SectionLink>
       </div>
 
-      {/* List */}
       {loading ? (
-        <Skeleton />
+        <ListSkeleton />
       ) : friends.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
-          <div className="w-11 h-11 rounded-2xl bg-ns-border/30 flex items-center justify-center mb-3">
-            <FriendsIcon size={20} className="text-ns-muted/30" />
-          </div>
-          <p className="text-ns-muted/60 text-sm font-body mb-1">No friends yet</p>
-          <p className="text-ns-muted/40 text-xs font-body mb-3">
+        <div className="flex flex-1 flex-col items-start justify-center gap-3 py-4">
+          <p className="font-heading text-lg font-bold text-ns-text">No friends yet</p>
+          <p className="text-base leading-relaxed text-ns-muted">
             When someone you follow follows you back, you become friends automatically.
           </p>
-          <Link
-            href="/friends/find"
-            className="text-xs font-body text-ns-secondary-readable/80 hover:text-ns-secondary-readable
-                       border border-ns-secondary/30 hover:border-ns-secondary/60
-                       px-4 py-1.5 rounded-full transition-colors"
-          >
-            Find Friends
-          </Link>
+          <Button variant="secondary" href="/friends/find" className="bg-ns-surface-2 hover:bg-ns-surface-3">Find Friends</Button>
         </div>
       ) : (
-        <div className="divide-y divide-ns-border/20">
-          {friends.map(f => <FriendItem key={f.id} f={f} />)}
-        </div>
+        <>
+          <div className="divide-y divide-ns-border motion-safe:animate-fade-up">
+            {friends.map(f => <FriendItem key={f.id} f={f} />)}
+          </div>
+          <div className="-ml-3 mt-2">
+            <SectionLink href="/friends">View all friends</SectionLink>
+          </div>
+        </>
       )}
-
-      {/* Footer */}
-      {!loading && friends.length > 0 && (
-        <div className="border-t border-ns-border/40 px-4 py-2.5">
-          <Link
-            href="/friends"
-            className="text-xs font-body text-ns-muted/50 hover:text-ns-secondary-readable transition-colors"
-          >
-            View all friends →
-          </Link>
-        </div>
-      )}
-    </div>
+    </section>
   )
 }

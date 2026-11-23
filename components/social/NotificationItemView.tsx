@@ -24,7 +24,7 @@ export function NotificationTypeIcon({
   unread: boolean
   size?: number
 }) {
-  const className = `flex-shrink-0 ${unread ? 'text-ns-secondary-readable' : 'text-ns-muted/50'}`
+  const className = `flex-shrink-0 ${unread ? 'text-ns-secondary-readable' : 'text-ns-muted'}`
 
   switch (icon) {
     case 'person':       return <PersonIcon size={size} className={className} />
@@ -80,52 +80,47 @@ export function NotificationRow({
     <Link
       href={notification.link}
       onClick={() => onSelect(notification)}
-      className={`group relative flex items-start gap-3 transition-colors
-        ${roomy ? 'px-5 py-4 sm:px-6' : 'px-4 py-3.5'}
-        ${notification.read
-          ? 'hover:bg-ns-bg/30'
-          : 'border-l-2 border-ns-secondary/40 bg-ns-secondary/[0.04] hover:bg-ns-secondary/[0.07]'
-        }`}
+      className={`group flex items-start gap-3 transition-colors duration-150 hover:bg-ns-surface-2
+        ${roomy ? 'gap-4 px-5 py-4 sm:px-6' : 'px-4 py-3'}`}
     >
       {notification.actorUsername ? (
-        <div className="mt-0.5">
-          <Avatar
-            src={notification.actorAvatarUrl}
-            username={notification.actorUsername}
-            size={roomy ? 'md' : 'sm'}
-          />
-        </div>
+        <Avatar
+          src={notification.actorAvatarUrl}
+          username={notification.actorUsername}
+          size={roomy ? 'md' : 'sm'}
+        />
       ) : (
-        <div className={`mt-0.5 flex flex-shrink-0 items-center justify-center rounded-xl
-          ${roomy ? 'h-10 w-10' : 'h-8 w-8 rounded-lg'}
-          ${notification.read ? 'bg-ns-bg/50' : 'bg-ns-secondary/10'}`}
+        <span
+          className={`flex flex-shrink-0 items-center justify-center rounded-full bg-ns-surface-2 transition-colors group-hover:bg-ns-surface-3
+            ${roomy ? 'h-12 w-12' : 'h-8 w-8'}`}
         >
           <NotificationTypeIcon
             icon={notification.icon}
             unread={!notification.read}
-            size={roomy ? 18 : 16}
+            size={roomy ? 20 : 16}
           />
-        </div>
+        </span>
       )}
 
       <div className="min-w-0 flex-1">
-        <p className={`${roomy ? 'text-sm' : 'text-xs'} font-body font-semibold leading-tight
+        <p className={`${roomy ? 'text-base' : 'text-sm'} font-semibold leading-snug break-words
           ${notification.read ? 'text-ns-muted' : 'text-ns-text'}`}
         >
           {notification.title}
         </p>
-        <p className={`${roomy ? 'mt-1 text-sm' : 'mt-0.5 line-clamp-2 text-xs'} font-body leading-snug
-          ${notification.read ? 'text-ns-muted/50' : 'text-ns-muted/80'}`}
-        >
+        <p className={`mt-0.5 text-sm leading-snug text-ns-muted break-words ${roomy ? '' : 'line-clamp-2'}`}>
           {notification.body}
         </p>
-        <p className={`${roomy ? 'mt-1.5' : 'mt-1'} text-[10px] font-body text-ns-muted/40`}>
+        <p className="mt-1 text-xs text-ns-subtle">
           {notificationTimeAgo(notification.createdAt)}
         </p>
       </div>
 
       {!notification.read && (
-        <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-ns-secondary shadow-sm shadow-ns-secondary/50" />
+        <span className="mt-2 flex-shrink-0">
+          <span aria-hidden="true" className="block h-2 w-2 rounded-full bg-ns-accent" />
+          <span className="sr-only">Unread</span>
+        </span>
       )}
     </Link>
   )

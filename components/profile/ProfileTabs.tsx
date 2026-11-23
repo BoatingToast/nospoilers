@@ -29,19 +29,19 @@ interface TabDef {
 }
 
 const TABS: TabDef[] = [
-  { key: 'ratings',      label: 'Ratings',      Icon: RatingsIcon      },
-  { key: 'watchlist',    label: 'Watchlist',    Icon: WatchlistIcon    },
-  { key: 'collections',  label: 'Collections',  Icon: CollectionsIcon  },
+  { key: 'ratings', label: 'Ratings',      Icon: RatingsIcon      },
+  { key: 'watchlist', label: 'Watchlist',    Icon: WatchlistIcon    },
+  { key: 'collections', label: 'Collections',  Icon: CollectionsIcon  },
   { key: 'achievements', label: 'Achievements', Icon: AchievementsIcon },
 ]
 
 function TabSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4">
-      {Array.from({ length: 6 }).map((_, i) => (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      {Array.from({ length: 10 }).map((_, i) => (
         <div key={i} className="animate-pulse">
-          <div className="aspect-[2/3] bg-ns-border rounded-xl mb-2" />
-          <div className="h-3 bg-ns-border rounded w-4/5" />
+          <div className="aspect-[2/3] rounded-xl bg-ns-surface" />
+          <div className="mt-2.5 h-4 w-4/5 rounded-sm bg-ns-surface" />
         </div>
       ))}
     </div>
@@ -53,40 +53,41 @@ export default function ProfileTabs({ username, ratingCount, watchlistCount }: P
 
   return (
     <div>
-      {/* Tab bar */}
-      <div className="flex gap-1 border-b border-ns-border mb-6 overflow-x-auto scrollbar-hide">
-        {TABS.map(({ key, label, Icon }) => {
-          const isActive = active === key
-          return (
-            <button
-              key={key}
-              onClick={() => setActive(key)}
-              className={`flex items-center gap-1.5 px-4 py-3 text-sm font-body whitespace-nowrap border-b-2 transition-colors
-                ${isActive
-                  ? 'border-ns-secondary text-white'
-                  : 'border-transparent text-ns-muted hover:text-ns-text'
-                }`}
-            >
-              <Icon size={15} className={isActive ? 'text-ns-secondary-readable' : 'text-current'} />
-              {label}
-              {key === 'ratings'   && ratingCount    > 0 && (
-                <span className="text-[10px] bg-ns-border px-1.5 py-0.5 rounded-full text-ns-muted">{ratingCount}</span>
-              )}
-              {key === 'watchlist' && watchlistCount > 0 && (
-                <span className="text-[10px] bg-ns-border px-1.5 py-0.5 rounded-full text-ns-muted">{watchlistCount}</span>
-              )}
-            </button>
-          )
-        })}
+      <div role="group" aria-label="Profile library" className="-mx-4 mb-6 overflow-x-auto px-4 scrollbar-hide sm:mx-0 sm:px-0">
+        <div className="flex w-max gap-1">
+          {TABS.map(({ key, label, Icon }) => {
+            const isActive = active === key
+            const count = key === 'ratings' ? ratingCount : key === 'watchlist' ? watchlistCount : 0
+            return (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => setActive(key)}
+                className={`inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full px-4 text-sm font-semibold transition-colors duration-150 sm:min-h-10
+                  ${isActive
+                    ? 'bg-ns-text text-ns-bg'
+                    : 'text-ns-muted hover:bg-ns-surface-2 hover:text-ns-text'
+                  }`}
+              >
+                <Icon size={15} />
+                {label}
+                {count > 0 && <span className="tabular-nums">{count}</span>}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* Tab content — lazy loaded */}
-      <Suspense fallback={<TabSkeleton />}>
-        {active === 'ratings'      && <ProfileRatingsTab      username={username} />}
-        {active === 'watchlist'    && <ProfileWatchlistTab    username={username} />}
-        {active === 'collections'  && <ProfileCollectionsTab  username={username} />}
-        {active === 'achievements' && <ProfileAchievementsTab username={username} />}
-      </Suspense>
+      <div key={active} className="animate-fade-up">
+        <Suspense fallback={<TabSkeleton />}>
+          {active === 'ratings'      && <ProfileRatingsTab      username={username} />}
+          {active === 'watchlist'    && <ProfileWatchlistTab    username={username} />}
+          {active === 'collections'  && <ProfileCollectionsTab  username={username} />}
+          {active === 'achievements' && <ProfileAchievementsTab username={username} />}
+        </Suspense>
+      </div>
     </div>
   )
 }

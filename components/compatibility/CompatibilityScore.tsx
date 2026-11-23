@@ -8,100 +8,112 @@ interface Props {
   reasons: string[]
 }
 
-function getScoreColor(score: number): string {
-  if (score >= 80) return 'rgb(var(--ns-success))'
-  if (score >= 60) return 'rgb(var(--ns-secondary))'
-  if (score >= 40) return 'rgb(var(--ns-warning))'
-  return 'rgb(var(--ns-danger))'
+function scoreTone(score: number): { text: string; fill: string } {
+  if (score >= 80) return { text: 'text-ns-success', fill: 'bg-ns-success' }
+  if (score >= 60) return { text: 'text-ns-secondary-readable', fill: 'bg-ns-secondary' }
+  if (score >= 40) return { text: 'text-ns-warning', fill: 'bg-ns-warning' }
+  return { text: 'text-ns-danger', fill: 'bg-ns-danger' }
 }
 
 function getScoreLabel(score: number): string {
-  if (score >= 90) return 'Near Perfect Match'
-  if (score >= 80) return 'Strong Compatibility'
-  if (score >= 70) return 'Good Chemistry'
-  if (score >= 60) return 'Decent Overlap'
-  if (score >= 45) return 'Different Tastes'
-  return 'Opposite Worlds'
+  if (score >= 90) return 'Near perfect match'
+  if (score >= 80) return 'Strong compatibility'
+  if (score >= 70) return 'Good chemistry'
+  if (score >= 60) return 'Decent overlap'
+  if (score >= 45) return 'Different tastes'
+  return 'Opposite worlds'
 }
 
+const REVEAL_DELAY_MS = 380
+const COUNT_DURATION_MS = 1200
+
+/**
+ * The score starts under the brand redaction bar. The bar wipes away while the
+ * number counts up and the meter fills, then the verdict and reasons follow.
+ */
 export default function CompatibilityScore({ score, insight, reasons }: Props) {
   const [displayed, setDisplayed] = useState(0)
-  const color = getScoreColor(score)
+  const [open, setOpen] = useState(false)
+  const tone = scoreTone(score)
 
-  // Animate count-up
   useEffect(() => {
-    let frame: number
-    const start = performance.now()
-    const duration = 1200
-
-    function step(now: number) {
-      const progress = Math.min((now - start) / duration, 1)
-      const eased    = 1 - Math.pow(1 - progress, 3)
-      setDisplayed(Math.round(eased * score))
-      if (progress < 1) frame = requestAnimationFrame(step)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setDisplayed(score)
+      setOpen(true)
+      return
     }
 
-    frame = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(frame)
+    let frame = 0
+    const timer = window.setTimeout(() => {
+      setOpen(true)
+      const start = performance.now()
+      const step = (now: number) => {
+        const progress = Math.min((now - start) / COUNT_DURATION_MS, 1)
+        const eased = 1 - Math.pow(1 - progress, 3)
+        setDisplayed(Math.round(eased * score))
+        if (progress < 1) frame = requestAnimationFrame(step)
+      }
+      frame = requestAnimationFrame(step)
+    }, REVEAL_DELAY_MS)
+
+    return () => {
+      window.clearTimeout(timer)
+      cancelAnimationFrame(frame)
+    }
   }, [score])
 
-  // SVG arc
-  const radius = 80
-  const circumference = 2 * Math.PI * radius
-  const offset = circumference - (score / 100) * circumference
+  const settle = `transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
+    open ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
+  }`
 
   return (
-    <div className="bg-ns-surface border border-ns-border rounded-2xl p-8 text-center">
-      {/* Arc gauge */}
-      <div className="flex justify-center mb-6">
-        <div className="relative w-48 h-48 flex items-center justify-center">
-          <svg width="192" height="192" viewBox="0 0 192 192" className="-rotate-90 absolute inset-0">
-            <circle
-              cx="96" cy="96" r={radius}
-              fill="none" stroke="rgb(var(--ns-border))" strokeWidth="8"
-            />
-            <circle
-              cx="96" cy="96" r={radius}
-              fill="none" stroke={color} strokeWidth="8"
-              strokeDasharray={circumference}
-              strokeDashoffset={circumference - (displayed / 100) * circumference}
-              strokeLinecap="round"
-              style={{ transition: 'stroke-dashoffset 0.05s ease-out' }}
-            />
-          </svg>
-          <div className="text-center relative z-10">
-            <span className="font-display text-6xl tracking-wider" style={{ color }}>
-              {displayed}
-            </span>
-            <span className="text-ns-muted text-xl font-body">%</span>
-          </div>
+    <section
+      aria-label="Compatibility score"
+      className="grid gap-8 rounded-3xl bg-ns-surface p-7 sm:p-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-center lg:gap-14 lg:p-14"
+    >
+      <div>
+        <p className="sr-only">{score}% compatible</p>
+        <p aria-hidden="true" className="font-display text-[6.5rem] leading-none tabular-nums text-ns-text sm:text-[9rem]">
+          <span className="ns-redact inline-block pr-2 [&[data-open=false]_*]:!text-transparent" data-open={open}>
+            {displayed}<span className="text-[0.45em] text-ns-muted transition-colors delay-[220ms] duration-150 motion-reduce:transition-none">%</span>
+          </span>
+        </p>
+        <div aria-hidden="true" className="mt-6 h-2 overflow-hidden rounded-full bg-ns-surface-3">
+          <div
+            className={`h-full origin-left rounded-full transition-transform duration-[1200ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${tone.fill}`}
+            style={{ transform: `scaleX(${open ? score / 100 : 0})` }}
+          />
         </div>
       </div>
 
-      {/* Label */}
-      <p className="font-display text-2xl tracking-wider text-ns-text mb-2" style={{ color }}>
-        {getScoreLabel(score)}
-      </p>
+      <div>
+        <h2
+          className={`font-display text-3xl sm:text-4xl ${tone.text} ${settle}`}
+          style={{ transitionDelay: open ? '500ms' : undefined }}
+        >
+          {getScoreLabel(score)}
+        </h2>
+        <p
+          className={`mt-3 max-w-xl text-lg leading-relaxed text-ns-muted ${settle}`}
+          style={{ transitionDelay: open ? '620ms' : undefined }}
+        >
+          {insight}
+        </p>
 
-      {/* Insight */}
-      <p className="text-ns-muted text-sm font-body max-w-md mx-auto leading-relaxed mb-6">
-        {insight}
-      </p>
-
-      {/* Reasons */}
-      {reasons.length > 0 && (
-        <div className="flex flex-col gap-2 max-w-sm mx-auto">
-          {reasons.map((reason, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-ns-surface-2 text-ns-muted text-xs font-body"
-            >
-              <span style={{ color }}>✦</span>
-              {reason}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+        {reasons.length > 0 && (
+          <ul className="mt-6">
+            {reasons.map((reason, i) => (
+              <li
+                key={i}
+                className={`border-t border-ns-border py-3 text-base text-ns-text ${settle}`}
+                style={{ transitionDelay: open ? `${740 + Math.min(i, 5) * 90}ms` : undefined }}
+              >
+                {reason}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   )
 }

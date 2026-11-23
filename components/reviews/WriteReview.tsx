@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import type { ReviewWithMeta } from '@/services/reviews'
 import { WarningIcon, SpoilerFreeIcon } from '@/components/icons'
 import type { PlotPassportLevel } from '@/lib/plot-passport'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
 
 interface Props {
   tmdbId:     number
@@ -30,9 +32,11 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
   )
   const [saving,      setSaving]      = useState(false)
   const [error,       setError]       = useState('')
+  const fieldId = useId()
 
   const isEdit = !!existing
   const hasSpoilers = spoilerLevel === 'mid' || spoilerLevel === 'ending'
+  const errorId = `${fieldId}-error`
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -89,27 +93,27 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
   }
 
   return (
-    <div className="rounded-2xl bg-ns-surface border border-ns-border p-6">
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="font-heading font-semibold text-white text-base">
-          {isEdit ? 'Edit Your Review' : `Review ${movieTitle}`}
+    <div className="animate-fade-up rounded-2xl bg-ns-surface p-5 sm:p-7">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <h3 className="min-w-0 break-words font-heading text-xl font-bold text-ns-text">
+          {isEdit ? 'Edit your review' : `Review ${movieTitle}`}
         </h3>
         {onCancel && (
-          <button onClick={onCancel} className="text-ns-muted hover:text-white text-sm transition-colors">
+          <Button variant="ghost" size="sm" onClick={onCancel} className="flex-shrink-0">
             Cancel
-          </button>
+          </Button>
         )}
       </div>
 
       {/* Prompt chips — spoiler-free inspiration */}
       {!hasSpoilers && (
-        <div className="flex flex-wrap gap-1.5 mb-4">
+        <div className="scrollbar-hide -mx-5 mb-5 flex gap-2 overflow-x-auto px-5 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
           {SPOILER_FREE_PROMPTS.map(p => (
             <button
               key={p}
               type="button"
               onClick={() => setBody(prev => prev ? `${prev} ${p} ` : `${p} `)}
-              className="px-2.5 py-1 rounded-full border border-ns-border text-ns-muted hover:text-white hover:border-white/20 text-[11px] font-body transition-colors"
+              className="min-h-10 flex-shrink-0 rounded-full bg-ns-surface-2 px-3.5 text-sm text-ns-muted transition-colors duration-150 hover:bg-ns-surface-3 hover:text-ns-text"
             >
               {p}
             </button>
@@ -117,93 +121,80 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
         </div>
       )}
 
-      <form onSubmit={submit} className="flex flex-col gap-4">
+      <form onSubmit={submit} className="flex flex-col gap-5">
+        <Input
+          id={`${fieldId}-headline`}
+          label="Headline (optional)"
+          type="text"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          maxLength={120}
+          placeholder="A compelling one-liner..."
+        />
 
-        {/* Headline */}
-        <div>
-          <label className="text-xs font-body text-ns-muted mb-1.5 block">
-            Headline <span className="text-ns-muted/50">(optional)</span>
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            maxLength={120}
-            placeholder="A compelling one-liner..."
-            className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-2.5 text-sm font-body text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-secondary/50 transition-colors"
-          />
-        </div>
-
-        {/* Body */}
-        <div>
-          <label className="text-xs font-body text-ns-muted mb-1.5 block">
-            Your Review <span className="text-rose-400">*</span>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={`${fieldId}-body`} className="text-sm font-semibold text-ns-text">
+            Your review <span className="text-ns-danger" aria-hidden="true">*</span>
           </label>
           <textarea
+            id={`${fieldId}-body`}
             value={body}
             onChange={e => setBody(e.target.value)}
-            rows={5}
+            rows={6}
             maxLength={4000}
+            required
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? errorId : undefined}
             placeholder={hasSpoilers
               ? 'Share your full thoughts — mark it as containing spoilers so others can choose to read it...'
               : 'Share your experience without revealing plot details. Talk about acting, visuals, emotion, atmosphere...'
             }
-            className="w-full bg-ns-bg border border-ns-border rounded-xl px-4 py-3 text-sm font-body text-ns-text placeholder-ns-muted/50 focus:outline-none focus:border-ns-secondary/50 transition-colors resize-y leading-relaxed"
+            className="w-full resize-y rounded-xl border border-ns-border-strong bg-ns-bg px-4 py-3 text-base leading-relaxed text-ns-text transition-colors duration-150 placeholder:text-ns-subtle focus:border-ns-text focus:outline-none focus:ring-1 focus:ring-ns-text"
           />
-          <p className="text-[10px] font-body text-ns-muted/50 mt-1 text-right">
-            {body.length}/4000
-          </p>
+          <p className="text-right text-xs tabular-nums text-ns-muted">{body.length}/4000</p>
         </div>
 
-        {/* Rating + spoiler row */}
-        <div className="flex flex-wrap items-center gap-4">
-
-          {/* Rating */}
-          <div className="flex items-center gap-3">
-            <label className="text-xs font-body text-ns-muted whitespace-nowrap">
-              Rating <span className="text-ns-muted/50">(optional)</span>
-            </label>
-            <div className="flex items-center gap-1.5">
-              <input
-                type="number"
-                min={1} max={100}
-                value={rating}
-                onChange={e => setRating(e.target.value === '' ? '' : Number(e.target.value))}
-                placeholder="—"
-                className="w-16 bg-ns-bg border border-ns-border rounded-lg px-2 py-1.5 text-sm font-body text-center text-ns-text focus:outline-none focus:border-ns-secondary/50 transition-colors"
-              />
-              <span className="text-ns-muted text-xs font-body">/100</span>
-            </div>
-          </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input
+            id={`${fieldId}-rating`}
+            label="Rating (optional)"
+            type="number"
+            min={1}
+            max={100}
+            value={rating}
+            onChange={e => setRating(e.target.value === '' ? '' : Number(e.target.value))}
+            placeholder="—"
+            endAdornment={<span className="pr-2 text-sm text-ns-muted">/100</span>}
+          />
 
           {/* Plot Passport boundary */}
-          <label className="flex items-center gap-2.5 ml-auto">
-            <span className="text-xs font-body text-ns-muted whitespace-nowrap">Safe to show</span>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor={`${fieldId}-level`} className="text-sm font-semibold text-ns-text">Safe to show</label>
             <select
+              id={`${fieldId}-level`}
               value={spoilerLevel}
               onChange={e => setSpoilerLevel(e.target.value as PlotPassportLevel | 'auto')}
-              className="bg-ns-bg border border-ns-border rounded-lg px-2.5 py-1.5 text-xs font-body text-ns-text focus:outline-none focus:border-ns-secondary/50"
+              className="min-h-12 w-full rounded-xl border border-ns-border-strong bg-ns-bg px-3.5 text-base text-ns-text transition-colors duration-150 focus:border-ns-text focus:outline-none focus:ring-1 focus:ring-ns-text"
             >
               <option value="auto">Auto-detect</option>
               <option value="safe">For everyone</option>
               <option value="mid">After halfway</option>
               <option value="ending">After finishing</option>
             </select>
-          </label>
+          </div>
         </div>
 
         {/* Plot Passport notice */}
-        <div className={`flex items-start gap-2 p-3 rounded-xl border ${
-          spoilerLevel === 'safe'
-            ? 'bg-emerald-500/8 border-emerald-500/20'
-            : 'bg-amber-500/8 border-amber-500/20'
-        }`}>
+        <div
+          key={spoilerLevel}
+          className={`flex animate-fade-up items-start gap-2.5 rounded-xl p-4 ${
+            spoilerLevel === 'safe' ? 'bg-ns-success/10' : 'bg-ns-warning/10'
+          }`}
+        >
           {spoilerLevel === 'safe'
-            ? <SpoilerFreeIcon size={14} className="text-emerald-400 flex-shrink-0 mt-0.5" />
-            : <WarningIcon size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />}
-          <p className={`text-xs font-body leading-relaxed ${
-            spoilerLevel === 'safe' ? 'text-emerald-300/80' : 'text-amber-300/80'
-          }`}>
+            ? <SpoilerFreeIcon size={16} className="mt-0.5 flex-shrink-0 text-ns-success" />
+            : <WarningIcon size={16} className="mt-0.5 flex-shrink-0 text-ns-warning" />}
+          <p className={`text-sm leading-relaxed ${spoilerLevel === 'safe' ? 'text-ns-success' : 'text-ns-warning'}`}>
             {spoilerLevel === 'auto'
               ? 'Plot Passport will detect the earliest safe viewing point from your review and lock it for viewers who are not there yet.'
               : spoilerLevel === 'safe'
@@ -214,18 +205,11 @@ export default function WriteReview({ tmdbId, movieTitle, existing, onSaved, onC
           </p>
         </div>
 
-        {error && (
-          <p className="text-rose-400 text-sm font-body">{error}</p>
-        )}
+        {error && <p id={errorId} role="alert" className="text-sm text-ns-danger">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={saving || !body.trim()}
-          className="self-start px-6 py-2.5 rounded-xl bg-ns-secondary text-ns-secondary-foreground text-sm font-heading font-semibold
-                     hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Publish Review'}
-        </button>
+        <Button type="submit" disabled={!body.trim()} loading={saving} className="w-full sm:w-auto sm:self-start">
+          {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Publish review'}
+        </Button>
       </form>
     </div>
   )

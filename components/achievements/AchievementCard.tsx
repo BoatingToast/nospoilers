@@ -1,47 +1,20 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import dynamic from 'next/dynamic'
 import type { UserAchievementData, AchievementRarity } from '@/types'
-import { getAchievementIcon, SuspenseIcon } from '@/components/icons'
+import { CheckIcon, LockIcon, getAchievementIcon } from '@/components/icons'
+import { Meter } from '@/components/watchlist/LibraryControls'
+import { cn } from '@/lib/utils'
 
 const AchievementDetailModal = dynamic(() => import('./AchievementDetailModal'), { ssr: false })
 
-const RARITY_CONFIG: Record<AchievementRarity, {
-  label:       string
-  textClass:   string
-  borderClass: string
-  bgClass:     string
-  glowStyle:   string
-}> = {
-  common: {
-    label:       'Common',
-    textClass:   'text-ns-muted',
-    borderClass: 'border-ns-border',
-    bgClass:     '',
-    glowStyle:   '',
-  },
-  rare: {
-    label:       'Rare',
-    textClass:   'text-ns-info',
-    borderClass: 'border-ns-info/30',
-    bgClass:     'bg-ns-info/5',
-    glowStyle:   'rgb(var(--ns-info)/0.15)',
-  },
-  epic: {
-    label:       'Epic',
-    textClass:   'text-ns-tier-epic',
-    borderClass: 'border-ns-tier-epic/30',
-    bgClass:     'bg-ns-tier-epic/5',
-    glowStyle:   'rgb(var(--ns-tier-epic)/0.15)',
-  },
-  legendary: {
-    label:       'Legendary',
-    textClass:   'text-ns-secondary-readable',
-    borderClass: 'border-ns-secondary/30',
-    bgClass:     'bg-ns-secondary/5',
-    glowStyle:   'rgb(var(--ns-secondary)/0.2)',
-  },
+const RARITY_CONFIG: Record<AchievementRarity, { label: string; textClass: string; tileClass: string }> = {
+  common:    { label: 'Common',    textClass: 'text-ns-muted',              tileClass: 'bg-ns-surface-3' },
+  rare:      { label: 'Rare',      textClass: 'text-ns-info',               tileClass: 'bg-ns-tile-blue' },
+  epic:      { label: 'Epic',      textClass: 'text-ns-tier-epic',          tileClass: 'bg-ns-tile-lilac' },
+  legendary: { label: 'Legendary', textClass: 'text-ns-secondary-readable', tileClass: 'bg-ns-tile-rose' },
 }
 
 interface Props {
@@ -59,122 +32,65 @@ export default function AchievementCard({ achievement }: Props) {
   return (
     <>
       <button
+        type="button"
         onClick={() => setOpen(true)}
-        className={`
-          w-full text-left p-4 rounded-2xl border transition-all duration-200
-          hover:scale-[1.02] hover:shadow-lg active:scale-[0.99]
-          focus:outline-none focus:ring-2 focus:ring-ns-secondary/30
-          ${achievement.earned
-            ? `${rarity.borderClass} ${rarity.bgClass} bg-ns-surface`
-            : 'border-ns-border bg-ns-surface'
-          }
-          ${locked ? 'opacity-50' : ''}
-        `}
-        style={achievement.earned && rarity.glowStyle
-          ? { boxShadow: `0 4px 20px ${rarity.glowStyle}` }
-          : undefined
-        }
+        className="flex h-full w-full items-start gap-4 rounded-2xl bg-ns-surface p-5 text-left transition-colors duration-150 hover:bg-ns-surface-2"
       >
-        <div className="flex items-start gap-4">
-          {/* Icon */}
-          <div className={`
-            flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center text-2xl border
-            ${achievement.earned
-              ? `${rarity.borderClass} ${rarity.bgClass}`
-              : 'border-ns-border bg-ns-bg'
-            }
-          `}>
-            {locked ? (
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5"
-                   viewBox="0 0 24 24" className="text-ns-muted/40">
-                <rect x="3" y="11" width="18" height="11" rx="2"/>
-                <path d="M7 11V7a5 5 0 0110 0v4"/>
-              </svg>
-            ) : (
-              <AchIcon size={22} className={achievement.earned ? rarity.textClass : 'text-ns-muted/50'} />
-            )}
-          </div>
+        <span className={cn(
+          'flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl',
+          achievement.earned ? rarity.tileClass : 'bg-ns-surface-2',
+        )}>
+          {locked
+            ? <LockIcon size={20} className="text-ns-subtle" />
+            : <AchIcon size={24} className={achievement.earned ? 'text-ns-text' : 'text-ns-muted'} />}
+        </span>
 
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <p className={`text-sm font-body font-semibold truncate ${
-                achievement.earned ? 'text-ns-text' : 'text-ns-muted'
-              }`}>
-                {achievement.name}
-              </p>
-              {achievement.earned && (
-                <div className="flex-shrink-0 w-4 h-4 rounded-full bg-ns-secondary flex items-center justify-center">
-                  <svg width="8" height="8" fill="none" stroke="white" strokeWidth="3" viewBox="0 0 24 24">
-                    <path d="M20 6L9 17l-5-5"/>
-                  </svg>
-                </div>
-              )}
-            </div>
-
-            <p className="text-ns-muted/70 text-xs font-body leading-snug line-clamp-2 mb-3">
-              {locked ? '???' : achievement.description}
-            </p>
-
-            {/* Progress bar */}
-            {!locked && (
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className={`text-[9px] font-body tracking-widest uppercase ${rarity.textClass}`}>
-                      {rarity.label}
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-body text-ns-muted/60">
-                    {achievement.progress}/{achievement.goal}
-                  </span>
-                </div>
-                <div className="h-1 bg-ns-border rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${
-                      achievement.earned
-                        ? 'bg-gradient-to-r from-ns-secondary to-ns-secondary/60'
-                        : 'bg-ns-secondary/40'
-                    }`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Locked label */}
-            {locked && (
-              <div className="flex items-center gap-1.5">
-                <span className={`text-[9px] font-body tracking-widest uppercase ${rarity.textClass}`}>
-                  {rarity.label}
-                </span>
-                <span className="text-ns-muted/40 text-[9px] font-body">· Locked</span>
-              </div>
-            )}
-          </div>
-
-          {/* XP badge */}
-          <div className="flex-shrink-0 flex flex-col items-end gap-1">
-            <span className={`text-[10px] font-body font-semibold flex items-center gap-0.5 ${
-              achievement.earned ? 'text-ns-secondary-readable' : 'text-ns-muted/50'
-            }`}>
-              <SuspenseIcon size={10} />
-              {achievement.xpReward}
+        <span className="block min-w-0 flex-1">
+          <span className="flex items-center gap-2">
+            <span className={cn('truncate font-heading text-base font-semibold', achievement.earned || !locked ? 'text-ns-text' : 'text-ns-muted')}>
+              {achievement.name}
             </span>
-            {achievement.earnedAt && (
-              <span className="text-[9px] font-body text-ns-muted/40">
-                {new Date(achievement.earnedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            {achievement.earned && (
+              <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-ns-accent text-ns-secondary-foreground">
+                <CheckIcon size={12} strokeWidth={3} />
               </span>
             )}
-          </div>
-        </div>
+          </span>
+
+          <span className="mt-0.5 line-clamp-2 block text-sm leading-snug text-ns-muted">
+            {locked ? '???' : achievement.description}
+          </span>
+
+          {!locked && !achievement.earned && (
+            <span className="mt-3 block">
+              <Meter value={pct / 100} />
+            </span>
+          )}
+
+          <span className="mt-2 flex flex-wrap items-center gap-x-2 text-xs tabular-nums text-ns-muted">
+            <span className={cn('font-semibold', rarity.textClass)}>{rarity.label}</span>
+            <span aria-hidden="true">·</span>
+            <span>{achievement.xpReward} XP</span>
+            {locked && <><span aria-hidden="true">·</span><span>Locked</span></>}
+            {!locked && !achievement.earned && (
+              <><span aria-hidden="true">·</span><span>{achievement.progress}/{achievement.goal}</span></>
+            )}
+            {achievement.earnedAt && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{new Date(achievement.earnedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+              </>
+            )}
+          </span>
+        </span>
       </button>
 
-      {open && (
+      {open && createPortal(
         <AchievementDetailModal
           achievement={achievement}
           onClose={() => setOpen(false)}
-        />
+        />,
+        document.body,
       )}
     </>
   )
