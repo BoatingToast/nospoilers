@@ -18,7 +18,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params
-  return { title: `Compatibility with @${username} — NoSpoilers` }
+  return { title: `Compatibility with @${username}` }
 }
 
 export default async function CompatibilityPage({ params }: Props) {

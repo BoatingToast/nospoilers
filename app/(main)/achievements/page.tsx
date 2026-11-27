@@ -6,7 +6,7 @@ import { getUserXP } from '@/services/xp'
 import AchievementsClient from './AchievementsClient'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Achievements — NoSpoilers' }
+export const metadata: Metadata = { title: 'Achievements' }
 
 export default async function AchievementsPage() {
   const session = await getServerSession(authOptions)

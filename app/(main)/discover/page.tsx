@@ -15,6 +15,7 @@ import EmptyState from '@/components/ui/EmptyState'
 import PageHeader from '@/components/ui/PageHeader'
 import SearchModal from '@/components/ui/SearchModal'
 import { curateDistinctMovieShelf } from '@/lib/movie-quality'
+import { getMovieGuide, guidePath } from '@/lib/movie-guides'
 import { formatRating, formatYear } from '@/lib/utils'
 import type { TMDbMovie } from '@/types'
 
@@ -25,11 +26,16 @@ export const metadata = publicPageMetadata({
 })
 
 const GENRE_ROWS = [
-  { id: 18, label: 'Drama'         },
-  { id: 53, label: 'Thriller'      },
-  { id: 878, label: 'Science Fiction'},
-  { id: 35, label: 'Comedy'        },
+  { id: 18, label: 'Drama', guide: 'best-drama-movies' },
+  { id: 53, label: 'Thriller', guide: 'best-thriller-movies' },
+  { id: 878, label: 'Science Fiction', guide: 'best-sci-fi-movies' },
+  { id: 35, label: 'Comedy', guide: 'best-comedy-movies' },
 ]
+
+function guideLink(slug: string) {
+  const guide = getMovieGuide(slug)
+  return guide ? { href: guidePath(guide), label: `See the full list: ${guide.label.toLowerCase()}` } : undefined
+}
 
 export default async function DiscoverPage() {
   // Parallel fetch all sections — each fails gracefully
@@ -82,15 +88,21 @@ export default async function DiscoverPage() {
     { limit: shelfLimit, minVoteCount: 100, minRating: 5.5 },
   ))
 
-  const sections: Array<{ title: string; description?: string; movies: TMDbMovie[] }> = [
+  const sections: Array<{
+    title: string
+    description?: string
+    movies: TMDbMovie[]
+    link?: { href: string; label: string }
+  }> = [
     { title: 'Trending this week', movies: trendingMovies },
     { title: 'Popular now', movies: popularMovies },
-    { title: 'Now in theatres', movies: nowPlayingMovies },
-    { title: 'Top rated all time', description: 'Acclaimed by thousands', movies: topRatedMovies },
-    { title: 'Hidden gems', description: 'Highly rated, underseen', movies: hiddenGemMovies },
+    { title: 'Now in theatres', movies: nowPlayingMovies, link: guideLink('new-movies') },
+    { title: 'Top rated all time', description: 'Acclaimed by thousands', movies: topRatedMovies, link: guideLink('best-movies-of-all-time') },
+    { title: 'Hidden gems', description: 'Highly rated, underseen', movies: hiddenGemMovies, link: guideLink('hidden-gem-movies') },
     ...GENRE_ROWS.map((genre, index) => ({
       title: genre.label,
       movies: genreMovies[index],
+      link: guideLink(genre.guide),
     })),
   ].filter(section => section.movies.length >= 4)
 

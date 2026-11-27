@@ -5,7 +5,7 @@ import { generateWrapped } from '@/services/wrapped'
 import WrappedExperience from '@/components/wrapped/WrappedExperience'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Your Movie Wrapped — NoSpoilers' }
+export const metadata: Metadata = { title: 'Your Movie Wrapped' }
 
 export default async function WrappedPage() {
   const session = await getServerSession(authOptions)

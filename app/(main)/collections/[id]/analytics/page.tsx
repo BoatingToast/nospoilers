@@ -11,7 +11,7 @@ interface Props { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   await params
-  return { title: 'Collection Analytics — NoSpoilers' }
+  return { title: 'Collection Analytics' }
 }
 
 export default async function CollectionAnalyticsPage({ params }: Props) {

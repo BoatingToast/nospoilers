@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
   const session = await getServerSession(authOptions)
   const col    = await getCollection(id, session?.user?.id ?? null)
-  return { title: col ? `${col.title} — NoSpoilers` : 'Collection' }
+  return { title: col ? `${col.title}` : 'Collection' }
 }
 
 export default async function CollectionPage({ params }: Props) {

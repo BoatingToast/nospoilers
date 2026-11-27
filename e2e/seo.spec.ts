@@ -42,6 +42,8 @@ test('robots and sitemap expose canonical public URLs and deduplicate movie feed
   expect(new Set(urls).size).toBe(urls.length)
   expect(urls).toContain(`${origin}/movie/603`)
   expect(urls).toContain(`${origin}/movie-recommendations`)
+  expect(urls).toContain(`${origin}/movie-recommendations/best-sci-fi-movies`)
+  expect(urls).toContain(`${origin}/movie-recommendations/movies-to-watch-blind`)
   expect(urls.every(url => url.startsWith(`${origin}/`))).toBe(true)
   expect(urls.some(url => /\/(login|search|dashboard|settings|watchlist|movie-night)(\/|\?|$)/.test(url))).toBe(false)
   expect(xml).not.toContain('<lastmod>')
@@ -64,6 +66,52 @@ test('movie metadata and structured data describe the film without leaking its s
   expect(data[0]['@graph'].some((item: Record<string, unknown>) => item['@type'] === 'BreadcrumbList')).toBe(true)
 })
 
+test('movie pages link their genres to recommendation guides and target "movies like" searches', async ({ request }) => {
+  const html = await (await request.get('/movie/603', { headers: crawler })).text()
+  expect(html).toContain('href="/movie-recommendations/best-sci-fi-movies"')
+  expect(html).toContain('href="/movie-recommendations/best-action-movies"')
+  const description = html.match(/<meta name="description" content="([^"]*)"/)?.[1]
+  expect(description).toContain('movies like The Matrix')
+})
+
+test('a recommendation guide is a crawlable, spoiler-free ranked list with carousel markup', async ({ request }) => {
+  const path = '/movie-recommendations/best-sci-fi-movies'
+  const response = await request.get(path, { headers: crawler })
+  expect(response.status()).toBe(200)
+  expect(response.headers()['x-robots-tag']).toBeUndefined()
+  const html = await response.text()
+  expect(html).toContain('<title>Best Sci-Fi Movies of All Time, Without Spoilers | NoSpoilers</title>')
+  expect(html).toContain(`<link rel="canonical" href="${origin}${path}"`)
+  expect(html.match(/<h1[\s>]/g)).toHaveLength(1)
+  const visibleText = html.replace(/<[^>]+>/g, '')
+  expect(visibleText).toContain('The best science fiction movies')
+  expect(html).toContain('href="/movie/603"')
+  // The list must never fall back to TMDb overviews.
+  expect(html).not.toContain('computer hacker')
+
+  const data = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(match => JSON.parse(match[1]))
+  const graph = data[0]['@graph']
+  const list = graph.find((item: Record<string, unknown>) => item['@type'] === 'ItemList')
+  expect(list.itemListElement[0]).toEqual({ '@type': 'ListItem', position: 1, url: `${origin}/movie/603` })
+  expect(list.numberOfItems).toBe(list.itemListElement.length)
+  expect(graph.some((item: Record<string, unknown>) => item['@type'] === 'BreadcrumbList')).toBe(true)
+})
+
+test('the recommendations hub links to every guide', async ({ request }) => {
+  const html = await (await request.get('/movie-recommendations', { headers: crawler })).text()
+  for (const slug of ['best-movies-of-all-time', 'movies-to-watch-blind', 'best-horror-movies', 'new-movies']) {
+    expect(html).toContain(`href="/movie-recommendations/${slug}"`)
+  }
+})
+
+test('unknown guide slugs are not-found pages, not empty lists', async ({ request }) => {
+  const response = await request.get('/movie-recommendations/best-imaginary-movies', { headers: crawler })
+  expect([200, 404]).toContain(response.status())
+  const html = await response.text()
+  expect(html).toContain('<meta name="robots" content="noindex"')
+  expect(html).not.toContain('"@type":"ItemList"')
+})
+
 test('invalid movie IDs render a noindex not-found page instead of a duplicate movie', async ({ request }) => {
   for (const path of ['/movie/603junk', '/movie/0', '/movie/999999999']) {
     const response = await request.get(path, { headers: crawler })
@@ -78,7 +126,7 @@ test('invalid movie IDs render a noindex not-found page instead of a duplicate m
 })
 
 test('public pages have their own canonicals while account and search pages are noindex', async ({ request }) => {
-  for (const path of ['/discover', '/movie-recommendations', '/theater', '/privacy/extension']) {
+  for (const path of ['/discover', '/movie-recommendations', '/movie-recommendations/new-movies', '/theater', '/privacy/extension']) {
     const response = await request.get(path, { headers: crawler })
     expect(response.status(), path).toBe(200)
     expect(await response.text()).toContain(`<link rel="canonical" href="${origin}${path}"`)

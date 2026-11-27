@@ -27,7 +27,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params
   return {
-    title: `@${username} — NoSpoilers`,
+    title: `@${username}`,
     description: `${username}'s movie taste profile on NoSpoilers`,
     openGraph: { images: [`/api/og/${username}`] },
   }

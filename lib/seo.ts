@@ -71,7 +71,7 @@ export function movieSearchDescription(movie: {
   const year = /^\d{4}-/.test(movie.release_date) ? ` (${movie.release_date.slice(0, 4)})` : ''
   const genres = movie.genres.slice(0, 2).map(genre => genre.name.toLowerCase()).join(' and ')
   const article = /^[aeiou]/.test(genres) ? 'an' : 'a'
-  return `Explore ${movie.title}${year}${genres ? `, ${article} ${genres} movie` : ''}, without spoilers. See ratings, runtime, audience fit, and similar movies on NoSpoilers.`
+  return `Explore ${movie.title}${year}${genres ? `, ${article} ${genres} movie` : ''}, without spoilers. See ratings, runtime, audience fit, and movies like ${movie.title}.`
 }
 
 export function serializeJsonLd(data: unknown): string {

@@ -8,7 +8,7 @@ import EmptyState from '@/components/ui/EmptyState'
 import PageHeader from '@/components/ui/PageHeader'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Watch History — NoSpoilers' }
+export const metadata: Metadata = { title: 'Watch History' }
 
 export default async function HistoryPage() {
   const session = await getServerSession(authOptions)

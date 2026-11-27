@@ -6,7 +6,7 @@ import { getWhereWasISession } from '@/services/where-was-i'
 import WhereWasIClient from '@/components/where-was-i/WhereWasIClient'
 
 export const metadata: Metadata = {
-  title: 'Where Was I? — NoSpoilers',
+  title: 'Where Was I?',
   description: 'Resume a story with a source-backed refresher that stops at your confirmed progress.',
 }
 

@@ -5,7 +5,7 @@ import PageHeader from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Search Collections — NoSpoilers' }
+export const metadata: Metadata = { title: 'Search Collections' }
 
 export default function CollectionSearchPage() {
   return (

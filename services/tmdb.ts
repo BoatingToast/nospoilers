@@ -254,6 +254,14 @@ export async function getMoviesByGenre(
   })
 }
 
+/** A caller-built /discover/movie query. The caller owns adult and date filters. */
+export async function discoverMovies(
+  params: Record<string, string>,
+  revalidate = 86_400,
+): Promise<TMDbSearchResponse> {
+  return tmdbFetch('/discover/movie', { ...params }, revalidate)
+}
+
 export async function getHiddenGems(): Promise<TMDbSearchResponse> {
   const today = new Date().toISOString().slice(0, 10)
 

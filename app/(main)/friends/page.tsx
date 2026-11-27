@@ -14,7 +14,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Friends — NoSpoilers',
+  title: 'Friends',
   description: 'Manage friends, requests, followers, and movie-taste connections in one place.',
   alternates: { canonical: '/friends' },
 }

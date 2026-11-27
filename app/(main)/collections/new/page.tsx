@@ -6,7 +6,7 @@ import CreateCollectionForm from '@/components/collections/CreateCollectionForm'
 import PageHeader from '@/components/ui/PageHeader'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'New Collection — NoSpoilers' }
+export const metadata: Metadata = { title: 'New Collection' }
 
 export default async function NewCollectionPage() {
   const session = await getServerSession(authOptions)

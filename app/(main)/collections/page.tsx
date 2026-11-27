@@ -10,7 +10,7 @@ import { ArrowRightIcon, PlusIcon } from '@/components/icons'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Collections — NoSpoilers' }
+export const metadata: Metadata = { title: 'Collections' }
 
 export default async function CollectionsPage() {
   const session = await getServerSession(authOptions)

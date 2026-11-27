@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth'
 import TasteImport from '@/components/settings/TasteImport'
 import PageHeader from '@/components/ui/PageHeader'
 
-export const metadata: Metadata = { title: 'Import & Export — NoSpoilers' }
+export const metadata: Metadata = { title: 'Import & Export' }
 
 export default async function ImportExportPage() {
   const session = await getServerSession(authOptions)

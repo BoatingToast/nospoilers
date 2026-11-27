@@ -6,7 +6,7 @@ import { getWatchlist } from '@/services/watchlist'
 import PlotPassportClient from '@/components/plot-passport/PlotPassportClient'
 
 export const metadata: Metadata = {
-  title: 'Plot Passport — NoSpoilers',
+  title: 'Plot Passport',
   description: 'Your personal spoiler boundary across NoSpoilers and the web.',
 }
 

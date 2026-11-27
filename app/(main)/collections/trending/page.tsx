@@ -15,7 +15,7 @@ import type { CSSProperties } from 'react'
 import type { Metadata } from 'next'
 import type { EnrichedCollectionData } from '@/types'
 
-export const metadata: Metadata = { title: 'Trending Collections — NoSpoilers' }
+export const metadata: Metadata = { title: 'Trending Collections' }
 
 // Revalidate every 5 minutes so trending stays fresh
 export const revalidate = 300

@@ -5,7 +5,7 @@ import { getUserRatings, getRatingStats } from '@/services/ratings'
 import RatingsClient from './RatingsClient'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'My Ratings — NoSpoilers' }
+export const metadata: Metadata = { title: 'My Ratings' }
 
 export default async function RatingsPage() {
   const session = await getServerSession(authOptions)

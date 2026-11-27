@@ -26,7 +26,7 @@ import Button from '@/components/ui/Button'
 import SectionHeading, { SectionLink } from '@/components/dashboard/SectionHeading'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Dashboard — NoSpoilers' }
+export const metadata: Metadata = { title: 'Dashboard' }
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
