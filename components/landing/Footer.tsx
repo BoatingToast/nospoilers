@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ComponentType } from 'react'
 import Logo from '@/components/ui/Logo'
 import { InstagramIcon, LinkedInIcon, MailIcon, TikTokIcon, type IconProps } from '@/components/icons'
+import { getMovieGuide, guidePath, type MovieGuide } from '@/lib/movie-guides'
 
 const CONTACT_EMAIL = 'nospoilers641@gmail.com'
 const EMAIL_HREF = `mailto:${CONTACT_EMAIL}?subject=NoSpoilers%20Inquiry`
@@ -26,6 +27,18 @@ const PRODUCT_LINKS = [
   { href: '/privacy/extension', label: 'Shield privacy' },
 ]
 
+// Sitewide links to the main recommendation lists. Keep this short: the hub
+// at /movie-recommendations links to every guide.
+const GUIDE_LINKS = [
+  'best-movies-of-all-time',
+  'movies-to-watch-blind',
+  'best-horror-movies',
+  'best-comedy-movies',
+  'hidden-gem-movies',
+  'short-movies-under-90-minutes',
+  'new-movies',
+].map(getMovieGuide).filter((guide): guide is MovieGuide => Boolean(guide))
+
 const linkClass = 'inline-flex min-h-8 items-center gap-2 text-sm text-ns-muted transition-colors hover:text-ns-text'
 
 export default function Footer() {
@@ -33,7 +46,7 @@ export default function Footer() {
 
   return (
     <footer className="border-t border-ns-border px-4 sm:px-6">
-      <div className="mx-auto grid max-w-[77rem] gap-10 py-12 md:grid-cols-[1.5fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-[77rem] gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
         <div className="max-w-sm">
           <Logo />
           <p className="mt-4 text-sm leading-relaxed text-ns-muted">
@@ -51,6 +64,17 @@ export default function Footer() {
             {PRODUCT_LINKS.map(link => (
               <li key={link.href}>
                 <Link href={link.href} className={linkClass}>{link.label}</Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <nav aria-label="Movie guides">
+          <h2 className="mb-2 font-heading text-sm font-semibold text-ns-text">Movie guides</h2>
+          <ul>
+            {GUIDE_LINKS.map(guide => (
+              <li key={guide.slug}>
+                <Link href={guidePath(guide)} className={linkClass}>{guide.label}</Link>
               </li>
             ))}
           </ul>

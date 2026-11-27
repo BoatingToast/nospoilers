@@ -5,7 +5,7 @@ import PrivacySettings from '@/components/settings/PrivacySettings'
 import PageHeader from '@/components/ui/PageHeader'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Privacy Settings — NoSpoilers' }
+export const metadata: Metadata = { title: 'Privacy Settings' }
 
 export default async function PrivacySettingsPage() {
   const session = await getServerSession(authOptions)

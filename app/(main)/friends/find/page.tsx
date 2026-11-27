@@ -7,7 +7,7 @@ import PageHeader from '@/components/ui/PageHeader'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Find People — NoSpoilers',
+  title: 'Find People',
   description: 'Find friends and members with compatible movie taste.',
   alternates: { canonical: '/friends/find' },
 }

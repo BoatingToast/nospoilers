@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import StudyDiscovery from '@/components/audience/StudyDiscovery'
 export const metadata: Metadata = {
-  title: 'Audience studies — NoSpoilers',
+  title: 'Audience studies',
   robots: { index: false, follow: false },
 }
 export default function AudienceStudiesPage() {

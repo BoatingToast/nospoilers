@@ -31,6 +31,7 @@ import SpoilerZone   from '@/components/spoiler-zone/SpoilerZone'
 import { selectMovieTrailers } from '@/lib/movie-trailers'
 import { selectRelatedMovies } from '@/lib/movie-quality'
 import { absoluteUrl, movieSearchDescription, parseCatalogId, publicPageMetadata } from '@/lib/seo'
+import { getGuideForGenre, guidePath } from '@/lib/movie-guides'
 import { authOptions } from '@/lib/auth'
 import { isRomComMovie, type RomComRoastResult } from '@/lib/rom-com-roast'
 import { getRomComRoastForUser } from '@/services/rom-com-roast'
@@ -156,6 +157,7 @@ export default async function MoviePage({ params }: Props) {
             description: movieSearchDescription(movie),
             image: movie.poster_path ? tmdbImageUrl(movie.poster_path, 'w500') : undefined,
             datePublished: movie.release_date || undefined,
+            dateCreated: movie.release_date || undefined,
             duration: movie.runtime && movie.runtime > 0 ? `PT${movie.runtime}M` : undefined,
             genre: movie.genres.map(genre => genre.name),
             director: director ? { '@type': 'Person', name: director.name } : undefined,
@@ -194,10 +196,22 @@ export default async function MoviePage({ params }: Props) {
 
         <div className="min-w-0">
           {movie.genres.length > 0 && (
-            <div className="mb-4 flex flex-wrap gap-2">
-              {movie.genres.map(genre => (
-                <Badge key={genre.id} size="md">{genre.name}</Badge>
-              ))}
+            <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1">
+              {movie.genres.map(genre => {
+                const guide = getGuideForGenre(genre.id)
+                return guide ? (
+                  <Link
+                    key={genre.id}
+                    href={guidePath(guide)}
+                    aria-label={`${genre.name}: see ${guide.label.toLowerCase()}`}
+                    className="group inline-flex min-h-10 items-center rounded-full"
+                  >
+                    <Badge size="md" className="transition-colors duration-150 group-hover:bg-ns-surface-3 group-hover:text-ns-text">{genre.name}</Badge>
+                  </Link>
+                ) : (
+                  <Badge key={genre.id} size="md">{genre.name}</Badge>
+                )
+              })}
             </div>
           )}
 
@@ -312,7 +326,7 @@ export default async function MoviePage({ params }: Props) {
         </div>
 
         {/* Similar movies */}
-        <SimilarMovies matches={relatedMovies} />
+        <SimilarMovies movieTitle={movie.title} matches={relatedMovies} />
 
         {/* Community reviews */}
         <ReviewSection tmdbId={movie.id} movieTitle={movie.title} />

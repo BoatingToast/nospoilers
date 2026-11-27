@@ -6,7 +6,7 @@ import PageHeader from '@/components/ui/PageHeader'
 import SocialListPage from '@/components/social/SocialListPage'
 
 export const metadata: Metadata = {
-  title: 'Followers — NoSpoilers',
+  title: 'Followers',
   description: 'See who follows your NoSpoilers movie profile.',
   alternates: { canonical: '/friends/followers' },
 }

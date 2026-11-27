@@ -4,18 +4,18 @@ import PosterRail from '@/components/discover/PosterRail'
 import { formatYear } from '@/lib/utils'
 import type { RelatedMovieMatch } from '@/lib/movie-quality'
 
-export default function SimilarMovies({ matches }: { matches: RelatedMovieMatch[] }) {
+export default function SimilarMovies({ movieTitle, matches }: { movieTitle: string; matches: RelatedMovieMatch[] }) {
   if (matches.length === 0) return null
 
   return (
     <section aria-labelledby="related-films-heading" className="ns-reveal">
       <PosterRail
-        label="Related films"
-        controlsLabel="related films"
+        label={`Movies like ${movieTitle}`}
+        controlsLabel={`movies like ${movieTitle}`}
         heading={(
           <>
             <h2 id="related-films-heading" className="font-display text-3xl text-ns-text sm:text-4xl">
-              Related films
+              Movies like {movieTitle}
             </h2>
             <p className="mt-2 max-w-xl text-base leading-relaxed text-ns-muted">
               Ranked from TMDb recommendations and similar-film results, then filtered for shared genres and audience confidence.

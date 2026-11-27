@@ -6,7 +6,7 @@ import AudienceLabDashboard from '@/components/creator/AudienceLabDashboard'
 import FilmmakerStudioMap from '@/components/creator/FilmmakerStudioMap'
 import { ArrowRightIcon } from '@/components/icons'
 
-export const metadata: Metadata = { title: 'Filmmaker Studio — NoSpoilers' }
+export const metadata: Metadata = { title: 'Filmmaker Studio' }
 
 export default function CreatorPage() {
   return (

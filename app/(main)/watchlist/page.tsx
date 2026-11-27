@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button'
 import PageHeader from '@/components/ui/PageHeader'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'My Watchlist — NoSpoilers' }
+export const metadata: Metadata = { title: 'My Watchlist' }
 
 interface Props {
   searchParams: Promise<{ status?: string; sortBy?: string }>

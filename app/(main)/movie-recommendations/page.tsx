@@ -1,12 +1,37 @@
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
-import { publicPageMetadata } from '@/lib/seo'
+import DiscoverSection from '@/components/discover/DiscoverSection'
+import JsonLd from '@/components/seo/JsonLd'
+import { guidePath, MOVIE_GUIDES } from '@/lib/movie-guides'
+import { curateDistinctMovieShelf } from '@/lib/movie-quality'
+import { absoluteUrl, publicPageMetadata } from '@/lib/seo'
+import { getTrendingMovies } from '@/services/tmdb'
+import type { TMDbMovie } from '@/types'
 
 export const metadata = publicPageMetadata({
   title: 'Movie Recommendations — Find Your Next Watch',
   description: 'What movie should you watch? Find spoiler-free movie recommendations by taste, genre, and mood. Explore Movie DNA, similar films, and watchlists on NoSpoilers.',
   path: '/movie-recommendations',
 })
+
+export const revalidate = 3600
+
+const guideGroups = [
+  { id: 'genre-guides', title: 'By genre', guides: MOVIE_GUIDES.filter(guide => guide.group === 'genre') },
+  { id: 'occasion-guides', title: 'By time and mood', guides: MOVIE_GUIDES.filter(guide => guide.group === 'occasion') },
+]
+
+// The guides carry the page if the catalog is unavailable, so a failed feed
+// hides this shelf rather than failing the page.
+async function getWeeklyPicks(): Promise<TMDbMovie[]> {
+  try {
+    const { results } = await getTrendingMovies('week')
+    return curateDistinctMovieShelf(results, new Set(), { limit: 12, minVoteCount: 200, minRating: 6.5 })
+  } catch (error) {
+    console.error('[movie-recommendations] weekly picks unavailable', error)
+    return []
+  }
+}
 
 const steps = [
   {
@@ -54,9 +79,33 @@ const questions = [
   },
 ]
 
-export default function MovieRecommendationsPage() {
+export default async function MovieRecommendationsPage() {
+  const picks = await getWeeklyPicks()
+
   return (
     <div className="mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6 sm:pt-16 lg:pb-24">
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'NoSpoilers', item: absoluteUrl('/') },
+              { '@type': 'ListItem', position: 2, name: 'Movie recommendations', item: absoluteUrl('/movie-recommendations') },
+            ],
+          },
+          ...(picks.length > 0 ? [{
+            '@type': 'ItemList',
+            name: 'Popular picks this week',
+            numberOfItems: picks.length,
+            itemListElement: picks.map((movie, index) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              url: absoluteUrl(`/movie/${movie.id}`),
+            })),
+          }] : []),
+        ],
+      }} />
       <header className="max-w-4xl">
         <h1 className="font-display text-5xl text-ns-text sm:text-6xl lg:text-7xl">
           Movie recommendations without spoilers
@@ -70,6 +119,45 @@ export default function MovieRecommendationsPage() {
           Find your next movie
         </Button>
       </header>
+
+      <section aria-labelledby="browse-guides" className="mt-14 lg:mt-20">
+        <h2 id="browse-guides" className="font-display text-4xl text-ns-text sm:text-5xl">
+          Browse movie recommendations
+        </h2>
+        <p className="mt-3 max-w-2xl text-lg leading-relaxed text-ns-muted">
+          Each list is ranked by audience score and refreshed daily. None of them include a plot summary.
+        </p>
+        <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-16">
+          {guideGroups.map(group => (
+            <div key={group.id}>
+              <h3 id={group.id} className="font-heading text-xl font-bold text-ns-text">{group.title}</h3>
+              <ul aria-labelledby={group.id} className="mt-3 divide-y divide-ns-border">
+                {group.guides.map(guide => (
+                  <li key={guide.slug}>
+                    <Link
+                      href={guidePath(guide)}
+                      className="group flex min-h-12 items-center justify-between gap-4 py-2 text-base font-semibold text-ns-text transition-colors hover:text-ns-secondary-readable"
+                    >
+                      {guide.label}
+                      <span aria-hidden="true" className="text-ns-subtle transition-colors group-hover:text-ns-secondary-readable">→</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {picks.length > 0 && (
+        <div className="mt-14 lg:mt-20">
+          <DiscoverSection
+            title="Popular picks this week"
+            description="Trending films with strong audience scores."
+            movies={picks}
+          />
+        </div>
+      )}
 
       <section
         aria-labelledby="choose-a-movie"

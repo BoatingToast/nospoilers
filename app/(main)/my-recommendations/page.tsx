@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import RecommendationCenterClient from '@/components/recommendations/RecommendationCenterClient'
 
 export const metadata: Metadata = {
-  title: 'Recommendation Center — NoSpoilers',
+  title: 'Recommendation Center',
   description: 'Your personalised movie recommendations powered by Movie DNA.',
 }
 
